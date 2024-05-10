@@ -38,30 +38,31 @@ export function sessionToResponse(session) {
 }
 
 export function createCell({ type }) {
-  return {
-    id: randomid(),
-    type: type,
-    input: inputForCellType(type),
-    output: null,
-  };
-}
-
-function inputForCellType(type) {
   switch (type) {
-    case 'section':
-      return { text: 'Section', depth: 2 };
+    case 'heading':
+      return { id: randomid(), type: 'heading', text: 'Heading', depth: 2, output: [] };
     case 'code':
-      return { text: '', lang: 'javascript' };
+      return { id: randomid(), type: 'code', source: '', language: 'javascript', output: [] };
     default:
       throw new Error(`Unrecognized cell type ${type}`);
   }
 }
 
-export function exec(session, cell, code) {
-  const result = vm.runInContext(code, session.context);
-  const input = { text: code };
-  const output = { result: result };
-  return updateCodeCell(cell, { input, output });
+export function exec(session, cell, source) {
+  // Make a copy of the cell
+  cell = { ...cell, source: source, output: [] };
+
+  try {
+    const result = vm.runInContext(source, session.context);
+    cell.output = [{ type: 'eval', error: false, text: result }];
+  } catch (error) {
+    console.error(`Error while evaluating Cell(id=${cell.id})`);
+    console.error(error);
+    cell.output = [{ type: 'eval', error: true, text: error.stack }];
+  }
+
+  // Return copy
+  return cell;
 }
 
 export function findCell(session, id) {
@@ -70,12 +71,4 @@ export function findCell(session, id) {
 
 export function replaceCell(session, cell) {
   return session.cells.map((c) => (c.id === cell.id ? cell : c));
-}
-
-function updateCodeCell(cell, updates) {
-  const updatedInput = updates.input || {};
-  const updatedOutput = updates.output || {};
-  const input = { ...cell.input, ...updatedInput };
-  const output = { ...cell.output, ...updatedOutput };
-  return { ...cell, input, output };
 }

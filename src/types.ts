@@ -10,26 +10,26 @@ export interface FsObjectResultType {
   entries: FsObjectType[];
 }
 
+export type EvalOutputType = { type: 'eval'; error: boolean; text: string };
+export type StdoutOutputType = { type: 'stdout'; text: string };
+export type OutputType = EvalOutputType | StdoutOutputType;
+
 type BaseCellType = {
   id: string;
 };
 
-export type SectionCellType = BaseCellType & {
-  type: 'section';
-  input: {
-    text: string;
-    depth: number;
-  };
-  output: null;
+export type HeadingCellType = BaseCellType & {
+  type: 'heading';
+  text: string;
+  depth: 1 | 2;
+  output: OutputType[];
 };
 
 export type CodeCellType = BaseCellType & {
   type: 'code';
-  input: {
-    text: string;
-    lang: number;
-  };
-  output: { error: boolean; stdout: string; result: string } | null;
+  source: string;
+  language: number;
+  output: OutputType[];
 };
 
-export type CellType = SectionCellType | CodeCellType;
+export type CellType = HeadingCellType | CodeCellType;

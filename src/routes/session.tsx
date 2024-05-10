@@ -3,7 +3,7 @@ import { useLoaderData } from 'react-router-dom';
 import { Plus, PlayCircle } from 'lucide-react';
 import { exec, loadSession, createCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
-import type { CellType, SectionCellType } from '@/types';
+import type { CellType, CodeCellType, EvalOutputType, HeadingCellType } from '@/types';
 
 export async function loader({ params }: any) {
   const { result: session } = await loadSession({ id: params.id });
@@ -20,8 +20,8 @@ export default function Session() {
     setCells(updatedCells);
   }
 
-  async function onEvaluate(cell: CellType, code: string) {
-    const { result: updatedCell } = await exec(session.id, { cellId: cell.id, code });
+  async function onEvaluate(cell: CellType, source: string) {
+    const { result: updatedCell } = await exec(session.id, { cellId: cell.id, source });
     updateCells(updatedCell);
   }
 
@@ -49,12 +49,10 @@ export default function Session() {
   );
 }
 
-type CellPropsType = { cell: CellType; onEvaluate: (cell: CellType, code: string) => void };
-
-function Cell(props: CellPropsType) {
+function Cell(props: { cell: CellType; onEvaluate: (cell: CellType, source: string) => void }) {
   switch (props.cell.type) {
-    case 'section':
-      return <SectionCell cell={props.cell} />;
+    case 'heading':
+      return <HeadingCell cell={props.cell} />;
     case 'code':
       return <CodeCell onEvaluate={props.onEvaluate} cell={props.cell} />;
     default:
@@ -62,67 +60,63 @@ function Cell(props: CellPropsType) {
   }
 }
 
-function SectionCell(props: { cell: SectionCellType }) {
-  const { depth, text } = props.cell.input;
+function HeadingCell(props: { cell: HeadingCellType }) {
+  const { depth, text } = props.cell;
 
   switch (depth) {
     case 1:
       return (
         <div>
-          <h1 className="text-3xl">{text}</h1>
+          <h1 className="text-2xl">{text}</h1>
         </div>
       );
     case 2:
       return (
         <div>
-          <h2 className="text-2xl">{text}</h2>
-        </div>
-      );
-    case 3:
-      return (
-        <div>
-          <h3 className="text-xl">{text}</h3>
-        </div>
-      );
-    default:
-      return (
-        <div>
-          <h4 className="text-lg">{text}</h4>
+          <h2 className="text-xl">{text}</h2>
         </div>
       );
   }
 }
 
-function CodeCell(props: CellPropsType) {
+function CodeCell(props: {
+  cell: CodeCellType;
+  onEvaluate: (cell: CellType, source: string) => void;
+}) {
   const cell = props.cell;
 
-  const [code, setCode] = useState(cell.input.text);
+  const [source, setSource] = useState(cell.source);
+
+  const output = cell.output.find((o) => o.type === 'eval') as EvalOutputType | void;
 
   return (
     <div className="space-y-1.5">
-      <button className="flex items-center gap-x-1.5" onClick={() => props.onEvaluate(cell, code)}>
+      <button
+        className="flex items-center gap-x-1.5"
+        onClick={() => props.onEvaluate(cell, source)}
+      >
         <PlayCircle size={16} />
         Evaluate
       </button>
       <textarea
         className="p-2 resize-none w-full border rounded font-mono text-sm"
         rows={4}
-        onChange={(e) => setCode(e.target.value)}
-        value={code}
+        onChange={(e) => setSource(e.target.value)}
+        value={source}
         onKeyDown={(e) => {
           if (e.metaKey && e.key === 'Enter') {
-            props.onEvaluate(cell, code);
+            props.onEvaluate(cell, source);
           }
         }}
       ></textarea>
-      {cell.output && (
+      {output !== undefined && (
         <div
           className={cn(
             'border rounded mt-2 p-2 font-mono whitespace-pre-wrap text-sm',
-            cell.output.error && 'text-red-600',
+            output.error && 'text-red-600',
           )}
         >
-          {cell.output.result}
+          {output.text}
         </div>
       )}
     </div>

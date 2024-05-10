@@ -64,19 +64,18 @@ app.options('/sessions/:id/exec', cors());
 
 app.post('/sessions/:id/exec', cors(), async (req, res) => {
   const { id } = req.params;
-  const { code, cellId } = req.body;
+  const { source, cellId } = req.body;
 
-  try {
-    const session = await findSession(id);
-    let cell = findCell(session, cellId);
-    cell = exec(session, cell, code);
-    const cells = replaceCell(session, cell);
-    updateSession(session, { cells });
-    return res.json({ error: false, result: cell });
-  } catch (error) {
-    console.error(error);
-    return res.json({ error: true, result: error.stack });
-  }
+  const session = await findSession(id);
+
+  const cell = findCell(session, cellId);
+  const updatedCell = exec(session, cell, source);
+  const updatedCells = replaceCell(session, updatedCell);
+
+  // Update state
+  updateSession(session, { cells: updatedCells });
+
+  return res.json({ result: updatedCell });
 });
 
 app.options('/sessions/:id/cells', cors());

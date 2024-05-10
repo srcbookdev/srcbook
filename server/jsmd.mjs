@@ -36,12 +36,10 @@ function convert(tokens) {
 function convertHeading(token) {
   return {
     id: randomid(),
-    type: 'section',
-    input: {
-      text: token.text,
-      depth: token.depth,
-    },
-    output: null,
+    type: 'heading',
+    text: token.text,
+    depth: token.depth,
+    output: [],
   };
 }
 
@@ -49,10 +47,8 @@ function convertCode(token) {
   return {
     id: randomid(),
     type: 'code',
-    input: {
-      text: token.text,
-      lang: token.lang,
-    },
-    output: null,
+    source: token.text,
+    language: token.lang,
+    output: [],
   };
 }

@@ -3,7 +3,7 @@ import type { CellType, FsObjectResultType } from '@/types';
 const SERVER_BASE_URL = 'http://localhost:2150';
 
 interface ExecRequestType {
-  code: string;
+  source: string;
   cellId: string;
 }
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLoaderData } from 'react-router-dom';
 import { Plus, PlayCircle } from 'lucide-react';
-import { exec, loadSession } from '@/lib/server';
+import { exec, loadSession, createCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import type { CellType, SectionCellType } from '@/types';
 
@@ -25,6 +25,11 @@ export default function Session() {
     updateCells(updatedCell);
   }
 
+  async function createNewCell() {
+    const { result } = await createCell({ sessionId: session.id, type: 'code' });
+    setCells(cells.concat(result));
+  }
+
   return (
     <>
       <div className="space-y-6">
@@ -34,9 +39,7 @@ export default function Session() {
         <div className="py-3 flex justify-center">
           <button
             className="p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-colors"
-            onClick={() => {
-              // setCells(cells.concat(createCell()));
-            }}
+            onClick={createNewCell}
           >
             <Plus size={24} />
           </button>

@@ -37,6 +37,26 @@ export function sessionToResponse(session) {
   };
 }
 
+export function createCell({ type }) {
+  return {
+    id: randomid(),
+    type: type,
+    input: inputForCellType(type),
+    output: null,
+  };
+}
+
+function inputForCellType(type) {
+  switch (type) {
+    case 'section':
+      return { text: 'Section', depth: 2 };
+    case 'code':
+      return { text: '', lang: 'javascript' };
+    default:
+      throw new Error(`Unrecognized cell type ${type}`);
+  }
+}
+
 export function exec(session, cell, code) {
   const result = vm.runInContext(code, session.context);
   const input = { text: code };

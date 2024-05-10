@@ -9,6 +9,7 @@ import {
   replaceCell,
   updateSession,
   sessionToResponse,
+  createCell,
 } from './session.mjs';
 import { disk } from './utils.mjs';
 
@@ -70,6 +71,24 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
     let cell = findCell(session, cellId);
     cell = exec(session, cell, code);
     const cells = replaceCell(session, cell);
+    updateSession(session, { cells });
+    return res.json({ error: false, result: cell });
+  } catch (error) {
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+app.options('/sessions/:id/cells', cors());
+
+app.post('/sessions/:id/cells', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.body;
+
+  try {
+    const session = await findSession(id);
+    const cell = createCell({ type });
+    const cells = session.cells.concat(cell);
     updateSession(session, { cells });
     return res.json({ error: false, result: cell });
   } catch (error) {

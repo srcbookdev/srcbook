@@ -101,3 +101,28 @@ export async function loadSession(
 
   return response.json();
 }
+
+interface CreateCellRequestType {
+  sessionId: string;
+  type: 'section' | 'code';
+}
+
+interface CreateCellResponseType {
+  error: boolean;
+  result: CellType;
+}
+
+export async function createCell(request: CreateCellRequestType): Promise<CreateCellResponseType> {
+  const response = await fetch(SERVER_BASE_URL + '/sessions/' + request.sessionId + '/cells', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ type: request.type }),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}

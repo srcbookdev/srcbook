@@ -1,93 +1,114 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLoaderData } from 'react-router-dom';
 import { Plus, PlayCircle } from 'lucide-react';
-import { exec } from '@/lib/server';
-import { cn, uuid } from '@/lib/utils';
+import { exec, loadSession } from '@/lib/server';
+import { cn } from '@/lib/utils';
+import type { CellType, SectionCellType } from '@/types';
 
-type CellType = {
-  id: string;
-  contents: string;
-  output: { error: boolean; result: string } | null;
-};
-
-function createCell(): CellType {
-  return {
-    id: uuid(),
-    contents: '',
-    output: null,
-  };
+export async function loader({ params }: any) {
+  const { result: session } = await loadSession({ id: params.id });
+  return { session };
 }
 
 export default function Session() {
-  const { sessionId } = useParams();
+  const { session } = useLoaderData() as any;
 
-  const [cells, setCells] = useState<CellType[]>([]);
+  const [cells, setCells] = useState<CellType[]>(session.cells);
 
   function updateCells(updatedCell: CellType) {
     const updatedCells = cells.map((cell) => (cell.id === updatedCell.id ? updatedCell : cell));
     setCells(updatedCells);
   }
 
-  function onUpdateCell(id: string, contents: string) {
-    const cell = cells.find((cell) => cell.id === id)!;
-    updateCells({ ...cell, contents });
-  }
-
-  async function onEvaluate(cell: CellType) {
-    const response = await exec({ sessionId: sessionId!, code: cell.contents });
-    console.log(response);
-    updateCells({ ...cell, output: response });
+  async function onEvaluate(cell: CellType, code: string) {
+    const { result: updatedCell } = await exec(session.id, { cellId: cell.id, code });
+    updateCells(updatedCell);
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="my-6">
-        <h1 className="text-2xl">Session {sessionId}</h1>
-      </div>
+    <>
       <div className="space-y-6">
         {cells.map((cell) => (
-          <Cell key={cell.id} cell={cell} onUpdateCell={onUpdateCell} onEvaluate={onEvaluate} />
+          <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} />
         ))}
         <div className="py-3 flex justify-center">
           <button
             className="p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-colors"
             onClick={() => {
-              setCells(cells.concat(createCell()));
+              // setCells(cells.concat(createCell()));
             }}
           >
             <Plus size={24} />
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
-function Cell(props: {
-  cell: CellType;
-  onUpdateCell: (id: string, cell: string) => void;
-  onEvaluate: (cell: CellType) => void;
-}) {
+type CellPropsType = { cell: CellType; onEvaluate: (cell: CellType, code: string) => void };
+
+function Cell(props: CellPropsType) {
+  switch (props.cell.type) {
+    case 'section':
+      return <SectionCell cell={props.cell} />;
+    case 'code':
+      return <CodeCell onEvaluate={props.onEvaluate} cell={props.cell} />;
+    default:
+      throw new Error('Unrecognized cell type');
+  }
+}
+
+function SectionCell(props: { cell: SectionCellType }) {
+  const { depth, text } = props.cell.input;
+
+  switch (depth) {
+    case 1:
+      return (
+        <div>
+          <h1 className="text-3xl">{text}</h1>
+        </div>
+      );
+    case 2:
+      return (
+        <div>
+          <h2 className="text-2xl">{text}</h2>
+        </div>
+      );
+    case 3:
+      return (
+        <div>
+          <h3 className="text-xl">{text}</h3>
+        </div>
+      );
+    default:
+      return (
+        <div>
+          <h4 className="text-lg">{text}</h4>
+        </div>
+      );
+  }
+}
+
+function CodeCell(props: CellPropsType) {
   const cell = props.cell;
 
-  function onChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    props.onUpdateCell(cell.id, e.target.value ?? '');
-  }
+  const [code, setCode] = useState(cell.input.text);
 
   return (
     <div className="space-y-1.5">
-      <button className="flex items-center gap-x-1.5" onClick={() => props.onEvaluate(cell)}>
+      <button className="flex items-center gap-x-1.5" onClick={() => props.onEvaluate(cell, code)}>
         <PlayCircle size={16} />
         Evaluate
       </button>
       <textarea
         className="p-2 resize-none w-full border rounded font-mono text-sm"
         rows={4}
-        onChange={onChange}
-        value={cell.contents}
+        onChange={(e) => setCode(e.target.value)}
+        value={code}
         onKeyDown={(e) => {
           if (e.metaKey && e.key === 'Enter') {
-            props.onEvaluate(cell);
+            props.onEvaluate(cell, code);
           }
         }}
       ></textarea>

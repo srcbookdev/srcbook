@@ -1,35 +1,77 @@
-import vm from 'node:vm';
+import os from 'os';
 import express from 'express';
 import cors from 'cors';
+import {
+  createSession,
+  findSession,
+  exec,
+  findCell,
+  replaceCell,
+  updateSession,
+  sessionToResponse,
+} from './session.mjs';
+import { disk } from './utils.mjs';
 
 const app = express();
 app.use(express.json());
 
-const sessions = {};
+app.options('/disk', cors());
 
-function findOrCreateSession(sessionId) {
-  if (!sessions[sessionId]) {
-    sessions[sessionId] = {
-      context: vm.createContext({}),
-    };
-  }
-  return sessions[sessionId];
-}
-
-app.options('/exec', cors());
-
-app.post('/exec', cors(), (req, res) => {
-  const { code, sessionId } = req.body;
-
-  if (typeof code !== 'string' || typeof sessionId !== 'string') {
-    return res.status(400).json({ error: '`code` and `sessionId` are required.' });
-  }
-
-  const session = findOrCreateSession(sessionId);
+app.post('/disk', cors(), async (req, res) => {
+  let { path, includeHidden } = req.body;
 
   try {
-    const result = vm.runInContext(code, session.context);
-    return res.json({ error: false, result: JSON.stringify(result) });
+    path = path || os.homedir();
+    includeHidden = includeHidden || false;
+    const entries = await disk(path, includeHidden, '.jsmd');
+    return res.json({ error: false, result: { path, entries } });
+  } catch (error) {
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+app.options('/sessions', cors());
+
+app.post('/sessions', cors(), async (req, res) => {
+  const { path } = req.body;
+
+  try {
+    const session = await createSession({ path });
+    return res.json({ error: false, result: sessionToResponse(session) });
+  } catch (error) {
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+app.options('/sessions/:id', cors());
+
+app.get('/sessions/:id', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const session = await findSession(id);
+    return res.json({ error: false, result: sessionToResponse(session) });
+  } catch (error) {
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+app.options('/sessions/:id/exec', cors());
+
+app.post('/sessions/:id/exec', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { code, cellId } = req.body;
+
+  try {
+    const session = await findSession(id);
+    let cell = findCell(session, cellId);
+    cell = exec(session, cell, code);
+    const cells = replaceCell(session, cell);
+    updateSession(session, { cells });
+    return res.json({ error: false, result: cell });
   } catch (error) {
     console.error(error);
     return res.json({ error: true, result: error.stack });

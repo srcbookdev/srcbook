@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './Layout';
 import './index.css';
-import Session from './routes/session';
+import Home, { loader as homeLoader } from './routes/home';
+import Session, { loader as sessionLoader } from './routes/session';
 
 const router = createBrowserRouter([
   {
@@ -11,7 +12,13 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       {
-        path: 'sessions/:sessionId',
+        path: '/',
+        loader: homeLoader,
+        element: <Home />,
+      },
+      {
+        path: 'sessions/:id',
+        loader: sessionLoader,
         element: <Session />,
       },
     ],

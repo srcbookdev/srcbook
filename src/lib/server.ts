@@ -126,3 +126,33 @@ export async function createCell(request: CreateCellRequestType): Promise<Create
 
   return response.json();
 }
+
+interface UpdateCellRequestType {
+  sessionId: string;
+  cellId: string;
+  source?: string;
+  text?: string;
+}
+
+interface UpdateCellResponseType {
+  error: boolean;
+  result: CellType;
+}
+
+export async function updateCell(request: UpdateCellRequestType): Promise<UpdateCellResponseType> {
+  const response = await fetch(
+    SERVER_BASE_URL + '/sessions/' + request.sessionId + '/cells/' + request.cellId,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ source: request.source, text: request.text }),
+    },
+  );
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}

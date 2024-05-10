@@ -11,7 +11,7 @@ import {
   sessionToResponse,
   createCell,
 } from './session.mjs';
-import { disk } from './utils.mjs';
+import { disk, take } from './utils.mjs';
 
 const app = express();
 app.use(express.json());
@@ -94,6 +94,30 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
+});
+
+app.options('/sessions/:id/cells/:cellId', cors());
+
+// updates cell without running it
+app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
+  const { id, cellId } = req.params;
+  const attrs = req.body;
+
+  const session = await findSession(id);
+  const cell = findCell(session, cellId);
+
+  const updatedCell = {
+    ...cell,
+    ...take(attrs, 'source', 'text'),
+    stale: true,
+  };
+
+  const updatedCells = replaceCell(session, updatedCell);
+
+  // Update state
+  updateSession(session, { cells: updatedCells });
+
+  return res.json({ result: updatedCell });
 });
 
 const port = process.env.PORT || 2150;

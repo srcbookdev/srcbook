@@ -1,8 +1,14 @@
 import vm from 'vm';
-import { read } from './jsmd.mjs';
+import { read, write } from './jsmd.mjs';
 import { randomid } from './utils.mjs';
 
 const sessions = {};
+
+setInterval(() => {
+  for (const session of Object.values(sessions)) {
+    write(session);
+  }
+}, 5000);
 
 export async function createSession({ path }) {
   const id = randomid();
@@ -40,9 +46,23 @@ export function sessionToResponse(session) {
 export function createCell({ type }) {
   switch (type) {
     case 'heading':
-      return { id: randomid(), type: 'heading', text: 'Heading', depth: 2, output: [] };
+      return {
+        id: randomid(),
+        stale: false,
+        type: 'heading',
+        text: 'Heading',
+        depth: 2,
+        output: [],
+      };
     case 'code':
-      return { id: randomid(), type: 'code', source: '', language: 'javascript', output: [] };
+      return {
+        id: randomid(),
+        stale: false,
+        type: 'code',
+        source: '',
+        language: 'javascript',
+        output: [],
+      };
     default:
       throw new Error(`Unrecognized cell type ${type}`);
   }
@@ -50,7 +70,7 @@ export function createCell({ type }) {
 
 export function exec(session, cell, source) {
   // Make a copy of the cell
-  cell = { ...cell, source: source, output: [] };
+  cell = { ...cell, stale: false, source: source, output: [] };
 
   try {
     const result = vm.runInContext(source, session.context);

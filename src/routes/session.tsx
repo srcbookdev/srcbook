@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLoaderData } from 'react-router-dom';
 import { Plus, PlayCircle } from 'lucide-react';
-import { exec, loadSession, createCell } from '@/lib/server';
+import { exec, loadSession, createCell, updateCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import type { CellType, CodeCellType, EvalOutputType, HeadingCellType } from '@/types';
 
@@ -25,6 +25,16 @@ export default function Session() {
     updateCells(updatedCell);
   }
 
+  async function onUpdateCell(cell: CellType, attrs: Record<string, any>) {
+    const { result: updatedCell } = await updateCell({
+      sessionId: session.id,
+      cellId: cell.id,
+      ...attrs,
+    });
+
+    updateCells(updatedCell);
+  }
+
   async function createNewCell() {
     const { result } = await createCell({ sessionId: session.id, type: 'code' });
     setCells(cells.concat(result));
@@ -34,7 +44,7 @@ export default function Session() {
     <>
       <div className="space-y-6">
         {cells.map((cell) => (
-          <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} />
+          <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} onUpdateCell={onUpdateCell} />
         ))}
         <div className="py-3 flex justify-center">
           <button
@@ -49,12 +59,22 @@ export default function Session() {
   );
 }
 
-function Cell(props: { cell: CellType; onEvaluate: (cell: CellType, source: string) => void }) {
+function Cell(props: {
+  cell: CellType;
+  onEvaluate: (cell: CellType, source: string) => void;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+}) {
   switch (props.cell.type) {
     case 'heading':
       return <HeadingCell cell={props.cell} />;
     case 'code':
-      return <CodeCell onEvaluate={props.onEvaluate} cell={props.cell} />;
+      return (
+        <CodeCell
+          cell={props.cell}
+          onEvaluate={props.onEvaluate}
+          onUpdateCell={props.onUpdateCell}
+        />
+      );
     default:
       throw new Error('Unrecognized cell type');
   }
@@ -82,12 +102,18 @@ function HeadingCell(props: { cell: HeadingCellType }) {
 function CodeCell(props: {
   cell: CodeCellType;
   onEvaluate: (cell: CellType, source: string) => void;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
 }) {
   const cell = props.cell;
+  const output = cell.output.find((o) => o.type === 'eval') as EvalOutputType | void;
 
   const [source, setSource] = useState(cell.source);
 
-  const output = cell.output.find((o) => o.type === 'eval') as EvalOutputType | void;
+  function onUpdateCell(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const source = e.target.value;
+    setSource(source);
+    props.onUpdateCell(cell, { source });
+  }
 
   return (
     <div className="space-y-1.5">
@@ -99,9 +125,12 @@ function CodeCell(props: {
         Evaluate
       </button>
       <textarea
-        className="p-2 resize-none w-full border rounded font-mono text-sm"
+        className={cn(
+          'p-2 resize-none w-full border rounded font-mono text-sm',
+          cell.stale && 'border-yellow-600',
+        )}
         rows={4}
-        onChange={(e) => setSource(e.target.value)}
+        onChange={onUpdateCell}
         value={source}
         onKeyDown={(e) => {
           if (e.metaKey && e.key === 'Enter') {

@@ -7,6 +7,18 @@ export function randomid(byteSize = 16) {
   return base58.encode(bytes);
 }
 
+export function take(obj, ...keys) {
+  const result = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (keys.includes(key)) {
+      result[key] = value;
+    }
+  }
+
+  return result;
+}
+
 export async function disk(path, includeHidden, ext) {
   const results = await fs.readdir(path, { withFileTypes: true });
 

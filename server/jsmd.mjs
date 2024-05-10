@@ -15,12 +15,19 @@ export async function read(path) {
   return parse(contents);
 }
 
-export function parse(contents) {
-  const tokens = marked.lexer(contents);
-  return convert(tokens);
+export function write(session) {
+  console.log(`Writing to ${session.path}`);
+  const path = session.path;
+  const markdown = convertToMd(session.cells);
+  fs.writeFile(path, markdown, { encoding: 'utf8' });
 }
 
-function convert(tokens) {
+export function parse(contents) {
+  const tokens = marked.lexer(contents);
+  return convertToCell(tokens);
+}
+
+function convertToCell(tokens) {
   return tokens.map((token) => {
     switch (token.type) {
       case 'heading':
@@ -36,6 +43,7 @@ function convert(tokens) {
 function convertHeading(token) {
   return {
     id: randomid(),
+    stale: false,
     type: 'heading',
     text: token.text,
     depth: token.depth,
@@ -46,9 +54,23 @@ function convertHeading(token) {
 function convertCode(token) {
   return {
     id: randomid(),
+    stale: false,
     type: 'code',
     source: token.text,
     language: token.lang,
     output: [],
   };
+}
+
+function convertToMd(cells) {
+  return cells
+    .map((cell) => {
+      switch (cell.type) {
+        case 'heading':
+          return '#'.repeat(cell.depth) + ' ' + cell.text;
+        case 'code':
+          return ['```' + cell.language, cell.source, '```'].join('\n');
+      }
+    })
+    .join('\n\n');
 }

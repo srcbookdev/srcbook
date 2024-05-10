@@ -16,20 +16,20 @@ export type OutputType = EvalOutputType | StdoutOutputType;
 
 type BaseCellType = {
   id: string;
+  stale: boolean;
+  output: OutputType[];
 };
 
 export type HeadingCellType = BaseCellType & {
   type: 'heading';
   text: string;
   depth: 1 | 2;
-  output: OutputType[];
 };
 
 export type CodeCellType = BaseCellType & {
   type: 'code';
   source: string;
   language: number;
-  output: OutputType[];
 };
 
 export type CellType = HeadingCellType | CodeCellType;

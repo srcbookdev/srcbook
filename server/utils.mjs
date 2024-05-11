@@ -7,6 +7,12 @@ export function randomid(byteSize = 16) {
   return base58.encode(bytes);
 }
 
+// data is uint8array
+export async function sha256(data) {
+  const result = await crypto.subtle.digest('SHA-256', data);
+  return Buffer.from(result).toString('hex');
+}
+
 export function take(obj, ...keys) {
   const result = {};
 

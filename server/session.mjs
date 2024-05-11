@@ -1,22 +1,42 @@
+import fs from 'fs/promises';
+import Path from 'path';
 import vm from 'vm';
-import { read, write } from './jsmd.mjs';
-import { randomid } from './utils.mjs';
+import { decode, encode } from './jsmd.mjs';
+import { randomid, sha256 } from './utils.mjs';
 
 const sessions = {};
 
 setInterval(() => {
   for (const session of Object.values(sessions)) {
-    write(session);
+    maybeWriteToFile(session);
   }
 }, 5000);
 
-export async function createSession({ path }) {
-  const id = randomid();
+async function maybeWriteToFile(session) {
+  const contents = encode(session.cells);
+  const buffer = Buffer.from(contents);
+  const hash = await sha256(new Uint8Array(buffer));
+  if (session.hash !== hash) {
+    console.log(`Writing to ${session.path}`);
+    await fs.writeFile(session.path, contents, { encoding: 'utf8' });
+    session.hash = hash;
+  }
+}
 
-  const cells = await read(path);
+export async function createSession({ path }) {
+  if (Path.extname(path) !== '.jsmd') {
+    throw new Error(`path argument must be to a .jsmd file but got ${path}`);
+  }
+
+  const id = randomid();
+  const buffer = await fs.readFile(path);
+  const hash = await sha256(new Uint8Array(buffer));
+  const contents = buffer.toString();
+  const cells = decode(contents);
 
   sessions[id] = {
     id: id,
+    hash: hash,
     path: path,
     cells: cells,
     context: vm.createContext({}),

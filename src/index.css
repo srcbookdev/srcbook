@@ -74,3 +74,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+.cm-editor {
+  @apply rounded border;
+}
+
+.cm-editor.cm-focused {
+  outline: none;
+  @apply rounded outline outline-2 outline-sky-400/20;
+}
+
+.cm-editor .cm-gutters {
+  @apply rounded-tl rounded-bl bg-zinc-50;
+}
+
+.cm-editor .cm-content {
+  @apply bg-zinc-50;
+}

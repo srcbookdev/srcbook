@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useLoaderData } from 'react-router-dom';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
 import { Plus, PlayCircle } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
@@ -109,8 +111,7 @@ function CodeCell(props: {
 
   const [source, setSource] = useState(cell.source);
 
-  function onUpdateCell(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    const source = e.target.value;
+  function onChange(source: string) {
     setSource(source);
     props.onUpdateCell(cell, { source });
   }
@@ -124,20 +125,7 @@ function CodeCell(props: {
         <PlayCircle size={16} />
         Evaluate
       </button>
-      <textarea
-        className={cn(
-          'p-2 resize-none w-full border rounded font-mono text-sm',
-          cell.stale && 'border-yellow-600',
-        )}
-        rows={4}
-        onChange={onUpdateCell}
-        value={source}
-        onKeyDown={(e) => {
-          if (e.metaKey && e.key === 'Enter') {
-            props.onEvaluate(cell, source);
-          }
-        }}
-      ></textarea>
+      <CodeMirror value={source} height="200px" extensions={[javascript()]} onChange={onChange} />
       {output !== undefined && (
         <div
           className={cn(

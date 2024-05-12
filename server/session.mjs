@@ -81,6 +81,7 @@ export function createCell({ type }) {
         type: 'code',
         source: '',
         language: 'javascript',
+        filename: 'untitled.js',
         output: [],
       };
     default:

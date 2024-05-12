@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Plus, PlayCircle } from 'lucide-react';
+import { Plus, PlayCircle, EllipsisVertical } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import type { CellType, CodeCellType, EvalOutputType, HeadingCellType } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export async function loader({ params }: any) {
   const { result: session } = await loadSession({ id: params.id });
@@ -44,7 +46,7 @@ export default function Session() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-14">
         {cells.map((cell) => (
           <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} onUpdateCell={onUpdateCell} />
         ))}
@@ -89,7 +91,7 @@ function HeadingCell(props: { cell: HeadingCellType }) {
     case 1:
       return (
         <div>
-          <h1 className="text-2xl">{text}</h1>
+          <h1 className="text-3xl">{text}</h1>
         </div>
       );
     case 2:
@@ -110,26 +112,56 @@ function CodeCell(props: {
   const output = cell.output.find((o) => o.type === 'eval') as EvalOutputType | void;
 
   const [source, setSource] = useState(cell.source);
+  const [filename, setFilename] = useState(cell.filename);
 
-  function onChange(source: string) {
+  function onChangeSource(source: string) {
     setSource(source);
     props.onUpdateCell(cell, { source });
   }
 
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
   return (
     <div className="space-y-1.5">
-      <button
-        className="flex items-center gap-x-1.5"
-        onClick={() => props.onEvaluate(cell, source)}
-      >
-        <PlayCircle size={16} />
-        Evaluate
-      </button>
-      <CodeMirror value={source} height="200px" extensions={[javascript()]} onChange={onChange} />
+      <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
+        <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
+          <div className="font-bold">
+            <Input
+              ref={inputRef}
+              required
+              value={filename}
+              onChange={(e) => setFilename(e.target.value)}
+              onBlur={() => {
+                if (filename !== cell.filename) {
+                  props.onUpdateCell(cell, { filename });
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && inputRef.current) {
+                  inputRef.current.blur();
+                }
+              }}
+              className="font-mono font-semibold text-xs border-transparent hover:border-input transition-colors"
+            />
+          </div>
+          <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+            <Button onClick={() => props.onEvaluate(cell, source)}>
+              <PlayCircle size={16} className="mr-2" />
+              Evaluate
+            </Button>
+          </div>
+        </div>
+        <CodeMirror
+          value={source}
+          height="200px"
+          extensions={[javascript()]}
+          onChange={onChangeSource}
+        />
+      </div>
       {output !== undefined && (
         <div
           className={cn(
-            'border rounded mt-2 p-2 font-mono whitespace-pre-wrap text-sm',
+            'border rounded mt-2 p-2 font-mono whitespace-pre-wrap text-sm bg-input/10',
             output.error && 'text-red-600',
           )}
         >

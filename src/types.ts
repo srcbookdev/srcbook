@@ -30,6 +30,7 @@ export type CodeCellType = BaseCellType & {
   type: 'code';
   source: string;
   language: number;
+  filename: string;
 };
 
 export type CellType = HeadingCellType | CodeCellType;

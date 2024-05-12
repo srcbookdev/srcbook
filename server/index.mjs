@@ -108,7 +108,7 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
 
   const updatedCell = {
     ...cell,
-    ...take(attrs, 'source', 'text'),
+    ...take(attrs, 'source', 'filename', 'text'),
     stale: true,
   };
 

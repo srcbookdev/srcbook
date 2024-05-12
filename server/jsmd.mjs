@@ -10,7 +10,7 @@ export function encode(cells) {
         case 'heading':
           return '#'.repeat(cell.depth) + ' ' + cell.text;
         case 'code':
-          return ['```' + cell.language, cell.source, '```'].join('\n');
+          return ['```' + cell.language, `// ${cell.filename}`, cell.source, '```'].join('\n');
       }
     })
     .join('\n\n');
@@ -22,16 +22,20 @@ export function decode(contents) {
 }
 
 function convertToCell(tokens) {
-  return tokens.map((token) => {
+  return tokens.reduce((result, token) => {
     switch (token.type) {
       case 'heading':
-        return convertHeading(token);
+        result.push(convertHeading(token));
+        return result;
       case 'code':
-        return convertCode(token);
+        result.push(convertCode(token));
+        return result;
+      case 'space':
+        return result;
       default:
         throw new Error(`No converter implemented for type ${token.type}`);
     }
-  });
+  }, []);
 }
 
 function convertHeading(token) {
@@ -46,12 +50,20 @@ function convertHeading(token) {
 }
 
 function convertCode(token) {
+  const [filename, source] = parseSource(token.text);
+
   return {
     id: randomid(),
     stale: false,
     type: 'code',
-    source: token.text,
+    source: source,
     language: token.lang,
+    filename: filename,
     output: [],
   };
+}
+
+function parseSource(source) {
+  const [line, ...rest] = source.split('\n');
+  return [line.replace(/\/\/\s*/, ''), rest.join('\n')];
 }

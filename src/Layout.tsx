@@ -1,6 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
-import { Home } from 'lucide-react';
-import { LockKeyhole } from 'lucide-react';
+import { HomeIcon, LockClosedIcon } from '@radix-ui/react-icons';
 
 export default function Layout() {
   return (
@@ -13,7 +12,7 @@ export default function Layout() {
               title="Home"
               className="p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
             >
-              <Home size={24} />
+              <HomeIcon className="w-6 h-6" />
             </Link>
           </li>
           <li className="flex">
@@ -22,7 +21,7 @@ export default function Layout() {
               title="Secrets"
               className="p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
             >
-              <LockKeyhole size={24} />
+              <LockClosedIcon className="w-6 h-6" />
             </Link>
           </li>
         </ul>

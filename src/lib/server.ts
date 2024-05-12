@@ -132,6 +132,7 @@ interface UpdateCellRequestType {
   cellId: string;
   source?: string;
   text?: string;
+  filename?: string;
 }
 
 interface UpdateCellResponseType {
@@ -145,7 +146,11 @@ export async function updateCell(request: UpdateCellRequestType): Promise<Update
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ source: request.source, text: request.text }),
+      body: JSON.stringify({
+        source: request.source,
+        filename: request.filename,
+        text: request.text,
+      }),
     },
   );
 

@@ -20,10 +20,14 @@ type BaseCellType = {
   output: OutputType[];
 };
 
+export type TitleCellType = BaseCellType & {
+  type: 'title';
+  text: string;
+};
+
 export type HeadingCellType = BaseCellType & {
   type: 'heading';
   text: string;
-  depth: 1 | 2;
 };
 
 export type CodeCellType = BaseCellType & {
@@ -33,4 +37,4 @@ export type CodeCellType = BaseCellType & {
   filename: string;
 };
 
-export type CellType = HeadingCellType | CodeCellType;
+export type CellType = TitleCellType | HeadingCellType | CodeCellType;

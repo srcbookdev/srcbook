@@ -109,8 +109,11 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const updatedCell = {
     ...cell,
     ...take(attrs, 'source', 'filename', 'text'),
-    stale: true,
   };
+
+  if (cell.type === 'code') {
+    updatedCell.stale = true;
+  }
 
   const updatedCells = replaceCell(session, updatedCell);
 

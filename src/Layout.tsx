@@ -4,7 +4,7 @@ import { HomeIcon, LockClosedIcon } from '@radix-ui/react-icons';
 export default function Layout() {
   return (
     <div className="flex">
-      <nav className="shrink-0 h-screen w-14 py-3 bg-foreground text-background">
+      <nav className="shrink-0 min-h-screen w-14 py-3 bg-foreground text-background">
         <ul className="flex flex-col items-center space-y-2">
           <li className="flex">
             <Link

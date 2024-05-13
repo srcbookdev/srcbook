@@ -2,12 +2,19 @@ import { useRef, useState } from 'react';
 import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Plus, PlayCircle, EllipsisVertical } from 'lucide-react';
+import { Plus, PlayCircle } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
-import type { CellType, CodeCellType, EvalOutputType, HeadingCellType } from '@/types';
+import type {
+  CellType,
+  CodeCellType,
+  EvalOutputType,
+  TitleCellType,
+  HeadingCellType,
+} from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { EditableH1, EditableH2 } from '@/components/ui/heading';
 
 export async function loader({ params }: any) {
   const { result: session } = await loadSession({ id: params.id });
@@ -46,18 +53,16 @@ export default function Session() {
 
   return (
     <>
-      <div className="space-y-14">
-        {cells.map((cell) => (
-          <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} onUpdateCell={onUpdateCell} />
-        ))}
-        <div className="py-3 flex justify-center">
-          <button
-            className="p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-colors"
-            onClick={createNewCell}
-          >
-            <Plus size={24} />
-          </button>
-        </div>
+      {cells.map((cell) => (
+        <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} onUpdateCell={onUpdateCell} />
+      ))}
+      <div className="py-3 flex justify-center">
+        <button
+          className="p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-colors"
+          onClick={createNewCell}
+        >
+          <Plus size={24} />
+        </button>
       </div>
     </>
   );
@@ -69,8 +74,10 @@ function Cell(props: {
   onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
 }) {
   switch (props.cell.type) {
+    case 'title':
+      return <TitleCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
     case 'heading':
-      return <HeadingCell cell={props.cell} />;
+      return <HeadingCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
     case 'code':
       return (
         <CodeCell
@@ -84,23 +91,34 @@ function Cell(props: {
   }
 }
 
-function HeadingCell(props: { cell: HeadingCellType }) {
-  const { depth, text } = props.cell;
+function TitleCell(props: {
+  cell: TitleCellType;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+}) {
+  return (
+    <div className="mt-4 mb-10">
+      <EditableH1
+        text={props.cell.text}
+        className="text-3xl font-semibold"
+        onUpdated={(text) => props.onUpdateCell(props.cell, { text })}
+      />
+    </div>
+  );
+}
 
-  switch (depth) {
-    case 1:
-      return (
-        <div>
-          <h1 className="text-3xl">{text}</h1>
-        </div>
-      );
-    case 2:
-      return (
-        <div>
-          <h2 className="text-xl">{text}</h2>
-        </div>
-      );
-  }
+function HeadingCell(props: {
+  cell: HeadingCellType;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+}) {
+  return (
+    <div className="mb-4">
+      <EditableH2
+        text={props.cell.text}
+        className="text-2xl font-semibold"
+        onUpdated={(text) => props.onUpdateCell(props.cell, { text })}
+      />
+    </div>
+  );
 }
 
 function CodeCell(props: {
@@ -112,7 +130,6 @@ function CodeCell(props: {
   const output = cell.output.find((o) => o.type === 'eval') as EvalOutputType | void;
 
   const [source, setSource] = useState(cell.source);
-  const [filename, setFilename] = useState(cell.filename);
 
   function onChangeSource(source: string) {
     setSource(source);
@@ -122,16 +139,17 @@ function CodeCell(props: {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 mb-14">
       <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
           <div className="font-bold">
             <Input
               ref={inputRef}
               required
-              value={filename}
-              onChange={(e) => setFilename(e.target.value)}
+              defaultValue={cell.filename}
               onBlur={() => {
+                if (!inputRef.current) return;
+                const filename = inputRef.current.value;
                 if (filename !== cell.filename) {
                   props.onUpdateCell(cell, { filename });
                 }

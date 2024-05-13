@@ -7,8 +7,10 @@ export function encode(cells) {
   return cells
     .map((cell) => {
       switch (cell.type) {
+        case 'title':
+          return `# ${cell.text}`;
         case 'heading':
-          return '#'.repeat(cell.depth) + ' ' + cell.text;
+          return `## ${cell.text}`;
         case 'code':
           return ['```' + cell.language, `// ${cell.filename}`, cell.source, '```'].join('\n');
       }
@@ -39,14 +41,22 @@ function convertToCell(tokens) {
 }
 
 function convertHeading(token) {
-  return {
-    id: randomid(),
-    stale: false,
-    type: 'heading',
-    text: token.text,
-    depth: token.depth,
-    output: [],
-  };
+  switch (token.depth) {
+    case 1:
+      return {
+        id: randomid(),
+        type: 'title',
+        text: token.text,
+      };
+    case 2:
+      return {
+        id: randomid(),
+        type: 'heading',
+        text: token.text,
+      };
+    default:
+      throw new Error('Unsupported heading (depth=' + token.depth + ')');
+  }
 }
 
 function convertCode(token) {

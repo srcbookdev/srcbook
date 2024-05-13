@@ -12,12 +12,11 @@ export interface FsObjectResultType {
 
 export type EvalOutputType = { type: 'eval'; error: boolean; text: string };
 export type StdoutOutputType = { type: 'stdout'; text: string };
-export type OutputType = EvalOutputType | StdoutOutputType;
+export type StderrOutputType = { type: 'stderr'; text: string };
+export type OutputType = EvalOutputType | StdoutOutputType | StderrOutputType;
 
 type BaseCellType = {
   id: string;
-  stale: boolean;
-  output: OutputType[];
 };
 
 export type TitleCellType = BaseCellType & {
@@ -32,9 +31,11 @@ export type HeadingCellType = BaseCellType & {
 
 export type CodeCellType = BaseCellType & {
   type: 'code';
+  stale: boolean;
   source: string;
   language: number;
   filename: string;
+  output: OutputType[];
 };
 
 export type CellType = TitleCellType | HeadingCellType | CodeCellType;

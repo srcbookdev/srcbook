@@ -9,6 +9,7 @@ import type {
   CellType,
   CodeCellType,
   EvalOutputType,
+  OutputType,
   TitleCellType,
   HeadingCellType,
 } from '@/types';
@@ -127,7 +128,6 @@ function CodeCell(props: {
   onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
 }) {
   const cell = props.cell;
-  const output = cell.output.find((o) => o.type === 'eval') as EvalOutputType | void;
 
   const [source, setSource] = useState(cell.source);
 
@@ -176,14 +176,25 @@ function CodeCell(props: {
           onChange={onChangeSource}
         />
       </div>
-      {output !== undefined && (
-        <div
-          className={cn(
-            'border rounded mt-2 p-2 font-mono whitespace-pre-wrap text-sm bg-input/10',
-            output.error && 'text-red-600',
-          )}
-        >
-          {output.text}
+      <CellOutput output={cell.output} />
+    </div>
+  );
+}
+
+function CellOutput(props: { output: OutputType[] }) {
+  if (props.output.length === 0) {
+    return null;
+  }
+
+  const output = props.output.filter((o) => o.type !== 'eval').map(({ text }) => text);
+  const result = props.output.find((o) => o.type === 'eval') as EvalOutputType | void;
+
+  return (
+    <div className="border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
+      {output.length > 0 && <div className="p-2 whitespace-pre-wrap">{output}</div>}
+      {result !== undefined && (
+        <div className={cn('p-2 whitespace-pre-wrap', result.error && 'text-red-600')}>
+          {result.text}
         </div>
       )}
     </div>

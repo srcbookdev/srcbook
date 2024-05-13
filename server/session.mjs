@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import Path from 'path';
+import util from 'util';
 import vm from 'vm';
 import { decode, encode } from './jsmd.mjs';
 import { randomid, sha256 } from './utils.mjs';
@@ -39,7 +40,23 @@ export async function createSession({ path }) {
     hash: hash,
     path: path,
     cells: cells,
-    context: vm.createContext({}),
+    output: [],
+    context: vm.createContext({
+      console: {
+        log(...args) {
+          for (const arg of args) {
+            sessions[id].output.push({ type: 'stdout', text: util.inspect(arg) });
+          }
+          console.log(...args);
+        },
+        error(...args) {
+          for (const arg of args) {
+            sessions[id].output.push({ type: 'stderr', text: util.inspect(arg) });
+          }
+          console.error(...args);
+        },
+      },
+    }),
   };
 
   return sessions[id];
@@ -95,12 +112,14 @@ export function exec(session, cell, source) {
 
   try {
     const result = vm.runInContext(source, session.context);
-    cell.output = [{ type: 'eval', error: false, text: result }];
+    cell.output = session.output.concat({ type: 'eval', error: false, text: util.inspect(result) });
   } catch (error) {
     console.error(`Error while evaluating Cell(id=${cell.id})`);
     console.error(error);
-    cell.output = [{ type: 'eval', error: true, text: error.stack }];
+    cell.output = session.output.concat({ type: 'eval', error: true, text: error.stack });
   }
+
+  session.output = [];
 
   // Return copy
   return cell;

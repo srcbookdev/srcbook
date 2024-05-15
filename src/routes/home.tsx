@@ -1,12 +1,11 @@
+import { PlusIcon } from 'lucide-react';
 import { Form, useLoaderData, redirect } from 'react-router-dom';
-import { useState } from 'react';
-import { FileCode, Folder } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { disk, createSession } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
-import type { FsObjectResultType, FsObjectType } from '@/types';
+import type { FsObjectResultType } from '@/types';
 
 // eslint-disable-next-line
 export async function loader() {
@@ -17,85 +16,47 @@ export async function loader() {
 // eslint-disable-next-line
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
-  const path = formData.get('path') as string;
+  const initialPath = formData.get('initialPath') as string;
+  const path = `${initialPath}/Untitled.jsmd`;
   const { result } = await createSession({ path });
   return redirect(`/sessions/${result.id}`);
 }
 
 export default function Home() {
-  const { path: initialPath, entries: initialEntries } = useLoaderData() as FsObjectResultType;
-
-  const [path, setPath] = useState(initialPath);
-  const [entries, setEntries] = useState(initialEntries);
-  const [selected, setSelected] = useState<FsObjectType | null>(null);
-
-  async function onClick(entry: FsObjectType) {
-    if (selected && selected.path === entry.path) {
-      // Deselecting a file
-      setSelected(null);
-      setPath(entry.parentPath);
-    } else if (!entry.isDirectory) {
-      // Selecting a file
-      setSelected(entry);
-      setPath(entry.path);
-    } else {
-      // Opening a directory
-      setSelected(null);
-      const { result } = await disk({ path: entry.path });
-      setPath(result.path);
-      setEntries(result.entries);
-    }
-  }
+  const { path: initialPath } = useLoaderData() as FsObjectResultType;
+  const [name, setName] = useState('');
 
   return (
     <>
       <h1 className="text-2xl">Notebooks</h1>
-      <div className="space-y-4">
-        <Form method="post" className="flex items-center space-x-2">
-          <Input value={path} name="path" readOnly />
-          <Button type="submit" disabled={selected === null}>
-            Open
-          </Button>
-        </Form>
-
-        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-          {entries.map((entry) => (
-            <FsEntryItem
-              key={entry.path}
-              entry={entry}
-              onClick={onClick}
-              selected={selected !== null && selected.path === entry.path}
+      <div className="mt-10 flex items-center justify-center gap-12">
+        <Form method="post" className="h-full">
+          <Input type="hidden" name="initialPath" value={initialPath} />
+          <div className="flex items-center justify-center h-full gap-2">
+            <Input
+              placeholder="name your new srcBook"
+              required
+              className="w-60"
+              onChange={(e) => setName(e.target.value)}
+              name="name"
+              value={name}
             />
-          ))}
-        </ul>
+            <Button className="min-w-32" type="submit">
+              <div className="flex gap-2 items-center">
+                Create New <PlusIcon size={16} />
+              </div>
+            </Button>
+          </div>
+        </Form>
+        <p>or</p>
+        <div className="flex flex-col items-center justify-center h-full">
+          <Form action="/open" className="flex items-center space-x-2">
+            <Button variant="outline" className="min-w-32" type="submit">
+              Open
+            </Button>
+          </Form>
+        </div>
       </div>
     </>
-  );
-}
-
-function FsEntryItem({
-  entry,
-  onClick,
-  selected,
-}: {
-  entry: FsObjectType;
-  selected: boolean;
-  onClick: Function;
-}) {
-  const Icon = entry.isDirectory ? Folder : FileCode;
-
-  return (
-    <li
-      className={cn(
-        'p-2 flex items-center text-sm cursor-pointer rounded',
-        selected
-          ? 'bg-accent text-accent-foreground'
-          : 'hover:bg-accent hover:text-accent-foreground',
-      )}
-      onClick={() => onClick(entry)}
-    >
-      <Icon size={16} />
-      <span className="ml-1.5 truncate">{entry.name}</span>
-    </li>
   );
 }

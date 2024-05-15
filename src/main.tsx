@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './Layout';
 import './index.css';
 import Home, { loader as homeLoader, action as homeAction } from './routes/home';
+import Open, { loader as openLoader, action as openAction } from './routes/open';
 import Session, { loader as sessionLoader } from './routes/session';
 import Secrets, { loader as secretsLoader } from './routes/secrets';
 import ErrorPage from './error';
@@ -16,9 +17,16 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        loader: homeLoader,
         element: <Home />,
+        loader: homeLoader,
         action: homeAction,
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: '/open',
+        loader: openLoader,
+        element: <Open />,
+        action: openAction,
         errorElement: <ErrorPage />,
       },
       {

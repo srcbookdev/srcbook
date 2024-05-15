@@ -27,7 +27,7 @@ export default function Layout() {
         </ul>
       </nav>
       <div className="flex-1">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto my-6">
           <Outlet />
         </div>
       </div>

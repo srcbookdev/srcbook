@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 
 import type { FsObjectResultType, FsObjectType } from '@/types';
 
+// eslint-disable-next-line
 export async function loader() {
   const { result } = await disk();
   return result;
@@ -42,9 +43,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="my-6">
-        <h1 className="text-2xl">Notebooks</h1>
-      </div>
+      <h1 className="text-2xl">Notebooks</h1>
       <div className="space-y-4">
         <form
           method="post"

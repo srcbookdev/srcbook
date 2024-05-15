@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './Layout';
 import './index.css';
-import Home, { loader as homeLoader } from './routes/home';
+import Home, { loader as homeLoader, action as homeAction } from './routes/home';
 import Session, { loader as sessionLoader } from './routes/session';
 import Secrets, { loader as secretsLoader } from './routes/secrets';
 import ErrorPage from './error';
@@ -18,6 +18,7 @@ const router = createBrowserRouter([
         path: '/',
         loader: homeLoader,
         element: <Home />,
+        action: homeAction,
         errorElement: <ErrorPage />,
       },
       {

@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigate } from 'react-router-dom';
+import { Form, useLoaderData, redirect } from 'react-router-dom';
 import { useState } from 'react';
 import { FileCode, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,14 +14,20 @@ export async function loader() {
   return result;
 }
 
+// eslint-disable-next-line
+export async function action({ request }: { request: Request }) {
+  const formData = await request.formData();
+  const path = formData.get('path') as string;
+  const { result } = await createSession({ path });
+  return redirect(`/sessions/${result.id}`);
+}
+
 export default function Home() {
   const { path: initialPath, entries: initialEntries } = useLoaderData() as FsObjectResultType;
 
   const [path, setPath] = useState(initialPath);
   const [entries, setEntries] = useState(initialEntries);
   const [selected, setSelected] = useState<FsObjectType | null>(null);
-
-  const navigate = useNavigate();
 
   async function onClick(entry: FsObjectType) {
     if (selected && selected.path === entry.path) {
@@ -45,21 +51,12 @@ export default function Home() {
     <>
       <h1 className="text-2xl">Notebooks</h1>
       <div className="space-y-4">
-        <form
-          method="post"
-          className="flex items-center space-x-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const { result } = await createSession({ path });
-            navigate(`/sessions/${result.id}`);
-          }}
-        >
-          <Input value={path} disabled />
+        <Form method="post" className="flex items-center space-x-2">
+          <Input value={path} name="path" readOnly />
           <Button type="submit" disabled={selected === null}>
             Open
           </Button>
-        </form>
+        </Form>
 
         <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
           {entries.map((entry) => (

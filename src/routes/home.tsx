@@ -17,8 +17,10 @@ export async function loader() {
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const initialPath = formData.get('initialPath') as string;
-  const path = `${initialPath}/Untitled.jsmd`;
-  const { result } = await createSession({ path });
+  const name = formData.get('name') as string;
+  // TODO I should really use a pathing library...
+  const path = `${initialPath}/${name}.jsmd`;
+  const { result } = await createSession({ path, new: true });
   return redirect(`/sessions/${result.id}`);
 }
 
@@ -28,8 +30,9 @@ export default function Home() {
 
   return (
     <>
-      <h1 className="text-2xl">Notebooks</h1>
-      <div className="mt-10 flex items-center justify-center gap-12">
+      <h1 className="text-2xl mx-auto mb-8">Src Books</h1>
+      <p>Create your next source book or open an existing one below.</p>
+      <div className="mt-4 flex items-center gap-12">
         <Form method="post" className="h-full">
           <Input type="hidden" name="initialPath" value={initialPath} />
           <div className="flex items-center justify-center h-full gap-2">

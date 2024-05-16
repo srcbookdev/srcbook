@@ -18,21 +18,28 @@ async function maybeWriteToFile(session) {
   const buffer = Buffer.from(contents);
   const hash = await sha256(new Uint8Array(buffer));
   if (session.hash !== hash) {
-    console.log(`Writing to ${session.path}`);
     await fs.writeFile(session.path, contents, { encoding: 'utf8' });
     session.hash = hash;
   }
 }
 
-export async function createSession({ path }) {
+export async function createSession({ path, new: newSession }) {
   if (Path.extname(path) !== '.jsmd') {
     throw new Error(`path argument must be to a .jsmd file but got ${path}`);
   }
 
+  let contents = '';
+  let hash = '';
+  if (newSession) {
+    const title = path.split('/').pop().replace('.jsmd', '');
+    contents = `# ${title}\n`;
+    hash = await sha256(new Uint8Array(Buffer.from(contents)));
+  } else {
+    const buffer = await fs.readFile(path);
+    hash = await sha256(new Uint8Array(buffer));
+    contents = buffer.toString();
+  }
   const id = randomid();
-  const buffer = await fs.readFile(path);
-  const hash = await sha256(new Uint8Array(buffer));
-  const contents = buffer.toString();
   const cells = decode(contents);
 
   sessions[id] = {

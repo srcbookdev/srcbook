@@ -53,6 +53,7 @@ export async function disk(request?: DiskRequestType): Promise<DiskResponseType>
 
 interface CreateSessionRequestType {
   path: string;
+  new?: boolean;
 }
 
 interface CreateSessionResponseType {

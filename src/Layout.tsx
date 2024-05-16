@@ -5,8 +5,8 @@ export default function Layout() {
   return (
     <div className="flex">
       <nav className="min-h-screen py-3 bg-foreground text-background">
-        <div className="flex flex-col justify-between h-full">
-          <ul className="flex flex-col space-y-2 p-2">
+        <div className="flex flex-col justify-between h-full p-2">
+          <ul className="flex flex-col space-y-2">
             <li>
               <Link
                 to="/"
@@ -38,7 +38,7 @@ export default function Layout() {
           </Link>
         </div>
       </nav>
-      <div className="flex-1">
+      <div className="flex-1 p-4">
         <div className="max-w-4xl mx-auto">
           <Outlet />
         </div>

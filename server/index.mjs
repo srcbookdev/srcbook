@@ -125,5 +125,19 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   return res.json({ result: updatedCell });
 });
 
+app.options('/settings', cors());
+
+app.get('/settings', cors(), async (_req, res) => {
+  return res.json({ error: false, result: config });
+});
+
+// updates cell without running it
+app.post('/settings', cors(), async (req, res) => {
+  const body = req.body;
+  console.log('received body', body);
+
+  return res.json({ result: body });
+});
+
 const port = process.env.PORT || 2150;
 app.listen(port, () => console.log(`Server running on port ${port}`));

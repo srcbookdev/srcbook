@@ -162,3 +162,34 @@ export async function updateCell(request: UpdateCellRequestType): Promise<Update
 
   return response.json();
 }
+
+// Config settings
+interface EditConfigRequestType {
+  baseDir: string;
+}
+
+export async function getConfig() {
+  const response = await fetch(SERVER_BASE_URL + '/settings', {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+  return response.json();
+}
+
+export async function editConfig(request: EditConfigRequestType) {
+  const response = await fetch(SERVER_BASE_URL + '/settings', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+}

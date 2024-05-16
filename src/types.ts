@@ -10,6 +10,10 @@ export interface FsObjectResultType {
   entries: FsObjectType[];
 }
 
+export type SettingsType = {
+  baseDir: string;
+};
+
 export type EvalOutputType = { type: 'eval'; error: boolean; text: string };
 export type StdoutOutputType = { type: 'stdout'; text: string };
 export type StderrOutputType = { type: 'stderr'; text: string };

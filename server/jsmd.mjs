@@ -67,6 +67,8 @@ function convertCode(token) {
     stale: false,
     type: 'code',
     source: source,
+    module: null,
+    context: null,
     language: token.lang,
     filename: filename,
     output: [],

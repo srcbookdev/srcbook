@@ -70,7 +70,7 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
   const session = await findSession(id);
 
   const cell = findCell(session, cellId);
-  const updatedCell = exec(session, cell, source);
+  const updatedCell = await exec(session, cell, source);
   const updatedCells = replaceCell(session, updatedCell);
 
   // Update state

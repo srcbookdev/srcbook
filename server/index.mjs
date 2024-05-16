@@ -1,4 +1,3 @@
-import os from 'os';
 import express from 'express';
 import cors from 'cors';
 import {
@@ -12,6 +11,9 @@ import {
   createCell,
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
+import config from './config.mjs';
+
+const basePath = config.baseDir;
 
 const app = express();
 app.use(express.json());
@@ -22,7 +24,7 @@ app.post('/disk', cors(), async (req, res) => {
   let { path, includeHidden } = req.body;
 
   try {
-    path = path || os.homedir();
+    path = path || basePath;
     includeHidden = includeHidden || false;
     const entries = await disk(path, includeHidden, '.jsmd');
     return res.json({ error: false, result: { path, entries } });

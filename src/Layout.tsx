@@ -1,33 +1,45 @@
 import { Outlet, Link } from 'react-router-dom';
-import { HomeIcon, LockClosedIcon } from '@radix-ui/react-icons';
+import { LockKeyholeIcon, HomeIcon, SettingsIcon } from 'lucide-react';
 
 export default function Layout() {
   return (
     <div className="flex">
-      <nav className="shrink-0 min-h-screen w-14 py-3 bg-foreground text-background">
-        <ul className="flex flex-col items-center space-y-2">
-          <li className="flex">
-            <Link
-              to="/"
-              title="Home"
-              className="p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
-            >
-              <HomeIcon className="w-6 h-6" />
-            </Link>
-          </li>
-          <li className="flex">
-            <Link
-              to="/secrets"
-              title="Secrets"
-              className="p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
-            >
-              <LockClosedIcon className="w-6 h-6" />
-            </Link>
-          </li>
-        </ul>
+      <nav className="min-h-screen py-3 bg-foreground text-background">
+        <div className="flex flex-col justify-between h-full">
+          <ul className="flex flex-col space-y-2 p-2">
+            <li>
+              <Link
+                to="/"
+                title="Home"
+                className="flex items-center gap-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
+              >
+                <HomeIcon className="w-6 h-6" />
+                <p>Home</p>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/secrets"
+                title="Secrets"
+                className="flex items-center gap-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
+              >
+                <LockKeyholeIcon className="w-6 h-6" />
+                <p>Secrets</p>
+              </Link>
+            </li>
+          </ul>
+          <Link
+            to="/settings"
+            title="Settings"
+            className="flex items-center gap-2 m-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
+          >
+            <SettingsIcon className="w-6 h-6" />
+            <p>Settings</p>
+          </Link>
+        </div>
       </nav>
       <div className="flex-1">
-        <div className="max-w-4xl mx-auto my-6">
+        <div className="max-w-4xl mx-auto">
           <Outlet />
         </div>
       </div>

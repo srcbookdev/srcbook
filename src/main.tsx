@@ -6,6 +6,7 @@ import './index.css';
 import Home, { loader as homeLoader, action as homeAction } from './routes/home';
 import Open, { loader as openLoader, action as openAction } from './routes/open';
 import Session, { loader as sessionLoader } from './routes/session';
+import Settings, { loader as settingsLoader } from './routes/settings';
 import Secrets, { loader as secretsLoader } from './routes/secrets';
 import ErrorPage from './error';
 
@@ -39,6 +40,12 @@ const router = createBrowserRouter([
         path: '/secrets',
         loader: secretsLoader,
         element: <Secrets />,
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: '/settings',
+        element: <Settings />,
+        loader: settingsLoader,
         errorElement: <ErrorPage />,
       },
     ],

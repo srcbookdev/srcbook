@@ -30,8 +30,9 @@ export async function createSession({ path, new: newSession }) {
 
   let contents = '';
   let hash = '';
+
   if (newSession) {
-    const title = path.split('/').pop().replace('.jsmd', '');
+    const title = Path.basename(path, '.jsmd');
     contents = `# ${title}\n`;
     hash = await sha256(new Uint8Array(Buffer.from(contents)));
   } else {
@@ -39,6 +40,7 @@ export async function createSession({ path, new: newSession }) {
     hash = await sha256(new Uint8Array(buffer));
     contents = buffer.toString();
   }
+
   const id = randomid();
   const cells = decode(contents);
 
@@ -47,23 +49,6 @@ export async function createSession({ path, new: newSession }) {
     hash: hash,
     path: path,
     cells: cells,
-    output: [],
-    context: vm.createContext({
-      console: {
-        log(...args) {
-          for (const arg of args) {
-            sessions[id].output.push({ type: 'stdout', text: util.inspect(arg) });
-          }
-          console.log(...args);
-        },
-        error(...args) {
-          for (const arg of args) {
-            sessions[id].output.push({ type: 'stderr', text: util.inspect(arg) });
-          }
-          console.error(...args);
-        },
-      },
-    }),
   };
 
   return sessions[id];
@@ -104,6 +89,8 @@ export function createCell({ type }) {
         stale: false,
         type: 'code',
         source: '',
+        module: null,
+        context: null,
         language: 'javascript',
         filename: 'untitled.js',
         output: [],
@@ -113,20 +100,77 @@ export function createCell({ type }) {
   }
 }
 
-export function exec(session, cell, source) {
+function contextForCell(ctx) {
+  return vm.createContext(ctx ?? {});
+}
+
+async function createLinkedModule(session, cell) {
+  const module = new vm.SourceTextModule(cell.source, {
+    identifier: cell.filename,
+    context: cell.context,
+    importModuleDynamically: async function (specifier) {
+      if (specifier.startsWith('./')) {
+        const filename = specifier.slice(2);
+        const importedCell = session.cells.find((cell) => cell.filename === filename);
+
+        if (!importedCell) {
+          throw new Error(`[ERR_MODULE_NOT_FOUND]: Cannot resolve module ${specifier}`);
+        }
+
+        if (importedCell.module === null) {
+          throw new Error(`Attempted to import unevaluated cell ${specifier}`);
+        }
+
+        if (importedCell.module !== null && importedCell.stale === true) {
+          throw new Error(`Attempted to import stale cell ${specifier}`);
+        }
+
+        return importedCell.module.namespace;
+      }
+
+      return import(specifier);
+    },
+  });
+
+  await module.link(async () => {});
+
+  return module;
+}
+
+export async function exec(session, cell, source) {
   // Make a copy of the cell
-  cell = { ...cell, stale: false, source: source, output: [] };
+  cell = {
+    ...cell,
+    stale: false,
+    module: null,
+    source: source,
+    output: [],
+    context: contextForCell({
+      console: {
+        log(...args) {
+          for (const arg of args) {
+            cell.output.push({ type: 'stdout', text: util.inspect(arg) });
+          }
+        },
+        error() {
+          for (const arg of args) {
+            cell.output.push({ type: 'stderr', text: util.inspect(arg) });
+          }
+        },
+      },
+    }),
+  };
 
   try {
-    const result = vm.runInContext(source, session.context);
-    cell.output = session.output.concat({ type: 'eval', error: false, text: util.inspect(result) });
+    const module = await createLinkedModule(session, cell);
+    await module.evaluate();
+    cell.module = module;
+    cell.output.push({ type: 'eval', error: false, text: util.inspect(module.namespace) });
   } catch (error) {
     console.error(`Error while evaluating Cell(id=${cell.id})`);
     console.error(error);
-    cell.output = session.output.concat({ type: 'eval', error: true, text: error.stack });
+    cell.output.push({ type: 'eval', error: true, text: error.stack });
   }
-
-  session.output = [];
 
   // Return copy
   return cell;

@@ -11,9 +11,7 @@ import {
   createCell,
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
-import config from './config.mjs';
-
-const basePath = config.baseDir;
+import { getConfig, saveConfig } from './config.mjs';
 
 const app = express();
 app.use(express.json());
@@ -24,7 +22,8 @@ app.post('/disk', cors(), async (req, res) => {
   let { path, includeHidden } = req.body;
 
   try {
-    path = path || basePath;
+    const config = await getConfig();
+    path = path || config.baseDir;
     includeHidden = includeHidden || false;
     const entries = await disk(path, includeHidden, '.jsmd');
     return res.json({ error: false, result: { path, entries } });
@@ -128,15 +127,18 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
 app.options('/settings', cors());
 
 app.get('/settings', cors(), async (_req, res) => {
+  const config = await getConfig();
   return res.json({ error: false, result: config });
 });
 
 // updates cell without running it
 app.post('/settings', cors(), async (req, res) => {
   const body = req.body;
-  console.log('received body', body);
+  const config = await getConfig();
+  const newConfig = Object.assign({}, config, body);
+  await saveConfig(newConfig);
 
-  return res.json({ result: body });
+  return res.json({ result: newConfig });
 });
 
 const port = process.env.PORT || 2150;

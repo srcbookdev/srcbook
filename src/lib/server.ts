@@ -181,7 +181,7 @@ export async function getConfig() {
   return response.json();
 }
 
-export async function editConfig(request: EditConfigRequestType) {
+export async function updateConfig(request: EditConfigRequestType) {
   const response = await fetch(SERVER_BASE_URL + '/settings', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

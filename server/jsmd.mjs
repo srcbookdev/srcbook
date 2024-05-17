@@ -4,15 +4,17 @@ import { randomid } from './utils.mjs';
 marked.use({ gfm: true });
 
 export function encode(cells) {
+  console.log('encoding cells', cells);
   return cells
     .map((cell) => {
       switch (cell.type) {
         case 'title':
           return `# ${cell.text}`;
-        case 'heading':
-          return `## ${cell.text}`;
+        case 'markdown':
+          // Since we have the raw text, use it. But we could also recursively encode .tokens
+          return cell.text.trim();
         case 'code':
-          return ['```' + cell.language, `// ${cell.filename}`, cell.source, '```'].join('\n');
+          return [`#### ${cell.filename}`, `\`\`\`${cell.language}`, cell.source, '```'].join('\n');
       }
     })
     .join('\n\n');
@@ -20,62 +22,90 @@ export function encode(cells) {
 
 export function decode(contents) {
   const tokens = marked.lexer(contents);
-  return convertToCell(tokens);
+  return convertToCells(tokens);
 }
 
-function convertToCell(tokens) {
-  return tokens.reduce((result, token) => {
+const nextNonSpaceNode = (tokens, index) => {
+  index++;
+  while (tokens[index] && tokens[index].type === 'space') {
+    index++;
+  }
+  return index;
+};
+
+function convertToCells(tokens) {
+  const result = [];
+  let currentMarkdown = [];
+  let i = 0;
+
+  while (i < tokens.length) {
+    const token = tokens[i];
+
     switch (token.type) {
       case 'heading':
-        result.push(convertHeading(token));
-        return result;
-      case 'code':
-        result.push(convertCode(token));
-        return result;
-      case 'space':
-        return result;
+        if (token.depth === 1) {
+          result.push({ id: randomid(), type: 'title', text: token.text });
+        } else if (token.depth === 4) {
+          const nextNoneSpaceIndex = nextNonSpaceNode(tokens, i);
+          if (tokens[nextNoneSpaceIndex] && tokens[nextNoneSpaceIndex].type === 'code') {
+            // we are in a supported executable code block
+            const codeToken = tokens[nextNoneSpaceIndex];
+
+            // Push the previous mardkown if necessary
+            if (currentMarkdown.length > 0) {
+              result.push({ id: randomid(), type: 'markdown', tokens: currentMarkdown });
+              currentMarkdown = [];
+            }
+
+            result.push(convertCode(codeToken, token.text));
+            i = nextNoneSpaceIndex;
+            break;
+          }
+        } else {
+          currentMarkdown.push(token);
+        }
+        break;
+
       default:
-        throw new Error(`No converter implemented for type ${token.type}`);
+        currentMarkdown.push(token);
+        break;
     }
-  }, []);
-}
 
-function convertHeading(token) {
-  switch (token.depth) {
-    case 1:
-      return {
-        id: randomid(),
-        type: 'title',
-        text: token.text,
-      };
-    case 2:
-      return {
-        id: randomid(),
-        type: 'heading',
-        text: token.text,
-      };
-    default:
-      throw new Error('Unsupported heading (depth=' + token.depth + ')');
+    i++;
   }
+
+  let finalCells = result;
+  // Flush the last markdown if we have any left over.
+  if (currentMarkdown.length !== 0) {
+    finalCells = result.concat({
+      id: randomid(),
+      type: 'markdown',
+      tokens: currentMarkdown,
+    });
+  }
+
+  // Reduce the markdown tokens to a single cell text value
+  return finalCells.map((cell) => {
+    if (cell.type === 'markdown') {
+      cell.text = cell.tokens.reduce((acc, token) => {
+        return acc + token.raw;
+      }, '');
+      return cell;
+    }
+    return cell;
+  });
 }
 
-function convertCode(token) {
-  const [filename, source] = parseSource(token.text);
-
+function convertCode(token, filename) {
   return {
     id: randomid(),
     stale: false,
     type: 'code',
-    source: source,
+    source: token.text,
     module: null,
     context: null,
     language: token.lang,
     filename: filename,
     output: [],
   };
-}
-
-function parseSource(source) {
-  const [line, ...rest] = source.split('\n');
-  return [line.replace(/\/\/\s*/, ''), rest.join('\n')];
 }

@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/lang-markdown": "^6.2.5",
     "@radix-ui/react-icons": "^1.3.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@uiw/react-codemirror": "^4.22.0",
@@ -23,6 +24,7 @@
     "localforage": "^1.10.0",
     "lucide-react": "^0.378.0",
     "marked": "^12.0.2",
+    "marked-react": "^2.0.0",
     "match-sorter": "^6.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -32,6 +34,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.13",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.10",
     "@types/react": "^18.2.66",

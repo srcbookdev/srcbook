@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
+import Markdown from 'marked-react';
 import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Plus, PlayCircle } from 'lucide-react';
+import { markdown } from '@codemirror/lang-markdown';
+import { Plus, PlayCircle, Pencil } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import type {
@@ -11,11 +13,16 @@ import type {
   EvalOutputType,
   OutputType,
   TitleCellType,
-  HeadingCellType,
+  MarkdownCellType,
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { EditableH1, EditableH2 } from '@/components/ui/heading';
+import { EditableH1 } from '@/components/ui/heading';
+
+type SlimSessionType = {
+  id: string;
+  cells: CellType[];
+};
 
 export async function loader({ params }: { params: { id: string } }) {
   const { result: session } = await loadSession({ id: params.id });
@@ -23,7 +30,7 @@ export async function loader({ params }: { params: { id: string } }) {
 }
 
 export default function Session() {
-  const { session } = useLoaderData() as any;
+  const { session } = useLoaderData() as { session: SlimSessionType };
 
   const [cells, setCells] = useState<CellType[]>(session.cells);
 
@@ -77,8 +84,6 @@ function Cell(props: {
   switch (props.cell.type) {
     case 'title':
       return <TitleCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
-    case 'heading':
-      return <HeadingCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
     case 'code':
       return (
         <CodeCell
@@ -87,6 +92,8 @@ function Cell(props: {
           onUpdateCell={props.onUpdateCell}
         />
       );
+    case 'markdown':
+      return <MarkdownCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
     default:
       throw new Error('Unrecognized cell type');
   }
@@ -100,24 +107,68 @@ function TitleCell(props: {
     <div className="mt-4 mb-10">
       <EditableH1
         text={props.cell.text}
-        className="text-3xl font-semibold"
+        className="text-4xl font-bold"
         onUpdated={(text) => props.onUpdateCell(props.cell, { text })}
       />
     </div>
   );
 }
 
-function HeadingCell(props: {
-  cell: HeadingCellType;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+function MarkdownCell(props: {
+  cell: MarkdownCellType;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
 }) {
+  const [status, setStatus] = useState<'edit' | 'view'>('view');
+  const [text, setText] = useState(props.cell.text);
+  const cell = props.cell;
+
+  function onChangeSource(source: string) {
+    setText(source);
+  }
+
+  function onSave() {
+    props.onUpdateCell(cell, { text });
+  }
+
   return (
-    <div className="mb-4">
-      <EditableH2
-        text={props.cell.text}
-        className="text-2xl font-semibold"
-        onUpdated={(text) => props.onUpdateCell(props.cell, { text })}
-      />
+    <div className="mt-4 mb-10 group w-full">
+      {status === 'view' ? (
+        <div className="prose relative group prose-p:my-0 prose-li:my-0 max-w-full">
+          <Button
+            variant="ghost"
+            className="absolute -left-12 -top-1"
+            onClick={() => setStatus('edit')}
+          >
+            <Pencil size={16} />
+          </Button>
+          <Markdown>{text}</Markdown>
+        </div>
+      ) : (
+        <div className="flex flex-col">
+          <div className="flex gap-2 items-center pb-2">
+            <Button variant="outline" onClick={() => setStatus('view')}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                onSave();
+                setStatus('view');
+              }}
+            >
+              Save
+            </Button>
+          </div>
+
+          <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
+            <CodeMirror
+              value={text}
+              height="200px"
+              extensions={[markdown()]}
+              onChange={onChangeSource}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

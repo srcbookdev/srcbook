@@ -125,10 +125,12 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const session = await findSession(id);
   const cell = findCell(session, cellId);
 
-  const filenameResult = validateFilename(session, cellId, attrs.filename);
+  if (cell.type === 'code') {
+    const filenameResult = validateFilename(session, cellId, attrs.filename);
 
-  if (typeof filenameResult === 'string') {
-    return res.status(400).json({ error: true, message: filenameResult });
+    if (typeof filenameResult === 'string') {
+      return res.status(400).json({ error: true, message: filenameResult });
+    }
   }
 
   const updatedCell = {

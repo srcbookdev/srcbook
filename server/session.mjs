@@ -4,6 +4,7 @@ import util from 'util';
 import vm from 'vm';
 import { decode, encode } from './jsmd.mjs';
 import { randomid, sha256 } from './utils.mjs';
+import { transformImportStatements } from './transform.mjs';
 
 const sessions = {};
 
@@ -105,7 +106,9 @@ function contextForCell(ctx) {
 }
 
 async function createLinkedModule(session, cell) {
-  const module = new vm.SourceTextModule(cell.source, {
+  const { code: source } = transformImportStatements(cell.source, cell.filename);
+
+  const module = new vm.SourceTextModule(source, {
     identifier: cell.filename,
     context: cell.context,
     importModuleDynamically: async function (specifier) {
@@ -114,7 +117,11 @@ async function createLinkedModule(session, cell) {
         const importedCell = session.cells.find((cell) => cell.filename === filename);
 
         if (!importedCell) {
-          throw new Error(`[ERR_MODULE_NOT_FOUND]: Cannot resolve module ${specifier}`);
+          const err = new Error(
+            `Cannot find package '${specifier}' imported from ${cell.filename}`,
+          );
+          err.code = 'ERR_MODULE_NOT_FOUND';
+          throw err;
         }
 
         if (importedCell.module === null) {

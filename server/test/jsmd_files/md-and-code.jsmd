@@ -1,0 +1,33 @@
+# Markdown and code
+
+This is a paragraph with some **bold** and _italic_ text.
+
+* this
+* is
+* a
+* list
+
+#### file.js
+```javascript
+const foo = 42;
+
+```
+
+Below is an HTML comment followed by a codeblock that we shouldn't parse as a code cell.
+<!-- srcbook: {"markdown": "no parse"} -->
+```typescript
+const foo = 42;
+console.log(foo);
+
+const bar = foo;
+return foo;
+```
+
+This is some more text, should be a second markdown block
+
+#### otherfile.js
+```javascript
+const thisIsCool = true;
+```
+
+We finish with a **flurry**!

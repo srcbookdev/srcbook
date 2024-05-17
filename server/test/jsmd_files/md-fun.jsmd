@@ -1,8 +1,8 @@
 # md-fun
 
+#### untitled.js
 ```javascript
-// untitled.js
-
+const foo = 42;
 ```
 
 ## A section title

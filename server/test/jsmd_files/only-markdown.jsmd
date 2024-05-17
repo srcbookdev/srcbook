@@ -1,11 +1,8 @@
 # Only Markdown
 
+This file contains **only** some markdown.
 
+And `nothing` else.
 
-```javascript
-// newfile.js
-const foo = 42;
-console.log(foo);
-
-something else
-```
+I guess as a great man once said (Einstain):
+> "Strive not to be a success, but rather to be of value."

@@ -50,9 +50,11 @@ function convertToCells(tokens) {
             // we are in a supported executable code block
             const codeToken = tokens[nextNoneSpaceIndex];
 
-            // Push the previous mardkown
-            result.push({ id: randomid(), type: 'markdown', tokens: currentMarkdown });
-            currentMarkdown = [];
+            // Push the previous mardkown if necessary
+            if (currentMarkdown.length > 0) {
+              result.push({ id: randomid(), type: 'markdown', tokens: currentMarkdown });
+              currentMarkdown = [];
+            }
 
             result.push(convertCode(codeToken, token.text));
             i = nextNoneSpaceIndex;

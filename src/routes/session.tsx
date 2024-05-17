@@ -191,7 +191,7 @@ function CellOutput(props: { output: OutputType[] }) {
 
   return (
     <div className="border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
-      {output.length > 0 && <div className="p-2 whitespace-pre-wrap">{output}</div>}
+      {output.length > 0 && <div className="p-2 whitespace-pre-wrap">{output.join(' ')}</div>}
       {result !== undefined && (
         <div className={cn('p-2 whitespace-pre-wrap', result.error && 'text-red-600')}>
           {result.text}

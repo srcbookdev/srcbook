@@ -4,17 +4,16 @@ import { randomid } from './utils.mjs';
 marked.use({ gfm: true });
 
 export function encode(cells) {
-  console.log('encoding cells', cells);
   return cells
     .map((cell) => {
       switch (cell.type) {
         case 'title':
           return `# ${cell.text}`;
         case 'markdown':
-          // Since we have the markdown, use it. But we could also recursively encode .tokens
-          return cell.rawText;
+          // Since we have the raw text, use it. But we could also recursively encode .tokens
+          return cell.text.trim();
         case 'code':
-          return ['```' + cell.language, `// ${cell.filename}`, cell.source, '```'].join('\n');
+          return [`#### ${cell.filename}`, `\`\`\`${cell.language}`, cell.source, '```'].join('\n');
       }
     })
     .join('\n\n');
@@ -25,72 +24,85 @@ export function decode(contents) {
   return convertToCells(tokens);
 }
 
+const nextNonSpaceNode = (tokens, index) => {
+  index++;
+  while (tokens[index] && tokens[index].type === 'space') {
+    index++;
+  }
+  return index;
+};
+
 function convertToCells(tokens) {
-  console.log('tokens:', tokens);
-  const cells = tokens.reduce(
-    ({ result, currentMarkdown }, token) => {
-      switch (token.type) {
-        case 'heading':
-          if (token.depth === 1) {
-            result.push({ id: randomid(), type: 'title', text: token.text });
-          } else {
-            currentMarkdown.push(token);
+  const result = [];
+  let currentMarkdown = [];
+  let i = 0;
+
+  while (i < tokens.length) {
+    const token = tokens[i];
+
+    switch (token.type) {
+      case 'heading':
+        if (token.depth === 1) {
+          result.push({ id: randomid(), type: 'title', text: token.text });
+        } else if (token.depth === 4) {
+          const nextNoneSpaceIndex = nextNonSpaceNode(tokens, i);
+          if (tokens[nextNoneSpaceIndex] && tokens[nextNoneSpaceIndex].type === 'code') {
+            // we are in a supported executable code block
+            const codeToken = tokens[nextNoneSpaceIndex];
+
+            // Push the previous mardkown
+            result.push({ id: randomid(), type: 'markdown', tokens: currentMarkdown });
+            currentMarkdown = [];
+
+            result.push(convertCode(codeToken, token.text));
+            i = nextNoneSpaceIndex;
+            break;
           }
-          return { result, currentMarkdown };
-        case 'code':
-          result.push({ id: randomid(), type: 'markdown', tokens: currentMarkdown });
-          currentMarkdown = [];
-          result.push(convertCode(token));
-          return { result, currentMarkdown };
-        case 'space':
+        } else {
           currentMarkdown.push(token);
-          return { result, currentMarkdown };
-        default:
-          currentMarkdown.push(token);
-          return { result, currentMarkdown };
-      }
-    },
-    { result: [], currentMarkdown: [] },
-  );
-  console.log('cells:');
-  console.dir(cells, { depth: null });
-  let finalCells = cells.result.concat({
-    id: randomid(),
-    type: 'markdown',
-    tokens: cells.currentMarkdown,
-  });
-  finalCells = finalCells.map((cell) => {
+        }
+        break;
+
+      default:
+        currentMarkdown.push(token);
+        break;
+    }
+
+    i++;
+  }
+
+  let finalCells = result;
+  // Flush the last markdown if we have any left over.
+  if (currentMarkdown.length !== 0) {
+    finalCells = result.concat({
+      id: randomid(),
+      type: 'markdown',
+      tokens: currentMarkdown,
+    });
+  }
+
+  // Reduce the markdown tokens to a single cell text value
+  return finalCells.map((cell) => {
     if (cell.type === 'markdown') {
-      cell.rawText = cell.tokens.reduce((acc, token) => {
+      cell.text = cell.tokens.reduce((acc, token) => {
         return acc + token.raw;
       }, '');
       return cell;
     }
     return cell;
   });
-  console.log('finalCells:');
-  console.dir(finalCells, { depth: null });
-
-  return finalCells;
 }
 
-function convertCode(token) {
-  const [filename, source] = parseSource(token.text);
-
+function convertCode(token, filename) {
   return {
     id: randomid(),
     stale: false,
     type: 'code',
-    source: source,
+    source: token.text,
     module: null,
     context: null,
     language: token.lang,
     filename: filename,
     output: [],
   };
-}
-
-function parseSource(source) {
-  const [line, ...rest] = source.split('\n');
-  return [line.replace(/\/\/\s*/, ''), rest.join('\n')];
 }

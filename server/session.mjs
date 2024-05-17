@@ -12,7 +12,7 @@ setInterval(() => {
   for (const session of Object.values(sessions)) {
     maybeWriteToFile(session);
   }
-}, 5000);
+}, 3000);
 
 async function maybeWriteToFile(session) {
   const contents = encode(session.cells);

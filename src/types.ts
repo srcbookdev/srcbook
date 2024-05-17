@@ -32,9 +32,8 @@ export type TitleCellType = BaseCellType & {
 
 export type MarkdownCellType = BaseCellType & {
   type: 'markdown';
-  text: string;
   tokens: Token[];
-  rawText: string;
+  text: string;
 };
 
 export type CodeCellType = BaseCellType & {

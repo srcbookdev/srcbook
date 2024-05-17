@@ -1,2 +1,11 @@
-# md-fun
+# Only Markdown
 
+
+
+```javascript
+// newfile.js
+const foo = 42;
+console.log(foo);
+
+something else
+```

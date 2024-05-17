@@ -4,11 +4,15 @@ import { randomid } from './utils.mjs';
 marked.use({ gfm: true });
 
 export function encode(cells) {
+  console.log('encoding cells', cells);
   return cells
     .map((cell) => {
       switch (cell.type) {
         case 'title':
           return `# ${cell.text}`;
+        case 'markdown':
+          // Since we have the markdown, use it. But we could also recursively encode .tokens
+          return cell.rawText;
         case 'heading':
           return `## ${cell.text}`;
         case 'code':
@@ -50,13 +54,12 @@ function convertToCells(tokens) {
     },
     { result: [], currentMarkdown: [] },
   );
-  console.log('cells:', cells);
-  console.log('marked.parser(cells.currentMarkdown):', marked.parser(cells.currentMarkdown));
+  console.log('cells:');
+  console.dir(cells, { depth: null });
   let finalCells = cells.result.concat({
     id: randomid(),
     type: 'markdown',
     tokens: cells.currentMarkdown,
-    text: marked.parser(cells.currentMarkdown),
   });
   finalCells = finalCells.map((cell) => {
     if (cell.type === 'markdown') {
@@ -67,7 +70,9 @@ function convertToCells(tokens) {
     }
     return cell;
   });
-  console.log('finalCells:', finalCells);
+  console.log('finalCells:');
+  console.dir(finalCells, { depth: null });
+
   return finalCells;
 }
 

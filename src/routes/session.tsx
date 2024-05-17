@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { marked } from 'marked';
 import Markdown from 'marked-react';
 import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
@@ -122,7 +121,7 @@ function MarkdownCell(props: {
   onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
 }) {
   return (
-    <div className="mt-4 mb-10">
+    <div className="mt-4 mb-10 prose">
       <Markdown>{props.cell.rawText}</Markdown>
     </div>
   );

@@ -9,7 +9,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test-server": "jest server/test/",
+    "test-server": "node --experimental-vm-modules node_modules/jest/bin/jest.js server/test/ --config server/jest.config.cjs",
     "test-client": "jest src/test/",
     "test": "npm run test-server && npm run test-client"
   },

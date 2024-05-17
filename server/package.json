@@ -8,6 +8,9 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/"
   },
   "dependencies": {
+    "@babel/generator": "^7.24.5",
+    "@babel/parser": "^7.24.5",
+    "@babel/traverse": "^7.24.5",
     "@scure/base": "^1.1.6",
     "cors": "^2.8.5",
     "express": "^4.19.2",

@@ -4,6 +4,7 @@ import { randomid } from './utils.mjs';
 marked.use({ gfm: true });
 
 export function encode(cells) {
+  console.log('encoding cells', cells);
   return cells
     .map((cell) => {
       switch (cell.type) {

@@ -75,15 +75,6 @@ export function sessionToResponse(session) {
 
 export function createCell({ type }) {
   switch (type) {
-    case 'heading':
-      return {
-        id: randomid(),
-        stale: false,
-        type: 'heading',
-        text: 'Heading',
-        depth: 2,
-        output: [],
-      };
     case 'code':
       return {
         id: randomid(),

@@ -34,33 +34,3 @@ export function EditableH1(props: {
     </h1>
   );
 }
-
-export function EditableH2(props: {
-  text: string;
-  className?: string;
-  onUpdated: (text: string) => void;
-}) {
-  const ref = React.useRef<HTMLHeadingElement | null>(null);
-
-  return (
-    <h2
-      className={cn(className, props.className)}
-      ref={ref}
-      contentEditable
-      suppressContentEditableWarning={true}
-      onBlur={(e) => {
-        const text = e.currentTarget.innerHTML;
-        if (text !== props.text) {
-          props.onUpdated(text);
-        }
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && ref.current) {
-          ref.current.blur();
-        }
-      }}
-    >
-      {props.text}
-    </h2>
-  );
-}

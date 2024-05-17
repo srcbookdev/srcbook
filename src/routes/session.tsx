@@ -12,12 +12,11 @@ import type {
   EvalOutputType,
   OutputType,
   TitleCellType,
-  HeadingCellType,
   MarkdownCellType,
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { EditableH1, EditableH2 } from '@/components/ui/heading';
+import { EditableH1 } from '@/components/ui/heading';
 
 type SlimSessionType = {
   id: string;
@@ -84,8 +83,6 @@ function Cell(props: {
   switch (props.cell.type) {
     case 'title':
       return <TitleCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
-    case 'heading':
-      return <HeadingCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
     case 'code':
       return (
         <CodeCell
@@ -123,21 +120,6 @@ function MarkdownCell(props: {
   return (
     <div className="mt-4 mb-10 prose">
       <Markdown>{props.cell.rawText}</Markdown>
-    </div>
-  );
-}
-
-function HeadingCell(props: {
-  cell: HeadingCellType;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
-}) {
-  return (
-    <div className="mb-4">
-      <EditableH2
-        text={props.cell.text}
-        className="text-2xl font-semibold"
-        onUpdated={(text) => props.onUpdateCell(props.cell, { text })}
-      />
     </div>
   );
 }

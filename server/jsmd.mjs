@@ -13,8 +13,6 @@ export function encode(cells) {
         case 'markdown':
           // Since we have the markdown, use it. But we could also recursively encode .tokens
           return cell.rawText;
-        case 'heading':
-          return `## ${cell.text}`;
         case 'code':
           return ['```' + cell.language, `// ${cell.filename}`, cell.source, '```'].join('\n');
       }

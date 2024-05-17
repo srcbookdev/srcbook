@@ -30,10 +30,6 @@ export type TitleCellType = BaseCellType & {
   text: string;
 };
 
-export type HeadingCellType = BaseCellType & {
-  type: 'heading';
-  text: string;
-};
 export type MarkdownCellType = BaseCellType & {
   type: 'markdown';
   text: string;
@@ -50,4 +46,4 @@ export type CodeCellType = BaseCellType & {
   output: OutputType[];
 };
 
-export type CellType = TitleCellType | HeadingCellType | CodeCellType | MarkdownCellType;
+export type CellType = TitleCellType | CodeCellType | MarkdownCellType;

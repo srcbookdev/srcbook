@@ -117,6 +117,12 @@ function validateFilename(session, cellId, filename) {
 
 app.options('/sessions/:id/cells/:cellId', cors());
 
+app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
+  const { id, cellId } = req.params;
+  console.log('Removing cell with session id', id, 'and cellId', cellId);
+  return res.json({ error: false });
+});
+
 // updates cell without running it
 app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const { id, cellId } = req.params;

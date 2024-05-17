@@ -4,8 +4,8 @@ import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { markdown } from '@codemirror/lang-markdown';
-import { Plus, PlayCircle, Pencil } from 'lucide-react';
-import { exec, loadSession, createCell, updateCell } from '@/lib/server';
+import { Plus, PlayCircle, Trash2, Pencil } from 'lucide-react';
+import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import type {
   CellType,
@@ -34,6 +34,16 @@ export default function Session() {
 
   const [cells, setCells] = useState<CellType[]>(session.cells);
 
+  async function deleteCellById(cellId: string) {
+    const { error } = await deleteCell({ sessionId: session.id, cellId });
+    if (error) {
+      console.error('Failed to delete cell');
+      return;
+    }
+    const updatedCells = cells.filter((cell) => cell.id !== cellId);
+    setCells(updatedCells);
+  }
+
   function updateCells(updatedCell: CellType) {
     const updatedCells = cells.map((cell) => (cell.id === updatedCell.id ? updatedCell : cell));
     setCells(updatedCells);
@@ -54,20 +64,29 @@ export default function Session() {
     updateCells(updatedCell);
   }
 
-  async function createNewCell() {
-    const { result } = await createCell({ sessionId: session.id, type: 'code' });
+  async function createNewCell(type: 'code' | 'markdown' = 'code') {
+    const { result } = await createCell({ sessionId: session.id, type });
     setCells(cells.concat(result));
   }
 
   return (
     <>
       {cells.map((cell) => (
-        <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} onUpdateCell={onUpdateCell} />
+        <div className="relative">
+          <Button
+            variant="ghost"
+            className="absolute -left-12 -top-1"
+            onClick={() => deleteCellById(cell.id)}
+          >
+            <Trash2 size={16} />
+          </Button>
+          <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} onUpdateCell={onUpdateCell} />
+        </div>
       ))}
       <div className="py-3 flex justify-center">
         <button
           className="p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-colors"
-          onClick={createNewCell}
+          onClick={() => createNewCell('code')}
         >
           <Plus size={24} />
         </button>
@@ -136,7 +155,7 @@ function MarkdownCell(props: {
         <div className="prose relative group prose-p:my-0 prose-li:my-0 max-w-full">
           <Button
             variant="ghost"
-            className="absolute -left-12 -top-1"
+            className="absolute -left-12 top-8"
             onClick={() => setStatus('edit')}
           >
             <Pencil size={16} />

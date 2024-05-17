@@ -87,6 +87,13 @@ export function createCell({ type }) {
         filename: 'untitled.js',
         output: [],
       };
+    case 'markdown':
+      return {
+        id: randomid(),
+        type: 'markdown',
+        text: '',
+        tokens: [],
+      };
     default:
       throw new Error(`Unrecognized cell type ${type}`);
   }

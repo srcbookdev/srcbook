@@ -1,30 +1,41 @@
-# React + TypeScript + Vite
+# Src Book
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interactive notebooks for TypeScript.
 
-Currently, two official plugins are available:
+## Repo architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The repository is split between client code (found at the root level) and server code, found under [/server](/server).
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+First, run the server:
 
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-};
+```
+$ cd server/
+$ npm i
+$ npm run dev
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+Then, run the client:
+
+```
+$ # from root of repository
+$ npm i
+$ npm run dev
+```
+
+You can pass the following env variables:
+
+- `SRC_BOOK_CONFIG_DIR`: this is the directory where the local config.json will live
+
+## Config
+
+Configuration can be modified in the application UI directly, and is present at `$SRC_BOOK_CONFIG_DIR/config.json`
+
+## Testing
+
+We use [jest](https://jestjs.io/docs/getting-started) for testing. You have 3 options to test:
+
+- test client side only with `npm run test-client`
+- test server side only with `npm run test-server`
+- run both test suites with `npm run test`

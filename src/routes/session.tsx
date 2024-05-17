@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1, EditableH2 } from '@/components/ui/heading';
 
-export async function loader({ params }: any) {
+export async function loader({ params }: { params: { id: string } }) {
   const { result: session } = await loadSession({ id: params.id });
   return { session };
 }

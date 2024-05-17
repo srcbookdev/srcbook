@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react';
+import { marked } from 'marked';
+import Markdown from 'marked-react';
 import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
@@ -12,10 +14,16 @@ import type {
   OutputType,
   TitleCellType,
   HeadingCellType,
+  MarkdownCellType,
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1, EditableH2 } from '@/components/ui/heading';
+
+type SlimSessionType = {
+  id: string;
+  cells: CellType[];
+};
 
 export async function loader({ params }: { params: { id: string } }) {
   const { result: session } = await loadSession({ id: params.id });
@@ -23,7 +31,7 @@ export async function loader({ params }: { params: { id: string } }) {
 }
 
 export default function Session() {
-  const { session } = useLoaderData() as any;
+  const { session } = useLoaderData() as { session: SlimSessionType };
 
   const [cells, setCells] = useState<CellType[]>(session.cells);
 
@@ -87,6 +95,8 @@ function Cell(props: {
           onUpdateCell={props.onUpdateCell}
         />
       );
+    case 'markdown':
+      return <MarkdownCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
     default:
       throw new Error('Unrecognized cell type');
   }
@@ -103,6 +113,17 @@ function TitleCell(props: {
         className="text-3xl font-semibold"
         onUpdated={(text) => props.onUpdateCell(props.cell, { text })}
       />
+    </div>
+  );
+}
+
+function MarkdownCell(props: {
+  cell: MarkdownCellType;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+}) {
+  return (
+    <div className="mt-4 mb-10">
+      <Markdown>{props.cell.rawText}</Markdown>
     </div>
   );
 }

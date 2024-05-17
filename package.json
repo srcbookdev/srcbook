@@ -23,6 +23,7 @@
     "localforage": "^1.10.0",
     "lucide-react": "^0.378.0",
     "marked": "^12.0.2",
+    "marked-react": "^2.0.0",
     "match-sorter": "^6.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

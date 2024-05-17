@@ -1,3 +1,5 @@
+import type { Token } from 'marked';
+
 export interface FsObjectType {
   name: string;
   path: string;
@@ -32,6 +34,12 @@ export type HeadingCellType = BaseCellType & {
   type: 'heading';
   text: string;
 };
+export type MarkdownCellType = BaseCellType & {
+  type: 'markdown';
+  text: string;
+  tokens: Token[];
+  rawText: string;
+};
 
 export type CodeCellType = BaseCellType & {
   type: 'code';
@@ -42,4 +50,4 @@ export type CodeCellType = BaseCellType & {
   output: OutputType[];
 };
 
-export type CellType = TitleCellType | HeadingCellType | CodeCellType;
+export type CellType = TitleCellType | HeadingCellType | CodeCellType | MarkdownCellType;

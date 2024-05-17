@@ -20,43 +20,55 @@ export function encode(cells) {
 
 export function decode(contents) {
   const tokens = marked.lexer(contents);
-  return convertToCell(tokens);
+  return convertToCells(tokens);
 }
 
-function convertToCell(tokens) {
-  return tokens.reduce((result, token) => {
-    switch (token.type) {
-      case 'heading':
-        result.push(convertHeading(token));
-        return result;
-      case 'code':
-        result.push(convertCode(token));
-        return result;
-      case 'space':
-        return result;
-      default:
-        throw new Error(`No converter implemented for type ${token.type}`);
+function convertToCells(tokens) {
+  console.log('tokens:', tokens);
+  const cells = tokens.reduce(
+    ({ result, currentMarkdown }, token) => {
+      switch (token.type) {
+        case 'heading':
+          if (token.depth === 1) {
+            result.push({ id: randomid(), type: 'title', text: token.text });
+          } else {
+            currentMarkdown.push(token);
+          }
+          return { result, currentMarkdown };
+        case 'code':
+          result.push({ id: randomid(), type: 'markdown', tokens: currentMarkdown });
+          currentMarkdown = [];
+          result.push(convertCode(token));
+          return { result, currentMarkdown };
+        case 'space':
+          currentMarkdown.push(token);
+          return { result, currentMarkdown };
+        default:
+          currentMarkdown.push(token);
+          return { result, currentMarkdown };
+      }
+    },
+    { result: [], currentMarkdown: [] },
+  );
+  console.log('cells:', cells);
+  console.log('marked.parser(cells.currentMarkdown):', marked.parser(cells.currentMarkdown));
+  let finalCells = cells.result.concat({
+    id: randomid(),
+    type: 'markdown',
+    tokens: cells.currentMarkdown,
+    text: marked.parser(cells.currentMarkdown),
+  });
+  finalCells = finalCells.map((cell) => {
+    if (cell.type === 'markdown') {
+      cell.rawText = cell.tokens.reduce((acc, token) => {
+        return acc + token.raw;
+      }, '');
+      return cell;
     }
-  }, []);
-}
-
-function convertHeading(token) {
-  switch (token.depth) {
-    case 1:
-      return {
-        id: randomid(),
-        type: 'title',
-        text: token.text,
-      };
-    case 2:
-      return {
-        id: randomid(),
-        type: 'heading',
-        text: token.text,
-      };
-    default:
-      throw new Error('Unsupported heading (depth=' + token.depth + ')');
-  }
+    return cell;
+  });
+  console.log('finalCells:', finalCells);
+  return finalCells;
 }
 
 function convertCode(token) {

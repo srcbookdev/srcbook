@@ -156,8 +156,12 @@ export async function updateCell(request: UpdateCellRequestType): Promise<Update
   );
 
   if (!response.ok) {
-    console.error(response);
-    throw new Error('Request failed');
+    if (response.status === 400) {
+      const error = await response.json();
+      throw new Error(error.message);
+    } else {
+      throw new Error('Request failed');
+    }
   }
 
   return response.json();

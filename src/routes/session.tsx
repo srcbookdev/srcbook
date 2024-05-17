@@ -71,8 +71,8 @@ export default function Session() {
 
 function Cell(props: {
   cell: CellType;
-  onEvaluate: (cell: CellType, source: string) => void;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+  onEvaluate: (cell: CellType, source: string) => Promise<void>;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
 }) {
   switch (props.cell.type) {
     case 'title':
@@ -94,7 +94,7 @@ function Cell(props: {
 
 function TitleCell(props: {
   cell: TitleCellType;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
 }) {
   return (
     <div className="mt-4 mb-10">
@@ -109,7 +109,7 @@ function TitleCell(props: {
 
 function HeadingCell(props: {
   cell: HeadingCellType;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
 }) {
   return (
     <div className="mb-4">
@@ -124,8 +124,8 @@ function HeadingCell(props: {
 
 function CodeCell(props: {
   cell: CodeCellType;
-  onEvaluate: (cell: CellType, source: string) => void;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+  onEvaluate: (cell: CellType, source: string) => Promise<void>;
+  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
 }) {
   const cell = props.cell;
 
@@ -136,36 +136,18 @@ function CodeCell(props: {
     props.onUpdateCell(cell, { source });
   }
 
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
   return (
     <div className="space-y-1.5 mb-14">
       <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
-          <div className="font-bold">
-            <Input
-              ref={inputRef}
-              required
-              defaultValue={cell.filename}
-              onBlur={() => {
-                if (!inputRef.current) return;
-                const filename = inputRef.current.value;
-                if (filename !== cell.filename) {
-                  props.onUpdateCell(cell, { filename });
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && inputRef.current) {
-                  inputRef.current.blur();
-                }
-              }}
-              className="font-mono font-semibold text-xs border-transparent hover:border-input transition-colors"
-            />
-          </div>
+          <FilenameInput
+            filename={cell.filename}
+            onUpdate={(filename) => props.onUpdateCell(cell, { filename })}
+          />
           <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
             <Button onClick={() => props.onEvaluate(cell, source)}>
               <PlayCircle size={16} className="mr-2" />
-              Evaluate
+              Run
             </Button>
           </div>
         </div>
@@ -197,6 +179,50 @@ function CellOutput(props: { output: OutputType[] }) {
           {result.text}
         </div>
       )}
+    </div>
+  );
+}
+
+function FilenameInput(props: { filename: string; onUpdate: (filename: string) => Promise<void> }) {
+  const filename = props.filename;
+  const onUpdate = props.onUpdate;
+
+  const [error, setError] = useState<string | null>(null);
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  return (
+    <div className="font-bold">
+      <Input
+        ref={inputRef}
+        required
+        defaultValue={filename}
+        onBlur={() => {
+          if (!inputRef.current) {
+            return;
+          }
+
+          const updatedFilename = inputRef.current.value;
+          if (updatedFilename !== filename) {
+            onUpdate(updatedFilename).catch((e) => {
+              if (inputRef.current) {
+                inputRef.current.value = filename;
+              }
+              setError(e.message);
+              setTimeout(() => setError(null), 1500);
+            });
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && inputRef.current) {
+            inputRef.current.blur();
+          }
+        }}
+        className={cn(
+          'font-mono font-semibold text-xs border-transparent hover:border-input transition-colors',
+          error && 'border border-red-600 hover:border-red-600 focus-visible:ring-red-600',
+        )}
+      />
     </div>
   );
 }

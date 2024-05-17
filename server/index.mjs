@@ -1,3 +1,4 @@
+import Path from 'path';
 import express from 'express';
 import cors from 'cors';
 import {
@@ -97,6 +98,23 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
   }
 });
 
+function validateFilename(session, cellId, filename) {
+  const validFormat = /^[a-zA-Z0-9_-]+\.(mjs|json)$/.test(filename);
+  const unique = session.cells.some((cell) => {
+    return cell.id !== cellId && cell.filename === filename;
+  });
+
+  if (!validFormat) {
+    return 'Invalid filename: filename must consist of letters, numbers, underscores, dashes and must end with mjs or json';
+  }
+
+  if (!unique) {
+    return 'Invalid filename: filename is not unique';
+  }
+
+  return true;
+}
+
 app.options('/sessions/:id/cells/:cellId', cors());
 
 // updates cell without running it
@@ -106,6 +124,12 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
 
   const session = await findSession(id);
   const cell = findCell(session, cellId);
+
+  const filenameResult = validateFilename(session, cellId, attrs.filename);
+
+  if (typeof filenameResult === 'string') {
+    return res.status(400).json({ error: true, message: filenameResult });
+  }
 
   const updatedCell = {
     ...cell,

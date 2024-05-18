@@ -14,7 +14,7 @@ setInterval(() => {
   }
 }, 3000);
 
-async function maybeWriteToFile(session) {
+export async function maybeWriteToFile(session) {
   const contents = encode(session.cells);
   const buffer = Buffer.from(contents);
   const hash = await sha256(new Uint8Array(buffer));
@@ -86,6 +86,13 @@ export function createCell({ type }) {
         language: 'javascript',
         filename: 'untitled.js',
         output: [],
+      };
+    case 'markdown':
+      return {
+        id: randomid(),
+        type: 'markdown',
+        text: '',
+        tokens: [],
       };
     default:
       throw new Error(`Unrecognized cell type ${type}`);
@@ -180,4 +187,8 @@ export function findCell(session, id) {
 
 export function replaceCell(session, cell) {
   return session.cells.map((c) => (c.id === cell.id ? cell : c));
+}
+
+export function removeCell(session, id) {
+  return session.cells.filter((cell) => cell.id !== id);
 }

@@ -105,7 +105,7 @@ export async function loadSession(
 
 interface CreateCellRequestType {
   sessionId: string;
-  type: 'section' | 'code';
+  type: 'code' | 'markdown';
 }
 
 interface CreateCellResponseType {
@@ -162,6 +162,39 @@ export async function updateCell(request: UpdateCellRequestType): Promise<Update
     } else {
       throw new Error('Request failed');
     }
+  }
+
+  return response.json();
+}
+
+interface DeleteCellRequestType {
+  sessionId: string;
+  cellId: string;
+}
+
+type DeleteResponseType = {
+  error: boolean;
+  message: string;
+};
+
+type SuccessDeleteResponseType = {
+  result: CellType[];
+};
+
+type DeleteCellResponseType = DeleteResponseType | SuccessDeleteResponseType;
+
+export async function deleteCell(request: DeleteCellRequestType): Promise<DeleteCellResponseType> {
+  const response = await fetch(
+    SERVER_BASE_URL + '/sessions/' + request.sessionId + '/cells/' + request.cellId,
+    {
+      method: 'DELETE',
+      headers: { 'content-type': 'application/json' },
+    },
+  );
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
   }
 
   return response.json();

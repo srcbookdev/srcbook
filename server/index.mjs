@@ -128,6 +128,10 @@ app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
     return res.status(404).json({ error: true, message: 'Cell not found' });
   }
 
+  if (cell.type === 'title') {
+    res.status(400).json({ error: true, message: 'Cannot delete title cell' });
+  }
+
   const updatedCells = removeCell(session, cellId);
   updateSession(session, { cells: updatedCells });
   maybeWriteToFile(session);

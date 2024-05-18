@@ -172,9 +172,16 @@ interface DeleteCellRequestType {
   cellId: string;
 }
 
-interface DeleteCellResponseType {
+type DeleteResponseType = {
   error: boolean;
-}
+  message: string;
+};
+
+type SuccessDeleteResponseType = {
+  result: CellType[];
+};
+
+type DeleteCellResponseType = DeleteResponseType | SuccessDeleteResponseType;
 
 export async function deleteCell(request: DeleteCellRequestType): Promise<DeleteCellResponseType> {
   const response = await fetch(

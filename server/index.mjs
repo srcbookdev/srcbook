@@ -1,4 +1,3 @@
-import Path from 'path';
 import express from 'express';
 import cors from 'cors';
 import {
@@ -7,9 +6,11 @@ import {
   exec,
   findCell,
   replaceCell,
+  removeCell,
   updateSession,
   sessionToResponse,
   createCell,
+  maybeWriteToFile,
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
 import { getConfig, saveConfig } from './config.mjs';
@@ -91,6 +92,7 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
     const cell = createCell({ type });
     const cells = session.cells.concat(cell);
     updateSession(session, { cells });
+    maybeWriteToFile(session);
     return res.json({ error: false, result: cell });
   } catch (error) {
     console.error(error);
@@ -119,8 +121,18 @@ app.options('/sessions/:id/cells/:cellId', cors());
 
 app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const { id, cellId } = req.params;
-  console.log('Removing cell with session id', id, 'and cellId', cellId);
-  return res.json({ error: false });
+  const session = await findSession(id);
+  const cell = findCell(session, cellId);
+
+  if (!cell) {
+    return res.status(404).json({ error: true, message: 'Cell not found' });
+  }
+
+  const updatedCells = removeCell(session, cellId);
+  updateSession(session, { cells: updatedCells });
+  maybeWriteToFile(session);
+
+  return res.json({ result: updatedCells });
 });
 
 // updates cell without running it
@@ -152,6 +164,7 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
 
   // Update state
   updateSession(session, { cells: updatedCells });
+  maybeWriteToFile(session);
 
   return res.json({ result: updatedCell });
 });

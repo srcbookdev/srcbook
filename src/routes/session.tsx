@@ -34,14 +34,19 @@ export default function Session() {
 
   const [cells, setCells] = useState<CellType[]>(session.cells);
 
-  async function deleteCellById(cellId: string) {
-    const { error } = await deleteCell({ sessionId: session.id, cellId });
-    if (error) {
+  async function onDeleteCell(cell: CellType) {
+    if (cell.type === 'title') {
+      throw new Error('Cannot delete title cell');
+    }
+    const response = await deleteCell({ sessionId: session.id, cellId: cell.id });
+    if ('error' in response) {
       console.error('Failed to delete cell');
       return;
     }
-    const updatedCells = cells.filter((cell) => cell.id !== cellId);
-    setCells(updatedCells);
+    if ('result' in response) {
+      const { result: updatedCells } = response;
+      setCells(updatedCells);
+    }
   }
 
   function updateCells(updatedCell: CellType) {
@@ -72,16 +77,13 @@ export default function Session() {
   return (
     <>
       {cells.map((cell) => (
-        <div className="relative">
-          <Button
-            variant="ghost"
-            className="absolute -left-12 -top-1"
-            onClick={() => deleteCellById(cell.id)}
-          >
-            <Trash2 size={16} />
-          </Button>
-          <Cell key={cell.id} cell={cell} onEvaluate={onEvaluate} onUpdateCell={onUpdateCell} />
-        </div>
+        <Cell
+          key={cell.id}
+          cell={cell}
+          onEvaluate={onEvaluate}
+          onUpdateCell={onUpdateCell}
+          onDeleteCell={onDeleteCell}
+        />
       ))}
       <div className="py-3 flex justify-center">
         <button
@@ -99,6 +101,7 @@ function Cell(props: {
   cell: CellType;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
   onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+  onDeleteCell: (cell: CellType) => void;
 }) {
   switch (props.cell.type) {
     case 'title':
@@ -109,10 +112,17 @@ function Cell(props: {
           cell={props.cell}
           onEvaluate={props.onEvaluate}
           onUpdateCell={props.onUpdateCell}
+          onDeleteCell={props.onDeleteCell}
         />
       );
     case 'markdown':
-      return <MarkdownCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
+      return (
+        <MarkdownCell
+          cell={props.cell}
+          onUpdateCell={props.onUpdateCell}
+          onDeleteCell={props.onDeleteCell}
+        />
+      );
     default:
       throw new Error('Unrecognized cell type');
   }
@@ -136,6 +146,7 @@ function TitleCell(props: {
 function MarkdownCell(props: {
   cell: MarkdownCellType;
   onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+  onDeleteCell: (cell: CellType) => void;
 }) {
   const [status, setStatus] = useState<'edit' | 'view'>('view');
   const [text, setText] = useState(props.cell.text);
@@ -150,31 +161,40 @@ function MarkdownCell(props: {
   }
 
   return (
-    <div className="mt-4 mb-10 group w-full">
+    <div
+      onDoubleClick={() => setStatus('edit')}
+      className="group/cell relative mt-4 mb-10 w-full border border-transparent p-4 hover:border-gray-200 rounded-sm"
+    >
       {status === 'view' ? (
-        <div className="prose relative group prose-p:my-0 prose-li:my-0 max-w-full">
-          <Button
-            variant="ghost"
-            className="absolute -left-12 top-8"
-            onClick={() => setStatus('edit')}
-          >
-            <Pencil size={16} />
-          </Button>
+        <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
           <Markdown>{text}</Markdown>
+          <div className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-2">
+            <Button variant="ghost" onClick={() => setStatus('edit')}>
+              <Pencil size={16} />
+            </Button>
+            <Button variant="ghost" onClick={() => props.onDeleteCell(cell)}>
+              <Trash2 size={16} />
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col">
-          <div className="flex gap-2 items-center pb-2">
-            <Button variant="outline" onClick={() => setStatus('view')}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                onSave();
-                setStatus('view');
-              }}
-            >
-              Save
+          <div className="flex items-center justify-between pb-2">
+            <div className="flex gap-2 items-center">
+              <Button variant="outline" onClick={() => setStatus('view')}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  onSave();
+                  setStatus('view');
+                }}
+              >
+                Save
+              </Button>
+            </div>
+            <Button variant="destructive" onClick={() => props.onDeleteCell(cell)}>
+              Delete
             </Button>
           </div>
 
@@ -196,6 +216,7 @@ function CodeCell(props: {
   cell: CodeCellType;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
   onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+  onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;
 
@@ -207,7 +228,7 @@ function CodeCell(props: {
   }
 
   return (
-    <div className="space-y-1.5 mb-14">
+    <div className="relative group/cell space-y-1.5 mb-14">
       <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
           <FilenameInput
@@ -229,6 +250,13 @@ function CodeCell(props: {
         />
       </div>
       <CellOutput output={cell.output} />
+      <Button
+        variant="ghost"
+        className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex"
+        onClick={() => props.onDeleteCell(cell)}
+      >
+        <Trash2 size={16} />
+      </Button>
     </div>
   );
 }

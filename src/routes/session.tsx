@@ -70,22 +70,33 @@ export default function Session() {
     updateCells(updatedCell);
   }
 
-  async function createNewCell(type: 'code' | 'markdown' = 'code') {
-    const { result } = await createCell({ sessionId: session.id, type });
-    setCells(cells.concat(result));
+  async function createNewCell(type: 'code' | 'markdown' = 'code', index?: number) {
+    const { result } = await createCell({ sessionId: session.id, type, index });
+
+    // Insert cell at the end if index is not provided
+    if (!index) {
+      setCells(cells.concat(result));
+    } else {
+      setCells(cells.slice(0, index).concat(result).concat(cells.slice(index)));
+    }
   }
 
   return (
     <>
       <div className="flex flex-col">
         {cells.map((cell, idx) => (
-          <div>
+          <div key={`wrapper-${cell.id}`}>
             {idx !== 0 && (
               <div className="flex justify-center w-full group">
-                <NewCellPopover createNewCell={createNewCell} key={cell.id}>
-                  <button className="m-1 p-0.5 border rounded-full border-transparent text-transparent group-hover:text-foreground hover:border-foreground transition-all active:translate-y-0.5">
+                <NewCellPopover
+                  createNewCell={(type) => {
+                    return createNewCell(type, idx);
+                  }}
+                  key={`popover-${cell.id}`}
+                >
+                  <div className="m-1 p-0.5 border rounded-full border-transparent text-transparent group-hover:text-foreground hover:border-foreground transition-all active:translate-y-0.5">
                     <Plus size={16} />
-                  </button>
+                  </div>
                 </NewCellPopover>
               </div>
             )}
@@ -102,9 +113,9 @@ export default function Session() {
 
       <div className="flex justify-center">
         <NewCellPopover createNewCell={createNewCell}>
-          <button className="m-4 p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-all active:translate-y-0.5">
+          <div className="m-4 p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-all active:translate-y-0.5">
             <Plus size={24} />
-          </button>
+          </div>
         </NewCellPopover>
       </div>
     </>
@@ -177,7 +188,7 @@ function MarkdownCell(props: {
   return (
     <div
       onDoubleClick={() => setStatus('edit')}
-      className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm"
+      className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm transition-all"
     >
       {status === 'view' ? (
         <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">

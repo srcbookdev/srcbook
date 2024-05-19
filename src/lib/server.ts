@@ -106,6 +106,7 @@ export async function loadSession(
 interface CreateCellRequestType {
   sessionId: string;
   type: 'code' | 'markdown';
+  index?: number;
 }
 
 interface CreateCellResponseType {
@@ -117,7 +118,7 @@ export async function createCell(request: CreateCellRequestType): Promise<Create
   const response = await fetch(SERVER_BASE_URL + '/sessions/' + request.sessionId + '/cells', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ type: request.type }),
+    body: JSON.stringify({ type: request.type, index: request.index }),
   });
 
   if (!response.ok) {

@@ -167,7 +167,7 @@ function MarkdownCell(props: {
       {status === 'view' ? (
         <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
           <Markdown>{text}</Markdown>
-          <div className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-2">
+          <div className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-0.5 border border-gray-200 rounded-sm px-1 py-0.5">
             <Button variant="ghost" onClick={() => setStatus('edit')}>
               <Pencil size={16} />
             </Button>

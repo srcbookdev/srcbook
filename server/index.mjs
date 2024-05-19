@@ -200,5 +200,10 @@ app.post('/settings', cors(), async (req, res) => {
   return res.json({ result: newConfig });
 });
 
+app.options('/node_version', cors());
+app.get('/node_version', cors(), async (_req, res) => {
+  return res.json({ result: process.version });
+});
+
 const port = process.env.PORT || 2150;
 app.listen(port, () => console.log(`Server running on port ${port}`));

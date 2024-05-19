@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Layout from './Layout';
+import Layout, { loader as layoutLoader } from './Layout';
 import './index.css';
 import Home, { loader as homeLoader, action as homeAction } from './routes/home';
 import Open, { loader as openLoader, action as openAction } from './routes/open';
@@ -13,6 +13,7 @@ import ErrorPage from './error';
 const router = createBrowserRouter([
   {
     path: '/',
+    loader: layoutLoader,
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [

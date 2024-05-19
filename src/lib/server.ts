@@ -231,3 +231,15 @@ export async function updateConfig(request: EditConfigRequestType) {
     throw new Error('Request failed');
   }
 }
+
+export async function getNodeVersion() {
+  const response = await fetch(SERVER_BASE_URL + '/node_version', {
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+  return response.json();
+}

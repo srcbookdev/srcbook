@@ -59,7 +59,7 @@ export default function Session() {
     updateCells(updatedCell);
   }
 
-  async function onUpdateCell(cell: CellType, attrs: Record<string, any>) {
+  async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
     const { result: updatedCell } = await updateCell({
       sessionId: session.id,
       cellId: cell.id,
@@ -100,7 +100,7 @@ export default function Session() {
 function Cell(props: {
   cell: CellType;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+  onUpdateCell: <T extends CellType>(cell: T, attrs: Partial<T>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   switch (props.cell.type) {
@@ -130,7 +130,7 @@ function Cell(props: {
 
 function TitleCell(props: {
   cell: TitleCellType;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+  onUpdateCell: (cell: TitleCellType, attrs: Partial<TitleCellType>) => Promise<void>;
 }) {
   return (
     <div className="mt-4 mb-10">
@@ -145,7 +145,7 @@ function TitleCell(props: {
 
 function MarkdownCell(props: {
   cell: MarkdownCellType;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+  onUpdateCell: (cell: MarkdownCellType, attrs: Partial<MarkdownCellType>) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const [status, setStatus] = useState<'edit' | 'view'>('view');
@@ -215,7 +215,7 @@ function MarkdownCell(props: {
 function CodeCell(props: {
   cell: CodeCellType;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+  onUpdateCell: (cell: CodeCellType, attrs: Partial<CodeCellType>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;

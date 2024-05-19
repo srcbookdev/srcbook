@@ -7,7 +7,7 @@ This is a paragraph with some **bold** and _italic_ text.
 * a
 * list
 
-#### file.js
+#### file.mjs
 ```javascript
 const foo = 42;
 
@@ -25,7 +25,7 @@ return foo;
 
 This is some more text, should be a second markdown block
 
-#### otherfile.js
+#### otherfile.mjs
 ```javascript
 const thisIsCool = true;
 ```

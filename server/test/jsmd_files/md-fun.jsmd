@@ -1,6 +1,6 @@
 # md-fun
 
-#### untitled.js
+#### untitled.mjs
 ```javascript
 const foo = 42;
 ```

@@ -84,7 +84,7 @@ export function createCell({ type }) {
         module: null,
         context: null,
         language: 'javascript',
-        filename: 'untitled.js',
+        filename: 'untitled.mjs',
         output: [],
       };
     case 'markdown':

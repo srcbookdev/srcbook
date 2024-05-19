@@ -83,14 +83,21 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
 
 app.options('/sessions/:id/cells', cors());
 
+// Create a new cell. If no index is provided, append to the end, otherwise insert at the index
 app.post('/sessions/:id/cells', cors(), async (req, res) => {
   const { id } = req.params;
-  const { type } = req.body;
+  const { type, index } = req.body;
 
   try {
     const session = await findSession(id);
+    let cells = session.cells;
     const cell = createCell({ type });
-    const cells = session.cells.concat(cell);
+    if (!index) {
+      // No index provided, append to the end
+      cells = session.cells.concat(cell);
+    } else {
+      cells.splice(index, 0, cell);
+    }
     updateSession(session, { cells });
     maybeWriteToFile(session);
     return res.json({ error: false, result: cell });

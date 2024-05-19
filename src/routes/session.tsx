@@ -18,6 +18,7 @@ import type {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
+import NewCellPopover from '@/components/new-cell-popover';
 
 type SlimSessionType = {
   id: string;
@@ -59,7 +60,7 @@ export default function Session() {
     updateCells(updatedCell);
   }
 
-  async function onUpdateCell(cell: CellType, attrs: Record<string, any>) {
+  async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
     const { result: updatedCell } = await updateCell({
       sessionId: session.id,
       cellId: cell.id,
@@ -69,29 +70,53 @@ export default function Session() {
     updateCells(updatedCell);
   }
 
-  async function createNewCell(type: 'code' | 'markdown' = 'code') {
-    const { result } = await createCell({ sessionId: session.id, type });
-    setCells(cells.concat(result));
+  async function createNewCell(type: 'code' | 'markdown' = 'code', index?: number) {
+    const { result } = await createCell({ sessionId: session.id, type, index });
+
+    // Insert cell at the end if index is not provided
+    if (!index) {
+      setCells(cells.concat(result));
+    } else {
+      setCells(cells.slice(0, index).concat(result).concat(cells.slice(index)));
+    }
   }
 
   return (
     <>
-      {cells.map((cell) => (
-        <Cell
-          key={cell.id}
-          cell={cell}
-          onEvaluate={onEvaluate}
-          onUpdateCell={onUpdateCell}
-          onDeleteCell={onDeleteCell}
-        />
-      ))}
-      <div className="py-3 flex justify-center">
-        <button
-          className="p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-colors"
-          onClick={() => createNewCell('code')}
-        >
-          <Plus size={24} />
-        </button>
+      <div className="flex flex-col">
+        {cells.map((cell, idx) => (
+          <div key={`wrapper-${cell.id}`}>
+            {idx !== 0 && (
+              <div className="flex justify-center w-full group">
+                <NewCellPopover
+                  createNewCell={(type) => {
+                    return createNewCell(type, idx);
+                  }}
+                  key={`popover-${cell.id}`}
+                >
+                  <div className="m-1 p-0.5 border rounded-full border-transparent text-transparent group-hover:text-foreground hover:border-foreground transition-all active:translate-y-0.5">
+                    <Plus size={16} />
+                  </div>
+                </NewCellPopover>
+              </div>
+            )}
+            <Cell
+              key={cell.id}
+              cell={cell}
+              onEvaluate={onEvaluate}
+              onUpdateCell={onUpdateCell}
+              onDeleteCell={onDeleteCell}
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-center">
+        <NewCellPopover createNewCell={createNewCell}>
+          <div className="m-4 p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-all active:translate-y-0.5">
+            <Plus size={24} />
+          </div>
+        </NewCellPopover>
       </div>
     </>
   );
@@ -100,7 +125,7 @@ export default function Session() {
 function Cell(props: {
   cell: CellType;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+  onUpdateCell: <T extends CellType>(cell: T, attrs: Partial<T>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   switch (props.cell.type) {
@@ -130,10 +155,10 @@ function Cell(props: {
 
 function TitleCell(props: {
   cell: TitleCellType;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+  onUpdateCell: (cell: TitleCellType, attrs: Partial<TitleCellType>) => Promise<void>;
 }) {
   return (
-    <div className="mt-4 mb-10">
+    <div className="mt-4">
       <EditableH1
         text={props.cell.text}
         className="text-4xl font-bold"
@@ -145,7 +170,7 @@ function TitleCell(props: {
 
 function MarkdownCell(props: {
   cell: MarkdownCellType;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => void;
+  onUpdateCell: (cell: MarkdownCellType, attrs: Partial<MarkdownCellType>) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const [status, setStatus] = useState<'edit' | 'view'>('view');
@@ -163,12 +188,12 @@ function MarkdownCell(props: {
   return (
     <div
       onDoubleClick={() => setStatus('edit')}
-      className="group/cell relative mt-4 mb-10 w-full border border-transparent p-4 hover:border-gray-200 rounded-sm"
+      className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm transition-all"
     >
       {status === 'view' ? (
         <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
           <Markdown>{text}</Markdown>
-          <div className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-2">
+          <div className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-0.5 border border-gray-200 rounded-sm px-1 py-0.5">
             <Button variant="ghost" onClick={() => setStatus('edit')}>
               <Pencil size={16} />
             </Button>
@@ -201,7 +226,7 @@ function MarkdownCell(props: {
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror
               value={text}
-              height="200px"
+              basicSetup={{ lineNumbers: false, foldGutter: false }}
               extensions={[markdown()]}
               onChange={onChangeSource}
             />
@@ -215,7 +240,7 @@ function MarkdownCell(props: {
 function CodeCell(props: {
   cell: CodeCellType;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
-  onUpdateCell: (cell: CellType, attrs: Record<string, any>) => Promise<void>;
+  onUpdateCell: (cell: CodeCellType, attrs: Partial<CodeCellType>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;
@@ -228,7 +253,7 @@ function CodeCell(props: {
   }
 
   return (
-    <div className="relative group/cell space-y-1.5 mb-14">
+    <div className="relative group/cell space-y-1.5">
       <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
           <FilenameInput
@@ -242,21 +267,18 @@ function CodeCell(props: {
             </Button>
           </div>
         </div>
-        <CodeMirror
-          value={source}
-          height="200px"
-          extensions={[javascript()]}
-          onChange={onChangeSource}
-        />
+        <div className="relative">
+          <CodeMirror value={source} extensions={[javascript()]} onChange={onChangeSource} />
+          <Button
+            variant="ghost"
+            className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex"
+            onClick={() => props.onDeleteCell(cell)}
+          >
+            <Trash2 size={16} />
+          </Button>
+        </div>
       </div>
       <CellOutput output={cell.output} />
-      <Button
-        variant="ghost"
-        className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex"
-        onClick={() => props.onDeleteCell(cell)}
-      >
-        <Trash2 size={16} />
-      </Button>
     </div>
   );
 }

@@ -91,7 +91,7 @@ export function createCell({ type }) {
       return {
         id: randomid(),
         type: 'markdown',
-        text: '',
+        text: '## New Markdown Cell',
         tokens: [],
       };
     default:

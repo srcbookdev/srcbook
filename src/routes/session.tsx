@@ -4,7 +4,7 @@ import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { markdown } from '@codemirror/lang-markdown';
-import { PlayCircle, Trash2, Pencil } from 'lucide-react';
+import { Plus, PlayCircle, Trash2, Pencil } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import type {
@@ -77,20 +77,35 @@ export default function Session() {
 
   return (
     <>
-      <div className="flex flex-col gap-3">
-        {cells.map((cell) => (
-          <Cell
-            key={cell.id}
-            cell={cell}
-            onEvaluate={onEvaluate}
-            onUpdateCell={onUpdateCell}
-            onDeleteCell={onDeleteCell}
-          />
+      <div className="flex flex-col">
+        {cells.map((cell, idx) => (
+          <div>
+            {idx !== 0 && (
+              <div className="flex justify-center w-full group">
+                <NewCellPopover createNewCell={createNewCell} key={cell.id}>
+                  <button className="m-1 p-0.5 border rounded-full border-transparent text-transparent group-hover:text-foreground hover:border-foreground transition-all active:translate-y-0.5">
+                    <Plus size={16} />
+                  </button>
+                </NewCellPopover>
+              </div>
+            )}
+            <Cell
+              key={cell.id}
+              cell={cell}
+              onEvaluate={onEvaluate}
+              onUpdateCell={onUpdateCell}
+              onDeleteCell={onDeleteCell}
+            />
+          </div>
         ))}
       </div>
 
-      <div className="py-3 flex justify-center">
-        <NewCellPopover createNewCell={createNewCell} />
+      <div className="flex justify-center">
+        <NewCellPopover createNewCell={createNewCell}>
+          <button className="m-4 p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-all active:translate-y-0.5">
+            <Plus size={24} />
+          </button>
+        </NewCellPopover>
       </div>
     </>
   );

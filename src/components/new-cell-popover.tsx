@@ -1,23 +1,21 @@
 import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 
 export default function NewCellPopover({
   createNewCell,
+  children,
 }: {
   createNewCell: (type: 'code' | 'markdown') => void;
+  children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger>
-          <button className="p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-all active:translate-y-0.5">
-            <Plus size={24} />
-          </button>
-        </PopoverTrigger>
+        <PopoverTrigger>{children}</PopoverTrigger>
         <PopoverContent className="w-fit">
+          <p className="font-semibold text-center">Insert cell</p>
           <div className="flex items-center justify-center gap-2 p-2">
             <Button
               variant="outline"

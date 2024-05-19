@@ -4,7 +4,7 @@ import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { markdown } from '@codemirror/lang-markdown';
-import { Plus, PlayCircle, Trash2, Pencil } from 'lucide-react';
+import { PlayCircle, Trash2, Pencil } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import type {
@@ -18,6 +18,7 @@ import type {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
+import NewCellPopover from '@/components/new-cell-popover';
 
 type SlimSessionType = {
   id: string;
@@ -76,22 +77,20 @@ export default function Session() {
 
   return (
     <>
-      {cells.map((cell) => (
-        <Cell
-          key={cell.id}
-          cell={cell}
-          onEvaluate={onEvaluate}
-          onUpdateCell={onUpdateCell}
-          onDeleteCell={onDeleteCell}
-        />
-      ))}
+      <div className="flex flex-col gap-3">
+        {cells.map((cell) => (
+          <Cell
+            key={cell.id}
+            cell={cell}
+            onEvaluate={onEvaluate}
+            onUpdateCell={onUpdateCell}
+            onDeleteCell={onDeleteCell}
+          />
+        ))}
+      </div>
+
       <div className="py-3 flex justify-center">
-        <button
-          className="p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-colors"
-          onClick={() => createNewCell('code')}
-        >
-          <Plus size={24} />
-        </button>
+        <NewCellPopover createNewCell={createNewCell} />
       </div>
     </>
   );
@@ -133,7 +132,7 @@ function TitleCell(props: {
   onUpdateCell: (cell: TitleCellType, attrs: Partial<TitleCellType>) => Promise<void>;
 }) {
   return (
-    <div className="mt-4 mb-10">
+    <div className="mt-4">
       <EditableH1
         text={props.cell.text}
         className="text-4xl font-bold"
@@ -163,7 +162,7 @@ function MarkdownCell(props: {
   return (
     <div
       onDoubleClick={() => setStatus('edit')}
-      className="group/cell relative mt-4 mb-10 w-full border border-transparent p-4 hover:border-gray-200 rounded-sm"
+      className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm"
     >
       {status === 'view' ? (
         <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
@@ -228,7 +227,7 @@ function CodeCell(props: {
   }
 
   return (
-    <div className="relative group/cell space-y-1.5 mb-14">
+    <div className="relative group/cell space-y-1.5">
       <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
           <FilenameInput

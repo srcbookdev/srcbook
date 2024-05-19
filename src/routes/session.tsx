@@ -201,7 +201,7 @@ function MarkdownCell(props: {
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror
               value={text}
-              height="200px"
+              basicSetup={{ lineNumbers: false, foldGutter: false }}
               extensions={[markdown()]}
               onChange={onChangeSource}
             />
@@ -242,21 +242,18 @@ function CodeCell(props: {
             </Button>
           </div>
         </div>
-        <CodeMirror
-          value={source}
-          height="200px"
-          extensions={[javascript()]}
-          onChange={onChangeSource}
-        />
+        <div className="relative">
+          <CodeMirror value={source} extensions={[javascript()]} onChange={onChangeSource} />
+          <Button
+            variant="ghost"
+            className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex"
+            onClick={() => props.onDeleteCell(cell)}
+          >
+            <Trash2 size={16} />
+          </Button>
+        </div>
       </div>
       <CellOutput output={cell.output} />
-      <Button
-        variant="ghost"
-        className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex"
-        onClick={() => props.onDeleteCell(cell)}
-      >
-        <Trash2 size={16} />
-      </Button>
     </div>
   );
 }

@@ -194,7 +194,7 @@ function MarkdownCell(props: {
       {status === 'view' ? (
         <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
           <Markdown>{text}</Markdown>
-          <div className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-0.5 border border-gray-200 rounded-sm px-1 py-0.5 bg-background">
+          <div className="absolute top-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-0.5 border border-gray-200 rounded-sm px-1 py-0.5 bg-background">
             <Button variant="ghost" onClick={() => setStatus('edit')}>
               <Pencil size={16} />
             </Button>
@@ -264,24 +264,19 @@ function CodeCell(props: {
             filename={cell.filename}
             onUpdate={(filename) => props.onUpdateCell(cell, { filename })}
           />
-          <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+          <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2">
+            <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+              <Button variant="ghost">
+                <Trash2 size={16} />
+              </Button>
+            </DeleteCellWithConfirmation>
             <Button onClick={() => props.onEvaluate(cell, source)}>
               <PlayCircle size={16} className="mr-2" />
               Run
             </Button>
           </div>
         </div>
-        <div className="relative">
-          <CodeMirror value={source} extensions={[javascript()]} onChange={onChangeSource} />
-          <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-            <Button
-              variant="ghost"
-              className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex"
-            >
-              <Trash2 size={16} />
-            </Button>
-          </DeleteCellWithConfirmation>
-        </div>
+        <CodeMirror value={source} extensions={[javascript()]} onChange={onChangeSource} />
       </div>
       <CellOutput output={cell.output} />
     </div>

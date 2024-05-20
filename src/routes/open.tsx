@@ -13,18 +13,19 @@ export async function loader() {
 // eslint-disable-next-line
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
-  const path = formData.get('path') as string;
-  const { result } = await createSession({ path });
+  const dirname = formData.get('dirname') as string;
+  const basename = formData.get('basename') as string;
+  const { result } = await createSession({ dirname, basename });
   return redirect(`/sessions/${result.id}`);
 }
 
 export default function Open() {
-  const { path: initialPath, entries: initialEntries } = useLoaderData() as FsObjectResultType;
+  const { dirname, entries: initialEntries } = useLoaderData() as FsObjectResultType;
 
   return (
     <>
       <h1 className="text-2xl">Notebooks</h1>
-      <FilePicker initialPath={initialPath} initialEntries={initialEntries} cta="Open" />
+      <FilePicker dirname={dirname} entries={initialEntries} cta="Open" />
     </>
   );
 }

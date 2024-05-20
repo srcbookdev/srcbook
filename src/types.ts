@@ -1,14 +1,14 @@
 import type { Token } from 'marked';
 
 export interface FsObjectType {
-  name: string;
   path: string;
-  parentPath: string;
+  dirname: string;
+  basename: string;
   isDirectory: boolean;
 }
 
 export interface FsObjectResultType {
-  path: string;
+  dirname: string;
   entries: FsObjectType[];
 }
 

@@ -1,3 +1,4 @@
+import Path from 'node:path';
 import express from 'express';
 import cors from 'cors';
 import {
@@ -21,14 +22,13 @@ app.use(express.json());
 app.options('/disk', cors());
 
 app.post('/disk', cors(), async (req, res) => {
-  let { path, includeHidden } = req.body;
+  let { dirname } = req.body;
 
   try {
     const config = await getConfig();
-    path = path || config.baseDir;
-    includeHidden = includeHidden || false;
-    const entries = await disk(path, includeHidden, '.jsmd');
-    return res.json({ error: false, result: { path, entries } });
+    dirname = dirname || config.baseDir;
+    const entries = await disk(dirname, '.srcmd');
+    return res.json({ error: false, result: { dirname, entries } });
   } catch (error) {
     console.error(error);
     return res.json({ error: true, result: error.stack });
@@ -38,10 +38,10 @@ app.post('/disk', cors(), async (req, res) => {
 app.options('/sessions', cors());
 
 app.post('/sessions', cors(), async (req, res) => {
-  const { path, new: newSession } = req.body;
+  const { dirname, basename } = req.body;
 
   try {
-    const session = await createSession({ path, new: newSession });
+    const session = await createSession({ dirname, basename });
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (error) {
     console.error(error);
@@ -157,7 +157,7 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const session = await findSession(id);
   const cell = findCell(session, cellId);
 
-  if (cell.type === 'code') {
+  if (cell.type === 'code' && typeof attrs.filename === 'string') {
     const filenameResult = validateFilename(session, cellId, attrs.filename);
 
     if (typeof filenameResult === 'string') {

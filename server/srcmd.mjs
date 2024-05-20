@@ -11,6 +11,8 @@ export function encode(cells) {
           return `# ${cell.text}`;
         case 'markdown':
           return cell.text.trim();
+        case 'package.json':
+          return [`####### package.json\n`, `\`\`\`json`, cell.source, '```'].join('\n');
         case 'code':
           return [`###### ${cell.filename}\n`, `\`\`\`${cell.language}`, cell.source, '```'].join(
             '\n',
@@ -32,16 +34,19 @@ export function decode(contents) {
   //     1. title
   //     2. markdown
   //     3. filename
-  //     4. code
+  //     4. package.json (this is a special case of filename)
+  //     5. code
   //
   const groups = groupTokens(tokens);
+  console.log(groups);
 
   // Third, validate the token groups and return a list of errors.
   // Example errors might be:
   //
   //     1. The document contains no title
   //     2. There is a filename (h6) with no corresponding code block
-  //     3. etc.
+  //     3. There is more than one package.json defined
+  //     4. etc.
   //
   const errors = validateTokenGroups(groups);
 
@@ -71,6 +76,10 @@ export function groupTokens(tokens) {
     return lastGroup ? lastGroup.type : null;
   }
 
+  function isPackageJsonFilename(token) {
+    return token.type === 'heading' && token.depth === 6 && token.text === 'package.json';
+  }
+
   let i = 0;
   const len = tokens.length;
 
@@ -81,7 +90,8 @@ export function groupTokens(tokens) {
       if (token.depth === 1) {
         grouped.push({ type: 'title', token: token });
       } else if (token.depth === 6) {
-        grouped.push({ type: 'filename', token: token });
+        const type = isPackageJsonFilename(token) ? 'package.json' : 'filename';
+        grouped.push({ type, token: token });
       } else {
         push(token, 'markdown');
       }
@@ -98,6 +108,7 @@ export function groupTokens(tokens) {
     i += 1;
   }
 
+  // Consider moving the package.json group to the first or second element if it exists.
   return grouped;
 }
 
@@ -107,9 +118,15 @@ function validateTokenGroups(grouped) {
   const firstGroupIsTitle = grouped[0].type === 'title';
   const hasOnlyOneTitle = grouped.filter((group) => group.type === 'title').length === 1;
   const invalidTitle = !(firstGroupIsTitle && hasOnlyOneTitle);
+  const hasAtMostOnePackageJson =
+    grouped.filter((group) => group.type === 'package.json').length <= 1;
 
   if (invalidTitle) {
     errors.push('Document must contain exactly one h1 heading');
+  }
+
+  if (!hasAtMostOnePackageJson) {
+    errors.push('Document must contain at most one package.json');
   }
 
   let i = 0;
@@ -202,4 +219,20 @@ function serializeMarkdownTokens(tokens) {
       return token.type === 'code' ? md : md.replace(/\n{3,}/g, '\n\n');
     })
     .join('');
+}
+
+export function newContents(basename) {
+  return `# ${basename}
+
+###### package.json
+\`\`\`json
+{
+  "name": ${basename},
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.mjs",
+  "dependencies": {}
+}
+\`\`\`
+`;
 }

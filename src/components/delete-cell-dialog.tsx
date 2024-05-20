@@ -26,7 +26,7 @@ export default function DeleteCellWithConfirmationModal({
           <DialogDescription>
             We currently don't support history, are you sure you want to delete it?
           </DialogDescription>
-          <div className="flex w-full justify-end items-center gap-2 pt-4">
+          <div className="flex w-full justify-end items-center gap-2 pt-4 bg-background">
             <Button
               variant="outline"
               onClick={() => {

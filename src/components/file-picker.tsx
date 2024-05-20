@@ -69,7 +69,6 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
   async function onClick(entry: FsObjectType) {
     setSelected(entry);
     const { result } = await disk({ dirname: entry.path });
-    console.log(result);
     setDirname(result.dirname);
     setEntries(result.entries.filter((entry) => entry.isDirectory));
   }

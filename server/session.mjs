@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import Path from 'path';
 import util from 'util';
 import vm from 'vm';
-import { decode, encode } from './srcmd.mjs';
+import { decode, encode, newContents } from './srcmd.mjs';
 import { randomid, sha256 } from './utils.mjs';
 import { transformImportStatements } from './transform.mjs';
 
@@ -52,7 +52,7 @@ export async function createSession({ dirname, basename }) {
 
   if (fileDoesNotExist) {
     const title = Path.basename(path, '.srcmd');
-    contents = `# ${title}\n`;
+    contents = newContents(title);
     hash = await sha256(new Uint8Array(Buffer.from(contents)));
   } else {
     const buffer = await fs.readFile(path);

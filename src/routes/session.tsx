@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
 import NewCellPopover from '@/components/new-cell-popover';
+import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 
 type SlimSessionType = {
   id: string;
@@ -197,9 +198,12 @@ function MarkdownCell(props: {
             <Button variant="ghost" onClick={() => setStatus('edit')}>
               <Pencil size={16} />
             </Button>
-            <Button variant="ghost" onClick={() => props.onDeleteCell(cell)}>
-              <Trash2 size={16} />
-            </Button>
+
+            <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+              <Button variant="ghost">
+                <Trash2 size={16} />
+              </Button>
+            </DeleteCellWithConfirmation>
           </div>
         </div>
       ) : (
@@ -269,13 +273,14 @@ function CodeCell(props: {
         </div>
         <div className="relative">
           <CodeMirror value={source} extensions={[javascript()]} onChange={onChangeSource} />
-          <Button
-            variant="ghost"
-            className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex"
-            onClick={() => props.onDeleteCell(cell)}
-          >
-            <Trash2 size={16} />
-          </Button>
+          <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+            <Button
+              variant="ghost"
+              className="absolute bottom-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex"
+            >
+              <Trash2 size={16} />
+            </Button>
+          </DeleteCellWithConfirmation>
         </div>
       </div>
       <CellOutput output={cell.output} />

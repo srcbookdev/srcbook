@@ -27,8 +27,7 @@ export async function exec(sessionId: string, request: ExecRequestType): Promise
 }
 
 interface DiskRequestType {
-  path?: string;
-  includeHidden?: boolean;
+  dirname?: string;
 }
 
 interface DiskResponseType {
@@ -52,8 +51,8 @@ export async function disk(request?: DiskRequestType): Promise<DiskResponseType>
 }
 
 interface CreateSessionRequestType {
-  path: string;
-  new?: boolean;
+  dirname: string;
+  basename: string;
 }
 
 interface CreateSessionResponseType {

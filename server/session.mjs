@@ -1,8 +1,9 @@
 import fs from 'fs/promises';
+import { existsSync } from 'node:fs';
 import Path from 'path';
 import util from 'util';
 import vm from 'vm';
-import { decode, encode } from './jsmd.mjs';
+import { decode, encode } from './srcmd.mjs';
 import { randomid, sha256 } from './utils.mjs';
 import { transformImportStatements } from './transform.mjs';
 
@@ -12,7 +13,7 @@ setInterval(() => {
   for (const session of Object.values(sessions)) {
     maybeWriteToFile(session);
   }
-}, 3000);
+}, 5000);
 
 export async function maybeWriteToFile(session) {
   const contents = encode(session.cells);
@@ -24,16 +25,33 @@ export async function maybeWriteToFile(session) {
   }
 }
 
-export async function createSession({ path, new: newSession }) {
-  if (Path.extname(path) !== '.jsmd') {
-    throw new Error(`path argument must be to a .jsmd file but got ${path}`);
+export async function createSession({ dirname, basename }) {
+  if (typeof dirname !== 'string') {
+    throw new Error('Invalid dirname');
   }
+
+  if (typeof basename !== 'string') {
+    throw new Error('Invalid basename');
+  }
+
+  if (Path.extname(basename) === '') {
+    basename = basename + '.srcmd';
+  }
+
+  if (Path.extname(basename) !== '.srcmd') {
+    throw new Error(`Sessions cannot be created from file types other than .srcmd`);
+  }
+
+  const path = Path.join(dirname, basename);
+
+  // TODO: Check also for permissions. Can the user read and write to the file when it exists?
+  const fileDoesNotExist = !existsSync(path);
 
   let contents = '';
   let hash = '';
 
-  if (newSession) {
-    const title = Path.basename(path, '.jsmd');
+  if (fileDoesNotExist) {
+    const title = Path.basename(path, '.srcmd');
     contents = `# ${title}\n`;
     hash = await sha256(new Uint8Array(Buffer.from(contents)));
   } else {
@@ -43,13 +61,18 @@ export async function createSession({ path, new: newSession }) {
   }
 
   const id = randomid();
-  const cells = decode(contents);
+  const result = decode(contents);
+
+  if (result.error) {
+    const errors = result.errors.map((msg) => '  * ' + msg).join('\n');
+    throw new Error(`Cannot create session, errors were found when parsing ${path}:\n${errors}`);
+  }
 
   sessions[id] = {
     id: id,
     hash: hash,
     path: path,
-    cells: cells,
+    cells: result.cells,
   };
 
   return sessions[id];

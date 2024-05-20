@@ -25,22 +25,18 @@ export function take(obj, ...keys) {
   return result;
 }
 
-export async function disk(path, includeHidden, ext) {
-  const results = await fs.readdir(path, { withFileTypes: true });
+export async function disk(dirname, ext) {
+  const results = await fs.readdir(dirname, { withFileTypes: true });
 
   const entries = results
     .filter((entry) => {
-      if (entry.name.startsWith('.') && !includeHidden) {
-        return false;
-      }
-
       return entry.isDirectory() || Path.extname(entry.name) === ext;
     })
     .map((entry) => {
       return {
-        name: entry.name,
         path: Path.join(entry.parentPath, entry.name),
-        parentPath: entry.parentPath,
+        dirname: entry.parentPath,
+        basename: entry.name,
         isDirectory: entry.isDirectory(),
       };
     })
@@ -50,17 +46,17 @@ export async function disk(path, includeHidden, ext) {
       } else if (!a.isDirectory && b.isDirectory) {
         return 1;
       } else {
-        return a.name.localeCompare(b.name);
+        return a.basename.localeCompare(b.basename);
       }
     });
 
-  return isRootPath(path)
+  return isRootPath(dirname)
     ? entries
     : [
         {
-          name: '..',
-          path: Path.dirname(path),
-          parentPath: Path.dirname(path),
+          path: Path.dirname(dirname),
+          dirname: Path.dirname(dirname),
+          basename: '..',
           isDirectory: true,
         },
       ].concat(entries);

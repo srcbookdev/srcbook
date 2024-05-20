@@ -16,17 +16,15 @@ export async function loader() {
 // eslint-disable-next-line
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
-  const initialPath = formData.get('initialPath') as string;
-  const name = formData.get('name') as string;
-  // TODO I should really use a pathing library...
-  const path = `${initialPath}/${name}.jsmd`;
-  const { result } = await createSession({ path, new: true });
+  const dirname = formData.get('dirname') as string;
+  const basename = formData.get('basename') as string;
+  const { result } = await createSession({ dirname, basename });
   return redirect(`/sessions/${result.id}`);
 }
 
 export default function Home() {
-  const { path: initialPath } = useLoaderData() as FsObjectResultType;
-  const [name, setName] = useState('');
+  const { dirname } = useLoaderData() as FsObjectResultType;
+  const [basename, setBasename] = useState('');
 
   return (
     <>
@@ -34,15 +32,15 @@ export default function Home() {
       <p>Create your next source book or open an existing one below.</p>
       <div className="mt-4 flex items-center gap-12">
         <Form method="post" className="h-full">
-          <Input type="hidden" name="initialPath" value={initialPath} />
+          <Input type="hidden" name="dirname" value={dirname} />
           <div className="flex items-center justify-center h-full gap-2">
             <Input
               placeholder="name your new srcBook"
               required
               className="w-60"
-              onChange={(e) => setName(e.target.value)}
-              name="name"
-              value={name}
+              onChange={(e) => setBasename(e.target.value)}
+              name="basename"
+              value={basename}
             />
             <Button className="min-w-32" type="submit">
               <div className="flex gap-2 items-center">

@@ -98,7 +98,6 @@ export function groupTokens(tokens) {
       if (lastGroupType() === 'filename') {
         grouped.push({ type: 'code', token: token });
       } else if (lastGroupType() === 'package.json:heading') {
-        console.log('WE HIT');
         grouped.push({ type: 'package.json', token: token });
       } else {
         push(token, 'markdown');
@@ -115,7 +114,6 @@ export function groupTokens(tokens) {
 }
 
 function validateTokenGroups(grouped) {
-  console.log(grouped);
   const errors = [];
 
   const firstGroupIsTitle = grouped[0].type === 'title';
@@ -154,7 +152,6 @@ function validateTokenGroups(grouped) {
 }
 
 function convertToCells(groups) {
-  console.log(groups);
   const len = groups.length;
   const cells = [];
 

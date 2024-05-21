@@ -1,5 +1,17 @@
 # Notebook title
 
+###### package.json
+
+```json
+{
+  "name": "notebook",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.mjs",
+  "dependencies": {}
+}
+```
+
 Opening paragraph here.
 
 ## Section h2

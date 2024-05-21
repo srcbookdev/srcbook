@@ -40,8 +40,13 @@ describe('encoding and decoding srcmd files', () => {
       { id: expect.any(String), type: 'title', text: 'Notebook title' },
       {
         id: expect.any(String),
+        type: 'package.json',
+        source: `{\n  "name": "notebook",\n  "version": "0.0.1",\n  "description": "",\n  "main": "index.mjs",\n  "dependencies": {}\n}`,
+      },
+      {
+        id: expect.any(String),
         type: 'markdown',
-        text: `Opening paragraph here.\n\n## Section h2\n\nAnother paragraph.\n\nFollowed by:\n\n1. An\n2. Ordered\n3. List\n\n`,
+        text: `\n\nOpening paragraph here.\n\n## Section h2\n\nAnother paragraph.\n\nFollowed by:\n\n1. An\n2. Ordered\n3. List\n\n`,
       },
       {
         id: expect.any(String),

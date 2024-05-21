@@ -1,29 +1,29 @@
-type TitleCellType = {
+export type TitleCellType = {
   id: string;
   type: 'title';
   text: string;
 };
 
-type MarkdownCellType = {
+export type MarkdownCellType = {
   id: string;
   type: 'markdown';
   text: string;
 };
 
-type PackageJsonCellType = {
+export type PackageJsonCellType = {
   id: string;
   type: 'package.json';
   source: string;
 };
 
-type CodeCellType = {
+export type CodeCellType = {
   id: string;
   stale: boolean;
   type: 'code';
   source: string;
   module: any;
   context: any;
-  language: 'javascript' | 'json';
+  language: string;
   filename: string;
   output: any[];
 };

@@ -14,7 +14,7 @@ import {
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
 import { getConfig, saveConfig } from './config.mjs';
-import type { SessionType } from './types';
+import type { CodeCellType, SessionType } from './types';
 
 const app = express();
 app.use(express.json());
@@ -118,7 +118,8 @@ function validateFilename(session: SessionType, cellId: string, filename: string
     return 'Invalid filename: filename must consist of letters, numbers, underscores, dashes and must end with mjs or json';
   }
 
-  const unique = session.cells.some((cell) => {
+  const codeCells = session.cells.filter((c) => c.type === 'code') as CodeCellType[];
+  const unique = codeCells.some((cell) => {
     // If a different cell with the same filename exists,
     // this is not a unique filename within the session.
     return cell.id === cellId || cell.filename !== filename;

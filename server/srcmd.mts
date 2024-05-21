@@ -1,7 +1,13 @@
 import { marked } from 'marked';
 import { randomid } from './utils.mjs';
 import type { Tokens, Token } from 'marked';
-import type { CellType } from './types';
+import type {
+  CellType,
+  CodeCellType,
+  MarkdownCellType,
+  PackageJsonCellType,
+  TitleCellType,
+} from './types';
 
 marked.use({ gfm: true });
 
@@ -171,7 +177,7 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
 
 function convertToCells(groups: GroupedTokensType[]) {
   const len = groups.length;
-  const cells = [];
+  const cells: CellType[] = [];
 
   let i = 0;
 
@@ -205,7 +211,7 @@ function convertToCells(groups: GroupedTokensType[]) {
   return cells;
 }
 
-function convertTitle(token: Tokens.Heading) {
+function convertTitle(token: Tokens.Heading): TitleCellType {
   return {
     id: randomid(),
     type: 'title',
@@ -213,7 +219,7 @@ function convertTitle(token: Tokens.Heading) {
   };
 }
 
-function convertPackageJson(token: Tokens.Code) {
+function convertPackageJson(token: Tokens.Code): PackageJsonCellType {
   return {
     id: randomid(),
     type: 'package.json',
@@ -221,7 +227,7 @@ function convertPackageJson(token: Tokens.Code) {
   };
 }
 
-function convertCode(token: Tokens.Code, filename: string) {
+function convertCode(token: Tokens.Code, filename: string): CodeCellType {
   return {
     id: randomid(),
     stale: false,
@@ -229,13 +235,13 @@ function convertCode(token: Tokens.Code, filename: string) {
     source: token.text,
     module: null,
     context: null,
-    language: token.lang,
+    language: token.lang || 'javascript',
     filename: filename,
     output: [],
   };
 }
 
-function convertMarkdown(tokens: Token[]) {
+function convertMarkdown(tokens: Token[]): MarkdownCellType {
   return {
     id: randomid(),
     type: 'markdown',

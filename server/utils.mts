@@ -1,5 +1,5 @@
-import fs from 'fs/promises';
-import Path from 'path';
+import fs from 'node:fs/promises';
+import Path from 'node:path';
 import { base58 } from '@scure/base';
 
 export function randomid(byteSize = 16) {
@@ -8,24 +8,24 @@ export function randomid(byteSize = 16) {
 }
 
 // data is uint8array
-export async function sha256(data) {
+export async function sha256(data: Uint8Array) {
   const result = await crypto.subtle.digest('SHA-256', data);
   return Buffer.from(result).toString('hex');
 }
 
-export function take(obj, ...keys) {
-  const result = {};
+export function take<T extends object, K extends keyof T>(obj: T, ...keys: Array<K>): Pick<T, K> {
+  const result = {} as Pick<T, K>;
 
-  for (const [key, value] of Object.entries(obj)) {
+  for (const key of Object.keys(obj) as K[]) {
     if (keys.includes(key)) {
-      result[key] = value;
+      result[key] = obj[key];
     }
   }
 
   return result;
 }
 
-export async function disk(dirname, ext) {
+export async function disk(dirname: string, ext: string) {
   const results = await fs.readdir(dirname, { withFileTypes: true });
 
   const entries = results
@@ -62,7 +62,7 @@ export async function disk(dirname, ext) {
       ].concat(entries);
 }
 
-function isRootPath(path) {
+function isRootPath(path: string) {
   // Make sure to resolve the path, e.g., `/../` -> `/`
   const normalizedPath = Path.resolve(path);
 

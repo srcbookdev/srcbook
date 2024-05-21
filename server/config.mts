@@ -1,12 +1,15 @@
-import fs from 'fs/promises';
-import os from 'os';
-import path from 'path';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
 const configDir = process.env.SRC_BOOK_CONFIG_DIR || path.join(os.homedir(), '.srcbook');
 
+type ConfigObjectType = {
+  baseDir: string;
+};
+
 // Default configuration
-const defaultConfig = {
-  name: 'Super Cool User',
+const defaultConfig: ConfigObjectType = {
   baseDir: configDir,
 };
 
@@ -29,7 +32,7 @@ async function loadConfig() {
   }
 }
 
-export async function saveConfig(newConfig) {
+export async function saveConfig(newConfig: ConfigObjectType) {
   const configPath = path.join(configDir, 'config.json');
   try {
     fs.writeFile(configPath, JSON.stringify(newConfig, null, 2));
@@ -46,6 +49,4 @@ export async function getConfig() {
   return config;
 }
 
-await loadConfig();
-
-export default config;
+export default await loadConfig();

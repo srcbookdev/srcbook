@@ -3,8 +3,8 @@ import traverseMod from '@babel/traverse';
 import t from '@babel/types';
 import generateMod from '@babel/generator';
 
-const traverse = traverseMod.default;
-const generate = generateMod.default;
+const traverse = traverseMod;
+const generate = generateMod;
 
 /**
  * Transforms import statements to dynamic imports
@@ -18,7 +18,7 @@ const generate = generateMod.default;
  *     const {default: foo, bar: quux} = await import('baz');
  *
  */
-export function transformImportStatements(source, filename) {
+export function transformImportStatements(source: string, filename: string) {
   const ast = parser.parse(source, {
     sourceType: 'module',
   });
@@ -35,7 +35,9 @@ export function transformImportStatements(source, filename) {
       //
       // Here, `bar` and `baz` (which is renamed to `quux`) are named specifiers.
       //
-      const specifiers = node.specifiers.filter(t.isImportSpecifier);
+      const specifiers = node.specifiers.filter((specifier) =>
+        t.isImportSpecifier(specifier),
+      ) as t.ImportSpecifier[];
 
       // Default import specifiers are things like:
       //
@@ -44,7 +46,9 @@ export function transformImportStatements(source, filename) {
       //
       // Here, `foo` is the default specifier.
       //
-      const defaultSpecifier = node.specifiers.find(t.isImportDefaultSpecifier);
+      const defaultSpecifier = node.specifiers.find((specifier) =>
+        t.isImportDefaultSpecifier(specifier),
+      );
 
       // Namespace import specifiers are things like:
       //
@@ -53,7 +57,9 @@ export function transformImportStatements(source, filename) {
       //
       // Here, we import all module properties under the "namespace" `foo`.
       //
-      const namespaceSpecifier = node.specifiers.find(t.isImportNamespaceSpecifier);
+      const namespaceSpecifier = node.specifiers.find((specifier) =>
+        t.isImportNamespaceSpecifier(specifier),
+      ) as t.ImportNamespaceSpecifier | void;
 
       // Always create a new dynamic import for namespace imports, e.g.:
       //
@@ -94,7 +100,7 @@ export function transformImportStatements(source, filename) {
       //     const allfoo = await import('foo');
       //     const {default: foo} = allfoo;
 
-      const properties = [];
+      const properties: t.ObjectProperty[] = [];
 
       if (defaultSpecifier) {
         properties.push(t.objectProperty(t.identifier('default'), defaultSpecifier.local));
@@ -121,13 +127,13 @@ export function transformImportStatements(source, filename) {
   return generate(ast, options, source);
 }
 
-function createDynamicImport(specifier, source) {
+function createDynamicImport(specifier: t.ImportNamespaceSpecifier, source: t.StringLiteral) {
   const importExpression = t.awaitExpression(t.callExpression(t.import(), [source]));
   const variableDeclarator = t.variableDeclarator(specifier.local, importExpression);
   return t.variableDeclaration('const', [variableDeclarator]);
 }
 
-function createDestructuredDynamicImport(properties, source) {
+function createDestructuredDynamicImport(properties: t.ObjectProperty[], source: t.StringLiteral) {
   const importExpression = t.awaitExpression(t.callExpression(t.import(), [source]));
   const variableDeclarator = t.variableDeclarator(t.objectPattern(properties), importExpression);
   return t.variableDeclaration('const', [variableDeclarator]);

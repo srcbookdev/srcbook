@@ -1,5 +1,5 @@
 import { marked } from 'marked';
-import { randomid } from './utils.mjs';
+import { randomid } from './utils';
 
 marked.use({ gfm: true });
 
@@ -38,7 +38,6 @@ export function decode(contents) {
   //     5. code
   //
   const groups = groupTokens(tokens);
-  console.log(groups);
 
   // Third, validate the token groups and return a list of errors.
   // Example errors might be:

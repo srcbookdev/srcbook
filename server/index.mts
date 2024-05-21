@@ -14,6 +14,7 @@ import {
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
 import { getConfig, saveConfig } from './config.mjs';
+import type { SessionType } from './types';
 
 const app = express();
 app.use(express.json());
@@ -28,7 +29,8 @@ app.post('/disk', cors(), async (req, res) => {
     dirname = dirname || config.baseDir;
     const entries = await disk(dirname, '.srcmd');
     return res.json({ error: false, result: { dirname, entries } });
-  } catch (error) {
+  } catch (e) {
+    const error = e as any as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
@@ -42,7 +44,8 @@ app.post('/sessions', cors(), async (req, res) => {
   try {
     const session = await createSession({ dirname, basename });
     return res.json({ error: false, result: sessionToResponse(session) });
-  } catch (error) {
+  } catch (e) {
+    const error = e as any as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
@@ -56,7 +59,8 @@ app.get('/sessions/:id', cors(), async (req, res) => {
   try {
     const session = await findSession(id);
     return res.json({ error: false, result: sessionToResponse(session) });
-  } catch (error) {
+  } catch (e) {
+    const error = e as any as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
@@ -100,13 +104,14 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
     updateSession(session, { cells });
     maybeWriteToFile(session);
     return res.json({ error: false, result: cell });
-  } catch (error) {
+  } catch (e) {
+    const error = e as any as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
 });
 
-function validateFilename(session, cellId, filename) {
+function validateFilename(session: SessionType, cellId: string, filename: string) {
   const validFormat = /^[a-zA-Z0-9_-]+\.(mjs|json)$/.test(filename);
 
   if (!validFormat) {

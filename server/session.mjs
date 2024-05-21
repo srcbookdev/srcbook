@@ -45,20 +45,14 @@ export async function createSession({ dirname, basename }) {
   const path = Path.join(dirname, basename);
 
   // TODO: Check also for permissions. Can the user read and write to the file when it exists?
-  const fileDoesNotExist = !existsSync(path);
-
-  let contents = '';
-  let hash = '';
-
-  if (fileDoesNotExist) {
+  if (!existsSync(path)) {
     const title = Path.basename(path, '.srcmd');
-    contents = newContents(title);
-    hash = await sha256(new Uint8Array(Buffer.from(contents)));
-  } else {
-    const buffer = await fs.readFile(path);
-    hash = await sha256(new Uint8Array(buffer));
-    contents = buffer.toString();
+    await fs.writeFile(path, newContents(title), { encoding: 'utf8' });
   }
+
+  const buffer = await fs.readFile(path);
+  const hash = await sha256(new Uint8Array(buffer));
+  const contents = buffer.toString();
 
   const id = randomid();
   const result = decode(contents);

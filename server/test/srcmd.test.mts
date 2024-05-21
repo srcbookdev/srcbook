@@ -1,8 +1,8 @@
-import { getRelativeFileContents } from './utils';
+import { getRelativeFileContents } from './utils.mjs';
 import { decode, encode } from '../srcmd.mjs';
 
 describe('encoding and decoding srcmd files', () => {
-  let srcmd;
+  let srcmd: string;
 
   beforeAll(async () => {
     srcmd = await getRelativeFileContents('srcmd_files/notebook.srcmd');

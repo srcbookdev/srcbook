@@ -1,8 +1,8 @@
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import Path from 'path';
-import util from 'util';
-import vm from 'vm';
+import Path from 'node:path';
+import util from 'node:util';
+import vm, { SourceTextModule } from 'node:vm';
 import { decode, encode, newContents } from './srcmd.mjs';
 import { randomid, sha256 } from './utils.mjs';
 import { transformImportStatements } from './transform.mjs';
@@ -129,7 +129,7 @@ function contextForCell(ctx) {
 async function createLinkedModule(session, cell) {
   const { code: source } = transformImportStatements(cell.source, cell.filename);
 
-  const module = new vm.SourceTextModule(source, {
+  const module = new SourceTextModule(source, {
     identifier: cell.filename,
     context: cell.context,
     importModuleDynamically: async function (specifier) {

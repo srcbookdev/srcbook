@@ -33,7 +33,19 @@ export function encode(cells: CellType[]) {
   return encoded + '\n';
 }
 
-export function decode(contents: string) {
+export type DecodeErrorResult = {
+  error: true;
+  errors: string[];
+};
+
+export type DecodeSuccessResult = {
+  error: false;
+  cells: CellType[];
+};
+
+export type DecodeResult = DecodeErrorResult | DecodeSuccessResult;
+
+export function decode(contents: string): DecodeResult {
   // First, decode the markdown text into tokens.
   const tokens = marked.lexer(contents);
 
@@ -42,8 +54,7 @@ export function decode(contents: string) {
   //     1. title
   //     2. markdown
   //     3. filename
-  //     4. package.json (this is a special case of filename)
-  //     5. code
+  //     4. code
   //
   const groups = groupTokens(tokens);
 
@@ -233,8 +244,6 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
     stale: false,
     type: 'code',
     source: token.text,
-    module: null,
-    context: null,
     language: token.lang || 'javascript',
     filename: filename,
     output: [],

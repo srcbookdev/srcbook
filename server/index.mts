@@ -14,7 +14,7 @@ import {
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
 import { getConfig, saveConfig } from './config.mjs';
-import type { CodeCellType, SessionType } from './types';
+import { CellType, type CodeCellType, type SessionType } from './types';
 
 const app = express();
 app.use(express.json());
@@ -75,6 +75,17 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
   const session = await findSession(id);
 
   const cell = findCell(session, cellId);
+
+  if (!cell) {
+    return res.status(404).json({ error: true, message: 'Cell not found' });
+  }
+
+  if (cell.type !== 'code') {
+    return res
+      .status(404)
+      .json({ error: true, message: `Cannot execute cell of type '${cell.type}'` });
+  }
+
   const updatedCell = await exec(session, cell, source);
   const updatedCells = replaceCell(session, updatedCell);
 
@@ -162,6 +173,10 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const session = await findSession(id);
   const cell = findCell(session, cellId);
 
+  if (!cell) {
+    return res.status(404).json({ error: true, message: 'Cell not found' });
+  }
+
   if (cell.type === 'code' && typeof attrs.filename === 'string') {
     const filenameResult = validateFilename(session, cellId, attrs.filename);
 
@@ -170,12 +185,12 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
     }
   }
 
-  const updatedCell = {
+  const updatedCell: CellType = {
     ...cell,
     ...take(attrs, 'source', 'filename', 'text'),
   };
 
-  if (cell.type === 'code') {
+  if (updatedCell.type === 'code') {
     updatedCell.stale = true;
   }
 

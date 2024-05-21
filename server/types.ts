@@ -21,8 +21,6 @@ export type CodeCellType = {
   stale: boolean;
   type: 'code';
   source: string;
-  module: any;
-  context: any;
   language: string;
   filename: string;
   output: any[];

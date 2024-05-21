@@ -11,6 +11,7 @@ describe('encoding and decoding srcmd files', () => {
   it('is an error when there is no title', () => {
     const result = decode('## Heading 2\n\nFollowed by a paragraph');
     expect(result.error).toBe(true);
+    // @ts-ignore
     expect(result.errors).toEqual(['Document must contain exactly one h1 heading']);
   });
 
@@ -19,6 +20,7 @@ describe('encoding and decoding srcmd files', () => {
       '# Heading 1\n\nFollowed by a paragraph\n\n# Followed by another heading 1',
     );
     expect(result.error).toBe(true);
+    // @ts-ignore
     expect(result.errors).toEqual(['Document must contain exactly one h1 heading']);
   });
 
@@ -27,6 +29,7 @@ describe('encoding and decoding srcmd files', () => {
       '# Heading 1\n\n###### supposed_to_be_a_filename.mjs\n\nBut no code is found.',
     );
     expect(result.error).toBe(true);
+    // @ts-ignore
     expect(result.errors).toEqual([
       "h6 is reserved for code cells, but no code block followed '###### supposed_to_be_a_filename.mjs'",
     ]);
@@ -34,8 +37,8 @@ describe('encoding and decoding srcmd files', () => {
 
   it('can decode a well-formed file', () => {
     const result = decode(srcmd);
-
     expect(result.error).toBe(false);
+    // @ts-ignore
     expect(result.cells).toEqual([
       { id: expect.any(String), type: 'title', text: 'Notebook title' },
       {

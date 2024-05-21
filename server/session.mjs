@@ -3,9 +3,9 @@ import { existsSync } from 'node:fs';
 import Path from 'node:path';
 import util from 'node:util';
 import vm, { SourceTextModule } from 'node:vm';
-import { decode, encode, newContents } from './srcmd.mjs';
-import { randomid, sha256 } from './utils.mjs';
-import { transformImportStatements } from './transform.mjs';
+import { decode, encode, newContents } from './srcmd.mts';
+import { randomid, sha256 } from './utils.mts';
+import { transformImportStatements } from './transform.mts';
 
 const sessions = {};
 

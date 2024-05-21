@@ -3,8 +3,9 @@ import Markdown from 'marked-react';
 import { useLoaderData } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
+import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { Plus, PlayCircle, Trash2, Pencil } from 'lucide-react';
+import { Plus, PlayCircle, Trash2, Pencil, ChevronRight } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import type {
@@ -12,12 +13,14 @@ import type {
   CodeCellType,
   EvalOutputType,
   OutputType,
+  PackageJsonCellType,
   TitleCellType,
   MarkdownCellType,
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 
@@ -149,6 +152,8 @@ function Cell(props: {
           onDeleteCell={props.onDeleteCell}
         />
       );
+    case 'package.json':
+      return <PackageJsonCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
     default:
       throw new Error('Unrecognized cell type');
   }
@@ -200,7 +205,7 @@ function MarkdownCell(props: {
             </Button>
 
             <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-              <Button variant="ghost">
+              <Button variant="ghost" asChild>
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
@@ -241,6 +246,37 @@ function MarkdownCell(props: {
   );
 }
 
+function PackageJsonCell(props: {
+  cell: PackageJsonCellType;
+  onUpdateCell: (cell: PackageJsonCellType, attrs: Partial<PackageJsonCellType>) => Promise<void>;
+}) {
+  const cell = props.cell;
+
+  const [source, setSource] = useState(cell.source);
+  const [open, setOpen] = useState(false);
+
+  function onChangeSource(source: string) {
+    setSource(source);
+    props.onUpdateCell(cell, { source });
+  }
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="flex items-center w-full gap-3">
+        <p className="text-sm font-mono font-semibold">package.json</p>
+        <ChevronRight
+          size="24"
+          style={{
+            transform: open ? `rotate(90deg)` : 'none',
+          }}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="py-2 mt-2 border-t-2 transition-all data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+        <CodeMirror value={source} extensions={[json()]} onChange={onChangeSource} />
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 function CodeCell(props: {
   cell: CodeCellType;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
@@ -266,7 +302,7 @@ function CodeCell(props: {
           />
           <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2">
             <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-              <Button variant="ghost">
+              <Button variant="ghost" asChild>
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>

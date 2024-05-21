@@ -1,9 +1,11 @@
 import { marked } from 'marked';
-import { randomid } from './utils';
+import { randomid } from './utils.mjs';
+import type { Tokens, Token } from 'marked';
+import type { CellType } from './types';
 
 marked.use({ gfm: true });
 
-export function encode(cells) {
+export function encode(cells: CellType[]) {
   const encoded = cells
     .map((cell) => {
       switch (cell.type) {
@@ -25,7 +27,7 @@ export function encode(cells) {
   return encoded + '\n';
 }
 
-export function decode(contents) {
+export function decode(contents: string) {
   // First, decode the markdown text into tokens.
   const tokens = marked.lexer(contents);
 
@@ -55,28 +57,46 @@ export function decode(contents) {
     : { error: false, cells: convertToCells(groups) };
 }
 
+type TitleGroupType = {
+  type: 'title';
+  token: Tokens.Heading;
+};
+
+type FilenameGroupType = {
+  type: 'filename';
+  token: Tokens.Heading;
+};
+
+type CodeGroupType = {
+  type: 'code';
+  token: Tokens.Code;
+};
+
+type MarkdownGroupType = {
+  type: 'markdown';
+  tokens: Token[];
+};
+
+type GroupedTokensType = TitleGroupType | FilenameGroupType | CodeGroupType | MarkdownGroupType;
+
 /**
  * Group tokens into an intermediate representation.
  */
-export function groupTokens(tokens) {
-  const grouped = [];
+export function groupTokens(tokens: Token[]) {
+  const grouped: GroupedTokensType[] = [];
 
-  function push(token, type) {
+  function pushMarkdownToken(token: Token) {
     const group = grouped[grouped.length - 1];
-    if (group && group.type === type) {
+    if (group && group.type === 'markdown') {
       group.tokens.push(token);
     } else {
-      grouped.push({ type: type, tokens: [token] });
+      grouped.push({ type: 'markdown', tokens: [token] });
     }
   }
 
   function lastGroupType() {
     const lastGroup = grouped[grouped.length - 1];
     return lastGroup ? lastGroup.type : null;
-  }
-
-  function isPackageJsonFilename(token) {
-    return token.type === 'heading' && token.depth === 6 && token.text === 'package.json';
   }
 
   let i = 0;
@@ -87,23 +107,20 @@ export function groupTokens(tokens) {
 
     if (token.type === 'heading') {
       if (token.depth === 1) {
-        grouped.push({ type: 'title', token: token });
+        grouped.push({ type: 'title', token: token as Tokens.Heading });
       } else if (token.depth === 6) {
-        const type = isPackageJsonFilename(token) ? 'package.json:heading' : 'filename';
-        grouped.push({ type: type, token: token });
+        grouped.push({ type: 'filename', token: token as Tokens.Heading });
       } else {
-        push(token, 'markdown');
+        pushMarkdownToken(token);
       }
     } else if (token.type === 'code') {
       if (lastGroupType() === 'filename') {
-        grouped.push({ type: 'code', token: token });
-      } else if (lastGroupType() === 'package.json:heading') {
-        grouped.push({ type: 'package.json', token: token });
+        grouped.push({ type: 'code', token: token as Tokens.Code });
       } else {
-        push(token, 'markdown');
+        pushMarkdownToken(token);
       }
     } else {
-      push(token, 'markdown');
+      pushMarkdownToken(token);
     }
 
     i += 1;
@@ -113,14 +130,15 @@ export function groupTokens(tokens) {
   return grouped;
 }
 
-function validateTokenGroups(grouped) {
-  const errors = [];
+function validateTokenGroups(grouped: GroupedTokensType[]) {
+  const errors: string[] = [];
 
   const firstGroupIsTitle = grouped[0].type === 'title';
   const hasOnlyOneTitle = grouped.filter((group) => group.type === 'title').length === 1;
   const invalidTitle = !(firstGroupIsTitle && hasOnlyOneTitle);
   const hasAtMostOnePackageJson =
-    grouped.filter((group) => group.type === 'package.json').length <= 1;
+    grouped.filter((group) => group.type === 'filename' && group.token.text === 'package.json')
+      .length <= 1;
 
   if (invalidTitle) {
     errors.push('Document must contain exactly one h1 heading');
@@ -151,7 +169,7 @@ function validateTokenGroups(grouped) {
   return errors;
 }
 
-function convertToCells(groups) {
+function convertToCells(groups: GroupedTokensType[]) {
   const len = groups.length;
   const cells = [];
 
@@ -170,14 +188,15 @@ function convertToCells(groups) {
       if (hasNonSpaceTokens) {
         cells.push(convertMarkdown(group.tokens));
       }
-    } else if (group.type === 'package.json') {
-      // Note that we purposefully skip the package.json:heading group.
-      cells.push(convertPackageJson(group.token));
     } else if (group.type === 'filename') {
       i += 1;
-      const codeToken = groups[i].token;
+      const codeToken = (groups[i] as CodeGroupType).token;
       const filename = group.token.text;
-      cells.push(convertCode(codeToken, filename));
+      const cell =
+        filename === 'package.json'
+          ? convertPackageJson(codeToken)
+          : convertCode(codeToken, filename);
+      cells.push(cell);
     }
 
     i += 1;
@@ -186,7 +205,7 @@ function convertToCells(groups) {
   return cells;
 }
 
-function convertTitle(token) {
+function convertTitle(token: Tokens.Heading) {
   return {
     id: randomid(),
     type: 'title',
@@ -194,7 +213,7 @@ function convertTitle(token) {
   };
 }
 
-function convertPackageJson(token) {
+function convertPackageJson(token: Tokens.Code) {
   return {
     id: randomid(),
     type: 'package.json',
@@ -202,7 +221,7 @@ function convertPackageJson(token) {
   };
 }
 
-function convertCode(token, filename) {
+function convertCode(token: Tokens.Code, filename: string) {
   return {
     id: randomid(),
     stale: false,
@@ -216,7 +235,7 @@ function convertCode(token, filename) {
   };
 }
 
-function convertMarkdown(tokens) {
+function convertMarkdown(tokens: Token[]) {
   return {
     id: randomid(),
     type: 'markdown',
@@ -224,7 +243,7 @@ function convertMarkdown(tokens) {
   };
 }
 
-function serializeMarkdownTokens(tokens) {
+function serializeMarkdownTokens(tokens: Token[]) {
   return tokens
     .map((token) => {
       const md = token.raw;
@@ -233,13 +252,14 @@ function serializeMarkdownTokens(tokens) {
     .join('');
 }
 
-export function newContents(basename) {
+export function newContents(basename: string) {
   return `# ${basename}
 
 ###### package.json
+
 \`\`\`json
 {
-  "name": ${basename},
+  "name": ${JSON.stringify(basename)},
   "version": "0.0.1",
   "description": "",
   "main": "index.mjs",

@@ -231,6 +231,71 @@ export async function updateConfig(request: EditConfigRequestType) {
   }
 }
 
+// Secret management
+export async function getSecrets() {
+  const response = await fetch(SERVER_BASE_URL + '/secrets', {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+  return response.json();
+}
+
+interface CreateSecretRequestType {
+  name: string;
+  value: string;
+}
+
+export async function createSecret(request: CreateSecretRequestType) {
+  const response = await fetch(SERVER_BASE_URL + '/secrets', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request for creating a secret failed');
+  }
+  return response.json();
+}
+
+interface UpdateSecretRequestType {
+  previousName: string;
+  name: string;
+  value: string;
+}
+export async function updateSecret(request: UpdateSecretRequestType) {
+  const response = await fetch(SERVER_BASE_URL + '/secrets/' + request.previousName, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request for updating a secret failed');
+  }
+  return response.json();
+}
+
+interface DeleteSecretRequestType {
+  name: string;
+}
+export async function deleteSecret(request: DeleteSecretRequestType) {
+  const response = await fetch(SERVER_BASE_URL + '/secrets/' + request.name, {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json' },
+  });
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request for deleting a secret failed');
+  }
+  return response.json();
+}
+
 export async function getNodeVersion() {
   const response = await fetch(SERVER_BASE_URL + '/node_version', {
     headers: { 'content-type': 'application/json' },

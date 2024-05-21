@@ -90,7 +90,7 @@ export default function Session() {
       <div className="flex flex-col">
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
-            {idx !== 0 && (
+            {idx > 1 && (
               <div className="flex justify-center w-full group">
                 <NewCellPopover
                   createNewCell={(type) => {
@@ -164,7 +164,7 @@ function TitleCell(props: {
   onUpdateCell: (cell: TitleCellType, attrs: Partial<TitleCellType>) => Promise<void>;
 }) {
   return (
-    <div className="mt-4">
+    <div className="my-4">
       <EditableH1
         text={props.cell.text}
         className="text-4xl font-bold"
@@ -205,7 +205,7 @@ function MarkdownCell(props: {
             </Button>
 
             <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" size={'icon'}>
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
@@ -263,16 +263,25 @@ function PackageJsonCell(props: {
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger className="flex items-center w-full gap-3">
-        <p className="text-sm font-mono font-semibold">package.json</p>
-        <ChevronRight
-          size="24"
-          style={{
-            transform: open ? `rotate(90deg)` : 'none',
-          }}
-        />
+        <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
+          package.json
+          <ChevronRight
+            size="24"
+            style={{
+              transform: open ? `rotate(90deg)` : 'none',
+            }}
+          />
+        </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="py-2 mt-2 border-t-2 transition-all data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-        <CodeMirror value={source} extensions={[json()]} onChange={onChangeSource} />
+      <CollapsibleContent className="py-2">
+        <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
+          <CodeMirror
+            value={source}
+            extensions={[json()]}
+            onChange={onChangeSource}
+            basicSetup={{ lineNumbers: false, foldGutter: false }}
+          />
+        </div>
       </CollapsibleContent>
     </Collapsible>
   );
@@ -302,7 +311,7 @@ function CodeCell(props: {
           />
           <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2">
             <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-              <Button variant="ghost" asChild>
+              <Button variant="ghost">
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>

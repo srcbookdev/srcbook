@@ -13,8 +13,8 @@ import {
   maybeWriteToFile,
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
-import { getConfig, saveConfig } from './config.mjs';
 import { CellType, type CodeCellType, type SessionType } from './types';
+import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
 
 const app = express();
 app.use(express.json());
@@ -30,7 +30,7 @@ app.post('/disk', cors(), async (req, res) => {
     const entries = await disk(dirname, '.srcmd');
     return res.json({ error: false, result: { dirname, entries } });
   } catch (e) {
-    const error = e as any as Error;
+    const error = e as unknown as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
@@ -45,7 +45,7 @@ app.post('/sessions', cors(), async (req, res) => {
     const session = await createSession({ dirname, basename });
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (e) {
-    const error = e as any as Error;
+    const error = e as unknown as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
@@ -210,7 +210,6 @@ app.get('/settings', cors(), async (_req, res) => {
   return res.json({ error: false, result: config });
 });
 
-// updates cell without running it
 app.post('/settings', cors(), async (req, res) => {
   const body = req.body;
   const config = await getConfig();
@@ -218,6 +217,39 @@ app.post('/settings', cors(), async (req, res) => {
   await saveConfig(newConfig);
 
   return res.json({ result: newConfig });
+});
+
+app.options('/secrets', cors());
+
+app.get('/secrets', cors(), async (_req, res) => {
+  const secrets = await getSecrets();
+  return res.json({ result: secrets });
+});
+
+// Create a new secret
+app.post('/secrets', cors(), async (req, res) => {
+  const { name, value } = req.body;
+  await addSecret(name, value);
+  const secrets = await getSecrets();
+  return res.json({ result: secrets });
+});
+
+app.options('/secrets/:name', cors());
+
+app.post('/secrets/:name', cors(), async (req, res) => {
+  const { name } = req.params;
+  const { name: newName, value } = req.body;
+  await removeSecret(name);
+  await addSecret(newName, value);
+  const secrets = await getSecrets();
+  return res.json({ result: secrets });
+});
+
+app.delete('/secrets/:name', cors(), async (req, res) => {
+  const { name } = req.params;
+  await removeSecret(name);
+  const secrets = await getSecrets();
+  return res.json({ result: secrets });
 });
 
 app.options('/node_version', cors());

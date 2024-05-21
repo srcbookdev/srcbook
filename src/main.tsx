@@ -7,7 +7,7 @@ import Home, { loader as homeLoader, action as homeAction } from './routes/home'
 import Open, { loader as openLoader, action as openAction } from './routes/open';
 import Session, { loader as sessionLoader } from './routes/session';
 import Settings, { loader as settingsLoader, action as settingsAction } from './routes/settings';
-import Secrets, { loader as secretsLoader } from './routes/secrets';
+import Secrets from './routes/secrets';
 import ErrorPage from './error';
 
 const router = createBrowserRouter([
@@ -39,7 +39,8 @@ const router = createBrowserRouter([
       },
       {
         path: '/secrets',
-        loader: secretsLoader,
+        loader: Secrets.loader,
+        action: Secrets.action,
         element: <Secrets />,
         errorElement: <ErrorPage />,
       },

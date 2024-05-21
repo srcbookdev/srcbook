@@ -12,7 +12,7 @@ export function encode(cells) {
         case 'markdown':
           return cell.text.trim();
         case 'package.json':
-          return [`####### package.json\n`, `\`\`\`json`, cell.source, '```'].join('\n');
+          return [`###### package.json\n`, `\`\`\`json`, cell.source, '```'].join('\n');
         case 'code':
           return [`###### ${cell.filename}\n`, `\`\`\`${cell.language}`, cell.source, '```'].join(
             '\n',
@@ -89,14 +89,16 @@ export function groupTokens(tokens) {
       if (token.depth === 1) {
         grouped.push({ type: 'title', token: token });
       } else if (token.depth === 6) {
-        const type = isPackageJsonFilename(token) ? 'package.json' : 'filename';
-        grouped.push({ type, token: token });
+        const type = isPackageJsonFilename(token) ? 'package.json:heading' : 'filename';
+        grouped.push({ type: type, token: token });
       } else {
         push(token, 'markdown');
       }
     } else if (token.type === 'code') {
       if (lastGroupType() === 'filename') {
         grouped.push({ type: 'code', token: token });
+      } else if (lastGroupType() === 'package.json:heading') {
+        grouped.push({ type: 'package.json', token: token });
       } else {
         push(token, 'markdown');
       }
@@ -168,6 +170,9 @@ function convertToCells(groups) {
       if (hasNonSpaceTokens) {
         cells.push(convertMarkdown(group.tokens));
       }
+    } else if (group.type === 'package.json') {
+      // Note that we purposefully skip the package.json:heading group.
+      cells.push(convertPackageJson(group.token));
     } else if (group.type === 'filename') {
       i += 1;
       const codeToken = groups[i].token;
@@ -186,6 +191,14 @@ function convertTitle(token) {
     id: randomid(),
     type: 'title',
     text: token.text,
+  };
+}
+
+function convertPackageJson(token) {
+  return {
+    id: randomid(),
+    type: 'package.json',
+    source: token.text,
   };
 }
 

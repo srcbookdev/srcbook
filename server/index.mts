@@ -3,14 +3,14 @@ import cors from 'cors';
 import {
   createSession,
   findSession,
-  exec,
+  execCell,
   findCell,
   replaceCell,
   removeCell,
   updateSession,
   sessionToResponse,
   createCell,
-  maybeWriteToFile,
+  insertCellAt,
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
 import { CellType, type CodeCellType, type SessionType } from './types';
@@ -86,13 +86,17 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
       .json({ error: true, message: `Cannot execute cell of type '${cell.type}'` });
   }
 
-  const updatedCell = await exec(session, cell, source);
+  const updatedCell = { ...cell, source: source };
   const updatedCells = replaceCell(session, updatedCell);
-
-  // Update state
   updateSession(session, { cells: updatedCells });
 
-  return res.json({ result: updatedCell });
+  const { output } = await execCell(session, updatedCell);
+
+  // Update state
+  const resultingCell = { ...cell, output: output };
+  updateSession(session, { cells: replaceCell(session, resultingCell) });
+
+  return res.json({ result: resultingCell });
 });
 
 app.options('/sessions/:id/cells', cors());
@@ -100,20 +104,22 @@ app.options('/sessions/:id/cells', cors());
 // Create a new cell. If no index is provided, append to the end, otherwise insert at the index
 app.post('/sessions/:id/cells', cors(), async (req, res) => {
   const { id } = req.params;
-  const { type, index } = req.body;
+  const { type, index } = req.body as { type: string; index: number };
+
+  if (type !== 'code' && type !== 'markdown') {
+    return res.status(400).json({ error: true, message: 'A type is required' });
+  }
+
+  // First 2 cells are reserved (title and package.json)
+  if (typeof index !== 'number' || index < 2) {
+    return res.status(400).json({ error: true, message: 'Index is required' });
+  }
 
   try {
     const session = await findSession(id);
-    let cells = session.cells;
     const cell = createCell({ type });
-    if (!index) {
-      // No index provided, append to the end
-      cells = session.cells.concat(cell);
-    } else {
-      cells.splice(index, 0, cell);
-    }
-    updateSession(session, { cells });
-    maybeWriteToFile(session);
+    const updatedCells = insertCellAt(session, cell, index);
+    updateSession(session, { cells: updatedCells });
     return res.json({ error: false, result: cell });
   } catch (e) {
     const error = e as any as Error;
@@ -160,7 +166,6 @@ app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
 
   const updatedCells = removeCell(session, cellId);
   updateSession(session, { cells: updatedCells });
-  maybeWriteToFile(session);
 
   return res.json({ result: updatedCells });
 });
@@ -198,7 +203,6 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
 
   // Update state
   updateSession(session, { cells: updatedCells });
-  maybeWriteToFile(session);
 
   return res.json({ result: updatedCell });
 });

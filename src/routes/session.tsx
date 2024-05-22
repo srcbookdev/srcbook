@@ -14,11 +14,11 @@ import { cn } from '@/lib/utils';
 import type {
   CellType,
   CodeCellType,
-  EvalOutputType,
   OutputType,
   PackageJsonCellType,
   TitleCellType,
   MarkdownCellType,
+  SessionType,
 } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import { Button } from '@/components/ui/button';
@@ -28,18 +28,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 
-type SlimSessionType = {
-  id: string;
-  cells: CellType[];
-};
-
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
   return { session };
 }
 
 function Session() {
-  const { session } = useLoaderData() as { session: SlimSessionType };
+  const { session } = useLoaderData() as { session: SessionType };
+
   const [cells, setCells] = useState<CellType[]>(session.cells);
   const [showShortcuts, setShowShortcuts] = useState(false);
   // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
@@ -81,15 +77,11 @@ function Session() {
     updateCells(updatedCell);
   }
 
-  async function createNewCell(type: 'code' | 'markdown' = 'code', index?: number) {
+  async function createNewCell(type: 'code' | 'markdown', index: number) {
     const { result } = await createCell({ sessionId: session.id, type, index });
-
-    // Insert cell at the end if index is not provided
-    if (!index) {
-      setCells(cells.concat(result));
-    } else {
-      setCells(cells.slice(0, index).concat(result).concat(cells.slice(index)));
-    }
+    const copy = [...cells];
+    copy.splice(index, 0, result);
+    setCells(copy);
   }
 
   return (
@@ -130,7 +122,7 @@ function Session() {
       </div>
 
       <div className="flex justify-center">
-        <NewCellPopover createNewCell={createNewCell}>
+        <NewCellPopover createNewCell={() => createNewCell('code', cells.length)}>
           <div className="m-4 p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-all active:translate-y-0.5">
             <Plus size={24} />
           </div>
@@ -378,15 +370,11 @@ function CellOutput(props: { output: OutputType[] }) {
     return null;
   }
 
-  const output = props.output.filter((o) => o.type !== 'eval').map(({ text }) => text);
-  const result = props.output.find((o) => o.type === 'eval') as EvalOutputType | void;
-
   return (
     <div className="border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
-      {output.length > 0 && <div className="p-2 whitespace-pre-wrap">{output.join('\n')}</div>}
-      {result !== undefined && (
-        <div className={cn('p-2 whitespace-pre-wrap', result.error && 'text-red-600')}>
-          {result.text}
+      {props.output.length > 0 && (
+        <div className="p-2 whitespace-pre-wrap">
+          {props.output.map(({ data }) => data).join('')}
         </div>
       )}
     </div>

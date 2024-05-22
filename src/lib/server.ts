@@ -1,4 +1,4 @@
-import type { CellType, FsObjectResultType } from '@/types';
+import type { CellType, FsObjectResultType, SessionType } from '@/types';
 
 const SERVER_BASE_URL = 'http://localhost:2150';
 
@@ -83,7 +83,7 @@ interface LoadSessionRequestType {
 
 interface LoadSessionResponseType {
   error: boolean;
-  result: { id: string };
+  result: SessionType;
 }
 
 export async function loadSession(

@@ -1,3 +1,15 @@
+export type StdoutOutputType = {
+  type: 'stdout';
+  data: string;
+};
+
+export type StderrOutputType = {
+  type: 'stderr';
+  data: string;
+};
+
+export type ProcessOutputType = StdoutOutputType | StderrOutputType;
+
 export type TitleCellType = {
   id: string;
   type: 'title';
@@ -23,14 +35,20 @@ export type CodeCellType = {
   source: string;
   language: string;
   filename: string;
-  output: any[];
+  output: ProcessOutputType[];
 };
 
 export type CellType = TitleCellType | MarkdownCellType | PackageJsonCellType | CodeCellType;
 
 export type SessionType = {
   id: string;
-  hash: string;
-  path: string;
+  /**
+   * Path to the directory containing the srcbook files.
+   */
+  dir: string;
+  /**
+   * Path to a .srcmd file containing the srcbook.
+   */
+  srcmdPath: string;
   cells: CellType[];
 };

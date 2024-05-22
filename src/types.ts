@@ -16,10 +16,9 @@ export type SettingsType = {
   baseDir: string;
 };
 
-export type EvalOutputType = { type: 'eval'; error: boolean; text: string };
-export type StdoutOutputType = { type: 'stdout'; text: string };
-export type StderrOutputType = { type: 'stderr'; text: string };
-export type OutputType = EvalOutputType | StdoutOutputType | StderrOutputType;
+export type StdoutOutputType = { type: 'stdout'; data: string };
+export type StderrOutputType = { type: 'stderr'; data: string };
+export type OutputType = StdoutOutputType | StderrOutputType;
 
 type BaseCellType = {
   id: string;
@@ -51,3 +50,8 @@ export type PackageJsonCellType = BaseCellType & {
 };
 
 export type CellType = TitleCellType | CodeCellType | MarkdownCellType | PackageJsonCellType;
+
+export type SessionType = {
+  id: string;
+  cells: CellType[];
+};

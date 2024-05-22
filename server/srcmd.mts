@@ -11,26 +11,48 @@ import type {
 
 marked.use({ gfm: true });
 
-export function encode(cells: CellType[]) {
+export function encode(cells: CellType[], options: { inline: boolean }) {
   const encoded = cells
     .map((cell) => {
       switch (cell.type) {
         case 'title':
-          return `# ${cell.text}`;
+          return encodeTitleCell(cell);
         case 'markdown':
-          return cell.text.trim();
+          return encodeMarkdownCell(cell);
         case 'package.json':
-          return [`###### package.json\n`, `\`\`\`json`, cell.source, '```'].join('\n');
+          return encodePackageJsonCell(cell, options);
         case 'code':
-          return [`###### ${cell.filename}\n`, `\`\`\`${cell.language}`, cell.source, '```'].join(
-            '\n',
-          );
+          return encodeCodeCell(cell, options);
       }
     })
     .join('\n\n');
 
   // End every file with exactly one newline.
-  return encoded + '\n';
+  return encoded.trimEnd() + '\n';
+}
+
+export function encodeTitleCell(cell: TitleCellType) {
+  return `# ${cell.text}`;
+}
+
+export function encodeMarkdownCell(cell: MarkdownCellType) {
+  return cell.text.trim();
+}
+
+export function encodePackageJsonCell(cell: PackageJsonCellType, options: { inline: boolean }) {
+  const source = options.inline
+    ? ['###### package.json\n', '```json', cell.source.trim(), '```']
+    : ['###### package.json\n', '[package.json](./package.json)'];
+
+  return source.join('\n');
+}
+
+export function encodeCodeCell(cell: CodeCellType, options: { inline: boolean }) {
+  const source = options.inline
+    ? [`###### ${cell.filename}\n`, `\`\`\`${cell.language}`, cell.source, '```']
+    : [`###### ${cell.filename}\n`, `[${cell.filename}](./${cell.filename})`];
+
+  return source.join('\n');
 }
 
 export type DecodeErrorResult = {

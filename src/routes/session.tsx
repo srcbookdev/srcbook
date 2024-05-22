@@ -122,7 +122,7 @@ function Session() {
       </div>
 
       <div className="flex justify-center">
-        <NewCellPopover createNewCell={() => createNewCell('code', cells.length)}>
+        <NewCellPopover createNewCell={(type) => createNewCell(type, cells.length)}>
           <div className="m-4 p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-all active:translate-y-0.5">
             <Plus size={24} />
           </div>

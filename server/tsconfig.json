@@ -9,10 +9,8 @@
     "outDir": "./dist",
     "rootDir": "./",
     "allowSyntheticDefaultImports": true,
-
     // temp
     "allowJs": true,
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

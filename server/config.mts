@@ -2,8 +2,14 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-const configDir = process.env.SRC_BOOK_CONFIG_DIR || path.join(os.homedir(), '.srcbook');
+const userDir = import.meta.env.VITE_NOTEBOOKS_DIR || os.homedir();
+const privateConfigDir = path.join(os.homedir(), '.srcbook');
 
+const configPath = path.join(privateConfigDir, 'config.json');
+const secretsPath = path.join(privateConfigDir, 'secrets.json');
+
+// This will hold any user settings and configuration.
+// Right now the only settings is the base directory.
 type ConfigObjectType = {
   baseDir: string;
 };
@@ -12,51 +18,41 @@ type SecretsObjectType = Record<string, string>;
 
 // Default configuration
 const defaultConfig: ConfigObjectType = {
-  baseDir: configDir,
+  baseDir: userDir,
 };
 
 let config = { ...defaultConfig }; // In-memory config object
 let secrets = {} as SecretsObjectType; // In-memory secrets object
 
 async function loadConfig() {
-  const configPath = path.join(configDir, 'config.json');
-
   try {
     const configFile = await fs.readFile(configPath, 'utf-8');
     const config = JSON.parse(configFile);
 
     return { ...defaultConfig, ...config };
   } catch (error) {
-    console.warn('Configuration file not found, creating one...');
-    fs.mkdir(configDir, { recursive: true });
+    console.warn('Configuration file not found, creating one at', configPath);
+    fs.mkdir(privateConfigDir, { recursive: true });
     await fs.writeFile(configPath, JSON.stringify(defaultConfig, null, 2));
-    console.info('Configuration file created at', configPath);
     return defaultConfig;
   }
 }
 
 async function loadSecrets() {
-  const secretsPath = path.join(configDir, 'secrets.json');
   try {
     const secretsFile = await fs.readFile(secretsPath, 'utf-8');
     return { ...secrets, ...JSON.parse(secretsFile) };
   } catch (error) {
-    console.warn('Secrets file not found, creating one...');
-    fs.mkdir(configDir, { recursive: true });
+    console.warn('Secrets file not found, creating one at ', secretsPath);
+    fs.mkdir(privateConfigDir, { recursive: true });
     await fs.writeFile(secretsPath, JSON.stringify({}, null, 2));
-    console.info('Secrets file created at', secretsPath);
     return {};
   }
 }
 
 export async function saveConfig(newConfig: ConfigObjectType) {
-  const configPath = path.join(configDir, 'config.json');
-  try {
-    fs.writeFile(configPath, JSON.stringify(newConfig, null, 2));
-    config = { ...config, ...newConfig };
-  } catch (error) {
-    console.error('Failed to save configuration file:', error);
-  }
+  fs.writeFile(configPath, JSON.stringify(newConfig, null, 2));
+  config = { ...config, ...newConfig };
 }
 
 export async function getConfig() {
@@ -74,21 +70,13 @@ export async function getSecrets() {
 }
 
 export async function addSecret(key: string, value: string) {
-  try {
-    secrets[key] = value;
-    await fs.writeFile(path.join(configDir, 'secrets.json'), JSON.stringify(secrets, null, 2));
-  } catch (error) {
-    console.error('Failed to save secrets file:', error);
-  }
+  secrets[key] = value;
+  await fs.writeFile(path.join(privateConfigDir, 'secrets.json'), JSON.stringify(secrets, null, 2));
 }
 
 export async function removeSecret(key: string) {
-  try {
-    await fs.writeFile(path.join(configDir, 'secrets.json'), JSON.stringify(secrets, null, 2));
-    delete secrets[key];
-  } catch (error) {
-    console.error('Failed to save secrets file:', error);
-  }
+  await fs.writeFile(path.join(privateConfigDir, 'secrets.json'), JSON.stringify(secrets, null, 2));
+  delete secrets[key];
 }
 
 async function load() {

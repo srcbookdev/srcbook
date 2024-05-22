@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 *.gitignored.*
+
+server/.env
+server/*.local

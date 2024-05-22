@@ -224,7 +224,6 @@ function MarkdownCell(props: {
     <div
       onDoubleClick={() => setStatus('edit')}
       className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm transition-all"
-      tabIndex={-1}
     >
       {status === 'view' ? (
         <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
@@ -341,7 +340,7 @@ function CodeCell(props: {
   }
 
   return (
-    <div className="relative group/cell space-y-1.5" tabIndex={-1}>
+    <div className="relative group/cell space-y-1.5">
       <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
           <FilenameInput

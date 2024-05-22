@@ -32,8 +32,7 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
       },
       {
-        path: 'sessions/:id',
-        // @ts-expect-error - react-router-dom types for loaders are really annoying
+        path: '/sessions/:id',
         loader: Session.loader,
         element: <Session />,
         errorElement: <ErrorPage />,

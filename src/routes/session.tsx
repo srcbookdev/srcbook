@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import Markdown from 'marked-react';
-import { useLoaderData } from 'react-router-dom';
+import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
@@ -29,8 +29,8 @@ type SlimSessionType = {
   cells: CellType[];
 };
 
-async function loader({ params }: { params: { id: string } }) {
-  const { result: session } = await loadSession({ id: params.id });
+async function loader({ params }: LoaderFunctionArgs) {
+  const { result: session } = await loadSession({ id: params.id! });
   return { session };
 }
 

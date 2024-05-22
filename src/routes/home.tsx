@@ -1,15 +1,16 @@
 import { PlusIcon } from 'lucide-react';
-import { Form, useLoaderData, redirect } from 'react-router-dom';
-import { disk, createSession } from '@/lib/server';
+import { Form, useLoaderData, redirect, Link } from 'react-router-dom';
+import { disk, createSession, loadSessions } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
-import type { FsObjectResultType } from '@/types';
+import type { FsObjectResultType, SessionResponseType, TitleCellType } from '@/types';
 
 async function loader() {
   const { result } = await disk();
-  return result;
+  const { result: sessions } = await loadSessions();
+  return { disk: result, sessions };
 }
 
 async function action({ request }: { request: Request }) {
@@ -20,8 +21,27 @@ async function action({ request }: { request: Request }) {
   return redirect(`/sessions/${result.id}`);
 }
 
+type HomeLoaderDataType = {
+  disk: FsObjectResultType;
+  sessions: SessionResponseType[];
+};
+
+function Session({ session }: { session: SessionResponseType }) {
+  return (
+    <Link
+      to={`sessions/${session.id}`}
+      className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 max-w-lg"
+    >
+      <p className="text-lg font-semibold">{(session.cells[0] as TitleCellType).text}</p>
+      <p className="text-sm text-gray-400">{session.path}</p>
+    </Link>
+  );
+}
 function Home() {
-  const { dirname } = useLoaderData() as FsObjectResultType;
+  const {
+    disk: { dirname },
+    sessions,
+  } = useLoaderData() as HomeLoaderDataType;
   const [basename, setBasename] = useState('');
 
   return (
@@ -55,6 +75,14 @@ function Home() {
             </Button>
           </Form>
         </div>
+      </div>
+      <h2 className="text-xl mx-auto my-8">Open sessions</h2>
+      <div className="flex flex-col gap-2">
+        <>
+          {sessions.map((session) => {
+            return <Session key={session.id} session={session} />;
+          })}
+        </>
       </div>
     </>
   );

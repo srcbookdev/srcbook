@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
+import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror from '@uiw/react-codemirror';
+import { basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { Plus, PlayCircle, Trash2, Pencil, ChevronRight } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
-import { cn } from '@/lib/utils';
+import { cn, mergeRefs } from '@/lib/utils';
 import type {
   CellType,
   CodeCellType,
@@ -36,7 +38,6 @@ async function loader({ params }: LoaderFunctionArgs) {
 
 function Session() {
   const { session } = useLoaderData() as { session: SlimSessionType };
-
   const [cells, setCells] = useState<CellType[]>(session.cells);
 
   async function onDeleteCell(cell: CellType) {
@@ -183,18 +184,30 @@ function MarkdownCell(props: {
   const [text, setText] = useState(props.cell.text);
   const cell = props.cell;
 
+  // Hotkeys for the markdown cell
+  const refEscape = useHotkeys<HTMLDivElement>('escape', () => setStatus('view'), {
+    enableOnContentEditable: true,
+  });
+  const refModEnter = useHotkeys<HTMLDivElement>('mod+enter', onSave, {
+    enableOnContentEditable: true,
+  });
+  // End hotkeys
+
   function onChangeSource(source: string) {
     setText(source);
   }
 
   function onSave() {
     props.onUpdateCell(cell, { text });
+    setStatus('view');
   }
 
   return (
     <div
       onDoubleClick={() => setStatus('edit')}
       className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm transition-all"
+      tabIndex={-1}
+      ref={mergeRefs([refEscape, refModEnter])}
     >
       {status === 'view' ? (
         <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
@@ -218,14 +231,7 @@ function MarkdownCell(props: {
               <Button variant="outline" onClick={() => setStatus('view')}>
                 Cancel
               </Button>
-              <Button
-                onClick={() => {
-                  onSave();
-                  setStatus('view');
-                }}
-              >
-                Save
-              </Button>
+              <Button onClick={onSave}>Save</Button>
             </div>
             <Button variant="destructive" onClick={() => props.onDeleteCell(cell)}>
               Delete
@@ -293,8 +299,11 @@ function CodeCell(props: {
   onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;
-
   const [source, setSource] = useState(cell.source);
+
+  const ref = useHotkeys<HTMLDivElement>('mod+enter', () => props.onEvaluate(cell, source), {
+    enableOnContentEditable: true,
+  });
 
   function onChangeSource(source: string) {
     setSource(source);
@@ -302,7 +311,7 @@ function CodeCell(props: {
   }
 
   return (
-    <div className="relative group/cell space-y-1.5">
+    <div className="relative group/cell space-y-1.5" tabIndex={-1} ref={ref}>
       <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
           <FilenameInput
@@ -321,7 +330,11 @@ function CodeCell(props: {
             </Button>
           </div>
         </div>
-        <CodeMirror value={source} extensions={[javascript()]} onChange={onChangeSource} />
+        <CodeMirror
+          value={source}
+          extensions={[basicSetup, javascript()]}
+          onChange={onChangeSource}
+        />
       </div>
       <CellOutput output={cell.output} />
     </div>

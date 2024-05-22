@@ -95,6 +95,12 @@ function Session() {
   return (
     <div>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+      <div
+        className="fixed bottom-2 right-2 font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
+        onClick={() => setShowShortcuts(!showShortcuts)}
+      >
+        ?
+      </div>
       <div className="flex flex-col">
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>

@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react';
+import { Prec } from '@codemirror/state';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror from '@uiw/react-codemirror';
-import { basicSetup } from 'codemirror';
+import { keymap } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { Plus, PlayCircle, Trash2, Pencil, ChevronRight } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
-import { cn, mergeRefs } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type {
   CellType,
   CodeCellType,
@@ -19,6 +20,7 @@ import type {
   TitleCellType,
   MarkdownCellType,
 } from '@/types';
+import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
@@ -39,6 +41,10 @@ async function loader({ params }: LoaderFunctionArgs) {
 function Session() {
   const { session } = useLoaderData() as { session: SlimSessionType };
   const [cells, setCells] = useState<CellType[]>(session.cells);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
+  // This assumes qwerty layout.
+  useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
   async function onDeleteCell(cell: CellType) {
     if (cell.type === 'title') {
@@ -87,7 +93,8 @@ function Session() {
   }
 
   return (
-    <>
+    <div>
+      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
       <div className="flex flex-col">
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
@@ -123,7 +130,7 @@ function Session() {
           </div>
         </NewCellPopover>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -184,14 +191,18 @@ function MarkdownCell(props: {
   const [text, setText] = useState(props.cell.text);
   const cell = props.cell;
 
-  // Hotkeys for the markdown cell
-  const refEscape = useHotkeys<HTMLDivElement>('escape', () => setStatus('view'), {
-    enableOnContentEditable: true,
-  });
-  const refModEnter = useHotkeys<HTMLDivElement>('mod+enter', onSave, {
-    enableOnContentEditable: true,
-  });
-  // End hotkeys
+  const keyMap = Prec.highest(
+    keymap.of([
+      { key: 'Mod-Enter', run: onSave },
+      {
+        key: 'Escape',
+        run: () => {
+          setStatus('view');
+          return true;
+        },
+      },
+    ]),
+  );
 
   function onChangeSource(source: string) {
     setText(source);
@@ -200,6 +211,7 @@ function MarkdownCell(props: {
   function onSave() {
     props.onUpdateCell(cell, { text });
     setStatus('view');
+    return true;
   }
 
   return (
@@ -207,7 +219,6 @@ function MarkdownCell(props: {
       onDoubleClick={() => setStatus('edit')}
       className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm transition-all"
       tabIndex={-1}
-      ref={mergeRefs([refEscape, refModEnter])}
     >
       {status === 'view' ? (
         <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
@@ -240,9 +251,11 @@ function MarkdownCell(props: {
 
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror
+              autoFocus
+              indentWithTab={false}
               value={text}
               basicSetup={{ lineNumbers: false, foldGutter: false }}
-              extensions={[markdown()]}
+              extensions={[markdown(), keyMap]}
               onChange={onChangeSource}
             />
           </div>
@@ -266,24 +279,34 @@ function PackageJsonCell(props: {
     props.onUpdateCell(cell, { source });
   }
 
+  function evaluateModEnter() {
+    props.onUpdateCell(cell, { source });
+    return true;
+  }
+
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center w-full gap-3">
-        <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
-          package.json
-          <ChevronRight
-            size="24"
-            style={{
-              transform: open ? `rotate(90deg)` : 'none',
-            }}
-          />
-        </Button>
+      <CollapsibleTrigger className="flex w-full gap-3" asChild>
+        <div>
+          <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
+            package.json
+            <ChevronRight
+              size="24"
+              style={{
+                transform: open ? `rotate(90deg)` : 'none',
+              }}
+            />
+          </Button>
+        </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="py-2">
         <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
           <CodeMirror
             value={source}
-            extensions={[json()]}
+            extensions={[
+              json(),
+              Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+            ]}
             onChange={onChangeSource}
             basicSetup={{ lineNumbers: false, foldGutter: false }}
           />
@@ -301,17 +324,18 @@ function CodeCell(props: {
   const cell = props.cell;
   const [source, setSource] = useState(cell.source);
 
-  const ref = useHotkeys<HTMLDivElement>('mod+enter', () => props.onEvaluate(cell, source), {
-    enableOnContentEditable: true,
-  });
-
   function onChangeSource(source: string) {
     setSource(source);
     props.onUpdateCell(cell, { source });
   }
 
+  function evaluateModEnter() {
+    props.onEvaluate(cell, source);
+    return true;
+  }
+
   return (
-    <div className="relative group/cell space-y-1.5" tabIndex={-1} ref={ref}>
+    <div className="relative group/cell space-y-1.5" tabIndex={-1}>
       <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
           <FilenameInput
@@ -332,7 +356,10 @@ function CodeCell(props: {
         </div>
         <CodeMirror
           value={source}
-          extensions={[basicSetup, javascript()]}
+          extensions={[
+            javascript(),
+            Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+          ]}
           onChange={onChangeSource}
         />
       </div>

@@ -7,12 +7,6 @@ export function randomid(byteSize = 16) {
   return base58.encode(bytes);
 }
 
-// data is uint8array
-export async function sha256(data: Uint8Array) {
-  const result = await crypto.subtle.digest('SHA-256', data);
-  return Buffer.from(result).toString('hex');
-}
-
 export function take<T extends object, K extends keyof T>(obj: T, ...keys: Array<K>): Pick<T, K> {
   const result = {} as Pick<T, K>;
 

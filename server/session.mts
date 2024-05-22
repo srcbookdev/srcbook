@@ -2,26 +2,34 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import Path from 'node:path';
 import { encode, decode, newContents } from './srcmd.mjs';
-import { randomid, sha256 } from './utils.mjs';
+import { randomid } from './utils.mjs';
+import { SRCBOOK_DIR } from './config.mjs';
+import { exec } from './exec.mjs';
 
 import type { CellType, CodeCellType, MarkdownCellType, SessionType } from './types';
 
 const sessions: Record<string, SessionType> = {};
 
-setInterval(() => {
-  for (const session of Object.values(sessions)) {
-    maybeWriteToFile(session);
+async function flushSession(session: SessionType) {
+  function pathFor(file: string) {
+    return Path.join(session.dir, file);
   }
-}, 5000);
 
-export async function maybeWriteToFile(session: SessionType) {
-  const contents = encode(session.cells);
-  const buffer = Buffer.from(contents);
-  const hash = await sha256(new Uint8Array(buffer));
-  if (session.hash !== hash) {
-    await fs.writeFile(session.path, contents, { encoding: 'utf8' });
-    session.hash = hash;
+  const writes = [
+    fs.writeFile(pathFor('README.md'), encode(session.cells, { inline: false }), {
+      encoding: 'utf8',
+    }),
+  ];
+
+  for (const cell of session.cells) {
+    if (cell.type === 'package.json') {
+      writes.push(fs.writeFile(pathFor('package.json'), cell.source, { encoding: 'utf8' }));
+    } else if (cell.type === 'code') {
+      writes.push(fs.writeFile(pathFor(cell.filename), cell.source, { encoding: 'utf8' }));
+    }
   }
+
+  return Promise.all(writes);
 }
 
 export async function createSession({ dirname, basename }: { dirname: string; basename: string }) {
@@ -49,9 +57,7 @@ export async function createSession({ dirname, basename }: { dirname: string; ba
     await fs.writeFile(path, newContents(title), { encoding: 'utf8' });
   }
 
-  const buffer = await fs.readFile(path);
-  const hash = await sha256(new Uint8Array(buffer));
-  const contents = buffer.toString();
+  const contents = await fs.readFile(path, { encoding: 'utf8' });
 
   const id = randomid();
   const result = decode(contents);
@@ -61,14 +67,20 @@ export async function createSession({ dirname, basename }: { dirname: string; ba
     throw new Error(`Cannot create session, errors were found when parsing ${path}:\n${errors}`);
   }
 
-  sessions[id] = {
+  const session: SessionType = {
     id: id,
-    hash: hash,
-    path: path,
+    dir: Path.join(SRCBOOK_DIR, id),
+    srcmdPath: path,
     cells: result.cells,
   };
 
-  return sessions[id];
+  // Persist session to disk.
+  await fs.mkdir(session.dir);
+  await flushSession(session);
+
+  sessions[id] = session;
+
+  return session;
 }
 
 export async function updateSession(
@@ -76,8 +88,10 @@ export async function updateSession(
   updates: Partial<SessionType>,
 ): Promise<SessionType> {
   const id = session.id;
-  sessions[id] = { ...session, ...updates };
-  return sessions[id];
+  const updatedSession = { ...session, ...updates };
+  sessions[id] = updatedSession;
+  await flushSession(updatedSession);
+  return updatedSession;
 }
 
 export async function findSession(id: string): Promise<SessionType> {
@@ -87,7 +101,6 @@ export async function findSession(id: string): Promise<SessionType> {
 export function sessionToResponse(session: SessionType) {
   return {
     id: session.id,
-    path: session.path,
     cells: session.cells,
   };
 }
@@ -119,8 +132,8 @@ export function createCell({
   }
 }
 
-export async function exec(_session: SessionType, cell: CodeCellType, _source: string) {
-  return cell;
+export async function execCell(session: SessionType, cell: CodeCellType) {
+  return exec(cell.filename, { cwd: session.dir });
 }
 
 export function findCell(session: SessionType, id: string) {
@@ -129,6 +142,12 @@ export function findCell(session: SessionType, id: string) {
 
 export function replaceCell(session: SessionType, cell: CellType) {
   return session.cells.map((c) => (c.id === cell.id ? cell : c));
+}
+
+export function insertCellAt(session: SessionType, cell: CellType, index: number) {
+  const cells = [...session.cells];
+  cells.splice(index, 0, cell);
+  return cells;
 }
 
 export function removeCell(session: SessionType, id: string) {

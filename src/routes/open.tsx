@@ -4,14 +4,12 @@ import FilePicker from '@/components/file-picker';
 
 import type { FsObjectResultType } from '@/types';
 
-// eslint-disable-next-line
-export async function loader() {
+async function loader() {
   const { result } = await disk();
   return result;
 }
 
-// eslint-disable-next-line
-export async function action({ request }: { request: Request }) {
+async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const dirname = formData.get('dirname') as string;
   const basename = formData.get('basename') as string;
@@ -19,7 +17,7 @@ export async function action({ request }: { request: Request }) {
   return redirect(`/sessions/${result.id}`);
 }
 
-export default function Open() {
+function Open() {
   const { dirname, entries: initialEntries } = useLoaderData() as FsObjectResultType;
 
   return (
@@ -29,3 +27,7 @@ export default function Open() {
     </>
   );
 }
+
+Open.loader = loader;
+Open.action = action;
+export default Open;

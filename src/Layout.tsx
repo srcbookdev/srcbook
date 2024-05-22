@@ -1,14 +1,15 @@
 import { useLoaderData } from 'react-router-dom';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import { LockKeyholeIcon, HomeIcon, SettingsIcon } from 'lucide-react';
 import { getNodeVersion } from '@/lib/server';
+import { cn } from '@/lib/utils';
 
-export async function loader() {
+async function loader() {
   const { result } = await getNodeVersion();
   return result;
 }
 
-export default function Layout() {
+function Layout() {
   const version = useLoaderData() as string;
   return (
     <div className="flex">
@@ -16,35 +17,50 @@ export default function Layout() {
         <div className="flex flex-col justify-between h-full">
           <ul className="flex flex-col space-y-2 p-2">
             <li>
-              <Link
+              <NavLink
                 to="/"
                 title="Home"
-                className="flex items-center gap-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors',
+                    isActive ? 'underline underline-offset-8' : undefined,
+                  )
+                }
               >
                 <HomeIcon className="w-6 h-6" />
                 <p>Home</p>
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link
+              <NavLink
                 to="/secrets"
                 title="Secrets"
-                className="flex items-center gap-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors',
+                    isActive ? 'underline underline-offset-8' : undefined,
+                  )
+                }
               >
                 <LockKeyholeIcon className="w-6 h-6" />
                 <p>Secrets</p>
-              </Link>
+              </NavLink>
             </li>
           </ul>
           <div className="flex flex-col">
-            <Link
+            <NavLink
               to="/settings"
               title="Settings"
-              className="flex items-center gap-2 m-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors"
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-2 p-2 rounded-full hover:bg-background hover:text-foreground transition-colors',
+                  isActive ? 'underline underline-offset-8' : undefined,
+                )
+              }
             >
               <SettingsIcon className="w-6 h-6" />
               <p>Settings</p>
-            </Link>
+            </NavLink>
             <p className="mx-2 px-2 text-sm opacity-50 text-center">
               node version
               <br /> {version}
@@ -60,3 +76,6 @@ export default function Layout() {
     </div>
   );
 }
+
+Layout.loader = loader;
+export default Layout;

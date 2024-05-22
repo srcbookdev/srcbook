@@ -29,12 +29,12 @@ type SlimSessionType = {
   cells: CellType[];
 };
 
-export async function loader({ params }: { params: { id: string } }) {
+async function loader({ params }: { params: { id: string } }) {
   const { result: session } = await loadSession({ id: params.id });
   return { session };
 }
 
-export default function Session() {
+function Session() {
   const { session } = useLoaderData() as { session: SlimSessionType };
 
   const [cells, setCells] = useState<CellType[]>(session.cells);
@@ -391,3 +391,6 @@ function FilenameInput(props: { filename: string; onUpdate: (filename: string) =
     </div>
   );
 }
+
+Session.loader = loader;
+export default Session;

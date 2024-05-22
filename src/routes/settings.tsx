@@ -3,21 +3,20 @@ import type { SettingsType, FsObjectResultType } from '@/types';
 import { useLoaderData } from 'react-router-dom';
 import { DirPicker } from '@/components/file-picker';
 
-// eslint-disable-next-line
-export async function loader() {
+async function loader() {
   const [{ result: config }, { result: diskResult }] = await Promise.all([getConfig(), disk({})]);
 
   return { baseDir: config.baseDir, ...diskResult };
 }
-// eslint-disable-next-line
-export async function action({ request }: { request: Request }) {
+
+async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const dirname = formData.get('dirname') as string;
   await updateConfig({ baseDir: dirname });
   return null;
 }
 
-export default function Secrets() {
+function Settings() {
   const { entries, baseDir } = useLoaderData() as SettingsType & FsObjectResultType;
   return (
     <div>
@@ -31,3 +30,7 @@ export default function Secrets() {
     </div>
   );
 }
+
+Settings.loader = loader;
+Settings.action = action;
+export default Settings;

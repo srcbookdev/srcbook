@@ -1,39 +1,40 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Layout, { loader as layoutLoader } from './Layout';
+import Layout from './Layout';
 import './index.css';
-import Home, { loader as homeLoader, action as homeAction } from './routes/home';
-import Open, { loader as openLoader, action as openAction } from './routes/open';
-import Session, { loader as sessionLoader } from './routes/session';
-import Settings, { loader as settingsLoader, action as settingsAction } from './routes/settings';
+import Home from './routes/home';
+import Open from './routes/open';
+import Session from './routes/session';
+import Settings from './routes/settings';
 import Secrets from './routes/secrets';
 import ErrorPage from './error';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    loader: layoutLoader,
+    loader: Layout.loader,
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [
       {
         path: '/',
         element: <Home />,
-        loader: homeLoader,
-        action: homeAction,
+        loader: Home.loader,
+        action: Home.action,
         errorElement: <ErrorPage />,
       },
       {
         path: '/open',
-        loader: openLoader,
+        loader: Open.loader,
         element: <Open />,
-        action: openAction,
+        action: Open.action,
         errorElement: <ErrorPage />,
       },
       {
         path: 'sessions/:id',
-        loader: sessionLoader,
+        // @ts-expect-error - react-router-dom types for loaders are really annoying
+        loader: Session.loader,
         element: <Session />,
         errorElement: <ErrorPage />,
       },
@@ -47,8 +48,8 @@ const router = createBrowserRouter([
       {
         path: '/settings',
         element: <Settings />,
-        loader: settingsLoader,
-        action: settingsAction,
+        loader: Settings.loader,
+        action: Settings.action,
         errorElement: <ErrorPage />,
       },
     ],

@@ -104,7 +104,7 @@ function FsEntryItem({
 }: {
   entry: FsObjectType;
   selected: boolean;
-  onClick: Function;
+  onClick: (entry: FsObjectType) => void;
 }) {
   const Icon = entry.isDirectory ? Folder : FileCode;
 

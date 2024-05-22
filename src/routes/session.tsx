@@ -1,7 +1,10 @@
 import { useRef, useState } from 'react';
+import { Prec } from '@codemirror/state';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
+import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror from '@uiw/react-codemirror';
+import { keymap } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
@@ -17,6 +20,7 @@ import type {
   TitleCellType,
   MarkdownCellType,
 } from '@/types';
+import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
@@ -36,8 +40,11 @@ async function loader({ params }: LoaderFunctionArgs) {
 
 function Session() {
   const { session } = useLoaderData() as { session: SlimSessionType };
-
   const [cells, setCells] = useState<CellType[]>(session.cells);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
+  // This assumes qwerty layout.
+  useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
   async function onDeleteCell(cell: CellType) {
     if (cell.type === 'title') {
@@ -86,7 +93,14 @@ function Session() {
   }
 
   return (
-    <>
+    <div>
+      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+      <div
+        className="fixed bottom-2 right-2 font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
+        onClick={() => setShowShortcuts(!showShortcuts)}
+      >
+        ?
+      </div>
       <div className="flex flex-col">
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
@@ -122,7 +136,7 @@ function Session() {
           </div>
         </NewCellPopover>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -183,12 +197,27 @@ function MarkdownCell(props: {
   const [text, setText] = useState(props.cell.text);
   const cell = props.cell;
 
+  const keyMap = Prec.highest(
+    keymap.of([
+      { key: 'Mod-Enter', run: onSave },
+      {
+        key: 'Escape',
+        run: () => {
+          setStatus('view');
+          return true;
+        },
+      },
+    ]),
+  );
+
   function onChangeSource(source: string) {
     setText(source);
   }
 
   function onSave() {
     props.onUpdateCell(cell, { text });
+    setStatus('view');
+    return true;
   }
 
   return (
@@ -218,14 +247,7 @@ function MarkdownCell(props: {
               <Button variant="outline" onClick={() => setStatus('view')}>
                 Cancel
               </Button>
-              <Button
-                onClick={() => {
-                  onSave();
-                  setStatus('view');
-                }}
-              >
-                Save
-              </Button>
+              <Button onClick={onSave}>Save</Button>
             </div>
             <Button variant="destructive" onClick={() => props.onDeleteCell(cell)}>
               Delete
@@ -234,9 +256,11 @@ function MarkdownCell(props: {
 
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror
+              autoFocus
+              indentWithTab={false}
               value={text}
               basicSetup={{ lineNumbers: false, foldGutter: false }}
-              extensions={[markdown()]}
+              extensions={[markdown(), keyMap]}
               onChange={onChangeSource}
             />
           </div>
@@ -260,24 +284,34 @@ function PackageJsonCell(props: {
     props.onUpdateCell(cell, { source });
   }
 
+  function evaluateModEnter() {
+    props.onUpdateCell(cell, { source });
+    return true;
+  }
+
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center w-full gap-3">
-        <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
-          package.json
-          <ChevronRight
-            size="24"
-            style={{
-              transform: open ? `rotate(90deg)` : 'none',
-            }}
-          />
-        </Button>
+      <CollapsibleTrigger className="flex w-full gap-3" asChild>
+        <div>
+          <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
+            package.json
+            <ChevronRight
+              size="24"
+              style={{
+                transform: open ? `rotate(90deg)` : 'none',
+              }}
+            />
+          </Button>
+        </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="py-2">
         <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
           <CodeMirror
             value={source}
-            extensions={[json()]}
+            extensions={[
+              json(),
+              Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+            ]}
             onChange={onChangeSource}
             basicSetup={{ lineNumbers: false, foldGutter: false }}
           />
@@ -293,12 +327,16 @@ function CodeCell(props: {
   onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;
-
   const [source, setSource] = useState(cell.source);
 
   function onChangeSource(source: string) {
     setSource(source);
     props.onUpdateCell(cell, { source });
+  }
+
+  function evaluateModEnter() {
+    props.onEvaluate(cell, source);
+    return true;
   }
 
   return (
@@ -321,7 +359,14 @@ function CodeCell(props: {
             </Button>
           </div>
         </div>
-        <CodeMirror value={source} extensions={[javascript()]} onChange={onChangeSource} />
+        <CodeMirror
+          value={source}
+          extensions={[
+            javascript(),
+            Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+          ]}
+          onChange={onChangeSource}
+        />
       </div>
       <CellOutput output={cell.output} />
     </div>

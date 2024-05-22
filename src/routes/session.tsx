@@ -404,6 +404,17 @@ function FilenameInput(props: { filename: string; onUpdate: (filename: string) =
   return (
     <div className="font-bold">
       <Input
+        autoFocus
+        onFocus={(e) => {
+          const input = e.target;
+          const value = input.value;
+          const dotIndex = value.lastIndexOf('.');
+          if (dotIndex !== -1) {
+            input.setSelectionRange(0, dotIndex);
+          } else {
+            input.select(); // In case there's no dot, select the whole value
+          }
+        }}
         ref={inputRef}
         required
         defaultValue={filename}

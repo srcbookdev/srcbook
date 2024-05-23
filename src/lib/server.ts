@@ -321,3 +321,18 @@ export async function getNodeVersion() {
   }
   return response.json();
 }
+
+// NPM package search, has to happen on the server given CORS restrictions
+export async function searchNpmPackages(query: string) {
+  if (query === '') {
+    return { error: false, result: [] };
+  }
+  const response = await fetch(SERVER_BASE_URL + '/search_npm?q=' + query, {
+    headers: { 'content-type': 'application/json' },
+  });
+  if (!response.ok) {
+    console.error(response);
+    return { error: true, result: [] };
+  }
+  return response.json();
+}

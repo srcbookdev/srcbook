@@ -267,5 +267,32 @@ app.get('/node_version', cors(), async (_req, res) => {
   return res.json({ result: process.version });
 });
 
+type NpmSearchResponseType = {
+  package: {
+    name: string;
+    version: string;
+    description: string;
+  };
+};
+
+/*
+ * Search for npm packages for a given query.
+ * Returns the name, version and description of the packages.
+ * This should be debounced on the client side.
+ */
+app.options('/search_npm', cors());
+app.get('/search_npm', cors(), async (req, res) => {
+  const { q } = req.query;
+  const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=10`);
+  if (!response.ok) {
+    return res.json({ error: true, result: [] });
+  }
+  const data = await response.json();
+  const results = data.objects.map((o: NpmSearchResponseType) => {
+    return { name: o.package.name, version: o.package.version, description: o.package.description };
+  });
+  return res.json({ result: results });
+});
+
 const port = process.env.PORT || 2150;
 app.listen(port, () => console.log(`Server running on port ${port}`));

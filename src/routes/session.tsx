@@ -27,6 +27,7 @@ import { EditableH1 } from '@/components/ui/heading';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
+import InstallPackageModal from '@/components/install-package-modal';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -282,34 +283,37 @@ function PackageJsonCell(props: {
   }
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex w-full gap-3" asChild>
-        <div>
-          <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
-            package.json
-            <ChevronRight
-              size="24"
-              style={{
-                transform: open ? `rotate(90deg)` : 'none',
-              }}
+    <>
+      <InstallPackageModal />
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger className="flex w-full gap-3" asChild>
+          <div>
+            <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
+              package.json
+              <ChevronRight
+                size="24"
+                style={{
+                  transform: open ? `rotate(90deg)` : 'none',
+                }}
+              />
+            </Button>
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="py-2">
+          <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
+            <CodeMirror
+              value={source}
+              extensions={[
+                json(),
+                Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+              ]}
+              onChange={onChangeSource}
+              basicSetup={{ lineNumbers: false, foldGutter: false }}
             />
-          </Button>
-        </div>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="py-2">
-        <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
-          <CodeMirror
-            value={source}
-            extensions={[
-              json(),
-              Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
-            ]}
-            onChange={onChangeSource}
-            basicSetup={{ lineNumbers: false, foldGutter: false }}
-          />
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </>
   );
 }
 function CodeCell(props: {

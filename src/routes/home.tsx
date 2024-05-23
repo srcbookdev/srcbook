@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import CanvasCells from '@/components/canvas-cells';
 
-import type { FsObjectResultType, SessionResponseType, TitleCellType } from '@/types';
+import type { FsObjectResultType, SessionType, TitleCellType } from '@/types';
 
 async function loader() {
   const { result } = await disk();
@@ -24,10 +24,10 @@ async function action({ request }: { request: Request }) {
 
 type HomeLoaderDataType = {
   disk: FsObjectResultType;
-  sessions: SessionResponseType[];
+  sessions: SessionType[];
 };
 
-function Session({ session }: { session: SessionResponseType }) {
+function Session({ session }: { session: SessionType }) {
   return (
     <Link
       to={`sessions/${session.id}`}

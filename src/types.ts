@@ -51,7 +51,7 @@ export type PackageJsonCellType = BaseCellType & {
 
 export type CellType = TitleCellType | CodeCellType | MarkdownCellType | PackageJsonCellType;
 
-export type SessionResponseType = {
+export type SessionType = {
   id: string;
   path: string;
   cells: CellType[];

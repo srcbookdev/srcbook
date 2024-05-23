@@ -4,6 +4,7 @@ import { disk, createSession, loadSessions } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import CanvasCells from '@/components/canvas-cells';
 
 import type { FsObjectResultType, SessionResponseType, TitleCellType } from '@/types';
 
@@ -32,8 +33,13 @@ function Session({ session }: { session: SessionResponseType }) {
       to={`sessions/${session.id}`}
       className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 max-w-md"
     >
-      <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
-      <p className="text-sm text-gray-400">{session.cells.length} cells</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
+          <p className="text-sm text-gray-400">{session.cells.length} cells</p>
+        </div>
+        <CanvasCells numCells={session.cells.length} height={80} width={40} />
+      </div>
     </Link>
   );
 }

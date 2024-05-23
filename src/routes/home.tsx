@@ -1,15 +1,17 @@
 import { PlusIcon } from 'lucide-react';
-import { Form, useLoaderData, redirect } from 'react-router-dom';
-import { disk, createSession } from '@/lib/server';
+import { Form, useLoaderData, redirect, Link } from 'react-router-dom';
+import { disk, createSession, loadSessions } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import CanvasCells from '@/components/canvas-cells';
 
-import type { FsObjectResultType } from '@/types';
+import type { FsObjectResultType, SessionResponseType, TitleCellType } from '@/types';
 
 async function loader() {
   const { result } = await disk();
-  return result;
+  const { result: sessions } = await loadSessions();
+  return { disk: result, sessions };
 }
 
 async function action({ request }: { request: Request }) {
@@ -20,8 +22,32 @@ async function action({ request }: { request: Request }) {
   return redirect(`/sessions/${result.id}`);
 }
 
+type HomeLoaderDataType = {
+  disk: FsObjectResultType;
+  sessions: SessionResponseType[];
+};
+
+function Session({ session }: { session: SessionResponseType }) {
+  return (
+    <Link
+      to={`sessions/${session.id}`}
+      className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 max-w-md"
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
+          <p className="text-sm text-gray-400">{session.cells.length} cells</p>
+        </div>
+        <CanvasCells numCells={session.cells.length} height={80} width={40} />
+      </div>
+    </Link>
+  );
+}
 function Home() {
-  const { dirname } = useLoaderData() as FsObjectResultType;
+  const {
+    disk: { dirname },
+    sessions,
+  } = useLoaderData() as HomeLoaderDataType;
   const [basename, setBasename] = useState('');
 
   return (
@@ -56,6 +82,18 @@ function Home() {
           </Form>
         </div>
       </div>
+      <h2 className="text-xl mx-auto mt-8 mb-4">Recent notebooks</h2>
+      {sessions.length === 0 ? (
+        <p className="text-gray-500">
+          No sessions are currently open. Create a new session or open a previous one.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {sessions.map((session) => {
+            return <Session key={session.id} session={session} />;
+          })}
+        </div>
+      )}
     </>
   );
 }

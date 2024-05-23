@@ -1,4 +1,4 @@
-import type { CellType, FsObjectResultType, SessionType } from '@/types';
+import type { SessionResponseType, CellType, FsObjectResultType } from '@/types';
 
 const SERVER_BASE_URL = 'http://localhost:2150';
 
@@ -83,13 +83,27 @@ interface LoadSessionRequestType {
 
 interface LoadSessionResponseType {
   error: boolean;
-  result: SessionType;
+  result: SessionResponseType;
 }
 
 export async function loadSession(
   request: LoadSessionRequestType,
 ): Promise<LoadSessionResponseType> {
   const response = await fetch(SERVER_BASE_URL + '/sessions/' + request.id, {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
+export async function loadSessions(): Promise<{ error: boolean; result: SessionResponseType[] }> {
+  const response = await fetch(SERVER_BASE_URL + '/sessions', {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });

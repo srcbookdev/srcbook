@@ -9,6 +9,7 @@ import {
   removeCell,
   updateSession,
   sessionToResponse,
+  listSessions,
   createCell,
   insertCellAt,
 } from './session.mjs';
@@ -49,6 +50,11 @@ app.post('/sessions', cors(), async (req, res) => {
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
+});
+
+app.get('/sessions', cors(), async (_req, res) => {
+  const sessions = listSessions();
+  return res.json({ error: false, result: Object.values(sessions).map(sessionToResponse) });
 });
 
 app.options('/sessions/:id', cors());

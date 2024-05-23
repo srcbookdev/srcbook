@@ -83,6 +83,10 @@ export async function createSession({ dirname, basename }: { dirname: string; ba
   return session;
 }
 
+export function listSessions() {
+  return sessions;
+}
+
 export async function updateSession(
   session: SessionType,
   updates: Partial<SessionType>,

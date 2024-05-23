@@ -13,7 +13,7 @@ async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const dirname = formData.get('dirname') as string;
   const basename = formData.get('basename') as string;
-  const { result } = await createSession({ dirname, basename });
+  const { result } = await createSession({ dirname, title: basename });
   return redirect(`/sessions/${result.id}`);
 }
 

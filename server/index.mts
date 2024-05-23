@@ -40,10 +40,10 @@ app.post('/disk', cors(), async (req, res) => {
 app.options('/sessions', cors());
 
 app.post('/sessions', cors(), async (req, res) => {
-  const { dirname, basename } = req.body;
+  const { dirname, title } = req.body;
 
   try {
-    const session = await createSession({ dirname, basename });
+    const session = await createSession({ dirname, title });
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (e) {
     const error = e as unknown as Error;

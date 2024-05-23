@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import Path from 'node:path';
 import { encode, decode, newContents } from './srcmd.mjs';
-import { randomid } from './utils.mjs';
+import { randomid, toValidNpmName } from './utils.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
 import { exec } from './exec.mjs';
 
@@ -32,15 +32,16 @@ async function flushSession(session: SessionType) {
   return Promise.all(writes);
 }
 
-export async function createSession({ dirname, basename }: { dirname: string; basename: string }) {
+export async function createSession({ dirname, title }: { dirname: string; title: string }) {
   if (typeof dirname !== 'string') {
     throw new Error('Invalid dirname');
   }
 
-  if (typeof basename !== 'string') {
-    throw new Error('Invalid basename');
+  if (typeof title !== 'string') {
+    throw new Error('Invalid title');
   }
 
+  let basename = toValidNpmName(title);
   if (Path.extname(basename) === '') {
     basename += '.srcmd';
   }
@@ -53,7 +54,6 @@ export async function createSession({ dirname, basename }: { dirname: string; ba
 
   // TODO: Check also for permissions. Can the user read and write to the file when it exists?
   if (!existsSync(path)) {
-    const title = Path.basename(path, '.srcmd');
     await fs.writeFile(path, newContents(title), { encoding: 'utf8' });
   }
 

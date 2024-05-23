@@ -1,6 +1,7 @@
 import Path from 'node:path';
 import { spawn } from 'node:child_process';
 import { ProcessOutputType } from './types';
+import { getSecrets } from './config.mjs';
 
 export type ExecRequestType = {
   cwd: string;
@@ -25,14 +26,18 @@ export type ExecResponseType = {
  * @param options.cwd Current working directory of the child process.
  * @returns An object containing the exit code and stdout/err.
  */
-export function exec(file: string, options: ExecRequestType): Promise<ExecResponseType> {
+export async function exec(file: string, options: ExecRequestType): Promise<ExecResponseType> {
+  const secrets = await getSecrets();
   return new Promise((resolve) => {
     const cwd = options.cwd;
     const filepath = Path.isAbsolute(file) ? file : Path.join(cwd, file);
 
     // Explicitly using spawn here (over fork) to make it clear these
     // processes should be as decoupled from one another as possible.
-    const child = spawn('node', [filepath], { cwd: cwd });
+    const child = spawn('node', [filepath], {
+      cwd: cwd,
+      env: Object.assign({}, process.env, secrets),
+    });
 
     const output: ProcessOutputType[] = [];
 

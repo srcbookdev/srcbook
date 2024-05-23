@@ -30,10 +30,10 @@ function Session({ session }: { session: SessionResponseType }) {
   return (
     <Link
       to={`sessions/${session.id}`}
-      className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 max-w-lg"
+      className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 max-w-md"
     >
-      <p className="text-lg font-semibold">{(session.cells[0] as TitleCellType).text}</p>
-      <p className="text-sm text-gray-400">{session.path}</p>
+      <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
+      <p className="text-sm text-gray-400">{session.cells.length} cells</p>
     </Link>
   );
 }
@@ -76,14 +76,18 @@ function Home() {
           </Form>
         </div>
       </div>
-      <h2 className="text-xl mx-auto my-8">Open sessions</h2>
-      <div className="flex flex-col gap-2">
-        <>
+      <h2 className="text-xl mx-auto mt-8 mb-4">Recent notebooks</h2>
+      {sessions.length === 0 ? (
+        <p className="text-gray-500">
+          No sessions are currently open. Create a new session or open a previous one.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2">
           {sessions.map((session) => {
             return <Session key={session.id} session={session} />;
           })}
-        </>
-      </div>
+        </div>
+      )}
     </>
   );
 }

@@ -17,8 +17,8 @@ async function loader() {
 async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const dirname = formData.get('dirname') as string;
-  const basename = formData.get('basename') as string;
-  const { result } = await createSession({ dirname, basename });
+  const title = formData.get('title') as string;
+  const { result } = await createSession({ dirname, title });
   return redirect(`/sessions/${result.id}`);
 }
 
@@ -48,7 +48,7 @@ function Home() {
     disk: { dirname },
     sessions,
   } = useLoaderData() as HomeLoaderDataType;
-  const [basename, setBasename] = useState('');
+  const [title, setTitle] = useState('');
 
   return (
     <>
@@ -62,9 +62,9 @@ function Home() {
               placeholder="name your new srcBook"
               required
               className="w-60"
-              onChange={(e) => setBasename(e.target.value)}
-              name="basename"
-              value={basename}
+              onChange={(e) => setTitle(e.target.value)}
+              name="title"
+              value={title}
             />
             <Button className="min-w-32" type="submit">
               <div className="flex gap-2 items-center">

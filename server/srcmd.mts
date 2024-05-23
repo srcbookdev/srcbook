@@ -1,5 +1,5 @@
 import { marked } from 'marked';
-import { randomid } from './utils.mjs';
+import { randomid, toValidNpmName } from './utils.mjs';
 import type { Tokens, Token } from 'marked';
 import type {
   CellType,
@@ -289,14 +289,14 @@ function serializeMarkdownTokens(tokens: Token[]) {
     .join('');
 }
 
-export function newContents(basename: string) {
-  return `# ${basename}
+export function newContents(title: string) {
+  return `# ${title}
 
 ###### package.json
 
 \`\`\`json
 {
-  "name": ${JSON.stringify(basename)},
+  "name": ${toValidNpmName(title)},
   "version": "0.0.1",
   "description": "",
   "main": "index.mjs",

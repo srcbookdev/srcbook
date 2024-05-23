@@ -69,3 +69,13 @@ function isRootPath(path: string) {
     return normalizedPath === '/';
   }
 }
+
+// Converts a string to a valid npm package name. Validation regex:
+// /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/
+export function toValidNpmName(title: string) {
+  return title
+    .toLowerCase() // Convert to lowercase
+    .replace(/[^a-z0-9-~._\s]/g, '') // Remove unwanted symbols
+    .replace(/\s+/g, '-') // Convert spaces to hyphens
+    .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
+}

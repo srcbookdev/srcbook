@@ -56,7 +56,7 @@ export default function InstallPackageModal({
     installNpmPackage(session.id, { packageName })
       .then((data) => {
         setMode('success');
-        setLog(data.result);
+        setLog(data.result.stdout);
       })
       .catch((e) => {
         setMode('error');

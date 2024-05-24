@@ -139,7 +139,7 @@ export function createCell({
 export async function readPackageJsonContentsFromDisk(session: SessionType) {
   return fs.readFile(Path.join(session.dir, 'package.json'), { encoding: 'utf8' });
 }
-export function installNpmPackage(session: SessionType, pkg: string) {
+export function installPackage(session: SessionType, pkg: string) {
   return addPackage({ package: pkg, cwd: session.dir });
 }
 

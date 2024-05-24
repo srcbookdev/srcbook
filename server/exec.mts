@@ -1,5 +1,5 @@
 import Path from 'node:path';
-import { spawn, execSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { ProcessOutputType } from './types';
 import { getSecrets } from './config.mjs';
 
@@ -62,15 +62,45 @@ export async function exec(file: string, options: ExecRequestType): Promise<Exec
 /**
  * Add an npm package to the current working directory.
  *
- * Currently this is a synchronous operation, but we may want to make it async in the future.
+ * This is used similar to exec above:
+ *    const { exitCode, output } = await addPackage({cwd: '/Users/nicholas/.srcbook/foo', package: 'express'});
  */
-export function addPackage(options: AddPackageRequestType) {
+export function addPackage(options: AddPackageRequestType): Promise<ExecResponseType> {
   const cwd = options.cwd;
-  try {
-    const result = execSync(`npm install ${options.package}`, { cwd });
-    return Buffer.from(result).toString();
-  } catch (error) {
-    console.error('Error installing ${options.package} package:\n', error);
-    throw error;
-  }
+  return new Promise((resolve) => {
+    const child = spawn('npm', ['install', options.package], {
+      cwd: cwd,
+    });
+
+    const output: ProcessOutputType[] = [];
+
+    child.stdout.on('data', (data) => {
+      output.push({ type: 'stdout', data: data.toString('utf8') });
+    });
+
+    child.stderr.on('data', (data) => {
+      output.push({ type: 'stderr', data: data.toString('utf8') });
+    });
+    child.on('close', (code) => {
+      resolve({ exitCode: code!, output: output });
+    });
+  });
+}
+
+type CombinedOutputType = {
+  stdout: string;
+  stderr: string;
+};
+export function combineOutputs(outputs: ProcessOutputType[]): CombinedOutputType {
+  return outputs.reduce(
+    (acc, output) => {
+      if (output.type === 'stdout') {
+        acc.stdout += output.data;
+      } else {
+        acc.stderr += output.data;
+      }
+      return acc;
+    },
+    { stdout: '', stderr: '' },
+  );
 }

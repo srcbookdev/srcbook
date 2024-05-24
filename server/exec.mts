@@ -1,10 +1,14 @@
 import Path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { ProcessOutputType } from './types';
 import { getSecrets } from './config.mjs';
 
 export type ExecRequestType = {
   cwd: string;
+};
+
+export type AddPackageRequestType = ExecRequestType & {
+  package: string;
 };
 
 export type ExecResponseType = {
@@ -53,4 +57,20 @@ export async function exec(file: string, options: ExecRequestType): Promise<Exec
       resolve({ exitCode: code!, output: output });
     });
   });
+}
+
+/**
+ * Add an npm package to the current working directory.
+ *
+ * Currently this is a synchronous operation, but we may want to make it async in the future.
+ */
+export function addPackage(options: AddPackageRequestType) {
+  const cwd = options.cwd;
+  try {
+    const result = execSync(`npm install ${options.package}`, { cwd });
+    return Buffer.from(result).toString();
+  } catch (error) {
+    console.error('Error installing ${options.package} package:\n', error);
+    throw error;
+  }
 }

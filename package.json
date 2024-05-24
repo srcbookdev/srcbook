@@ -25,6 +25,7 @@
     "@uiw/react-codemirror": "^4.22.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
     "localforage": "^1.10.0",
     "lucide-react": "^0.378.0",
     "marked": "^12.0.2",
@@ -36,7 +37,8 @@
     "react-router-dom": "^6.23.0",
     "sort-by": "^1.2.0",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "use-debounce": "^10.0.0"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.13",

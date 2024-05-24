@@ -10,11 +10,13 @@ import {
   updateSession,
   sessionToResponse,
   listSessions,
+  readPackageJsonContentsFromDisk,
+  installNpmPackage,
   createCell,
   insertCellAt,
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
-import { CellType, type CodeCellType, type SessionType } from './types';
+import { CellType, type CodeCellType, type SessionType, type PackageJsonCellType } from './types';
 import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
 
 const app = express();
@@ -103,6 +105,25 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
   updateSession(session, { cells: replaceCell(session, resultingCell) });
 
   return res.json({ result: resultingCell });
+});
+
+app.options('/sessions/:id/npm/install', cors());
+app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { packageName } = req.body;
+  const session = await findSession(id);
+  try {
+    const result = installNpmPackage(session, packageName);
+
+    // Refresh the state of the package.json cell
+    const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
+    const cell = session.cells.filter((c) => c.type === 'package.json')[0] as PackageJsonCellType;
+    cell.source = updatedJsonSource;
+    return res.json({ result });
+  } catch (e) {
+    const error = e as unknown as Error;
+    return res.status(400).json({ error: true, message: error.message });
+  }
 });
 
 app.options('/sessions/:id/cells', cors());
@@ -265,6 +286,33 @@ app.delete('/secrets/:name', cors(), async (req, res) => {
 app.options('/node_version', cors());
 app.get('/node_version', cors(), async (_req, res) => {
   return res.json({ result: process.version });
+});
+
+type NpmSearchResult = {
+  package: {
+    name: string;
+    version: string;
+    description: string;
+  };
+};
+
+/*
+ * Search for npm packages for a given query.
+ * Returns the name, version and description of the packages.
+ * Consider debouncing calls to this API on the client side.
+ */
+app.options('/npm/search', cors());
+app.get('/npm/search', cors(), async (req, res) => {
+  const { q } = req.query;
+  const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=10`);
+  if (!response.ok) {
+    return res.json({ error: true, result: [] });
+  }
+  const packages = await response.json();
+  const results = packages.objects.map((o: NpmSearchResult) => {
+    return { name: o.package.name, version: o.package.version, description: o.package.description };
+  });
+  return res.json({ result: results });
 });
 
 const port = process.env.PORT || 2150;

@@ -32,7 +32,14 @@ async function flushSession(session: SessionType) {
   return Promise.all(writes);
 }
 
-export async function createSession({ dirname, title }: { dirname: string; title: string }) {
+export async function createSession({
+  dirname,
+  title,
+}: {
+  dirname: string;
+  title: string;
+  filename?: string;
+}) {
   if (typeof dirname !== 'string') {
     throw new Error('Invalid dirname');
   }

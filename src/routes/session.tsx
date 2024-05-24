@@ -366,11 +366,11 @@ function CodeCell(props: {
           />
           <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2">
             <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-              <Button variant="ghost">
+              <Button variant="ghost" tabIndex={1}>
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
-            <Button onClick={() => props.onEvaluate(cell, source)}>
+            <Button onClick={() => props.onEvaluate(cell, source)} tabIndex={1}>
               <PlayCircle size={16} className="mr-2" />
               Run
             </Button>

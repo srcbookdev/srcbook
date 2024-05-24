@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Prec } from '@codemirror/state';
+import { githubLight } from '@uiw/codemirror-theme-github';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -258,6 +259,7 @@ function MarkdownCell(props: {
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror
               autoFocus
+              theme={githubLight}
               indentWithTab={false}
               value={text}
               basicSetup={{ lineNumbers: false, foldGutter: false }}
@@ -321,6 +323,7 @@ function PackageJsonCell(props: {
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror
               value={source}
+              theme={githubLight}
               extensions={[
                 json(),
                 Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
@@ -375,6 +378,7 @@ function CodeCell(props: {
         </div>
         <CodeMirror
           value={source}
+          theme={githubLight}
           extensions={[
             javascript(),
             Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),

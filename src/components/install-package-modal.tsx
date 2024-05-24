@@ -92,7 +92,7 @@ export default function InstallPackageModal({
         {mode === 'loading' && (
           <div className="flex w-full h-full items-center justify-center gap-3">
             <Loader2 className="animate-spin" />
-            <p>Installing {query}</p>
+            <p>Installing {pkg}</p>
           </div>
         )}
         {mode === 'success' && (

@@ -59,8 +59,12 @@ export async function exec(file: string, options: ExecRequestType): Promise<Exec
   });
 }
 
+/**
+ * Add an npm package to the current working directory.
+ *
+ * Currently this is a synchronous operation, but we may want to make it async in the future.
+ */
 export function addPackage(options: AddPackageRequestType) {
-  console.log('Installing npm package', options.package, '...');
   const cwd = options.cwd;
   const result = execSync(`npm install ${options.package}`, { cwd });
   return Buffer.from(result).toString();

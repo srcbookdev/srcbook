@@ -38,10 +38,11 @@ export default function InstallPackageModal({
   const [mode, setMode] = useState<'search' | 'loading' | 'success' | 'error'>('search');
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [value] = useDebounce(query, 500);
   const [results, setResults] = useState<PackageMetadata[]>([]);
   const [pkg, setPkg] = useState('');
   const [log, setLog] = useState('');
+
+  const [value] = useDebounce(query, 300);
 
   useEffect(() => {
     searchNpmPackages(value)

@@ -11,7 +11,7 @@ import {
   sessionToResponse,
   listSessions,
   readPackageJsonContentsFromDisk,
-  addNpmPackage,
+  installNpmPackage,
   createCell,
   insertCellAt,
 } from './session.mjs';
@@ -112,12 +112,12 @@ app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
   const { id } = req.params;
   const { packageName } = req.body;
   const session = await findSession(id);
-  const result = addNpmPackage(session, packageName);
+  const result = installNpmPackage(session, packageName);
+
+  // Refresh the state of the package.json cell
   const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
-  const sessionCell = session.cells.filter(
-    (c) => c.type === 'package.json',
-  )[0] as PackageJsonCellType;
-  sessionCell.source = updatedJsonSource;
+  const cell = session.cells.filter((c) => c.type === 'package.json')[0] as PackageJsonCellType;
+  cell.source = updatedJsonSource;
   return res.json({ result });
 });
 
@@ -283,7 +283,7 @@ app.get('/node_version', cors(), async (_req, res) => {
   return res.json({ result: process.version });
 });
 
-type NpmSearchResponseType = {
+type NpmSearchResult = {
   package: {
     name: string;
     version: string;
@@ -294,7 +294,7 @@ type NpmSearchResponseType = {
 /*
  * Search for npm packages for a given query.
  * Returns the name, version and description of the packages.
- * This should be debounced on the client side.
+ * Consider debouncing calls to this API on the client side.
  */
 app.options('/npm/search', cors());
 app.get('/npm/search', cors(), async (req, res) => {
@@ -303,8 +303,8 @@ app.get('/npm/search', cors(), async (req, res) => {
   if (!response.ok) {
     return res.json({ error: true, result: [] });
   }
-  const data = await response.json();
-  const results = data.objects.map((o: NpmSearchResponseType) => {
+  const packages = await response.json();
+  const results = packages.objects.map((o: NpmSearchResult) => {
     return { name: o.package.name, version: o.package.version, description: o.package.description };
   });
   return res.json({ result: results });

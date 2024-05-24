@@ -11,12 +11,12 @@ import {
   sessionToResponse,
   listSessions,
   readPackageJsonContentsFromDisk,
-  installNpmPackage,
+  installPackage,
   createCell,
   insertCellAt,
 } from './session.mjs';
-import { disk, take } from './utils.mjs';
-import { CellType, type CodeCellType, type SessionType, type PackageJsonCellType } from './types';
+import { disk, take, combineOutputs } from './utils.mjs';
+import { CellType, type CodeCellType, type SessionType } from './types';
 import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
 
 const app = express();
@@ -68,7 +68,7 @@ app.get('/sessions/:id', cors(), async (req, res) => {
     const session = await findSession(id);
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (e) {
-    const error = e as any as Error;
+    const error = e as unknown as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
@@ -112,22 +112,25 @@ app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
   const { id } = req.params;
   const { packageName } = req.body;
   const session = await findSession(id);
-  try {
-    const result = installNpmPackage(session, packageName);
 
-    // Refresh the state of the package.json cell
-    const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
-    const cell = session.cells.filter((c) => c.type === 'package.json')[0] as PackageJsonCellType;
-    cell.source = updatedJsonSource;
-    return res.json({ result });
-  } catch (e) {
-    const error = e as unknown as Error;
-    return res.status(400).json({ error: true, message: error.message });
+  const { exitCode, output } = await installPackage(session, packageName);
+
+  if (exitCode !== 0) {
+    return res.status(400).json({ error: true, message: output });
   }
+
+  // Refresh the state of the package.json cell on the sessions object.
+  const cell = session.cells.filter((c) => c.type === 'package.json')[0];
+  if (!cell) {
+    return res.status(400).json({ error: true, message: 'package.json cell not found' });
+  }
+  const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
+  const updatedCell = { ...cell, source: updatedJsonSource };
+  updateSession(session, { cells: replaceCell(session, updatedCell) });
+  return res.json({ result: combineOutputs(output) });
 });
 
 app.options('/sessions/:id/cells', cors());
-
 // Create a new cell. If no index is provided, append to the end, otherwise insert at the index
 app.post('/sessions/:id/cells', cors(), async (req, res) => {
   const { id } = req.params;
@@ -149,7 +152,7 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
     updateSession(session, { cells: updatedCells });
     return res.json({ error: false, result: cell });
   } catch (e) {
-    const error = e as any as Error;
+    const error = e as unknown as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }

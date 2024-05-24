@@ -10,6 +10,11 @@ export type StderrOutputType = {
 
 export type ProcessOutputType = StdoutOutputType | StderrOutputType;
 
+export type CombinedOutputType = {
+  stdout: string;
+  stderr: string;
+};
+
 export type TitleCellType = {
   id: string;
   type: 'title';

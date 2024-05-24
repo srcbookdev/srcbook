@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 import { base58 } from '@scure/base';
+import type { ProcessOutputType, CombinedOutputType } from './types';
 
 export function randomid(byteSize = 16) {
   const bytes = crypto.getRandomValues(new Uint8Array(byteSize));
@@ -78,4 +79,30 @@ export function toValidNpmName(title: string) {
     .replace(/[^a-z0-9-~._\s]/g, '') // Remove unwanted symbols
     .replace(/\s+/g, '-') // Convert spaces to hyphens
     .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
+}
+
+/** Used to convert the ProcessOutputType[] coming from the node exec functions
+ * into a combined object with stdout and stderr properties.
+ *
+ * Example:
+ * const output = [
+ *  { type: 'stdout', data: 'Hello' },
+ *  { type: 'stderr', data: 'World' },
+ *  { type: 'stdout', data: '!' },
+ *  { type: 'stderr', data: '!' },
+ *  ];
+ *  combineOutputs(output) --> { stdout: 'Hello!', stderr: 'World!' }
+ */
+export function combineOutputs(outputs: ProcessOutputType[]): CombinedOutputType {
+  return outputs.reduce(
+    (acc, output) => {
+      if (output.type === 'stdout') {
+        acc.stdout += output.data;
+      } else {
+        acc.stderr += output.data;
+      }
+      return acc;
+    },
+    { stdout: '', stderr: '' },
+  );
 }

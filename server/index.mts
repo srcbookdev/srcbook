@@ -112,13 +112,18 @@ app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
   const { id } = req.params;
   const { packageName } = req.body;
   const session = await findSession(id);
-  const result = installNpmPackage(session, packageName);
+  try {
+    const result = installNpmPackage(session, packageName);
 
-  // Refresh the state of the package.json cell
-  const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
-  const cell = session.cells.filter((c) => c.type === 'package.json')[0] as PackageJsonCellType;
-  cell.source = updatedJsonSource;
-  return res.json({ result });
+    // Refresh the state of the package.json cell
+    const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
+    const cell = session.cells.filter((c) => c.type === 'package.json')[0] as PackageJsonCellType;
+    cell.source = updatedJsonSource;
+    return res.json({ result });
+  } catch (e) {
+    const error = e as unknown as Error;
+    return res.status(400).json({ error: true, message: error.message });
+  }
 });
 
 app.options('/sessions/:id/cells', cors());

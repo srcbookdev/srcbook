@@ -66,6 +66,11 @@ export async function exec(file: string, options: ExecRequestType): Promise<Exec
  */
 export function addPackage(options: AddPackageRequestType) {
   const cwd = options.cwd;
-  const result = execSync(`npm install ${options.package}`, { cwd });
-  return Buffer.from(result).toString();
+  try {
+    const result = execSync(`npm install ${options.package}`, { cwd });
+    return Buffer.from(result).toString();
+  } catch (error) {
+    console.error('Error installing ${options.package} package:\n', error);
+    throw error;
+  }
 }

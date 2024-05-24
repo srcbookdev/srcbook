@@ -4,7 +4,7 @@ import Path from 'node:path';
 import { encode, decode, newContents } from './srcmd.mjs';
 import { randomid, toValidNpmName } from './utils.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
-import { exec } from './exec.mjs';
+import { exec, addPackage } from './exec.mjs';
 
 import type { CellType, CodeCellType, MarkdownCellType, SessionType } from './types';
 
@@ -134,6 +134,13 @@ export function createCell({
     default:
       throw new Error(`Unrecognized cell type ${type}`);
   }
+}
+
+export async function readPackageJsonContentsFromDisk(session: SessionType) {
+  return fs.readFile(Path.join(session.dir, 'package.json'), { encoding: 'utf8' });
+}
+export function addNpmPackage(session: SessionType, pkg: string) {
+  return addPackage({ package: pkg, cwd: session.dir });
 }
 
 export async function execCell(session: SessionType, cell: CodeCellType) {

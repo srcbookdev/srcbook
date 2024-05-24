@@ -322,12 +322,29 @@ export async function getNodeVersion() {
   return response.json();
 }
 
+interface InstallNpmPackageRequestType {
+  packageName: string;
+}
+export async function installNpmPackage(sessionId: string, request: InstallNpmPackageRequestType) {
+  const response = await fetch(SERVER_BASE_URL + '/sessions/' + sessionId + '/npm/install', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+  return response.json();
+}
+
 // NPM package search, has to happen on the server given CORS restrictions
 export async function searchNpmPackages(query: string) {
   if (query === '') {
     return { error: false, result: [] };
   }
-  const response = await fetch(SERVER_BASE_URL + '/search_npm?q=' + query, {
+  const response = await fetch(SERVER_BASE_URL + '/npm/search?q=' + query, {
     headers: { 'content-type': 'application/json' },
   });
   if (!response.ok) {

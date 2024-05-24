@@ -114,6 +114,7 @@ function Session() {
             <Cell
               key={cell.id}
               cell={cell}
+              session={session}
               onEvaluate={onEvaluate}
               onUpdateCell={onUpdateCell}
               onDeleteCell={onDeleteCell}
@@ -135,6 +136,7 @@ function Session() {
 
 function Cell(props: {
   cell: CellType;
+  session: SessionType;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
   onUpdateCell: <T extends CellType>(cell: T, attrs: Partial<T>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
@@ -160,7 +162,13 @@ function Cell(props: {
         />
       );
     case 'package.json':
-      return <PackageJsonCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
+      return (
+        <PackageJsonCell
+          cell={props.cell}
+          onUpdateCell={props.onUpdateCell}
+          session={props.session}
+        />
+      );
     default:
       throw new Error('Unrecognized cell type');
   }
@@ -265,6 +273,7 @@ function MarkdownCell(props: {
 
 function PackageJsonCell(props: {
   cell: PackageJsonCellType;
+  session: SessionType;
   onUpdateCell: (cell: PackageJsonCellType, attrs: Partial<PackageJsonCellType>) => Promise<void>;
 }) {
   const cell = props.cell;
@@ -284,21 +293,30 @@ function PackageJsonCell(props: {
 
   return (
     <>
-      <InstallPackageModal />
       <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger className="flex w-full gap-3" asChild>
-          <div>
-            <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
-              package.json
-              <ChevronRight
-                size="24"
-                style={{
-                  transform: open ? `rotate(90deg)` : 'none',
-                }}
-              />
+        <div className="flex w-full justify-between items-center">
+          <CollapsibleTrigger className="flex w-full gap-3" asChild>
+            <div>
+              <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
+                package.json
+                <ChevronRight
+                  size="24"
+                  style={{
+                    transform: open ? `rotate(90deg)` : 'none',
+                  }}
+                />
+              </Button>
+            </div>
+          </CollapsibleTrigger>
+          <InstallPackageModal session={props.session}>
+            <Button
+              variant="outline"
+              className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
+            >
+              Install package
             </Button>
-          </div>
-        </CollapsibleTrigger>
+          </InstallPackageModal>
+        </div>
         <CollapsibleContent className="py-2">
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror

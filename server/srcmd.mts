@@ -296,7 +296,7 @@ export function newContents(title: string) {
 
 \`\`\`json
 {
-  "name": ${toValidNpmName(title)},
+  "name": "${toValidNpmName(title)}",
   "version": "0.0.1",
   "description": "",
   "main": "index.mjs",

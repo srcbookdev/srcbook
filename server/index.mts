@@ -10,11 +10,13 @@ import {
   updateSession,
   sessionToResponse,
   listSessions,
+  readPackageJsonContentsFromDisk,
+  addNpmPackage,
   createCell,
   insertCellAt,
 } from './session.mjs';
 import { disk, take } from './utils.mjs';
-import { CellType, type CodeCellType, type SessionType } from './types';
+import { CellType, type CodeCellType, type SessionType, type PackageJsonCellType } from './types';
 import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
 
 const app = express();
@@ -103,6 +105,20 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
   updateSession(session, { cells: replaceCell(session, resultingCell) });
 
   return res.json({ result: resultingCell });
+});
+
+app.options('/sessions/:id/npm/install', cors());
+app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { packageName } = req.body;
+  const session = await findSession(id);
+  const result = addNpmPackage(session, packageName);
+  const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
+  const sessionCell = session.cells.filter(
+    (c) => c.type === 'package.json',
+  )[0] as PackageJsonCellType;
+  sessionCell.source = updatedJsonSource;
+  return res.json({ result });
 });
 
 app.options('/sessions/:id/cells', cors());
@@ -280,8 +296,8 @@ type NpmSearchResponseType = {
  * Returns the name, version and description of the packages.
  * This should be debounced on the client side.
  */
-app.options('/search_npm', cors());
-app.get('/search_npm', cors(), async (req, res) => {
+app.options('/npm/search', cors());
+app.get('/npm/search', cors(), async (req, res) => {
   const { q } = req.query;
   const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=10`);
   if (!response.ok) {

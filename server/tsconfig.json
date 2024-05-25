@@ -15,7 +15,9 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    // Test
+    "types": ["vitest/globals"]
   },
   "include": ["./**/*.mts"],
   "exclude": ["node_modules"]

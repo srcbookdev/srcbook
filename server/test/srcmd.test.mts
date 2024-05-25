@@ -96,7 +96,7 @@ describe('it can decode from directories', () => {
       {
         id: expect.any(String),
         type: 'package.json',
-        source: `{\n  "dependencies": {}\n}\n`,
+        source: `{\n  "name": "notebook",\n  "version": "0.0.1",\n  "description": "",\n  "main": "index.mjs",\n  "dependencies": {}\n}\n`,
         filename: 'package.json',
       },
       {

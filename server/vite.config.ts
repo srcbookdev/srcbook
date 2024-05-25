@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   test: {
-    include: ['test/**/*.test.mts'],
+    include: ['**/*.test.mts'],
     globals: true,
   },
   server: {

@@ -9,9 +9,10 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test-server": "node --experimental-vm-modules node_modules/jest/bin/jest.js server/test/ --config server/jest.config.cjs",
+    "test-server": "vitest run server/test/ --config server/vite.config.ts",
     "test-client": "jest src/test/",
-    "test": "npm run test-server && npm run test-client"
+    "test": "npm run test-server && npm run test-client",
+    "ci:test": "vitest run server/ --config server/vite.config.ts && jest src/test/"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.2",
@@ -63,6 +64,7 @@
     "prettier": "^3.2.5",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0"
+    "vite": "^5.2.0",
+    "vitest": "^1.6.0"
   }
 }

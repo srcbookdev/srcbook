@@ -121,22 +121,16 @@ export async function decodeDir(dir: string): Promise<DecodeResult> {
       return readmeResult;
     }
 
-    const cells: CellType[] = readmeResult.cells;
+    const cells = readmeResult.cells;
     const pendingFileReads: Promise<void>[] = [];
-
-    const replaceText = (cellId: string, contents: string) => {
-      const cell = cells.find((cell) => cell.id === cellId) as CodeCellType | PackageJsonCellType;
-      cell.source = contents;
-    };
 
     // Let's replace all the code cells with the actual file contents for each one
     for (const cell of cells) {
       if (cell.type === 'code' || cell.type === 'package.json') {
-        const codeCell = cell as CodeCellType;
-        const filePath = Path.join(dir, codeCell.filename);
+        const filePath = Path.join(dir, cell.filename);
         pendingFileReads.push(
-          fs.readFile(filePath, 'utf-8').then((fileContents) => {
-            replaceText(codeCell.id, fileContents);
+          fs.readFile(filePath, 'utf-8').then((source) => {
+            cell.source = source;
           }),
         );
       }

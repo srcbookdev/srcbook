@@ -89,7 +89,6 @@ describe('it can decode from directories', () => {
   it('can decode a simple directory with README, package, and one file', async () => {
     const p = getAbsolutePath('srcmd_files/mock_notebook_dir/');
     const result = (await decodeDir(p)) as DecodeSuccessResult;
-    console.log(result);
     expect(result.error).toBe(false);
     expect(result.cells).toEqual([
       { id: expect.any(String), type: 'title', text: 'Notebook' },
@@ -119,7 +118,5 @@ describe('it can decode from directories', () => {
         text: '\n\n```json\n{ "simple": "codeblock" }\n```\n',
       },
     ]);
-
-    expect(true).toBe(true);
   });
 });

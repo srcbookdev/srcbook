@@ -1,4 +1,5 @@
-import { getRelativeFileContents, getAbsolutePath } from './utils.mjs';
+import Path from 'path';
+import { getRelativeFileContents } from './utils.mjs';
 import { decode, encode, decodeDir } from '../srcmd.mjs';
 import type { DecodeErrorResult, DecodeSuccessResult } from '../srcmd.mjs';
 
@@ -87,8 +88,8 @@ describe('encoding and decoding srcmd files', () => {
 
 describe('it can decode from directories', () => {
   it('can decode a simple directory with README, package, and one file', async () => {
-    const p = getAbsolutePath('srcmd_files/mock_notebook_dir/');
-    const result = (await decodeDir(p)) as DecodeSuccessResult;
+    const dirPath = Path.resolve(__dirname, 'srcmd_files/mock_notebook_dir/');
+    const result = (await decodeDir(dirPath)) as DecodeSuccessResult;
     expect(result.error).toBe(false);
     expect(result.cells).toEqual([
       { id: expect.any(String), type: 'title', text: 'Notebook' },

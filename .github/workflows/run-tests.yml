@@ -58,4 +58,4 @@ jobs:
         run: npm run check
       - name: Run backend tests
         working-directory: ./server
-        run: npm run test
+        run: npm run ci:test

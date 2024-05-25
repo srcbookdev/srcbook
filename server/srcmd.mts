@@ -279,7 +279,7 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
   return errors;
 }
 
-function LangFromFilename(filename: string): string {
+function langFromFilename(filename: string): string {
   const ext = Path.extname(filename);
   switch (ext) {
     case '.js':
@@ -300,7 +300,7 @@ function codeFromLink(token: Tokens.Link): Tokens.Code {
     type: 'code',
     raw: '```',
     text: '',
-    lang: LangFromFilename(token.href),
+    lang: langFromFilename(token.href),
   };
 }
 function convertToCells(groups: GroupedTokensType[]) {

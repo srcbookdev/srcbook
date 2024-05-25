@@ -4,7 +4,7 @@ import path from 'node:path';
 
 export const SRCBOOK_DIR = path.join(os.homedir(), '.srcbook');
 
-const userDir = import.meta.env.VITE_NOTEBOOKS_DIR || os.homedir();
+const userDir = os.homedir();
 const configPath = path.join(SRCBOOK_DIR, 'config.json');
 const secretsPath = path.join(SRCBOOK_DIR, 'secrets.json');
 

@@ -2,16 +2,17 @@ import { marked } from 'marked';
 import { randomid, toValidNpmName } from './utils.mjs';
 import type { Tokens, Token } from 'marked';
 import type {
-  CellType,
-  CodeCellType,
+  ICell,
+  ICodeCell,
   MarkdownCellType,
   PackageJsonCellType,
   TitleCellType,
 } from './types';
+import { CodeCell, MarkdownCell, PackageJsonCell, TitleCell } from './models.mjs';
 
 marked.use({ gfm: true });
 
-export function encode(cells: CellType[], options: { inline: boolean }) {
+export function encode(cells: ICell[], options: { inline: boolean }) {
   const encoded = cells
     .map((cell) => {
       switch (cell.type) {
@@ -47,7 +48,7 @@ export function encodePackageJsonCell(cell: PackageJsonCellType, options: { inli
   return source.join('\n');
 }
 
-export function encodeCodeCell(cell: CodeCellType, options: { inline: boolean }) {
+export function encodeCodeCell(cell: ICodeCell, options: { inline: boolean }) {
   const source = options.inline
     ? [`###### ${cell.filename}\n`, `\`\`\`${cell.language}`, cell.source, '```']
     : [`###### ${cell.filename}\n`, `[${cell.filename}](./${cell.filename})`];
@@ -62,12 +63,12 @@ export type DecodeErrorResult = {
 
 export type DecodeSuccessResult = {
   error: false;
-  cells: CellType[];
+  cells: ICell[];
 };
 
 export type DecodeResult = DecodeErrorResult | DecodeSuccessResult;
 
-export function decode(contents: string): DecodeResult {
+export function decode(sessionId: string, contents: string): DecodeResult {
   // First, decode the markdown text into tokens.
   const tokens = marked.lexer(contents);
 
@@ -93,7 +94,7 @@ export function decode(contents: string): DecodeResult {
   // Finally, return either the set of errors or the tokens converted to cells if no errors were found.
   return errors.length > 0
     ? { error: true, errors: errors }
-    : { error: false, cells: convertToCells(groups) };
+    : { error: false, cells: convertToCells(sessionId, groups) };
 }
 
 type TitleGroupType = {
@@ -208,9 +209,9 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
   return errors;
 }
 
-function convertToCells(groups: GroupedTokensType[]) {
+function convertToCells(sessionId: string, groups: GroupedTokensType[]) {
   const len = groups.length;
-  const cells: CellType[] = [];
+  const cells: ICell[] = [];
 
   let i = 0;
 
@@ -218,14 +219,14 @@ function convertToCells(groups: GroupedTokensType[]) {
     const group = groups[i];
 
     if (group.type === 'title') {
-      cells.push(convertTitle(group.token));
+      cells.push(convertTitle(sessionId, group.token));
     } else if (group.type === 'markdown') {
       const hasNonSpaceTokens = group.tokens.some((token) => token.type !== 'space');
       // This shouldn't happen under most conditions, but if the file was edited or created manually, then there
       // could be cases where there is excess whitespace, causing markdown blocks that were not intentional. Thus,
       // we only create markdown cells when the markdown contains more than just space tokens.
       if (hasNonSpaceTokens) {
-        cells.push(convertMarkdown(group.tokens));
+        cells.push(convertMarkdown(sessionId, group.tokens));
       }
     } else if (group.type === 'filename') {
       i += 1;
@@ -233,8 +234,8 @@ function convertToCells(groups: GroupedTokensType[]) {
       const filename = group.token.text;
       const cell =
         filename === 'package.json'
-          ? convertPackageJson(codeToken)
-          : convertCode(codeToken, filename);
+          ? convertPackageJson(sessionId, codeToken)
+          : convertCode(sessionId, codeToken, filename);
       cells.push(cell);
     }
 
@@ -244,40 +245,38 @@ function convertToCells(groups: GroupedTokensType[]) {
   return cells;
 }
 
-function convertTitle(token: Tokens.Heading): TitleCellType {
-  return {
+function convertTitle(sessionId: string, token: Tokens.Heading) {
+  return new TitleCell({
     id: randomid(),
-    type: 'title',
+    sessionId: sessionId,
     text: token.text,
-  };
+  });
 }
 
-function convertPackageJson(token: Tokens.Code): PackageJsonCellType {
-  return {
+function convertPackageJson(sessionId: string, token: Tokens.Code) {
+  return new PackageJsonCell({
     id: randomid(),
-    type: 'package.json',
+    sessionId: sessionId,
     source: token.text,
-  };
+  });
 }
 
-function convertCode(token: Tokens.Code, filename: string): CodeCellType {
-  return {
+function convertCode(sessionId: string, token: Tokens.Code, filename: string) {
+  return new CodeCell({
     id: randomid(),
-    stale: false,
-    type: 'code',
+    sessionId: sessionId,
     source: token.text,
     language: token.lang || 'javascript',
     filename: filename,
-    output: [],
-  };
+  });
 }
 
-function convertMarkdown(tokens: Token[]): MarkdownCellType {
-  return {
+function convertMarkdown(sessionId: string, tokens: Token[]) {
+  return new MarkdownCell({
     id: randomid(),
-    type: 'markdown',
+    sessionId: sessionId,
     text: serializeMarkdownTokens(tokens),
-  };
+  });
 }
 
 function serializeMarkdownTokens(tokens: Token[]) {

@@ -37,7 +37,6 @@ export type MarkdownCellType = BaseCellType & {
 
 export type CodeCellType = BaseCellType & {
   type: 'code';
-  stale: boolean;
   source: string;
   language: number;
   filename: string;

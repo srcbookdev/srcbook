@@ -2,34 +2,69 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import Path from 'node:path';
 import { encode, decode, newContents } from './srcmd.mjs';
-import { randomid, toValidNpmName } from './utils.mjs';
+import { CodeCell, MarkdownCell, SessionStore } from './models.mjs';
+import { ICodeCell, IMarkdownCell, ISession } from './types';
+import { toValidNpmName, randomid } from './utils.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
 import { exec, addPackage } from './exec.mjs';
+import Hub from './hub.mjs';
 
-import type { CellType, CodeCellType, MarkdownCellType, SessionType } from './types';
+function pathFor(session: ISession, file: string) {
+  return Path.join(session.dir, file);
+}
 
-const sessions: Record<string, SessionType> = {};
+function writeReadme(session: ISession, options: { inline: boolean }) {
+  return fs.writeFile(pathFor(session, 'README.md'), encode(session.cells, options), {
+    encoding: 'utf8',
+  });
+}
 
-async function flushSession(session: SessionType) {
-  function pathFor(file: string) {
-    return Path.join(session.dir, file);
-  }
-
-  const writes = [
-    fs.writeFile(pathFor('README.md'), encode(session.cells, { inline: false }), {
-      encoding: 'utf8',
-    }),
-  ];
+async function flushSession(session: ISession) {
+  const writes = [writeReadme(session, { inline: false })];
 
   for (const cell of session.cells) {
     if (cell.type === 'package.json') {
-      writes.push(fs.writeFile(pathFor('package.json'), cell.source, { encoding: 'utf8' }));
+      writes.push(
+        fs.writeFile(pathFor(session, 'package.json'), cell.source, { encoding: 'utf8' }),
+      );
     } else if (cell.type === 'code') {
-      writes.push(fs.writeFile(pathFor(cell.filename), cell.source, { encoding: 'utf8' }));
+      writes.push(fs.writeFile(pathFor(session, cell.filename), cell.source, { encoding: 'utf8' }));
     }
   }
 
   return Promise.all(writes);
+}
+
+Hub.on('session:created', async ({ session }) => {
+  // Persist session to disk.
+  await fs.mkdir(session.dir);
+  await flushSession(session);
+});
+
+Hub.on('session:updated', async ({ session }) => {
+  await flushSession(session);
+});
+
+Hub.on('cell:updated', async ({ cell }) => {
+  const session = getSession(cell.sessionId);
+  await flushSession(session);
+});
+
+const sessionStore = new SessionStore();
+
+export function listSessions() {
+  return sessionStore.list();
+}
+
+export function getSession(id: string) {
+  return sessionStore.get(id);
+}
+
+export function sessionToResponse(session: ISession) {
+  return {
+    id: session.id,
+    cells: session.cells,
+  };
 }
 
 export async function createSession({ dirname, title }: { dirname: string; title: string }) {
@@ -60,107 +95,55 @@ export async function createSession({ dirname, title }: { dirname: string; title
   const contents = await fs.readFile(path, { encoding: 'utf8' });
 
   const id = randomid();
-  const result = decode(contents);
+  const result = decode(id, contents);
 
   if (result.error) {
     const errors = result.errors.map((msg) => '  * ' + msg).join('\n');
     throw new Error(`Cannot create session, errors were found when parsing ${path}:\n${errors}`);
   }
 
-  const session: SessionType = {
+  return sessionStore.create({
     id: id,
     dir: Path.join(SRCBOOK_DIR, id),
-    srcmdPath: path,
     cells: result.cells,
-  };
-
-  // Persist session to disk.
-  await fs.mkdir(session.dir);
-  await flushSession(session);
-
-  sessions[id] = session;
-
-  return session;
-}
-
-export function listSessions() {
-  return sessions;
-}
-
-export async function updateSession(
-  session: SessionType,
-  updates: Partial<SessionType>,
-): Promise<SessionType> {
-  const id = session.id;
-  const updatedSession = { ...session, ...updates };
-  sessions[id] = updatedSession;
-  await flushSession(updatedSession);
-  return updatedSession;
-}
-
-export async function findSession(id: string): Promise<SessionType> {
-  return sessions[id];
-}
-
-export function sessionToResponse(session: SessionType) {
-  return {
-    id: session.id,
-    cells: session.cells,
-  };
+  });
 }
 
 export function createCell({
+  sessionId,
   type,
 }: {
+  sessionId: string;
   type: 'markdown' | 'code';
-}): CodeCellType | MarkdownCellType {
+}): ICodeCell | IMarkdownCell {
   switch (type) {
     case 'code':
-      return {
+      return new CodeCell({
         id: randomid(),
-        stale: false,
-        type: 'code',
+        sessionId: sessionId,
         source: '',
         language: 'javascript',
         filename: 'untitled.mjs',
-        output: [],
-      };
+      });
     case 'markdown':
-      return {
+      return new MarkdownCell({
         id: randomid(),
-        type: 'markdown',
+        sessionId: sessionId,
         text: '## New Markdown Cell',
-      };
+      });
     default:
       throw new Error(`Unrecognized cell type ${type}`);
   }
 }
 
-export async function readPackageJsonContentsFromDisk(session: SessionType) {
-  return fs.readFile(Path.join(session.dir, 'package.json'), { encoding: 'utf8' });
-}
-export function installPackage(session: SessionType, pkg: string) {
-  return addPackage({ package: pkg, cwd: session.dir });
-}
-
-export async function execCell(session: SessionType, cell: CodeCellType) {
+export async function execCell(session: ISession, cell: ICodeCell) {
   return exec(cell.filename, { cwd: session.dir });
 }
 
-export function findCell(session: SessionType, id: string) {
-  return session.cells.find((cell) => cell.id === id);
+export async function readPackageJsonContentsFromDisk(session: ISession) {
+  return fs.readFile(Path.join(session.dir, 'package.json'), { encoding: 'utf8' });
 }
 
-export function replaceCell(session: SessionType, cell: CellType) {
-  return session.cells.map((c) => (c.id === cell.id ? cell : c));
-}
-
-export function insertCellAt(session: SessionType, cell: CellType, index: number) {
-  const cells = [...session.cells];
-  cells.splice(index, 0, cell);
-  return cells;
-}
-
-export function removeCell(session: SessionType, id: string) {
-  return session.cells.filter((cell) => cell.id !== id);
+export function installPackage(session: ISession, pkg: string) {
+  return addPackage({ package: pkg, cwd: session.dir });
 }

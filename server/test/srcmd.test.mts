@@ -53,7 +53,6 @@ describe('encoding and decoding srcmd files', () => {
       },
       {
         id: expect.any(String),
-        stale: false,
         type: 'code',
         source: '// A code snippet here.\nexport function add(a, b) { return a + b }',
         module: null,
@@ -69,7 +68,6 @@ describe('encoding and decoding srcmd files', () => {
       },
       {
         id: expect.any(String),
-        stale: false,
         type: 'code',
         source: "import {add} from './index.mjs';\nconst res = add(2, 3);\nconsole.log(res);",
         module: null,

@@ -1,22 +1,17 @@
 import express from 'express';
 import cors from 'cors';
 import {
-  createSession,
-  findSession,
-  execCell,
-  findCell,
-  replaceCell,
-  removeCell,
-  updateSession,
-  sessionToResponse,
   listSessions,
-  readPackageJsonContentsFromDisk,
-  installPackage,
+  sessionToResponse,
+  createSession,
   createCell,
-  insertCellAt,
+  getSession,
+  execCell,
+  installPackage,
+  readPackageJsonContentsFromDisk,
 } from './session.mjs';
-import { disk, take, combineOutputs } from './utils.mjs';
-import { CellType, type CodeCellType, type SessionType } from './types';
+import { disk, combineOutputs } from './utils.mjs';
+import type { IPackageJsonCell, ISession, ICodeCell } from './types';
 import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
 
 const app = express();
@@ -56,7 +51,7 @@ app.post('/sessions', cors(), async (req, res) => {
 
 app.get('/sessions', cors(), async (_req, res) => {
   const sessions = listSessions();
-  return res.json({ error: false, result: Object.values(sessions).map(sessionToResponse) });
+  return res.json({ error: false, result: sessions.map(sessionToResponse) });
 });
 
 app.options('/sessions/:id', cors());
@@ -65,7 +60,7 @@ app.get('/sessions/:id', cors(), async (req, res) => {
   const { id } = req.params;
 
   try {
-    const session = await findSession(id);
+    const session = getSession(id);
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (e) {
     const error = e as unknown as Error;
@@ -80,9 +75,8 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
   const { id } = req.params;
   const { source, cellId } = req.body;
 
-  const session = await findSession(id);
-
-  const cell = findCell(session, cellId);
+  const session = getSession(id);
+  const cell = session.getCell(cellId);
 
   if (!cell) {
     return res.status(404).json({ error: true, message: 'Cell not found' });
@@ -94,24 +88,18 @@ app.post('/sessions/:id/exec', cors(), async (req, res) => {
       .json({ error: true, message: `Cannot execute cell of type '${cell.type}'` });
   }
 
-  const updatedCell = { ...cell, source: source };
-  const updatedCells = replaceCell(session, updatedCell);
-  updateSession(session, { cells: updatedCells });
+  cell.setSource(source);
 
-  const { output } = await execCell(session, updatedCell);
+  const { output } = await execCell(session, cell);
 
-  // Update state
-  const resultingCell = { ...cell, output: output };
-  updateSession(session, { cells: replaceCell(session, resultingCell) });
-
-  return res.json({ result: resultingCell });
+  return res.json({ result: { ...cell, output: output } });
 });
 
 app.options('/sessions/:id/npm/install', cors());
 app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
   const { id } = req.params;
   const { packageName } = req.body;
-  const session = await findSession(id);
+  const session = getSession(id);
 
   const { exitCode, output } = await installPackage(session, packageName);
 
@@ -120,13 +108,12 @@ app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
   }
 
   // Refresh the state of the package.json cell on the sessions object.
-  const cell = session.cells.filter((c) => c.type === 'package.json')[0];
+  const cell = session.cells.filter((c) => c.type === 'package.json')[0] as IPackageJsonCell | void;
   if (!cell) {
     return res.status(400).json({ error: true, message: 'package.json cell not found' });
   }
   const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
-  const updatedCell = { ...cell, source: updatedJsonSource };
-  updateSession(session, { cells: replaceCell(session, updatedCell) });
+  cell.setSource(updatedJsonSource);
   return res.json({ result: combineOutputs(output) });
 });
 
@@ -146,10 +133,9 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
   }
 
   try {
-    const session = await findSession(id);
-    const cell = createCell({ type });
-    const updatedCells = insertCellAt(session, cell, index);
-    updateSession(session, { cells: updatedCells });
+    const session = getSession(id);
+    const cell = createCell({ sessionId: session.id, type });
+    session.addCell(cell, index);
     return res.json({ error: false, result: cell });
   } catch (e) {
     const error = e as unknown as Error;
@@ -158,14 +144,14 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
   }
 });
 
-function validateFilename(session: SessionType, cellId: string, filename: string) {
+function validateFilename(session: ISession, cellId: string, filename: string) {
   const validFormat = /^[a-zA-Z0-9_-]+\.(mjs|json)$/.test(filename);
 
   if (!validFormat) {
     return 'Invalid filename: filename must consist of letters, numbers, underscores, dashes and must end with mjs or json';
   }
 
-  const codeCells = session.cells.filter((c) => c.type === 'code') as CodeCellType[];
+  const codeCells = session.cells.filter((c) => c.type === 'code') as ICodeCell[];
   const unique = codeCells.some((cell) => {
     // If a different cell with the same filename exists,
     // this is not a unique filename within the session.
@@ -183,8 +169,8 @@ app.options('/sessions/:id/cells/:cellId', cors());
 
 app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const { id, cellId } = req.params;
-  const session = await findSession(id);
-  const cell = findCell(session, cellId);
+  const session = getSession(id);
+  const cell = session.getCell(cellId);
 
   if (!cell) {
     return res.status(404).json({ error: true, message: 'Cell not found' });
@@ -194,10 +180,9 @@ app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
     res.status(400).json({ error: true, message: 'Cannot delete title cell' });
   }
 
-  const updatedCells = removeCell(session, cellId);
-  updateSession(session, { cells: updatedCells });
+  session.removeCell(cell);
 
-  return res.json({ result: updatedCells });
+  return res.json({ result: session.cells });
 });
 
 // updates cell without running it
@@ -205,36 +190,34 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const { id, cellId } = req.params;
   const attrs = req.body;
 
-  const session = await findSession(id);
-  const cell = findCell(session, cellId);
+  const session = getSession(id);
+  const cell = session.getCell(cellId);
 
   if (!cell) {
     return res.status(404).json({ error: true, message: 'Cell not found' });
   }
 
-  if (cell.type === 'code' && typeof attrs.filename === 'string') {
-    const filenameResult = validateFilename(session, cellId, attrs.filename);
+  if (cell.type === 'code') {
+    if (typeof attrs.filename === 'string') {
+      const filenameResult = validateFilename(session, cellId, attrs.filename);
 
-    if (typeof filenameResult === 'string') {
-      return res.status(400).json({ error: true, message: filenameResult });
+      if (typeof filenameResult === 'string') {
+        return res.status(400).json({ error: true, message: filenameResult });
+      }
+
+      cell.setFilename(attrs.filename);
     }
+
+    if (typeof attrs.source === 'string') {
+      cell.setSource(attrs.source);
+    }
+  } else if (cell.type === 'package.json') {
+    cell.setSource(attrs.source);
+  } else if (cell.type === 'markdown') {
+    cell.setText(attrs.text);
   }
 
-  const updatedCell: CellType = {
-    ...cell,
-    ...take(attrs, 'source', 'filename', 'text'),
-  };
-
-  if (updatedCell.type === 'code') {
-    updatedCell.stale = true;
-  }
-
-  const updatedCells = replaceCell(session, updatedCell);
-
-  // Update state
-  updateSession(session, { cells: updatedCells });
-
-  return res.json({ result: updatedCell });
+  return res.json({ result: cell });
 });
 
 app.options('/settings', cors());

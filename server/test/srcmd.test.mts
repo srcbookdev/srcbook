@@ -1,6 +1,6 @@
-import { getRelativeFileContents } from './utils.mjs';
-import { decode, encode } from '../srcmd.mjs';
-import type { DecodeSuccessResult, DecodeErrorResult } from '../srcmd.mjs';
+import { getRelativeFileContents, getAbsolutePath } from './utils.mjs';
+import { decode, encode, decodeDir } from '../srcmd.mjs';
+import type { DecodeErrorResult, DecodeSuccessResult } from '../srcmd.mjs';
 
 describe('encoding and decoding srcmd files', () => {
   let srcmd: string;
@@ -10,42 +10,39 @@ describe('encoding and decoding srcmd files', () => {
   });
 
   it('is an error when there is no title', () => {
-    const result = decode('## Heading 2\n\nFollowed by a paragraph');
+    const result = decode('## Heading 2\n\nFollowed by a paragraph') as DecodeErrorResult;
     expect(result.error).toBe(true);
-    expect((result as DecodeErrorResult).errors).toEqual([
-      'Document must contain exactly one h1 heading',
-    ]);
+    expect(result.errors).toEqual(['Document must contain exactly one h1 heading']);
   });
 
   it('is an error when there are multiple titles', () => {
     const result = decode(
       '# Heading 1\n\nFollowed by a paragraph\n\n# Followed by another heading 1',
-    );
+    ) as DecodeErrorResult;
     expect(result.error).toBe(true);
-    expect((result as DecodeErrorResult).errors).toEqual([
-      'Document must contain exactly one h1 heading',
-    ]);
+    expect(result.errors).toEqual(['Document must contain exactly one h1 heading']);
   });
 
   it('is an error when there is a heading 6 without a corresponding code block', () => {
     const result = decode(
       '# Heading 1\n\n###### supposed_to_be_a_filename.mjs\n\nBut no code is found.',
-    );
+    ) as DecodeErrorResult;
     expect(result.error).toBe(true);
-    expect((result as DecodeErrorResult).errors).toEqual([
+    expect(result.errors).toEqual([
       "h6 is reserved for code cells, but no code block followed '###### supposed_to_be_a_filename.mjs'",
     ]);
   });
 
   it('can decode a well-formed file', () => {
-    const result = decode(srcmd);
+    const result = decode(srcmd) as DecodeSuccessResult;
     expect(result.error).toBe(false);
-    expect((result as DecodeSuccessResult).cells).toEqual([
+    expect(result.cells).toEqual([
       { id: expect.any(String), type: 'title', text: 'Notebook title' },
       {
         id: expect.any(String),
         type: 'package.json',
         source: `{\n  "name": "notebook",\n  "version": "0.0.1",\n  "description": "",\n  "main": "index.mjs",\n  "dependencies": {}\n}`,
+        filename: 'package.json',
       },
       {
         id: expect.any(String),
@@ -82,8 +79,47 @@ describe('encoding and decoding srcmd files', () => {
   });
 
   it('can encode cells', () => {
-    const result = decode(srcmd);
+    const result = decode(srcmd) as DecodeSuccessResult;
     expect(result.error).toBe(false);
-    expect(encode((result as DecodeSuccessResult).cells, { inline: true })).toEqual(srcmd);
+    expect(encode(result.cells, { inline: true })).toEqual(srcmd);
+  });
+});
+
+describe('it can decode from directories', () => {
+  it('can decode a simple directory with README, package, and one file', async () => {
+    const p = getAbsolutePath('srcmd_files/mock_notebook_dir/');
+    const result = (await decodeDir(p)) as DecodeSuccessResult;
+    console.log(result);
+    expect(result.error).toBe(false);
+    expect(result.cells).toEqual([
+      { id: expect.any(String), type: 'title', text: 'Notebook' },
+      {
+        id: expect.any(String),
+        type: 'package.json',
+        source: `{\n  "name": "notebook",\n  "version": "0.0.1",\n  "description": "",\n  "main": "index.mjs",\n  "dependencies": {}\n}`,
+        filename: 'package.json',
+      },
+      {
+        id: expect.any(String),
+        type: 'markdown',
+        text: '\n\nWith some words right behind it.\n\n## Markdown cell\n\nWith some **bold** text and some _italic_ text.\n\n> And a quote, why the f\\*\\*\\* not!\n\n',
+      },
+      {
+        id: expect.any(String),
+        stale: false,
+        type: 'code',
+        source: 'const foo = 42;\nexport const bar = true;\nconsole.log(foo, bar);',
+        language: 'javascript',
+        filename: 'foo.mjs',
+        output: [],
+      },
+      {
+        id: expect.any(String),
+        type: 'markdown',
+        text: '\n\n```json\n{ "simple": "codeblock" }\n```\n',
+      },
+    ]);
+
+    expect(true).toBe(true);
   });
 });

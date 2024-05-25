@@ -1,4 +1,6 @@
 import { marked } from 'marked';
+import Path from 'path';
+import fs from 'node:fs/promises';
 import { randomid, toValidNpmName } from './utils.mjs';
 import type { Tokens, Token } from 'marked';
 import type {
@@ -96,6 +98,60 @@ export function decode(contents: string): DecodeResult {
     : { error: false, cells: convertToCells(groups) };
 }
 
+/**
+ * Decode a compatible directory into a set of cells.
+ *
+ * The directory must contain a README.md file and a package.json file.
+ * We assume the README.md file contains the srcbook content, in particular
+ * the first 2 cells should be a title cell and then a package.json.cell
+ *
+ * We leverage the decode() function first to decode the README.md file, and then
+ * we replace the contents of the referenced package.json and code files into the cells.
+ */
+export async function decodeDir(dir: string): Promise<DecodeResult> {
+  try {
+    const readmePath = Path.join(dir, 'README.md');
+    const readmeContents = await fs.readFile(readmePath, 'utf-8');
+    // Decode the README.md file into cells.
+    // The code blocks and the package.json will only contain the filename at this point,
+    // the actual source for each file will be read from the file system in the next step.
+    const readmeResult = decode(readmeContents);
+
+    if (readmeResult.error) {
+      return readmeResult;
+    }
+
+    const cells: CellType[] = readmeResult.cells;
+    const pendingFileReads: Promise<void>[] = [];
+
+    const replaceText = (cellId: string, contents: string) => {
+      const cell = cells.find((cell) => cell.id === cellId) as CodeCellType | PackageJsonCellType;
+      cell.source = contents;
+    };
+
+    // Let's replace all the code cells with the actual file contents for each one
+    for (const cell of cells) {
+      if (cell.type === 'code' || cell.type === 'package.json') {
+        const codeCell = cell as CodeCellType;
+        const filePath = Path.join(dir, codeCell.filename);
+        pendingFileReads.push(
+          fs.readFile(filePath, 'utf-8').then((fileContents) => {
+            replaceText(codeCell.id, fileContents);
+          }),
+        );
+      }
+    }
+
+    // Wait for all file reads to complete
+    await Promise.all(pendingFileReads);
+
+    return { error: false, cells };
+  } catch (e) {
+    const error = e as unknown as Error;
+    return { error: true, errors: [error.message] };
+  }
+}
+
 type TitleGroupType = {
   type: 'title';
   token: Tokens.Heading;
@@ -138,28 +194,43 @@ export function groupTokens(tokens: Token[]) {
     return lastGroup ? lastGroup.type : null;
   }
 
+  function isLink(token: Tokens.Paragraph) {
+    return token.tokens.length === 1 && token.tokens[0].type === 'link';
+  }
+
   let i = 0;
   const len = tokens.length;
 
   while (i < len) {
     const token = tokens[i];
 
-    if (token.type === 'heading') {
-      if (token.depth === 1) {
-        grouped.push({ type: 'title', token: token as Tokens.Heading });
-      } else if (token.depth === 6) {
-        grouped.push({ type: 'filename', token: token as Tokens.Heading });
-      } else {
+    switch (token.type) {
+      case 'heading':
+        if (token.depth === 1) {
+          grouped.push({ type: 'title', token: token as Tokens.Heading });
+        } else if (token.depth === 6) {
+          grouped.push({ type: 'filename', token: token as Tokens.Heading });
+        } else {
+          pushMarkdownToken(token);
+        }
+        break;
+      case 'code':
+        if (lastGroupType() === 'filename') {
+          grouped.push({ type: 'code', token: token as Tokens.Code });
+        } else {
+          pushMarkdownToken(token);
+        }
+        break;
+      case 'paragraph':
+        if (lastGroupType() === 'filename' && token.tokens && isLink(token as Tokens.Paragraph)) {
+          const link = token.tokens[0] as Tokens.Link;
+          grouped.push({ type: 'code', token: codeFromLink(link) });
+        } else {
+          pushMarkdownToken(token);
+        }
+        break;
+      default:
         pushMarkdownToken(token);
-      }
-    } else if (token.type === 'code') {
-      if (lastGroupType() === 'filename') {
-        grouped.push({ type: 'code', token: token as Tokens.Code });
-      } else {
-        pushMarkdownToken(token);
-      }
-    } else {
-      pushMarkdownToken(token);
     }
 
     i += 1;
@@ -208,6 +279,30 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
   return errors;
 }
 
+function LangFromFilename(filename: string): string {
+  const ext = Path.extname(filename);
+  switch (ext) {
+    case '.js':
+    case '.mjs':
+      return 'javascript';
+    case '.ts':
+      return 'typescript';
+    case '.json':
+      return 'json';
+    default:
+      throw new Error(`Unknown file extension: ${ext}`);
+  }
+}
+// When parsing a README.md with link references, we want to convert the link
+// references to code blocks.
+function codeFromLink(token: Tokens.Link): Tokens.Code {
+  return {
+    type: 'code',
+    raw: '```',
+    text: '',
+    lang: LangFromFilename(token.href),
+  };
+}
 function convertToCells(groups: GroupedTokensType[]) {
   const len = groups.length;
   const cells: CellType[] = [];
@@ -257,6 +352,7 @@ function convertPackageJson(token: Tokens.Code): PackageJsonCellType {
     id: randomid(),
     type: 'package.json',
     source: token.text,
+    filename: 'package.json',
   };
 }
 

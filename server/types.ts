@@ -31,6 +31,7 @@ export type PackageJsonCellType = {
   id: string;
   type: 'package.json';
   source: string;
+  filename: 'package.json';
 };
 
 export type CodeCellType = {

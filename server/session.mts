@@ -118,7 +118,6 @@ export function createCell({
     case 'code':
       return {
         id: randomid(),
-        stale: false,
         type: 'code',
         source: '',
         language: 'javascript',

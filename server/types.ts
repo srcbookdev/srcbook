@@ -35,7 +35,6 @@ export type PackageJsonCellType = {
 
 export type CodeCellType = {
   id: string;
-  stale: boolean;
   type: 'code';
   source: string;
   language: string;

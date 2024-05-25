@@ -263,7 +263,6 @@ function convertPackageJson(token: Tokens.Code): PackageJsonCellType {
 function convertCode(token: Tokens.Code, filename: string): CodeCellType {
   return {
     id: randomid(),
-    stale: false,
     type: 'code',
     source: token.text,
     language: token.lang || 'javascript',

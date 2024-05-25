@@ -375,18 +375,14 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
   };
 }
 
-// Convert a linked code cell to a code cell. The linked code cell could be a package.json file or a code file.
+// Convert a linked code token to the right cell: either a package.json file or a code cell.
 // We assume that the link is in the format [filename](filePath).
 // We don't populate the source field here, as we will read the file contents later.
 function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellType {
-  if (token.text === 'package.json') {
-    return {
-      id: randomid(),
-      type: 'package.json',
-      source: '',
-      filename: 'package.json',
-    };
-  } else {
+  function toPkgJsonCell(): PackageJsonCellType {
+    return { id: randomid(), type: 'package.json', source: '', filename: 'package.json' };
+  }
+  function toCodeCell(token: Tokens.Link): CodeCellType {
     return {
       id: randomid(),
       type: 'code',
@@ -396,6 +392,7 @@ function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellTy
       output: [],
     };
   }
+  return token.text === 'package.json' ? toPkgJsonCell() : toCodeCell(token);
 }
 
 function convertMarkdown(tokens: Token[]): MarkdownCellType {

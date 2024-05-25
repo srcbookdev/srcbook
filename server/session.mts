@@ -52,12 +52,9 @@ export async function createSession({ dirname, title }: { dirname: string; title
 
   const path = Path.join(dirname, basename);
 
-  // TODO: Check also for permissions. Can the user read and write to the file when it exists?
-  if (!existsSync(path)) {
-    await fs.writeFile(path, newContents(title), { encoding: 'utf8' });
-  }
-
-  const contents = await fs.readFile(path, { encoding: 'utf8' });
+  const contents = existsSync(path)
+    ? await fs.readFile(path, { encoding: 'utf8' })
+    : newContents(title);
 
   const id = randomid();
   const result = decode(contents);
@@ -70,7 +67,6 @@ export async function createSession({ dirname, title }: { dirname: string; title
   const session: SessionType = {
     id: id,
     dir: Path.join(SRCBOOK_DIR, id),
-    srcmdPath: path,
     cells: result.cells,
   };
 

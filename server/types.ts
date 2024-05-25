@@ -50,9 +50,5 @@ export type SessionType = {
    * Path to the directory containing the srcbook files.
    */
   dir: string;
-  /**
-   * Path to a .srcmd file containing the srcbook.
-   */
-  srcmdPath: string;
   cells: CellType[];
 };

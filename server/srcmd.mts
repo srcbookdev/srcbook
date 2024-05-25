@@ -161,12 +161,22 @@ type CodeGroupType = {
   token: Tokens.Code;
 };
 
+type LinkedCodeGroupType = {
+  type: 'code:linked';
+  token: Tokens.Link;
+};
+
 type MarkdownGroupType = {
   type: 'markdown';
   tokens: Token[];
 };
 
-type GroupedTokensType = TitleGroupType | FilenameGroupType | CodeGroupType | MarkdownGroupType;
+type GroupedTokensType =
+  | TitleGroupType
+  | FilenameGroupType
+  | CodeGroupType
+  | MarkdownGroupType
+  | LinkedCodeGroupType;
 
 /**
  * Group tokens into an intermediate representation.
@@ -218,7 +228,7 @@ export function groupTokens(tokens: Token[]) {
       case 'paragraph':
         if (lastGroupType() === 'filename' && token.tokens && isLink(token as Tokens.Paragraph)) {
           const link = token.tokens[0] as Tokens.Link;
-          grouped.push({ type: 'code', token: codeFromLink(link) });
+          grouped.push({ type: 'code:linked', token: link });
         } else {
           pushMarkdownToken(token);
         }
@@ -259,7 +269,7 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
     const group = grouped[i];
 
     if (group.type === 'filename') {
-      if (grouped[i + 1].type !== 'code') {
+      if (!['code', 'code:linked'].includes(grouped[i + 1].type)) {
         const raw = group.token.raw.trimEnd();
         errors.push(`h6 is reserved for code cells, but no code block followed '${raw}'`);
       } else {
@@ -288,16 +298,6 @@ function langFromFilename(filename: string): string {
       throw new Error(`Unknown file extension: ${ext}`);
   }
 }
-// When parsing a README.md with link references, we want to convert the link
-// references to code blocks.
-function codeFromLink(token: Tokens.Link): Tokens.Code {
-  return {
-    type: 'code',
-    raw: `\`\`\`\n${langFromFilename(token.href)}\n\`\`\``,
-    text: '',
-    lang: langFromFilename(token.href),
-  };
-}
 function convertToCells(groups: GroupedTokensType[]) {
   const len = groups.length;
   const cells: CellType[] = [];
@@ -319,13 +319,26 @@ function convertToCells(groups: GroupedTokensType[]) {
       }
     } else if (group.type === 'filename') {
       i += 1;
-      const codeToken = (groups[i] as CodeGroupType).token;
-      const filename = group.token.text;
-      const cell =
-        filename === 'package.json'
-          ? convertPackageJson(codeToken)
-          : convertCode(codeToken, filename);
-      cells.push(cell);
+      switch (groups[i].type) {
+        case 'code': {
+          const codeToken = (groups[i] as CodeGroupType).token;
+          const filename = group.token.text;
+          const cell =
+            filename === 'package.json'
+              ? convertPackageJson(codeToken)
+              : convertCode(codeToken, filename);
+          cells.push(cell);
+          break;
+        }
+        case 'code:linked': {
+          const linkToken = (groups[i] as LinkedCodeGroupType).token;
+          const cell = convertLinkedCode(linkToken);
+          cells.push(cell);
+          break;
+        }
+        default:
+          throw new Error('Unexpected token type after a heading 6.');
+      }
     }
 
     i += 1;
@@ -360,6 +373,29 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
     filename: filename,
     output: [],
   };
+}
+
+// Convert a linked code cell to a code cell. The linked code cell could be a package.json file or a code file.
+// We assume that the link is in the format [filename](filePath).
+// We don't populate the source field here, as we will read the file contents later.
+function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellType {
+  if (token.text === 'package.json') {
+    return {
+      id: randomid(),
+      type: 'package.json',
+      source: '',
+      filename: 'package.json',
+    };
+  } else {
+    return {
+      id: randomid(),
+      type: 'code',
+      source: '',
+      language: langFromFilename(token.text),
+      filename: token.text,
+      output: [],
+    };
+  }
 }
 
 function convertMarkdown(tokens: Token[]): MarkdownCellType {

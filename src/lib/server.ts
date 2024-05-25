@@ -2,8 +2,6 @@ import type { SessionType, OutputType, CellType, FsObjectResultType } from '@/ty
 
 const SERVER_BASE_URL = 'http://localhost:2150';
 
-const X = {}.concat('omg'); // eslint-disable-line
-
 interface ExecRequestType {
   source: string;
   cellId: string;

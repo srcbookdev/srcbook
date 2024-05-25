@@ -7,7 +7,7 @@
     "check": "tsc --noEmit",
     "dev": "vite-node index.mts",
     "test": "vitest",
-    "ci:test": "vitest run ./ --config ./vite.config.ts"
+    "ci:test": "vitest run ./"
   },
   "dependencies": {
     "@scure/base": "^1.1.6",

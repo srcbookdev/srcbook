@@ -298,7 +298,7 @@ function langFromFilename(filename: string): string {
 function codeFromLink(token: Tokens.Link): Tokens.Code {
   return {
     type: 'code',
-    raw: '```',
+    raw: `\`\`\`${langFromFilename(token.href)}\`\`\``,
     text: '',
     lang: langFromFilename(token.href),
   };

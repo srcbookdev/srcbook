@@ -11,7 +11,7 @@ on:
     branches: ['main']
 
 jobs:
-  test:
+  frontend:
     runs-on: ubuntu-latest
 
     strategy:
@@ -26,6 +26,35 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run ci:test
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Lint frontend
+        run: npm run lint
+      - name: Check code format (also checks backend code)
+        run: npm run check:format
+      - name: Check that the frontend can successfully build (runs type checking)
+        run: npm run build
+
+  backend:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Install server dependencies
+        working-directory: ./server
+        run: npm ci
+      - name: Lint backend
+        working-directory: ./server
+        run: npm run check
+      - name: Run backend tests
+        run: npm run ci:test

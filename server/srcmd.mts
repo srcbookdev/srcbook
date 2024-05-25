@@ -1,4 +1,6 @@
 import { marked } from 'marked';
+import Path from 'path';
+import fs from 'node:fs/promises';
 import { randomid, toValidNpmName } from './utils.mjs';
 import type { Tokens, Token } from 'marked';
 import type {
@@ -96,6 +98,54 @@ export function decode(contents: string): DecodeResult {
     : { error: false, cells: convertToCells(groups) };
 }
 
+/**
+ * Decode a compatible directory into a set of cells.
+ *
+ * The directory must contain a README.md file and a package.json file.
+ * We assume the README.md file contains the srcbook content, in particular
+ * the first 2 cells should be a title cell and then a package.json.cell
+ *
+ * We leverage the decode() function first to decode the README.md file, and then
+ * we replace the contents of the referenced package.json and code files into the cells.
+ */
+export async function decodeDir(dir: string): Promise<DecodeResult> {
+  try {
+    const readmePath = Path.join(dir, 'README.md');
+    const readmeContents = await fs.readFile(readmePath, 'utf-8');
+    // Decode the README.md file into cells.
+    // The code blocks and the package.json will only contain the filename at this point,
+    // the actual source for each file will be read from the file system in the next step.
+    const readmeResult = decode(readmeContents);
+
+    if (readmeResult.error) {
+      return readmeResult;
+    }
+
+    const cells = readmeResult.cells;
+    const pendingFileReads: Promise<void>[] = [];
+
+    // Let's replace all the code cells with the actual file contents for each one
+    for (const cell of cells) {
+      if (cell.type === 'code' || cell.type === 'package.json') {
+        const filePath = Path.join(dir, cell.filename);
+        pendingFileReads.push(
+          fs.readFile(filePath, 'utf-8').then((source) => {
+            cell.source = source;
+          }),
+        );
+      }
+    }
+
+    // Wait for all file reads to complete
+    await Promise.all(pendingFileReads);
+
+    return { error: false, cells };
+  } catch (e) {
+    const error = e as unknown as Error;
+    return { error: true, errors: [error.message] };
+  }
+}
+
 type TitleGroupType = {
   type: 'title';
   token: Tokens.Heading;
@@ -111,12 +161,22 @@ type CodeGroupType = {
   token: Tokens.Code;
 };
 
+type LinkedCodeGroupType = {
+  type: 'code:linked';
+  token: Tokens.Link;
+};
+
 type MarkdownGroupType = {
   type: 'markdown';
   tokens: Token[];
 };
 
-type GroupedTokensType = TitleGroupType | FilenameGroupType | CodeGroupType | MarkdownGroupType;
+type GroupedTokensType =
+  | TitleGroupType
+  | FilenameGroupType
+  | CodeGroupType
+  | MarkdownGroupType
+  | LinkedCodeGroupType;
 
 /**
  * Group tokens into an intermediate representation.
@@ -138,28 +198,43 @@ export function groupTokens(tokens: Token[]) {
     return lastGroup ? lastGroup.type : null;
   }
 
+  function isLink(token: Tokens.Paragraph) {
+    return token.tokens.length === 1 && token.tokens[0].type === 'link';
+  }
+
   let i = 0;
   const len = tokens.length;
 
   while (i < len) {
     const token = tokens[i];
 
-    if (token.type === 'heading') {
-      if (token.depth === 1) {
-        grouped.push({ type: 'title', token: token as Tokens.Heading });
-      } else if (token.depth === 6) {
-        grouped.push({ type: 'filename', token: token as Tokens.Heading });
-      } else {
+    switch (token.type) {
+      case 'heading':
+        if (token.depth === 1) {
+          grouped.push({ type: 'title', token: token as Tokens.Heading });
+        } else if (token.depth === 6) {
+          grouped.push({ type: 'filename', token: token as Tokens.Heading });
+        } else {
+          pushMarkdownToken(token);
+        }
+        break;
+      case 'code':
+        if (lastGroupType() === 'filename') {
+          grouped.push({ type: 'code', token: token as Tokens.Code });
+        } else {
+          pushMarkdownToken(token);
+        }
+        break;
+      case 'paragraph':
+        if (lastGroupType() === 'filename' && token.tokens && isLink(token as Tokens.Paragraph)) {
+          const link = token.tokens[0] as Tokens.Link;
+          grouped.push({ type: 'code:linked', token: link });
+        } else {
+          pushMarkdownToken(token);
+        }
+        break;
+      default:
         pushMarkdownToken(token);
-      }
-    } else if (token.type === 'code') {
-      if (lastGroupType() === 'filename') {
-        grouped.push({ type: 'code', token: token as Tokens.Code });
-      } else {
-        pushMarkdownToken(token);
-      }
-    } else {
-      pushMarkdownToken(token);
     }
 
     i += 1;
@@ -194,7 +269,7 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
     const group = grouped[i];
 
     if (group.type === 'filename') {
-      if (grouped[i + 1].type !== 'code') {
+      if (!['code', 'code:linked'].includes(grouped[i + 1].type)) {
         const raw = group.token.raw.trimEnd();
         errors.push(`h6 is reserved for code cells, but no code block followed '${raw}'`);
       } else {
@@ -208,6 +283,21 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
   return errors;
 }
 
+function langFromFilename(filename: string): string {
+  const ext = Path.extname(filename);
+  switch (ext) {
+    case '.js':
+    case '.mjs':
+      return 'javascript';
+    case '.ts':
+    case '.mts':
+      return 'typescript';
+    case '.json':
+      return 'json';
+    default:
+      throw new Error(`Unknown file extension: ${ext}`);
+  }
+}
 function convertToCells(groups: GroupedTokensType[]) {
   const len = groups.length;
   const cells: CellType[] = [];
@@ -229,13 +319,26 @@ function convertToCells(groups: GroupedTokensType[]) {
       }
     } else if (group.type === 'filename') {
       i += 1;
-      const codeToken = (groups[i] as CodeGroupType).token;
-      const filename = group.token.text;
-      const cell =
-        filename === 'package.json'
-          ? convertPackageJson(codeToken)
-          : convertCode(codeToken, filename);
-      cells.push(cell);
+      switch (groups[i].type) {
+        case 'code': {
+          const codeToken = (groups[i] as CodeGroupType).token;
+          const filename = group.token.text;
+          const cell =
+            filename === 'package.json'
+              ? convertPackageJson(codeToken)
+              : convertCode(codeToken, filename);
+          cells.push(cell);
+          break;
+        }
+        case 'code:linked': {
+          const linkToken = (groups[i] as LinkedCodeGroupType).token;
+          const cell = convertLinkedCode(linkToken);
+          cells.push(cell);
+          break;
+        }
+        default:
+          throw new Error('Unexpected token type after a heading 6.');
+      }
     }
 
     i += 1;
@@ -257,6 +360,7 @@ function convertPackageJson(token: Tokens.Code): PackageJsonCellType {
     id: randomid(),
     type: 'package.json',
     source: token.text,
+    filename: 'package.json',
   };
 }
 
@@ -269,6 +373,26 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
     filename: filename,
     output: [],
   };
+}
+
+// Convert a linked code token to the right cell: either a package.json file or a code cell.
+// We assume that the link is in the format [filename](filePath).
+// We don't populate the source field here, as we will read the file contents later.
+function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellType {
+  function toPkgJsonCell(): PackageJsonCellType {
+    return { id: randomid(), type: 'package.json', source: '', filename: 'package.json' };
+  }
+  function toCodeCell(token: Tokens.Link): CodeCellType {
+    return {
+      id: randomid(),
+      type: 'code',
+      source: '',
+      language: langFromFilename(token.text),
+      filename: token.text,
+      output: [],
+    };
+  }
+  return token.text === 'package.json' ? toPkgJsonCell() : toCodeCell(token);
 }
 
 function convertMarkdown(tokens: Token[]): MarkdownCellType {

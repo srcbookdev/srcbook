@@ -42,7 +42,7 @@ describe('encoding and decoding srcmd files', () => {
       {
         id: expect.any(String),
         type: 'package.json',
-        source: `{\n  "name": "notebook",\n  "version": "0.0.1",\n  "description": "",\n  "main": "index.mjs",\n  "dependencies": {}\n}`,
+        source: `{\n  "dependencies": {}\n}`,
         filename: 'package.json',
       },
       {
@@ -96,7 +96,7 @@ describe('it can decode from directories', () => {
       {
         id: expect.any(String),
         type: 'package.json',
-        source: `{\n  "name": "notebook",\n  "version": "0.0.1",\n  "description": "",\n  "main": "index.mjs",\n  "dependencies": {}\n}`,
+        source: `{\n  "dependencies": {}\n}\n`,
         filename: 'package.json',
       },
       {
@@ -107,7 +107,7 @@ describe('it can decode from directories', () => {
       {
         id: expect.any(String),
         type: 'code',
-        source: 'const foo = 42;\nexport const bar = true;\nconsole.log(foo, bar);',
+        source: 'const foo = 42;\nexport const bar = true;\nconsole.log(foo, bar);\n',
         language: 'javascript',
         filename: 'foo.mjs',
         output: [],

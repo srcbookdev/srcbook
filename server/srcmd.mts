@@ -280,6 +280,7 @@ function langFromFilename(filename: string): string {
     case '.mjs':
       return 'javascript';
     case '.ts':
+    case '.mts':
       return 'typescript';
     case '.json':
       return 'json';
@@ -292,7 +293,7 @@ function langFromFilename(filename: string): string {
 function codeFromLink(token: Tokens.Link): Tokens.Code {
   return {
     type: 'code',
-    raw: `\`\`\`${langFromFilename(token.href)}\`\`\``,
+    raw: `\`\`\`\n${langFromFilename(token.href)}\n\`\`\``,
     text: '',
     lang: langFromFilename(token.href),
   };

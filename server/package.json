@@ -6,7 +6,8 @@
   "scripts": {
     "check": "tsc --noEmit",
     "dev": "vite-node index.mts",
-    "test": "vitest"
+    "test": "vitest",
+    "ci:test": "vitest run ./ --config ./vite.config.ts"
   },
   "dependencies": {
     "@scure/base": "^1.1.6",

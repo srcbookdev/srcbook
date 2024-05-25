@@ -105,7 +105,6 @@ describe('it can decode from directories', () => {
       },
       {
         id: expect.any(String),
-        stale: false,
         type: 'code',
         source: 'const foo = 42;\nexport const bar = true;\nconsole.log(foo, bar);',
         language: 'javascript',

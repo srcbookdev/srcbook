@@ -1,7 +1,7 @@
 import { marked } from 'marked';
 import Path from 'path';
 import fs from 'node:fs/promises';
-import { randomid, toValidNpmName } from './utils.mjs';
+import { randomid } from './utils.mjs';
 import type { Tokens, Token } from 'marked';
 import type {
   CellType,
@@ -419,10 +419,6 @@ export function newContents(title: string) {
 
 \`\`\`json
 {
-  "name": "${toValidNpmName(title)}",
-  "version": "0.0.1",
-  "description": "",
-  "main": "index.mjs",
   "dependencies": {}
 }
 \`\`\`

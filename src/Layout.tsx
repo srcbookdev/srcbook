@@ -23,11 +23,10 @@ function Layout() {
         )}
       >
         <div
-          className="flex w-full items-center justify-between py-3 px-2 opacity-60 hover:opacity-100 hover:cursor-pointer"
+          className="flex w-full items-center justify-center gap-2 py-3 px-2 opacity-60 hover:opacity-100 hover:cursor-pointer"
           onClick={() => setMode(mode === 'list' ? 'icons' : 'list')}
         >
-          <p className="font-mono text-xs">{mode === 'list' ? 'SourceBook' : ''}</p>
-
+          {mode === 'list' && <p className="font-mono text-xs">SourceBook</p>}
           {mode === 'icons' ? <ChevronsRight /> : <ChevronsLeft />}
         </div>
         <hr className="mx-4 opacity-10" />

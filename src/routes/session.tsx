@@ -396,13 +396,19 @@ function CellOutput(props: { output: OutputType[] }) {
     return null;
   }
 
+  const stdoutText = props.output
+    .filter(({ type }) => type === 'stdout')
+    .map(({ data }) => data)
+    .join('');
+
+  const stderrText = props.output
+    .filter(({ type }) => type === 'stderr')
+    .map(({ data }) => data)
+    .join('');
   return (
     <div className="border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
-      {props.output.length > 0 && (
-        <div className="p-2 whitespace-pre-wrap">
-          {props.output.map(({ data }) => data).join('')}
-        </div>
-      )}
+      {stdoutText && <div className="p-2 whitespace-pre-wrap">{stdoutText}</div>}
+      {stderrText && <div className="p-2 whitespace-pre-wrap text-red-500">{stderrText}</div>}
     </div>
   );
 }

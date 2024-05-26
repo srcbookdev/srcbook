@@ -38,7 +38,6 @@ export default function FilePicker(props: {
   return (
     <div className="space-y-4 mt-4">
       <Form method="post" className="flex items-center space-x-2">
-        <input type="hidden" name="formId" value="open" />
         <input type="hidden" value={dirname} name="dirname" />
         <input type="hidden" value={selected?.basename ?? ''} name="basename" />
         <Input value={selected?.path || dirname} name="path" readOnly />
@@ -47,7 +46,7 @@ export default function FilePicker(props: {
         </Button>
       </Form>
 
-      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll">
         {entries.map((entry) => (
           <FsEntryItem
             key={entry.path}
@@ -76,14 +75,13 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
   return (
     <div className="space-y-4 mt-4">
       <Form method="post" className="flex items-center space-x-2">
-        <input type="hidden" name="formId" value="open" />
         <Input value={dirname} name="dirname" readOnly />
         <Button variant="default" className="min-w-32" type="submit" disabled={selected === null}>
           {props.cta}
         </Button>
       </Form>
 
-      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll">
         {entries.map((entry) => (
           <FsEntryItem
             key={entry.path}
@@ -111,7 +109,7 @@ function FsEntryItem({
   return (
     <li
       className={cn(
-        'p-2 flex items-center text-sm cursor-pointer rounded',
+        'my-0.5 py-2 flex items-center text-sm cursor-pointer rounded w-1/2 md:w-1/3',
         selected
           ? 'bg-accent text-accent-foreground'
           : 'hover:bg-accent hover:text-accent-foreground',

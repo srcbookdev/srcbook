@@ -82,12 +82,10 @@ export default function InstallPackageModal({
         )}
       >
         {mode === 'error' && (
-          <>
-            <div className="flex flex-col w-full h-full items-center justify-center gap-3">
-              <DialogTitle className="text-red-400">Something went wrong</DialogTitle>
-              <p>Failed to install {pkg}, please try again.</p>
-            </div>
-          </>
+          <div className="flex flex-col w-full h-full items-center justify-center gap-3">
+            <DialogTitle className="text-red-400">Something went wrong</DialogTitle>
+            <p>Failed to install {pkg}, please try again.</p>
+          </div>
         )}
         {mode === 'loading' && (
           <div className="flex w-full h-full items-center justify-center gap-3">
@@ -120,7 +118,7 @@ export default function InstallPackageModal({
                 <CommandGroup>
                   {results.map((result) => {
                     return (
-                      <CommandItem key={result.name} value={result.name}>
+                      <CommandItem key={result.name} value={result.name} className="rounded-lg">
                         <div className="flex justify-between w-full items-center gap-6">
                           <div className="flex flex-col">
                             <div className="flex gap-1">

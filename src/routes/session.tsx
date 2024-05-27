@@ -407,8 +407,10 @@ function CellOutput(props: { output: OutputType[] }) {
     .join('');
   return (
     <div className="border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
-      {stdoutText && <div className="p-2 whitespace-pre-wrap">{stdoutText}</div>}
-      {stderrText && <div className="p-2 whitespace-pre-wrap text-red-500">{stderrText}</div>}
+      {stdoutText && <div className="p-2 whitespace-pre-wrap overflow-scroll">{stdoutText}</div>}
+      {stderrText && (
+        <div className="p-2 whitespace-pre-wrap text-red-500 overflow-scroll">{stderrText}</div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const plugin = require('tailwindcss/plugin');
+
 module.exports = {
   darkMode: ['class'],
   content: [
@@ -108,7 +110,32 @@ module.exports = {
         'collapsible-down': 'collapsible-down 1s ease-out',
         'collapsible-up': 'collapsible-up 1s ease-out',
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            // Remove visible backticks by overriding code::before and code::after
+            // https://github.com/tailwindlabs/tailwindcss-typography/issues/18
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+    // This allows us to target the inline code blocks only
+    // https://aaronfrancis.com/2023/targeting-only-inline-code-elements-with-tailwind-typography-3b5e8d43#:~:text=To%20only%20target%20inline%20code,to%20add%20a%20custom%20variant.&text=To%20add%20an%20prose%2Dinline,config.
+    plugin(function ({ addVariant }) {
+      addVariant(
+        'prose-inline-code',
+        '&.prose :where(:not(pre)>code):not(:where([class~="not-prose"] *))',
+      );
+    }),
+  ],
 };

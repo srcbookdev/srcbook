@@ -9,9 +9,10 @@ import { keymap } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { Plus, PlayCircle, Trash2, Pencil, ChevronRight } from 'lucide-react';
+import { Plus, PlayCircle, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
+import SaveModal from '@/components/save-modal-dialog';
 import type {
   CellType,
   CodeCellType,
@@ -40,6 +41,7 @@ function Session() {
 
   const [cells, setCells] = useState<CellType[]>(session.cells);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showSave, setShowSave] = useState(false);
   // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
   // This assumes qwerty layout.
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
@@ -89,11 +91,23 @@ function Session() {
   return (
     <div>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-      <div
-        className="fixed bottom-2 right-2 font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
-        onClick={() => setShowShortcuts(!showShortcuts)}
-      >
-        ?
+      <SaveModal open={showSave} onOpenChange={setShowSave} session={session} />
+
+      <div className="fixed bottom-2 right-2">
+        <div className="flex flex-col items-center gap-1">
+          <div
+            className="font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
+            onClick={() => setShowSave(!showSave)}
+          >
+            <Save size={16} />
+          </div>
+          <div
+            className="font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
+            onClick={() => setShowShortcuts(!showShortcuts)}
+          >
+            ?
+          </div>
+        </div>
       </div>
       <div className="flex flex-col">
         {cells.map((cell, idx) => (
@@ -228,9 +242,9 @@ function MarkdownCell(props: {
       className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm transition-all"
     >
       {status === 'view' ? (
-        <div className="prose prose-p:my-0 prose-li:my-0 max-w-full">
+        <div className="prose prose-p:my-0 max-w-full prose-inline-code:rounded prose-inline-code:bg-gray-100 prose-inline-code:border prose-inline-code: border-gray-200 prose-inline-code:px-1">
           <Markdown>{text}</Markdown>
-          <div className="absolute top-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-0.5 border border-gray-200 rounded-sm px-1 py-0.5 bg-background">
+          <div className="absolute top-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-0.5 border border-gray-200 rounded-sm px-1 py-0.5 bg-background z-10">
             <Button variant="ghost" onClick={() => setStatus('edit')}>
               <Pencil size={16} />
             </Button>
@@ -407,8 +421,10 @@ function CellOutput(props: { output: OutputType[] }) {
     .join('');
   return (
     <div className="border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
-      {stdoutText && <div className="p-2 whitespace-pre-wrap">{stdoutText}</div>}
-      {stderrText && <div className="p-2 whitespace-pre-wrap text-red-500">{stderrText}</div>}
+      {stdoutText && <div className="p-2 whitespace-pre-wrap overflow-scroll">{stdoutText}</div>}
+      {stderrText && (
+        <div className="p-2 whitespace-pre-wrap text-red-500 overflow-scroll">{stderrText}</div>
+      )}
     </div>
   );
 }

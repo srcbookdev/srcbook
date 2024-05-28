@@ -116,6 +116,24 @@ export async function loadSessions(): Promise<{ error: boolean; result: SessionT
   return response.json();
 }
 
+interface ExportSessionRequestType {
+  filename: string;
+}
+export async function exportSession(sessionId: string, request: ExportSessionRequestType) {
+  const response = await fetch(SERVER_BASE_URL + '/sessions/' + sessionId + '/export', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
 interface CreateCellRequestType {
   sessionId: string;
   type: 'code' | 'markdown';

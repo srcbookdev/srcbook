@@ -9,7 +9,7 @@ import { keymap } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { Plus, PlayCircle, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
+import { Loader2, Plus, PlayCircle, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
 import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import SaveModal from '@/components/save-modal-dialog';
@@ -67,6 +67,10 @@ function Session() {
   }
 
   async function onEvaluate(cell: CellType, source: string) {
+    if (cell.type === 'code') {
+      cell.output = [{ type: 'stdout', data: 'Running...' }];
+      updateCells(cell);
+    }
     const { result: updatedCell } = await exec(session.id, { cellId: cell.id, source });
     updateCells(updatedCell);
   }
@@ -358,6 +362,7 @@ function CodeCell(props: {
   onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;
+  const [status, setStatus] = useState<'running' | 'idle'>('idle');
   const [source, setSource] = useState(cell.source);
 
   function onChangeSource(source: string) {
@@ -369,6 +374,12 @@ function CodeCell(props: {
     props.onEvaluate(cell, source);
     return true;
   }
+
+  const runCell = async () => {
+    setStatus('running');
+    await props.onEvaluate(cell, source);
+    setStatus('idle');
+  };
 
   return (
     <div className="relative group/cell space-y-1.5">
@@ -384,9 +395,18 @@ function CodeCell(props: {
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
-            <Button onClick={() => props.onEvaluate(cell, source)} tabIndex={1}>
-              <PlayCircle size={16} className="mr-2" />
-              Run
+            <Button onClick={runCell} tabIndex={1}>
+              {status === 'running' && (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="animate-spin" size={16} /> running
+                </div>
+              )}
+              {status === 'idle' && (
+                <div className="flex items-center gap-2">
+                  <PlayCircle size={16} />
+                  Run
+                </div>
+              )}
             </Button>
           </div>
         </div>

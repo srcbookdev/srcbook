@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Prec } from '@codemirror/state';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import Markdown from 'marked-react';
@@ -10,7 +10,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { Loader2, Plus, PlayCircle, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
-import { exec, loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
+import { loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import SaveModal from '@/components/save-modal-dialog';
 import type {
@@ -30,14 +30,15 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
+import SessionClient from '@/clients/session';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
-  return { session };
+  return { session, client: new SessionClient(params.id!) };
 }
 
 function Session() {
-  const { session } = useLoaderData() as { session: SessionType };
+  const { session, client } = useLoaderData() as { session: SessionType; client: SessionClient };
 
   const [cells, setCells] = useState<CellType[]>(session.cells);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -66,13 +67,14 @@ function Session() {
     setCells(updatedCells);
   }
 
-  async function onEvaluate(cell: CellType, source: string) {
-    if (cell.type === 'code') {
-      cell.output = [{ type: 'stdout', data: 'Running...' }];
+  useEffect(() => {
+    client.receive('cell:exec', ({ cell }) => {
       updateCells(cell);
-    }
-    const { result: updatedCell } = await exec(session.id, { cellId: cell.id, source });
-    updateCells(updatedCell);
+    });
+  }, [session, client, setCells]);
+
+  async function onEvaluate(cell: CellType, source: string) {
+    client.send('cell:exec', { sessionId: session.id, cellId: cell.id, source });
   }
 
   async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {

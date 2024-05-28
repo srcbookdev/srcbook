@@ -1,5 +1,7 @@
+import http from 'node:http';
 import express from 'express';
 import cors from 'cors';
+import { WebSocketServer } from 'ws';
 import {
   createSession,
   findSession,
@@ -21,6 +23,41 @@ import { CellType, type CodeCellType, type SessionType } from './types';
 import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
 
 const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server: server });
+
+wss.on('connection', function connection(ws) {
+  ws.on('error', console.error);
+
+  ws.on('message', function message(message) {
+    const payload: { type: string; message: any } = JSON.parse(message.toString('utf8'));
+
+    switch (payload.type) {
+      case 'cell:exec':
+        async function doExec(message: { sessionId: string; cellId: string; source: string }) {
+          const session = await findSession(message.sessionId);
+          const cell = findCell(session, message.cellId);
+          if (!cell || cell.type !== 'code') {
+            return;
+          }
+
+          const updatedCell = { ...cell, source: message.source };
+          const updatedCells = replaceCell(session, updatedCell);
+          updateSession(session, { cells: updatedCells });
+
+          const { output } = await execCell(session, updatedCell);
+
+          // Update state
+          const resultingCell = { ...cell, output: output };
+          updateSession(session, { cells: replaceCell(session, resultingCell) });
+
+          ws.send(JSON.stringify({ type: 'cell:exec', message: { cell: resultingCell } }));
+        }
+        doExec(payload.message);
+    }
+  });
+});
+
 app.use(express.json());
 
 app.options('/disk', cors());
@@ -331,4 +368,4 @@ app.get('/npm/search', cors(), async (req, res) => {
 });
 
 const port = process.env.PORT || 2150;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+server.listen(port, () => console.log(`Server running on port ${port}`));

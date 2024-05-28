@@ -23,8 +23,8 @@ function Settings() {
       <h1 className="text-2xl pb-4">Settings</h1>
       <h2 className="text-xl pb-2">Base Directory</h2>
       <label className="opacity-70">
-        This is the default directory from which we look for source books, and where new source
-        books will be saved by default.
+        This is the default directory from which we look for Srcbooks, and where new Srcbooks will
+        be saved by default.
       </label>
       <DirPicker dirname={baseDir} entries={entries} cta="Change" />
     </div>

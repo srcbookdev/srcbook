@@ -36,8 +36,8 @@ export default function FilePicker(props: {
   }
 
   return (
-    <div className="space-y-4 mt-4">
-      <Form method="post" className="flex items-center space-x-2">
+    <div className="space-y-4 mt-4 w-full">
+      <Form method="post" className="flex items-center space-x-2 w-full">
         <input type="hidden" value={dirname} name="dirname" />
         <input type="hidden" value={selected?.basename ?? ''} name="basename" />
         <Input value={selected?.path || dirname} name="path" readOnly />
@@ -46,7 +46,7 @@ export default function FilePicker(props: {
         </Button>
       </Form>
 
-      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll">
+      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll bg-gray-50 p-2 ml-3 rounded">
         {entries.map((entry) => (
           <FsEntryItem
             key={entry.path}
@@ -73,15 +73,15 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
   }
 
   return (
-    <div className="space-y-4 mt-4">
-      <Form method="post" className="flex items-center space-x-2">
+    <div className="space-y-4 mt-4 w-full">
+      <Form method="post" className="flex items-center space-x-2 w-full">
         <Input value={dirname} name="dirname" readOnly />
         <Button variant="default" className="min-w-32" type="submit" disabled={selected === null}>
           {props.cta}
         </Button>
       </Form>
 
-      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll">
+      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll bg-gray-50 p-2 ml-3 rounded">
         {entries.map((entry) => (
           <FsEntryItem
             key={entry.path}
@@ -99,13 +99,21 @@ function FsEntryItem({
   entry,
   onClick,
   selected,
+  boldPrefix = '',
 }: {
   entry: FsObjectType;
   selected: boolean;
   onClick: (entry: FsObjectType) => void;
+  boldPrefix?: string;
 }) {
   const Icon = entry.isDirectory ? Folder : FileCode;
 
+  const boldedBasename = (
+    <>
+      <span className="ml-1.5 font-semibold">{boldPrefix}</span>
+      <span className="truncate">{entry.basename.replace(boldPrefix, '')}</span>
+    </>
+  );
   return (
     <li
       className={cn(
@@ -117,7 +125,120 @@ function FsEntryItem({
       onClick={() => onClick(entry)}
     >
       <Icon size={16} />
-      <span className="ml-1.5 truncate">{entry.basename}</span>
+      {boldedBasename}
     </li>
   );
+}
+
+export function FileSaver(props: {
+  dirname: string;
+  entries: FsObjectType[];
+  onSave: (path: string) => void;
+}) {
+  const [dirname, setDirname] = useState(props.dirname);
+  const [query, setQuery] = useState(props.dirname);
+  const [boldPrefix, setBoldPrefix] = useState<string>('');
+  const [entries, _setEntries] = useState(props.entries);
+  const [filteredEntries, setFilteredEntries] = useState<FsObjectType[]>(props.entries);
+
+  const setEntries = (entries: FsObjectType[], basename: string) => {
+    _setEntries(entries);
+    setFilteredEntries(entries.filter((entry) => entry.basename.startsWith(basename)));
+  };
+
+  async function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { basename, dirname: newDir } = splitPath(e.target.value);
+    if (newDir !== dirname) {
+      setDirname(newDir);
+      disk({ dirname: newDir }).then(({ result }) => {
+        setEntries(result.entries, basename);
+        setBoldPrefix(basename);
+        setQuery(e.target.value);
+      });
+    }
+    setEntries(entries, basename);
+    setBoldPrefix(basename);
+    setQuery(e.target.value);
+  }
+
+  function suffixQuery(query: string) {
+    return query.endsWith('.srcmd') ? query : query + '.srcmd';
+  }
+
+  async function onClick(entry: FsObjectType) {
+    if (!entry.isDirectory) {
+      // Clicking a file
+      setDirname(entry.dirname);
+      setQuery(entry.path);
+    } else {
+      // Opening a directory
+      const { result } = await disk({ dirname: entry.path });
+      setDirname(result.dirname);
+      setQuery(result.dirname);
+      setEntries(result.entries, '');
+      setFilteredEntries([]);
+    }
+  }
+  return (
+    <div className="space-y-4 mt-4 w-full">
+      <Input className="mb-2" value={query} name="path" onChange={onChange} />
+
+      <div className="flex flex-col h-[383px] bg-gray-50 p-2 rounded border border-input overflow-y-scroll divide-y divide-dashed">
+        <ul className="flex flex-wrap">
+          {filteredEntries &&
+            filteredEntries.map((entry) => (
+              <FsEntryItem
+                key={entry.path}
+                entry={entry}
+                onClick={onClick}
+                selected={false}
+                boldPrefix={boldPrefix}
+              />
+            ))}
+        </ul>
+        <ul className="flex flex-wrap">
+          {entries &&
+            entries.map((entry) => (
+              <FsEntryItem key={entry.path} entry={entry} onClick={onClick} selected={false} />
+            ))}
+        </ul>
+      </div>
+      <h2 className="mt-4 font-semibold">File</h2>
+      <p className="font-mono text-sm">{suffixQuery(query)}</p>
+      <Button
+        variant="default"
+        className="mt-4"
+        type="submit"
+        disabled={query.endsWith('/.srcmd')}
+        onClick={() => props.onSave(suffixQuery(query))}
+      >
+        Save
+      </Button>
+    </div>
+  );
+}
+
+function splitPath(fullPath: string) {
+  // Find the last slash in the path. Assumes macOSX or Linux-style paths
+  // For this, first we normalize the path to use forward slashes
+  const normalizedPath = fullPath.replace(/\\/g, '/');
+
+  const lastSlashIndex = normalizedPath.lastIndexOf('/');
+
+  // If there's no slash, the fullPath is just the basename
+  if (lastSlashIndex === -1) {
+    return {
+      dirname: '',
+      basename: fullPath,
+    };
+  }
+
+  // Split the path into dirname and basename
+  const dirname = fullPath.substring(0, lastSlashIndex);
+  const basename = fullPath.substring(lastSlashIndex + 1);
+
+  return {
+    dirname,
+    basename,
+  };
 }

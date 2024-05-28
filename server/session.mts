@@ -94,6 +94,10 @@ export async function updateSession(
   return updatedSession;
 }
 
+export async function exportSession(session: SessionType, writePath: string) {
+  return fs.writeFile(writePath, encode(session.cells, { inline: true }));
+}
+
 export async function findSession(id: string): Promise<SessionType> {
   return sessions[id];
 }

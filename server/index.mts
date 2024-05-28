@@ -3,6 +3,7 @@ import cors from 'cors';
 import {
   createSession,
   findSession,
+  exportSession,
   execCell,
   findCell,
   replaceCell,
@@ -67,6 +68,21 @@ app.get('/sessions/:id', cors(), async (req, res) => {
   try {
     const session = await findSession(id);
     return res.json({ error: false, result: sessionToResponse(session) });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+app.options('/sessions/:id/export', cors());
+app.post('/sessions/:id/export', cors(), async (req, res) => {
+  const { filename } = req.body;
+  const session = await findSession(req.params.id);
+
+  try {
+    await exportSession(session, filename);
+    return res.json({ error: false, result: filename });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

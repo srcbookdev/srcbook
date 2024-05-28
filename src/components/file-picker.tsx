@@ -38,15 +38,15 @@ export default function FilePicker(props: {
   return (
     <div className="space-y-4 mt-4 w-full">
       <Form method="post" className="flex items-center space-x-2 w-full">
+        <Input value={selected?.path || dirname} name="path" readOnly />
         <input type="hidden" value={dirname} name="dirname" />
         <input type="hidden" value={selected?.basename ?? ''} name="basename" />
-        <Input value={selected?.path || dirname} name="path" readOnly />
         <Button variant="default" className="min-w-32" type="submit" disabled={selected === null}>
           {props.cta}
         </Button>
       </Form>
 
-      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll bg-gray-50 p-2 ml-3 rounded">
+      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll bg-gray-50 p-2 rounded">
         {entries.map((entry) => (
           <FsEntryItem
             key={entry.path}
@@ -81,7 +81,7 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
         </Button>
       </Form>
 
-      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll bg-gray-50 p-2 ml-3 rounded">
+      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll bg-gray-50 p-2 rounded">
         {entries.map((entry) => (
           <FsEntryItem
             key={entry.path}
@@ -237,8 +237,5 @@ function splitPath(fullPath: string) {
   const dirname = fullPath.substring(0, lastSlashIndex);
   const basename = fullPath.substring(lastSlashIndex + 1);
 
-  return {
-    dirname,
-    basename,
-  };
+  return { dirname, basename };
 }

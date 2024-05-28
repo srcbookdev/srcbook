@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import Path from 'node:path';
-import { encode, decode, newContents } from './srcmd.mjs';
+import { encode, decode, decodeDir, newContents } from './srcmd.mjs';
 import { randomid, toValidNpmName } from './utils.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
 import { exec, addPackage } from './exec.mjs';
@@ -32,13 +32,30 @@ async function flushSession(session: SessionType) {
   return Promise.all(writes);
 }
 
+async function fromDir(dirname: string) {
+  const existingSession = Object.values(sessions).find((session) => session.dir === dirname);
+  if (existingSession) {
+    return existingSession;
+  }
+  const result = await decodeDir(dirname);
+  if (result.error) {
+    throw new Error(
+      `Cannot load session from ${dirname}. It's not a valid Sourcebook directory:\n${result.errors}`,
+    );
+  }
+  const session = { id: randomid(), dir: dirname, cells: result.cells };
+  sessions[session.id] = session;
+  return session;
+}
+
 export async function createSession({ dirname, title }: { dirname: string; title: string }) {
   if (typeof dirname !== 'string') {
     throw new Error('Invalid dirname');
   }
 
   if (typeof title !== 'string') {
-    throw new Error('Invalid title');
+    // We assume we're creating a session by reading an existing directory.
+    return fromDir(dirname);
   }
 
   let basename = toValidNpmName(title);

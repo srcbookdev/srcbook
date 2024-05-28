@@ -53,7 +53,7 @@ export default function SaveModal({
             <div>
               <p>
                 Export your notebook to a <code>.srcbookmd</code> file. This file can be shared an
-                easily imported into any SourceBook application.
+                easily imported into any Srcbook application.
               </p>
             </div>
           </DialogDescription>

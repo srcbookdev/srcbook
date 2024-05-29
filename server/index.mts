@@ -54,6 +54,19 @@ wss.on('connection', function connection(ws) {
           ws.send(JSON.stringify({ type: 'cell:exec', message: { cell: resultingCell } }));
         }
         doExec(payload.message);
+        break;
+      case 'cell:exec:package.json':
+        async function npmInstall(message: { sessionId: string; cellId: string; source: string }) {
+          const session = await findSession(message.sessionId);
+          const cell = findCell(session, message.cellId);
+          ws.send(
+            JSON.stringify({ type: 'cell:exec:package.json', message: { it: 'works', cell } }),
+          );
+        }
+        npmInstall(payload.message);
+        break;
+      default:
+        console.log('Unknown message type', payload.type);
     }
   });
 });

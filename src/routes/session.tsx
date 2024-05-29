@@ -31,6 +31,7 @@ import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
 import SessionClient, { type Message } from '@/clients/session';
+import { createCodeCell, createMarkdownCell } from '@/lib/cell';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -41,6 +42,7 @@ function Session() {
   const { session, client } = useLoaderData() as { session: SessionType; client: SessionClient };
 
   const [cells, setCells] = useState<CellType[]>(session.cells);
+
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showSave, setShowSave] = useState(false);
   // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
@@ -51,14 +53,15 @@ function Session() {
     if (cell.type === 'title') {
       throw new Error('Cannot delete title cell');
     }
+
+    // Optimistically delete cell
+    setCells(cells.filter((c) => c.id !== cell.id));
+
     const response = await deleteCell({ sessionId: session.id, cellId: cell.id });
     if ('error' in response) {
-      console.error('Failed to delete cell');
-      return;
-    }
-    if ('result' in response) {
-      const { result: updatedCells } = response;
-      setCells(updatedCells);
+      // Undo optimistic cell deletion
+      setCells(cells);
+      console.error('Failed to delete cell', response);
     }
   }
 
@@ -76,23 +79,39 @@ function Session() {
     client.on('cell:exec', callback);
 
     return () => client.off('cell:exec', callback);
-  }, [session, client, setCells, updateCells]);
+  }, [client, updateCells]);
 
   async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
-    const { result: updatedCell } = await updateCell({
+    // Optimistic cell update
+    updateCells({ ...cell, ...attrs });
+
+    const response = await updateCell({
       sessionId: session.id,
       cellId: cell.id,
       ...attrs,
     });
 
-    updateCells(updatedCell);
+    if (response.error) {
+      // Undo optimistic cell update
+      setCells(cells);
+      console.error('Failed to update cell', response);
+    }
   }
 
   async function createNewCell(type: 'code' | 'markdown', index: number) {
-    const { result } = await createCell({ sessionId: session.id, type, index });
+    // Create on client
+    const cell = type === 'code' ? createCodeCell() : createMarkdownCell();
     const copy = [...cells];
-    copy.splice(index, 0, result);
+    copy.splice(index, 0, cell);
     setCells(copy);
+
+    const response = await createCell({ sessionId: session.id, cell, index });
+
+    if (response.error) {
+      // Undo client cell creation
+      setCells(cells);
+      console.error('Failed to update cell', response);
+    }
   }
 
   return (

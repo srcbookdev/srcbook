@@ -1,30 +1,13 @@
-import type { SessionType, OutputType, CellType, FsObjectResultType } from '@/types';
+import type {
+  SessionType,
+  CellType,
+  FsObjectResultType,
+  CodeCellType,
+  MarkdownCellType,
+  OutputType,
+} from '@/types';
 
 const SERVER_BASE_URL = 'http://localhost:2150';
-
-interface ExecRequestType {
-  source: string;
-  cellId: string;
-}
-
-type ExecResponseType = {
-  result: CellType;
-};
-
-export async function exec(sessionId: string, request: ExecRequestType): Promise<ExecResponseType> {
-  const response = await fetch(SERVER_BASE_URL + '/sessions/' + sessionId + '/exec', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    console.error(response);
-    throw new Error('Request failed');
-  }
-
-  return response.json();
-}
 
 interface DiskRequestType {
   dirname?: string;
@@ -136,7 +119,7 @@ export async function exportSession(sessionId: string, request: ExportSessionReq
 
 interface CreateCellRequestType {
   sessionId: string;
-  type: 'code' | 'markdown';
+  cell: CodeCellType | MarkdownCellType;
   index?: number;
 }
 
@@ -149,7 +132,7 @@ export async function createCell(request: CreateCellRequestType): Promise<Create
   const response = await fetch(SERVER_BASE_URL + '/sessions/' + request.sessionId + '/cells', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ type: request.type, index: request.index }),
+    body: JSON.stringify({ cell: request.cell, index: request.index }),
   });
 
   if (!response.ok) {

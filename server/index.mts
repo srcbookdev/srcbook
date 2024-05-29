@@ -2,6 +2,7 @@ import http from 'node:http';
 import express from 'express';
 import cors from 'cors';
 import { WebSocketServer } from 'ws';
+import type { WebSocket as WsWebSocketType } from 'ws';
 import {
   createSession,
   findSession,
@@ -16,13 +17,11 @@ import {
   readPackageJsonContentsFromDisk,
   installPackage,
   npmInstallPackageJson,
-  createCell,
   insertCellAt,
 } from './session.mjs';
 import { disk, take, combineOutputs } from './utils.mjs';
-import { CellType, type CodeCellType, type SessionType } from './types';
 import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
-import type { WebSocket as WsWebSocketType } from 'ws';
+import type { CellType, MarkdownCellType, CodeCellType, SessionType } from './types';
 
 const app = express();
 const server = http.createServer(app);
@@ -151,39 +150,6 @@ app.post('/sessions/:id/export', cors(), async (req, res) => {
   }
 });
 
-app.options('/sessions/:id/exec', cors());
-
-app.post('/sessions/:id/exec', cors(), async (req, res) => {
-  const { id } = req.params;
-  const { source, cellId } = req.body;
-
-  const session = await findSession(id);
-
-  const cell = findCell(session, cellId);
-
-  if (!cell) {
-    return res.status(404).json({ error: true, message: 'Cell not found' });
-  }
-
-  if (cell.type !== 'code') {
-    return res
-      .status(404)
-      .json({ error: true, message: `Cannot execute cell of type '${cell.type}'` });
-  }
-
-  const updatedCell = { ...cell, source: source };
-  const updatedCells = replaceCell(session, updatedCell);
-  updateSession(session, { cells: updatedCells });
-
-  const { output } = await execCell(session, updatedCell);
-
-  // Update state
-  const resultingCell = { ...cell, output: output };
-  updateSession(session, { cells: replaceCell(session, resultingCell) });
-
-  return res.json({ result: resultingCell });
-});
-
 app.options('/sessions/:id/npm/install', cors());
 app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
   const { id } = req.params;
@@ -211,10 +177,12 @@ app.options('/sessions/:id/cells', cors());
 // Create a new cell. If no index is provided, append to the end, otherwise insert at the index
 app.post('/sessions/:id/cells', cors(), async (req, res) => {
   const { id } = req.params;
-  const { type, index } = req.body as { type: string; index: number };
+  const { cell, index } = req.body as { cell: CodeCellType | MarkdownCellType; index: number };
 
-  if (type !== 'code' && type !== 'markdown') {
-    return res.status(400).json({ error: true, message: 'A type is required' });
+  if (cell.type !== 'code' && cell.type !== 'markdown') {
+    return res
+      .status(400)
+      .json({ error: true, message: 'Cell must be either a code cell or markdown cell' });
   }
 
   // First 2 cells are reserved (title and package.json)
@@ -222,17 +190,10 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
     return res.status(400).json({ error: true, message: 'Index is required' });
   }
 
-  try {
-    const session = await findSession(id);
-    const cell = createCell({ type });
-    const updatedCells = insertCellAt(session, cell, index);
-    updateSession(session, { cells: updatedCells });
-    return res.json({ error: false, result: cell });
-  } catch (e) {
-    const error = e as unknown as Error;
-    console.error(error);
-    return res.json({ error: true, result: error.stack });
-  }
+  const session = await findSession(id);
+  const updatedCells = insertCellAt(session, cell, index);
+  updateSession(session, { cells: updatedCells });
+  return res.json({ error: false, result: cell });
 });
 
 function validateFilename(session: SessionType, cellId: string, filename: string) {

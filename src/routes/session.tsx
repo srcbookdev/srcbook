@@ -78,14 +78,6 @@ function Session() {
     return () => client.off('cell:exec', callback);
   }, [session, client, setCells, updateCells]);
 
-  async function onEvaluate(cell: CellType, source: string) {
-    if (cell.type === 'code' || cell.type === 'package.json') {
-      cell.output = [{ type: 'stdout', data: 'Running...' }];
-      updateCells(cell);
-    }
-    client.send('cell:exec', { sessionId: session.id, cellId: cell.id, source });
-  }
-
   async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
     const { result: updatedCell } = await updateCell({
       sessionId: session.id,
@@ -146,7 +138,6 @@ function Session() {
               cell={cell}
               session={session}
               client={client}
-              onEvaluate={onEvaluate}
               onUpdateCell={onUpdateCell}
               onDeleteCell={onDeleteCell}
             />
@@ -169,7 +160,6 @@ function Cell(props: {
   cell: CellType;
   session: SessionType;
   client: SessionClient;
-  onEvaluate: (cell: CellType, source: string) => Promise<void>;
   onUpdateCell: <T extends CellType>(cell: T, attrs: Partial<T>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
@@ -179,9 +169,9 @@ function Cell(props: {
     case 'code':
       return (
         <CodeCell
+          session={props.session}
           cell={props.cell}
           client={props.client}
-          onEvaluate={props.onEvaluate}
           onUpdateCell={props.onUpdateCell}
           onDeleteCell={props.onDeleteCell}
         />
@@ -197,10 +187,10 @@ function Cell(props: {
     case 'package.json':
       return (
         <PackageJsonCell
+          session={props.session}
+          client={props.client}
           cell={props.cell}
           onUpdateCell={props.onUpdateCell}
-          onEvaluateCell={props.onEvaluate}
-          session={props.session}
         />
       );
     default:
@@ -308,29 +298,43 @@ function MarkdownCell(props: {
 
 function PackageJsonCell(props: {
   cell: PackageJsonCellType;
+  client: SessionClient;
   session: SessionType;
   onUpdateCell: (cell: PackageJsonCellType, attrs: Partial<PackageJsonCellType>) => Promise<void>;
-  onEvaluateCell: (cell: CellType, source: string) => Promise<void>;
 }) {
-  const cell = props.cell;
+  const { cell, client, session, onUpdateCell } = props;
 
   const [source, setSource] = useState(cell.source);
   const [status, setStatus] = useState<'running' | 'idle'>('idle');
   const [open, setOpen] = useState(false);
 
+  // Subscribe to the websocket event to update the state back to idle.
+  useEffect(() => {
+    client.on('cell:exec:package.json', ({ cell: newCell }) => {
+      if (cell.id === newCell.id) {
+        setStatus('idle');
+      }
+    });
+  }, [client, cell.id]);
+
   const npmInstall = async () => {
     setStatus('running');
-    await props.onEvaluateCell(cell, source);
-    setStatus('idle');
+    cell.output = [{ type: 'stdout', data: 'Running...' }];
+    onUpdateCell(cell, { output: cell.output });
+    client.send('cell:exec:package.json', {
+      sessionId: session.id,
+      cellId: cell.id,
+      source,
+    });
   };
 
   function onChangeSource(source: string) {
     setSource(source);
-    props.onUpdateCell(cell, { source });
+    onUpdateCell(cell, { source });
   }
 
   function evaluateModEnter() {
-    props.onUpdateCell(cell, { source });
+    onUpdateCell(cell, { source });
     return true;
   }
 
@@ -368,7 +372,7 @@ function PackageJsonCell(props: {
               </div>
             )}
           </Button>
-          <InstallPackageModal session={props.session}>
+          <InstallPackageModal session={session}>
             <Button
               variant="outline"
               className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
@@ -396,9 +400,9 @@ function PackageJsonCell(props: {
   );
 }
 function CodeCell(props: {
+  session: SessionType;
   cell: CodeCellType;
   client: SessionClient;
-  onEvaluate: (cell: CellType, source: string) => Promise<void>;
   onUpdateCell: (cell: CodeCellType, attrs: Partial<CodeCellType>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
@@ -421,13 +425,15 @@ function CodeCell(props: {
   }
 
   function evaluateModEnter() {
-    props.onEvaluate(cell, source);
+    runCell();
     return true;
   }
 
   const runCell = async () => {
     setStatus('running');
-    props.onEvaluate(cell, source);
+    cell.output = [{ type: 'stdout', data: 'Running...' }];
+    props.onUpdateCell(cell, { output: cell.output });
+    props.client.send('cell:exec', { sessionId: props.session.id, cellId: cell.id, source });
   };
 
   return (
@@ -444,7 +450,7 @@ function CodeCell(props: {
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
-            <Button onClick={runCell} tabIndex={1}>
+            <Button variant="outline" onClick={runCell} tabIndex={1}>
               {status === 'running' && (
                 <div className="flex items-center gap-2">
                   <Loader2 className="animate-spin" size={16} /> running

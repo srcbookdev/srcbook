@@ -383,7 +383,7 @@ function CodeCell(props: {
 
   // Subscribe to the websocket event to update the state back to idle.
   useEffect(() => {
-    props.client.receive('cell:exec', ({ cell }) => {
+    props.client.on('cell:exec', ({ cell }) => {
       if (cell.id === props.cell.id) {
         setStatus('idle');
       }

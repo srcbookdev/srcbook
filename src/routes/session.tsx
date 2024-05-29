@@ -308,20 +308,28 @@ function PackageJsonCell(props: {
   const [status, setStatus] = useState<'running' | 'idle'>('idle');
   const [open, setOpen] = useState(false);
 
+  const onOpenChange = (state: boolean) => {
+    // Clear the output when we collapse the package.json cell.
+    if (!state) {
+      onUpdateCell(cell, { output: [] });
+    }
+    setOpen(state);
+  };
   // Subscribe to the websocket event to update the state back to idle.
   useEffect(() => {
     const callback = (message: Message) => {
       if (message.cell.id === cell.id) {
         setStatus('idle');
+        onUpdateCell(cell, message.cell);
       }
     };
     client.on('cell:exec', callback);
     return () => client.off('cell:exec', callback);
-  }, [client, cell.id]);
+  }, [client, cell, onUpdateCell]);
 
   const npmInstall = async () => {
     setStatus('running');
-    cell.output = [{ type: 'stdout', data: 'Running...' }];
+    cell.output = [{ type: 'stdout', data: 'npm install...' }];
     onUpdateCell(cell, { output: cell.output });
     client.send('cell:exec', {
       sessionId: session.id,
@@ -342,7 +350,7 @@ function PackageJsonCell(props: {
 
   return (
     <>
-      <Collapsible open={open} onOpenChange={setOpen}>
+      <Collapsible open={open} onOpenChange={onOpenChange}>
         <div className="flex w-full justify-between items-center gap-2">
           <CollapsibleTrigger className="flex w-full gap-3" asChild>
             <div>
@@ -386,7 +394,7 @@ function PackageJsonCell(props: {
         <CollapsibleContent className="py-2">
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror
-              value={source}
+              value={source.trim()}
               theme={githubLight}
               extensions={[
                 json(),
@@ -396,6 +404,7 @@ function PackageJsonCell(props: {
               basicSetup={{ lineNumbers: false, foldGutter: false }}
             />
           </div>
+          <CellOutput output={cell.output} />
         </CollapsibleContent>
       </Collapsible>
     </>

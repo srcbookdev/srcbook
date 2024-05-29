@@ -4,7 +4,7 @@ import Path from 'node:path';
 import { encode, decode, decodeDir, newContents } from './srcmd.mjs';
 import { randomid, toValidNpmName } from './utils.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
-import { exec, addPackage } from './exec.mjs';
+import { npmInstall, exec, addPackage } from './exec.mjs';
 
 import type { CellType, CodeCellType, MarkdownCellType, SessionType } from './types';
 
@@ -157,6 +157,9 @@ export async function readPackageJsonContentsFromDisk(session: SessionType) {
 }
 export function installPackage(session: SessionType, pkg: string) {
   return addPackage({ package: pkg, cwd: session.dir });
+}
+export function npmInstallPackageJson(session: SessionType) {
+  return npmInstall({ cwd: session.dir });
 }
 
 export async function execCell(session: SessionType, cell: CodeCellType) {

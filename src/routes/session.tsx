@@ -79,8 +79,7 @@ function Session() {
   }, [session, client, setCells, updateCells]);
 
   async function onEvaluate(cell: CellType, source: string) {
-    // Handle pending state until we update the cell with the output
-    if (cell.type === 'code') {
+    if (cell.type === 'code' || cell.type === 'package.json') {
       cell.output = [{ type: 'stdout', data: 'Running...' }];
       updateCells(cell);
     }
@@ -200,6 +199,7 @@ function Cell(props: {
         <PackageJsonCell
           cell={props.cell}
           onUpdateCell={props.onUpdateCell}
+          onEvaluateCell={props.onEvaluate}
           session={props.session}
         />
       );
@@ -310,11 +310,19 @@ function PackageJsonCell(props: {
   cell: PackageJsonCellType;
   session: SessionType;
   onUpdateCell: (cell: PackageJsonCellType, attrs: Partial<PackageJsonCellType>) => Promise<void>;
+  onEvaluateCell: (cell: CellType, source: string) => Promise<void>;
 }) {
   const cell = props.cell;
 
   const [source, setSource] = useState(cell.source);
+  const [status, setStatus] = useState<'running' | 'idle'>('idle');
   const [open, setOpen] = useState(false);
+
+  const npmInstall = async () => {
+    setStatus('running');
+    await props.onEvaluateCell(cell, source);
+    setStatus('idle');
+  };
 
   function onChangeSource(source: string) {
     setSource(source);
@@ -329,7 +337,7 @@ function PackageJsonCell(props: {
   return (
     <>
       <Collapsible open={open} onOpenChange={setOpen}>
-        <div className="flex w-full justify-between items-center">
+        <div className="flex w-full justify-between items-center gap-2">
           <CollapsibleTrigger className="flex w-full gap-3" asChild>
             <div>
               <Button variant="ghost" className="font-mono font-semibold active:translate-y-0">
@@ -343,6 +351,23 @@ function PackageJsonCell(props: {
               </Button>
             </div>
           </CollapsibleTrigger>
+          <Button
+            onClick={npmInstall}
+            variant="outline"
+            className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
+          >
+            {status === 'running' && (
+              <div className="flex items-center gap-2">
+                <Loader2 className="animate-spin" size={16} /> running
+              </div>
+            )}
+            {status === 'idle' && (
+              <div className="flex items-center gap-2">
+                <PlayCircle size={16} />
+                Run
+              </div>
+            )}
+          </Button>
           <InstallPackageModal session={props.session}>
             <Button
               variant="outline"

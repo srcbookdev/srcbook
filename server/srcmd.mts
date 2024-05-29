@@ -361,6 +361,7 @@ function convertPackageJson(token: Tokens.Code): PackageJsonCellType {
     type: 'package.json',
     source: token.text,
     filename: 'package.json',
+    output: [],
   };
 }
 
@@ -380,7 +381,13 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
 // We don't populate the source field here, as we will read the file contents later.
 function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellType {
   function toPkgJsonCell(): PackageJsonCellType {
-    return { id: randomid(), type: 'package.json', source: '', filename: 'package.json' };
+    return {
+      id: randomid(),
+      type: 'package.json',
+      source: '',
+      filename: 'package.json',
+      output: [],
+    };
   }
   function toCodeCell(token: Tokens.Link): CodeCellType {
     return {

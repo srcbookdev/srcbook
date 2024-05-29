@@ -6,7 +6,7 @@ import { randomid, toValidNpmName } from './utils.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
 import { npmInstall, exec, addPackage } from './exec.mjs';
 
-import type { CellType, CodeCellType, MarkdownCellType, SessionType } from './types';
+import type { CellType, CodeCellType, SessionType } from './types';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -124,32 +124,6 @@ export function sessionToResponse(session: SessionType) {
     id: session.id,
     cells: session.cells,
   };
-}
-
-export function createCell({
-  type,
-}: {
-  type: 'markdown' | 'code';
-}): CodeCellType | MarkdownCellType {
-  switch (type) {
-    case 'code':
-      return {
-        id: randomid(),
-        type: 'code',
-        source: '',
-        language: 'javascript',
-        filename: 'untitled.mjs',
-        output: [],
-      };
-    case 'markdown':
-      return {
-        id: randomid(),
-        type: 'markdown',
-        text: '## New Markdown Cell',
-      };
-    default:
-      throw new Error(`Unrecognized cell type ${type}`);
-  }
 }
 
 export async function readPackageJsonContentsFromDisk(session: SessionType) {

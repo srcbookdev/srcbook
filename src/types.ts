@@ -1,5 +1,3 @@
-import type { Token } from 'marked';
-
 export interface FsObjectType {
   path: string;
   dirname: string;
@@ -31,14 +29,13 @@ export type TitleCellType = BaseCellType & {
 
 export type MarkdownCellType = BaseCellType & {
   type: 'markdown';
-  tokens: Token[];
   text: string;
 };
 
 export type CodeCellType = BaseCellType & {
   type: 'code';
   source: string;
-  language: number;
+  language: string;
   filename: string;
   output: OutputType[];
 };

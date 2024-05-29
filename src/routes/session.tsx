@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Prec } from '@codemirror/state';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import Markdown from 'marked-react';
@@ -30,7 +30,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
-import SessionClient from '@/clients/session';
+import SessionClient, { type Message } from '@/clients/session';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -62,16 +62,21 @@ function Session() {
     }
   }
 
-  function updateCells(updatedCell: CellType) {
-    const updatedCells = cells.map((cell) => (cell.id === updatedCell.id ? updatedCell : cell));
-    setCells(updatedCells);
-  }
+  const updateCells = useCallback(
+    (updatedCell: CellType) => {
+      const updatedCells = cells.map((cell) => (cell.id === updatedCell.id ? updatedCell : cell));
+      setCells(updatedCells);
+    },
+    [cells],
+  );
 
   useEffect(() => {
-    client.receive('cell:exec', ({ cell }) => {
-      updateCells(cell);
-    });
-  }, [session, client, setCells]);
+    const callback = (message: Message) => updateCells(message.cell);
+
+    client.on('cell:exec', callback);
+
+    return () => client.off('cell:exec', callback);
+  }, [session, client, setCells, updateCells]);
 
   async function onEvaluate(cell: CellType, source: string) {
     client.send('cell:exec', { sessionId: session.id, cellId: cell.id, source });

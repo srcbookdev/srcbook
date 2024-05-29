@@ -21,11 +21,46 @@ import {
 import { disk, take, combineOutputs } from './utils.mjs';
 import { CellType, type CodeCellType, type SessionType } from './types';
 import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
+import type { WebSocket as WsWebSocketType } from 'ws';
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server: server });
 
+// move me
+async function doExec(
+  ws: WsWebSocketType,
+  message: { sessionId: string; cellId: string; source: string },
+) {
+  const session = await findSession(message.sessionId);
+  const cell = findCell(session, message.cellId);
+  if (!cell) {
+    return;
+  }
+  switch (cell.type) {
+    case 'code': {
+      const updatedCell = { ...cell, source: message.source };
+      const updatedCells = replaceCell(session, updatedCell);
+      updateSession(session, { cells: updatedCells });
+
+      const { output } = await execCell(session, updatedCell);
+
+      // Update state
+      const resultingCell = { ...cell, output: output };
+      updateSession(session, { cells: replaceCell(session, resultingCell) });
+
+      ws.send(JSON.stringify({ type: 'cell:exec', message: { cell: resultingCell } }));
+      break;
+    }
+    case 'package.json':
+      // TODO fill me out
+      ws.send(JSON.stringify({ type: 'cell:exec', message: { cell } }));
+      break;
+
+    default:
+      throw new Error(`Cannot execute cell of type '${cell.type}'`);
+  }
+}
 wss.on('connection', function connection(ws) {
   ws.on('error', console.error);
 
@@ -34,36 +69,7 @@ wss.on('connection', function connection(ws) {
 
     switch (payload.type) {
       case 'cell:exec':
-        async function doExec(message: { sessionId: string; cellId: string; source: string }) {
-          const session = await findSession(message.sessionId);
-          const cell = findCell(session, message.cellId);
-          if (!cell || cell.type !== 'code') {
-            return;
-          }
-
-          const updatedCell = { ...cell, source: message.source };
-          const updatedCells = replaceCell(session, updatedCell);
-          updateSession(session, { cells: updatedCells });
-
-          const { output } = await execCell(session, updatedCell);
-
-          // Update state
-          const resultingCell = { ...cell, output: output };
-          updateSession(session, { cells: replaceCell(session, resultingCell) });
-
-          ws.send(JSON.stringify({ type: 'cell:exec', message: { cell: resultingCell } }));
-        }
-        doExec(payload.message);
-        break;
-      case 'cell:exec:package.json':
-        async function npmInstall(message: { sessionId: string; cellId: string; source: string }) {
-          const session = await findSession(message.sessionId);
-          const cell = findCell(session, message.cellId);
-          ws.send(
-            JSON.stringify({ type: 'cell:exec:package.json', message: { it: 'works', cell } }),
-          );
-        }
-        npmInstall(payload.message);
+        doExec(ws, payload.message);
         break;
       default:
         console.log('Unknown message type', payload.type);

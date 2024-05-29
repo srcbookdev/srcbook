@@ -310,18 +310,20 @@ function PackageJsonCell(props: {
 
   // Subscribe to the websocket event to update the state back to idle.
   useEffect(() => {
-    client.on('cell:exec:package.json', ({ cell: newCell }) => {
-      if (cell.id === newCell.id) {
+    const callback = (message: Message) => {
+      if (message.cell.id === cell.id) {
         setStatus('idle');
       }
-    });
+    };
+    client.on('cell:exec', callback);
+    return () => client.off('cell:exec', callback);
   }, [client, cell.id]);
 
   const npmInstall = async () => {
     setStatus('running');
     cell.output = [{ type: 'stdout', data: 'Running...' }];
     onUpdateCell(cell, { output: cell.output });
-    client.send('cell:exec:package.json', {
+    client.send('cell:exec', {
       sessionId: session.id,
       cellId: cell.id,
       source,
@@ -412,11 +414,13 @@ function CodeCell(props: {
 
   // Subscribe to the websocket event to update the state back to idle.
   useEffect(() => {
-    props.client.on('cell:exec', ({ cell }) => {
-      if (cell.id === props.cell.id) {
+    const callback = (message: Message) => {
+      if (message.cell.id === props.cell.id) {
         setStatus('idle');
       }
-    });
+    };
+    props.client.on('cell:exec', callback);
+    return () => props.client.off('cell:exec', callback);
   }, [props.client, props.cell.id]);
 
   function onChangeSource(source: string) {

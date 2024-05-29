@@ -1,11 +1,12 @@
-type Message = string;
-type MessageType = Record<string, any>;
-type MessagePayloadType = { type: Message; message: MessageType };
-type MessageCallbackType = (message: MessageType) => void;
+export type MessageType = string;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Message = Record<string, any>;
+export type MessagePayloadType = { type: MessageType; message: Message };
+export type MessageCallbackType = (message: Message) => void;
 
 export default class SessionClient {
   private readonly socket: WebSocket;
-  private readonly callbacks: Record<Message, MessageCallbackType[]>;
+  private readonly callbacks: Record<MessageType, MessageCallbackType[]>;
   private readonly queue: Array<MessagePayloadType>;
 
   private open: boolean = false;
@@ -35,7 +36,7 @@ export default class SessionClient {
     });
   }
 
-  send(type: Message, message: MessageType) {
+  send(type: MessageType, message: Message) {
     const payload = { type, message };
 
     if (this.open) {
@@ -45,8 +46,18 @@ export default class SessionClient {
     }
   }
 
-  receive(type: Message, callback: MessageCallbackType) {
+  on(type: MessageType, callback: MessageCallbackType) {
     this.callbacks[type] = this.callbacks[type] || [];
     this.callbacks[type].push(callback);
+  }
+
+  off(type: MessageType, callback: MessageCallbackType) {
+    const idx = (this.callbacks[type] || []).findIndex((cb) => cb === callback);
+
+    if (idx === -1) {
+      throw new Error(`Tried to remove callback for ${type} but no callback was registered`);
+    }
+
+    this.callbacks[type].splice(idx, 1);
   }
 }

@@ -60,12 +60,37 @@ export async function exec(file: string, options: ExecRequestType): Promise<Exec
 }
 
 /**
+ * Run the npm install command in the Srcbook directory for the session
+ *
+ */
+export async function npmInstall(options: ExecRequestType): Promise<ExecResponseType> {
+  return new Promise((resolve) => {
+    const child = spawn('npm', ['install'], {
+      cwd: options.cwd,
+    });
+
+    const output: ProcessOutputType[] = [];
+
+    child.stdout.on('data', (data) => {
+      output.push({ type: 'stdout', data: data.toString('utf8') });
+    });
+
+    child.stderr.on('data', (data) => {
+      output.push({ type: 'stderr', data: data.toString('utf8') });
+    });
+    child.on('close', (code) => {
+      resolve({ exitCode: code!, output: output });
+    });
+  });
+}
+
+/**
  * Add an npm package to the current working directory.
  *
  * This is used similar to exec above:
  *    const { exitCode, output } = await addPackage({cwd: '/Users/nicholas/.srcbook/foo', package: 'express'});
  */
-export function addPackage(options: AddPackageRequestType): Promise<ExecResponseType> {
+export async function addPackage(options: AddPackageRequestType): Promise<ExecResponseType> {
   const cwd = options.cwd;
   return new Promise((resolve) => {
     const child = spawn('npm', ['install', options.package], {

@@ -15,6 +15,7 @@ import {
   listSessions,
   readPackageJsonContentsFromDisk,
   installPackage,
+  npmInstallPackageJson,
   createCell,
   insertCellAt,
 } from './session.mjs';
@@ -52,10 +53,14 @@ async function doExec(
       ws.send(JSON.stringify({ type: 'cell:exec', message: { cell: resultingCell } }));
       break;
     }
-    case 'package.json':
-      // TODO fill me out
-      ws.send(JSON.stringify({ type: 'cell:exec', message: { cell } }));
+    case 'package.json': {
+      // TODO error handling
+      const { output } = await npmInstallPackageJson(session);
+      const resultingCell = { ...cell, output: output };
+      updateSession(session, { cells: replaceCell(session, resultingCell) });
+      ws.send(JSON.stringify({ type: 'cell:exec', message: { cell: resultingCell } }));
       break;
+    }
 
     default:
       throw new Error(`Cannot execute cell of type '${cell.type}'`);
@@ -294,7 +299,7 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
 
   const updatedCell: CellType = {
     ...cell,
-    ...take(attrs, 'source', 'filename', 'text'),
+    ...take(attrs, 'source', 'filename', 'text', 'output'),
   };
 
   const updatedCells = replaceCell(session, updatedCell);

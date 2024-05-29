@@ -1,4 +1,4 @@
-import type { SessionType, CellType, FsObjectResultType } from '@/types';
+import type { SessionType, OutputType, CellType, FsObjectResultType } from '@/types';
 
 const SERVER_BASE_URL = 'http://localhost:2150';
 
@@ -166,6 +166,7 @@ interface UpdateCellRequestType {
   source?: string;
   text?: string;
   filename?: string;
+  output?: OutputType[];
 }
 
 interface UpdateCellResponseType {
@@ -183,6 +184,7 @@ export async function updateCell(request: UpdateCellRequestType): Promise<Update
         source: request.source,
         filename: request.filename,
         text: request.text,
+        output: request.output,
       }),
     },
   );

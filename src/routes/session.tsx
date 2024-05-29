@@ -79,6 +79,11 @@ function Session() {
   }, [session, client, setCells, updateCells]);
 
   async function onEvaluate(cell: CellType, source: string) {
+    // Handle pending state until we update the cell with the output
+    if (cell.type === 'code') {
+      cell.output = [{ type: 'stdout', data: 'Running...' }];
+      updateCells(cell);
+    }
     client.send('cell:exec', { sessionId: session.id, cellId: cell.id, source });
   }
 
@@ -141,6 +146,7 @@ function Session() {
               key={cell.id}
               cell={cell}
               session={session}
+              client={client}
               onEvaluate={onEvaluate}
               onUpdateCell={onUpdateCell}
               onDeleteCell={onDeleteCell}
@@ -163,6 +169,7 @@ function Session() {
 function Cell(props: {
   cell: CellType;
   session: SessionType;
+  client: SessionClient;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
   onUpdateCell: <T extends CellType>(cell: T, attrs: Partial<T>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
@@ -174,6 +181,7 @@ function Cell(props: {
       return (
         <CodeCell
           cell={props.cell}
+          client={props.client}
           onEvaluate={props.onEvaluate}
           onUpdateCell={props.onUpdateCell}
           onDeleteCell={props.onDeleteCell}
@@ -364,6 +372,7 @@ function PackageJsonCell(props: {
 }
 function CodeCell(props: {
   cell: CodeCellType;
+  client: SessionClient;
   onEvaluate: (cell: CellType, source: string) => Promise<void>;
   onUpdateCell: (cell: CodeCellType, attrs: Partial<CodeCellType>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
@@ -371,6 +380,15 @@ function CodeCell(props: {
   const cell = props.cell;
   const [status, setStatus] = useState<'running' | 'idle'>('idle');
   const [source, setSource] = useState(cell.source);
+
+  // Subscribe to the websocket event to update the state back to idle.
+  useEffect(() => {
+    props.client.on('cell:exec', ({ cell }) => {
+      if (cell.id === props.cell.id) {
+        setStatus('idle');
+      }
+    });
+  }, [props.client, props.cell.id]);
 
   function onChangeSource(source: string) {
     setSource(source);
@@ -384,8 +402,7 @@ function CodeCell(props: {
 
   const runCell = async () => {
     setStatus('running');
-    await props.onEvaluate(cell, source);
-    setStatus('idle');
+    props.onEvaluate(cell, source);
   };
 
   return (

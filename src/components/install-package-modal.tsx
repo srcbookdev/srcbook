@@ -62,12 +62,12 @@ export default function InstallPackageModal({
 
   useEffect(() => {
     const callback = (message: Message) => {
-      if (message.cellId === cell.id) {
+      if (message.cell.id === cell.id && message.cell.status === 'idle') {
         setMode('success');
       }
     };
-    client.on('cell:exited', callback);
-    return () => client.off('cell:exited', callback);
+    client.on('cell:updated', callback);
+    return () => client.off('cell:updated', callback);
   }, [client, cell]);
 
   const addPackage = (packageName: string) => {

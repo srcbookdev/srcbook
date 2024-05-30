@@ -9,6 +9,7 @@ export function buildCodeCell(attrs: Partial<CodeCellType> = {}): CodeCellType {
     source: '',
     language: 'javascript',
     filename: 'untitled.mjs',
+    status: 'idle',
     ...attrs,
     id: randomid(),
     type: 'code',
@@ -115,23 +116,17 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
     [_output],
   );
 
-  const setOutput = useCallback(
-    (id: string, output: OutputType | OutputType[]) => {
-      output = Array.isArray(output) ? output : [output];
-      internalSetOutput({
-        ...outputRef.current,
-        [id]: (outputRef.current[id] || []).concat(output),
-      });
-    },
-    [_output],
-  );
+  const setOutput = useCallback((id: string, output: OutputType | OutputType[]) => {
+    output = Array.isArray(output) ? output : [output];
+    internalSetOutput({
+      ...outputRef.current,
+      [id]: (outputRef.current[id] || []).concat(output),
+    });
+  }, []);
 
-  const clearOutput = useCallback(
-    (id: string) => {
-      internalSetOutput({ ...outputRef.current, [id]: [] });
-    },
-    [_output],
-  );
+  const clearOutput = useCallback((id: string) => {
+    internalSetOutput({ ...outputRef.current, [id]: [] });
+  }, []);
 
   return (
     <CellsContext.Provider

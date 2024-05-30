@@ -342,10 +342,9 @@ function PackageJsonCell(props: {
 }) {
   const { cell, client, session, onUpdateCell } = props;
 
-  const [status, setStatus] = useState<'running' | 'idle'>('idle');
   const [open, setOpen] = useState(false);
 
-  const { clearOutput } = useCells();
+  const { updateCell, clearOutput } = useCells();
 
   const onOpenChange = (state: boolean) => {
     // Clear the output when we collapse the package.json cell.
@@ -355,18 +354,9 @@ function PackageJsonCell(props: {
     setOpen(state);
   };
 
-  useEffect(() => {
-    const callback = (message: Message) => {
-      if (message.cellId === cell.id) {
-        setStatus('idle');
-      }
-    };
-    client.on('cell:exited', callback);
-    return () => client.off('cell:exited', callback);
-  }, [client, cell]);
-
   const npmInstall = () => {
-    setStatus('running');
+    // Here we use the client-only updateCell function. The server will know its running from the 'cell:exec'.
+    updateCell({ ...cell, status: 'running' });
     clearOutput(cell.id);
     client.send('cell:exec', {
       sessionId: session.id,
@@ -406,12 +396,12 @@ function PackageJsonCell(props: {
             variant="outline"
             className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
           >
-            {status === 'running' && (
+            {cell.status === 'running' && (
               <div className="flex items-center gap-2">
                 <Loader2 className="animate-spin" size={16} /> running
               </div>
             )}
-            {status === 'idle' && (
+            {cell.status === 'idle' && (
               <div className="flex items-center gap-2">
                 <PlayCircle size={16} />
                 Run
@@ -454,24 +444,10 @@ function CodeCell(props: {
   onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;
-  const [status, setStatus] = useState<'running' | 'idle'>('idle');
-  const [source, setSource] = useState(cell.source);
 
-  const { clearOutput } = useCells();
-
-  // Subscribe to the websocket event to update the state back to idle.
-  useEffect(() => {
-    const callback = (message: Message) => {
-      if (message.cellId === props.cell.id) {
-        setStatus('idle');
-      }
-    };
-    props.client.on('cell:exited', callback);
-    return () => props.client.off('cell:exited', callback);
-  }, [props.client, props.cell.id]);
+  const { updateCell, clearOutput } = useCells();
 
   function onChangeSource(source: string) {
-    setSource(source);
     props.onUpdateCell(cell, { source });
   }
 
@@ -481,9 +457,13 @@ function CodeCell(props: {
   }
 
   function runCell() {
-    setStatus('running');
+    updateCell({ ...cell, status: 'running' });
     clearOutput(cell.id);
-    props.client.send('cell:exec', { sessionId: props.session.id, cellId: cell.id, source });
+    props.client.send('cell:exec', {
+      sessionId: props.session.id,
+      cellId: cell.id,
+      source: cell.source,
+    });
   }
 
   function stopCell() {
@@ -495,7 +475,7 @@ function CodeCell(props: {
       <div
         className={cn(
           'border rounded group',
-          status === 'running'
+          cell.status === 'running'
             ? 'outline-orange-100 outline outline-2'
             : 'outline-blue-100 focus-within:outline focus-within:outline-2',
         )}
@@ -511,14 +491,14 @@ function CodeCell(props: {
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
-            {status === 'running' && (
+            {cell.status === 'running' && (
               <Button variant="outline" onClick={stopCell} tabIndex={1}>
                 <div className="flex items-center gap-2">
                   <StopCircle size={16} /> Stop
                 </div>
               </Button>
             )}
-            {status === 'idle' && (
+            {cell.status === 'idle' && (
               <Button variant="outline" onClick={runCell} tabIndex={1}>
                 <div className="flex items-center gap-2">
                   <PlayCircle size={16} />
@@ -529,7 +509,7 @@ function CodeCell(props: {
           </div>
         </div>
         <CodeMirror
-          value={source}
+          value={cell.source}
           theme={githubLight}
           extensions={[
             javascript(),

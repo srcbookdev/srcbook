@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
-import { installNpmPackage, searchNpmPackages } from '@/lib/server';
+import { searchNpmPackages } from '@/lib/server';
 import { useDebounce } from 'use-debounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,9 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import type { SessionType } from '@/types';
+import type { PackageJsonCellType, SessionType } from '@/types';
+import SessionClient, { Message } from '@/clients/session';
+import { useCells } from './use-cell';
 
 type PackageMetadata = {
   name: string;
@@ -29,9 +31,11 @@ type PackageMetadata = {
 };
 
 export default function InstallPackageModal({
+  client,
   session,
   children,
 }: {
+  client: SessionClient;
   session: SessionType;
   children: React.ReactNode;
 }) {
@@ -40,7 +44,8 @@ export default function InstallPackageModal({
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PackageMetadata[]>([]);
   const [pkg, setPkg] = useState('');
-  const [log, setLog] = useState('');
+
+  const { getOutput } = useCells();
 
   const [value] = useDebounce(query, 300);
 
@@ -50,18 +55,30 @@ export default function InstallPackageModal({
       .catch((e) => console.error('error:', e));
   }, [value]);
 
+  const cell = session.cells.find((c) => c.type === 'package.json') as PackageJsonCellType;
+  const output = getOutput(cell.id)
+    .map((o) => o.data)
+    .join('');
+
+  useEffect(() => {
+    const callback = (message: Message) => {
+      if (message.cellId === cell.id) {
+        setMode('success');
+      }
+    };
+    client.on('cell:exited', callback);
+    return () => client.off('cell:exited', callback);
+  }, [client, cell]);
+
   const addPackage = (packageName: string) => {
     setPkg(packageName);
     setMode('loading');
-    installNpmPackage(session.id, { packageName })
-      .then((data) => {
-        setMode('success');
-        setLog(data.result.stdout);
-      })
-      .catch((e) => {
-        setMode('error');
-        console.error('error installing package:\n', e);
-      });
+
+    client.send('cell:exec', {
+      sessionId: session.id,
+      cellId: cell.id,
+      package: packageName,
+    });
   };
 
   return (
@@ -98,7 +115,7 @@ export default function InstallPackageModal({
             <DialogHeader>
               <DialogTitle>Successfully added {pkg}</DialogTitle>
             </DialogHeader>
-            <p className="font-mono text-sm whitespace-pre-line">{log}</p>
+            <p className="font-mono text-sm whitespace-pre-line">{output}</p>
           </>
         )}
         {mode === 'search' && (

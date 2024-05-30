@@ -361,7 +361,6 @@ function convertPackageJson(token: Tokens.Code): PackageJsonCellType {
     type: 'package.json',
     source: token.text,
     filename: 'package.json',
-    output: [],
   };
 }
 
@@ -372,7 +371,6 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
     source: token.text,
     language: token.lang || 'javascript',
     filename: filename,
-    output: [],
   };
 }
 
@@ -386,7 +384,6 @@ function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellTy
       type: 'package.json',
       source: '',
       filename: 'package.json',
-      output: [],
     };
   }
   function toCodeCell(token: Tokens.Link): CodeCellType {
@@ -396,7 +393,6 @@ function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellTy
       source: '',
       language: langFromFilename(token.text),
       filename: token.text,
-      output: [],
     };
   }
   return token.text === 'package.json' ? toPkgJsonCell() : toCodeCell(token);

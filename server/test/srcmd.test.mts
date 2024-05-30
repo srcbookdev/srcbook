@@ -56,7 +56,6 @@ describe('encoding and decoding srcmd files', () => {
         source: '// A code snippet here.\nexport function add(a, b) { return a + b }',
         language: 'javascript',
         filename: 'index.mjs',
-        output: [],
       },
       {
         id: expect.any(String),
@@ -69,7 +68,6 @@ describe('encoding and decoding srcmd files', () => {
         source: "import {add} from './index.mjs';\nconst res = add(2, 3);\nconsole.log(res);",
         language: 'javascript',
         filename: 'foo.mjs',
-        output: [],
       },
       {
         id: expect.any(String),
@@ -110,7 +108,6 @@ describe('it can decode from directories', () => {
         source: 'const foo = 42;\nexport const bar = true;\nconsole.log(foo, bar);\n',
         language: 'javascript',
         filename: 'foo.mjs',
-        output: [],
       },
       {
         id: expect.any(String),

@@ -4,9 +4,8 @@ import Path from 'node:path';
 import { encode, decode, decodeDir, newContents } from './srcmd.mjs';
 import { randomid, toValidNpmName } from './utils.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
-import { npmInstall, exec, addPackage } from './exec.mjs';
 
-import type { CellType, CodeCellType, SessionType } from './types';
+import type { CellType, SessionType } from './types';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -103,11 +102,14 @@ export function listSessions() {
 export async function updateSession(
   session: SessionType,
   updates: Partial<SessionType>,
+  flush: boolean = true,
 ): Promise<SessionType> {
   const id = session.id;
   const updatedSession = { ...session, ...updates };
   sessions[id] = updatedSession;
-  await flushSession(updatedSession);
+  if (flush) {
+    await flushSession(updatedSession);
+  }
   return updatedSession;
 }
 
@@ -128,16 +130,6 @@ export function sessionToResponse(session: SessionType) {
 
 export async function readPackageJsonContentsFromDisk(session: SessionType) {
   return fs.readFile(Path.join(session.dir, 'package.json'), { encoding: 'utf8' });
-}
-export function installPackage(session: SessionType, pkg: string) {
-  return addPackage({ package: pkg, cwd: session.dir });
-}
-export function npmInstallPackageJson(session: SessionType) {
-  return npmInstall({ cwd: session.dir });
-}
-
-export async function execCell(session: SessionType, cell: CodeCellType) {
-  return exec(cell.filename, { cwd: session.dir });
 }
 
 export function findCell(session: SessionType, id: string) {

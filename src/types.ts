@@ -37,13 +37,11 @@ export type CodeCellType = BaseCellType & {
   source: string;
   language: string;
   filename: string;
-  output: OutputType[];
 };
 
 export type PackageJsonCellType = BaseCellType & {
   type: 'package.json';
   source: string;
-  output: OutputType[];
 };
 
 export type CellType = TitleCellType | CodeCellType | MarkdownCellType | PackageJsonCellType;

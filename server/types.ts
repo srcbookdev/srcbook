@@ -23,6 +23,11 @@ export type CodeCellType = {
   source: string;
   language: string;
   filename: string;
+  /**
+   * If a process is running, we store an abort controller.
+   * This is the mechanism we use to stop a running cell.
+   */
+  abortController?: AbortController;
 };
 
 export type CellType = TitleCellType | MarkdownCellType | PackageJsonCellType | CodeCellType;

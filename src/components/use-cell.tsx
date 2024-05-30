@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useState, ReactNode, useRef } from 'react';
 import { CellType, OutputType } from '@/types';
 
 import { randomid } from '@/lib/utils';
@@ -24,6 +24,8 @@ export function buildMarkdownCell(attrs: Partial<MarkdownCellType> = {}): Markdo
   };
 }
 
+type OutputStateType = Record<string, OutputType[]>;
+
 interface CellsContextType {
   cells: CellType[];
   setCells: React.Dispatch<React.SetStateAction<CellType[]>>;
@@ -45,7 +47,15 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
   children,
 }) => {
   const [cells, setCells] = useState<CellType[]>(initialCells);
-  const [_output, _setOutput] = useState<Record<string, OutputType[]>>({});
+
+  // This needs to be a ref in order for writes to not clobber each other.
+  const outputRef = useRef<OutputStateType>({});
+  const [_output, _setOutput] = useState<OutputStateType>(outputRef.current);
+
+  function internalSetOutput(output: OutputStateType) {
+    outputRef.current = output;
+    _setOutput(output);
+  }
 
   const updateCell = useCallback(
     (cell: CellType) => {
@@ -108,14 +118,17 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
   const setOutput = useCallback(
     (id: string, output: OutputType | OutputType[]) => {
       output = Array.isArray(output) ? output : [output];
-      _setOutput({ ..._output, [id]: (_output[id] || []).concat(output) });
+      internalSetOutput({
+        ...outputRef.current,
+        [id]: (outputRef.current[id] || []).concat(output),
+      });
     },
     [_output],
   );
 
   const clearOutput = useCallback(
     (id: string) => {
-      _setOutput({ ..._output, [id]: [] });
+      internalSetOutput({ ...outputRef.current, [id]: [] });
     },
     [_output],
   );

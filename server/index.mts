@@ -38,7 +38,12 @@ async function doNode(
   cell: CodeCellType,
   message: { source: string },
 ) {
-  const updatedCell = { ...cell, source: message.source };
+  const updatedCell: CodeCellType = {
+    ...cell,
+    source: message.source,
+    abortController: new AbortController(),
+  };
+
   const updatedCells = replaceCell(session, updatedCell);
   await updateSession(session, { cells: updatedCells });
 
@@ -48,6 +53,7 @@ async function doNode(
     cwd: session.dir,
     env: secrets,
     entry: updatedCell.filename,
+    signal: updatedCell.abortController!.signal,
     stdout(data) {
       const event = {
         type: 'cell:output',
@@ -68,14 +74,16 @@ async function doNode(
       };
       ws.send(JSON.stringify(event));
     },
-    onExit(code) {
+    onExit() {
+      delete updatedCell.abortController;
+
       const event = {
         type: 'cell:exited',
         message: {
           cellId: updatedCell.id,
-          code: code,
         },
       };
+
       ws.send(JSON.stringify(event));
     },
   });
@@ -116,7 +124,7 @@ async function doNPMInstall(
       };
       ws.send(JSON.stringify(event));
     },
-    async onExit(code) {
+    async onExit() {
       const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
       const updatedCell = { ...cell, source: updatedJsonSource };
       updateSession(session, { cells: replaceCell(session, updatedCell) }, false);
@@ -132,7 +140,6 @@ async function doNPMInstall(
         type: 'cell:exited',
         message: {
           cellId: updatedCell.id,
-          code: code,
         },
       };
 
@@ -159,6 +166,17 @@ async function doExec(ws: WsWebSocketType, message: any) {
   }
 }
 
+async function stopRunningCell(message: { sessionId: string; cellId: string }) {
+  const session = await findSession(message.sessionId);
+  const cell = findCell(session, message.cellId);
+
+  if (!cell || cell.type !== 'code') {
+    return;
+  }
+
+  cell.abortController?.abort();
+}
+
 wss.on('connection', function connection(ws) {
   ws.on('error', console.error);
 
@@ -168,6 +186,9 @@ wss.on('connection', function connection(ws) {
     switch (payload.type) {
       case 'cell:exec':
         doExec(ws, payload.message);
+        break;
+      case 'cell:stop':
+        stopRunningCell(payload.message);
         break;
       default:
         console.log('Unknown message type', payload.type);

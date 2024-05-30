@@ -9,7 +9,16 @@ import { keymap } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { Loader2, Plus, PlayCircle, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
+import {
+  Loader2,
+  StopCircle,
+  Plus,
+  PlayCircle,
+  Trash2,
+  Pencil,
+  ChevronRight,
+  Save,
+} from 'lucide-react';
 import { loadSession, createCell, updateCell as updateCellServer, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import SaveModal from '@/components/save-modal-dialog';
@@ -471,15 +480,26 @@ function CodeCell(props: {
     return true;
   }
 
-  const runCell = async () => {
+  function runCell() {
     setStatus('running');
     clearOutput(cell.id);
     props.client.send('cell:exec', { sessionId: props.session.id, cellId: cell.id, source });
-  };
+  }
+
+  function stopCell() {
+    props.client.send('cell:stop', { sessionId: props.session.id, cellId: cell.id });
+  }
 
   return (
     <div className="relative group/cell space-y-1.5">
-      <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
+      <div
+        className={cn(
+          'border rounded group',
+          status === 'running'
+            ? 'outline-orange-100 outline outline-2'
+            : 'outline-blue-100 focus-within:outline focus-within:outline-2',
+        )}
+      >
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
           <FilenameInput
             filename={cell.filename}
@@ -491,19 +511,21 @@ function CodeCell(props: {
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
-            <Button variant="outline" onClick={runCell} tabIndex={1}>
-              {status === 'running' && (
+            {status === 'running' && (
+              <Button variant="outline" onClick={stopCell} tabIndex={1}>
                 <div className="flex items-center gap-2">
-                  <Loader2 className="animate-spin" size={16} /> running
+                  <StopCircle size={16} /> Stop
                 </div>
-              )}
-              {status === 'idle' && (
+              </Button>
+            )}
+            {status === 'idle' && (
+              <Button variant="outline" onClick={runCell} tabIndex={1}>
                 <div className="flex items-center gap-2">
                   <PlayCircle size={16} />
                   Run
                 </div>
-              )}
-            </Button>
+              </Button>
+            )}
           </div>
         </div>
         <CodeMirror

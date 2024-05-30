@@ -5,7 +5,8 @@ export type BaseExecRequestType = {
   cwd: string;
   stdout: (data: Buffer) => void;
   stderr: (data: Buffer) => void;
-  onExit?: (code: number) => void;
+  onExit: (code: number | null, signal: NodeJS.Signals | null) => void;
+  signal?: AbortSignal;
 };
 
 export type NodeRequestType = BaseExecRequestType & {
@@ -22,10 +23,11 @@ export type NPMInstallRequestType = BaseExecRequestType & {
  *
  * Example:
  *
- *     node('{
+ *     node({
  *       cwd: '/Users/ben/.srcbook/foo',
  *       env: {FOO_ENV_VAR: 'foooooooo'},
  *       entry: foo.mjs',
+ *       signal: abortSignal,
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
@@ -33,18 +35,31 @@ export type NPMInstallRequestType = BaseExecRequestType & {
  *
  */
 export function node(options: NodeRequestType) {
-  const { cwd, env, entry, stdout, stderr, onExit } = options;
+  const { cwd, env, entry, stdout, stderr, onExit, signal } = options;
 
   const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
 
   // Explicitly using spawn here (over fork) to make it clear these
   // processes should be as decoupled from one another as possible.
-  const child = spawn('node', [filepath], { cwd, env: { ...process.env, ...env } });
+  const child = spawn('node', [filepath], {
+    cwd,
+    signal,
+    env: { ...process.env, ...env },
+  });
 
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
 
-  child.on('close', (code) => onExit && onExit(code!));
+  child.on('error', (_err) => {
+    // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
+    // Doing so crashes the parent process unless this callback callback is registered.
+    //
+    // TODO: Find a way to handle unexpected errors here.
+  });
+
+  child.on('exit', (code, signal) => {
+    onExit && onExit(code, signal);
+  });
 }
 
 /**
@@ -52,7 +67,7 @@ export function node(options: NodeRequestType) {
  *
  * Install all packages:
  *
- *     node('{
+ *     npmInstall({
  *       cwd: '/Users/ben/.srcbook/foo',
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
@@ -61,7 +76,7 @@ export function node(options: NodeRequestType) {
  *
  * Install a specific package:
  *
- *     node('{
+ *     npmInstall({
  *       cwd: '/Users/ben/.srcbook/foo',
  *       package: 'marked',
  *       stdout(data) {console.log(data.toString('utf8'))},
@@ -71,14 +86,23 @@ export function node(options: NodeRequestType) {
  *
  */
 export async function npmInstall(options: NPMInstallRequestType) {
-  const { cwd, stdout, stderr, onExit } = options;
+  const { cwd, stdout, stderr, onExit, signal } = options;
 
   const args = options.package ? ['install', options.package] : ['install'];
 
-  const child = spawn('npm', args, { cwd });
+  const child = spawn('npm', args, { cwd, signal });
 
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
 
-  child.on('close', (code) => onExit && onExit(code!));
+  child.on('error', (_err) => {
+    // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
+    // Doing so crashes the parent process unless this callback callback is registered.
+    //
+    // TODO: Find a way to handle unexpected errors here.
+  });
+
+  child.on('exit', (code, signal) => {
+    onExit && onExit(code, signal);
+  });
 }

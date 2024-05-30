@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Prec } from '@codemirror/state';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import Markdown from 'marked-react';
@@ -10,17 +10,17 @@ import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { Loader2, Plus, PlayCircle, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
-import { loadSession, createCell, updateCell, deleteCell } from '@/lib/server';
+import { loadSession, createCell, updateCell as updateCellServer, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import SaveModal from '@/components/save-modal-dialog';
 import type {
   CellType,
   CodeCellType,
-  OutputType,
   PackageJsonCellType,
   TitleCellType,
   MarkdownCellType,
   SessionType,
+  OutputType,
 } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import { Button } from '@/components/ui/button';
@@ -31,17 +31,28 @@ import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
 import SessionClient, { type Message } from '@/clients/session';
-import { createCodeCell, createMarkdownCell } from '@/lib/cell';
+import { CellsProvider, useCells } from '@/components/use-cell';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
   return { session, client: new SessionClient(params.id!) };
 }
 
-function Session() {
+function SessionPage() {
   const { session, client } = useLoaderData() as { session: SessionType; client: SessionClient };
 
-  const [cells, setCells] = useState<CellType[]>(session.cells);
+  return (
+    <CellsProvider initialCells={session.cells}>
+      <Session session={session} client={client} />
+    </CellsProvider>
+  );
+}
+
+function Session(props: { session: SessionType; client: SessionClient }) {
+  const { session, client } = props;
+
+  const { cells, setCells, updateCell, removeCell, createCodeCell, createMarkdownCell, setOutput } =
+    useCells();
 
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showSave, setShowSave] = useState(false);
@@ -55,7 +66,7 @@ function Session() {
     }
 
     // Optimistically delete cell
-    setCells(cells.filter((c) => c.id !== cell.id));
+    removeCell(cell);
 
     const response = await deleteCell({ sessionId: session.id, cellId: cell.id });
     if ('error' in response) {
@@ -65,27 +76,29 @@ function Session() {
     }
   }
 
-  const updateCells = useCallback(
-    (updatedCell: CellType) => {
-      const updatedCells = cells.map((cell) => (cell.id === updatedCell.id ? updatedCell : cell));
-      setCells(updatedCells);
-    },
-    [cells],
-  );
+  useEffect(() => {
+    const callback = (message: Message) => setOutput(message.cellId, message.output);
+
+    client.on('cell:output', callback);
+
+    return () => client.off('cell:output', callback);
+  }, [client, setOutput]);
 
   useEffect(() => {
-    const callback = (message: Message) => updateCells(message.cell);
+    const callback = (message: Message) => {
+      updateCell(message.cell);
+    };
 
-    client.on('cell:exec', callback);
+    client.on('cell:updated', callback);
 
-    return () => client.off('cell:exec', callback);
-  }, [client, updateCells]);
+    return () => client.off('cell:updated', callback);
+  }, [client, updateCell]);
 
   async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
     // Optimistic cell update
-    updateCells({ ...cell, ...attrs });
+    updateCell({ ...cell, ...attrs });
 
-    const response = await updateCell({
+    const response = await updateCellServer({
       sessionId: session.id,
       cellId: cell.id,
       ...attrs,
@@ -100,10 +113,7 @@ function Session() {
 
   async function createNewCell(type: 'code' | 'markdown', index: number) {
     // Create on client
-    const cell = type === 'code' ? createCodeCell() : createMarkdownCell();
-    const copy = [...cells];
-    copy.splice(index, 0, cell);
-    setCells(copy);
+    const cell = type === 'code' ? createCodeCell(index) : createMarkdownCell(index);
 
     const response = await createCell({ sessionId: session.id, cell, index });
 
@@ -323,47 +333,45 @@ function PackageJsonCell(props: {
 }) {
   const { cell, client, session, onUpdateCell } = props;
 
-  const [source, setSource] = useState(cell.source);
   const [status, setStatus] = useState<'running' | 'idle'>('idle');
   const [open, setOpen] = useState(false);
+
+  const { clearOutput } = useCells();
 
   const onOpenChange = (state: boolean) => {
     // Clear the output when we collapse the package.json cell.
     if (!state) {
-      onUpdateCell(cell, { output: [] });
+      clearOutput(cell.id);
     }
     setOpen(state);
   };
-  // Subscribe to the websocket event to update the state back to idle.
+
   useEffect(() => {
     const callback = (message: Message) => {
-      if (message.cell.id === cell.id) {
+      if (message.cellId === cell.id) {
         setStatus('idle');
-        onUpdateCell(cell, message.cell);
       }
     };
-    client.on('cell:exec', callback);
-    return () => client.off('cell:exec', callback);
-  }, [client, cell, onUpdateCell]);
+    client.on('cell:exited', callback);
+    return () => client.off('cell:exited', callback);
+  }, [client, cell]);
 
-  const npmInstall = async () => {
+  const npmInstall = () => {
     setStatus('running');
-    cell.output = [{ type: 'stdout', data: 'npm install...' }];
-    onUpdateCell(cell, { output: cell.output });
+    clearOutput(cell.id);
     client.send('cell:exec', {
       sessionId: session.id,
       cellId: cell.id,
-      source,
+      source: cell.source,
     });
   };
 
   function onChangeSource(source: string) {
-    setSource(source);
     onUpdateCell(cell, { source });
   }
 
   function evaluateModEnter() {
-    onUpdateCell(cell, { source });
+    onUpdateCell(cell, { source: cell.source });
     return true;
   }
 
@@ -401,7 +409,7 @@ function PackageJsonCell(props: {
               </div>
             )}
           </Button>
-          <InstallPackageModal session={session}>
+          <InstallPackageModal client={client} session={session}>
             <Button
               variant="outline"
               className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
@@ -413,7 +421,7 @@ function PackageJsonCell(props: {
         <CollapsibleContent className="py-2">
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
             <CodeMirror
-              value={source.trim()}
+              value={cell.source.trim()}
               theme={githubLight}
               extensions={[
                 json(),
@@ -423,7 +431,7 @@ function PackageJsonCell(props: {
               basicSetup={{ lineNumbers: false, foldGutter: false }}
             />
           </div>
-          <CellOutput output={cell.output} />
+          <CellOutput cellId={cell.id} />
         </CollapsibleContent>
       </Collapsible>
     </>
@@ -440,15 +448,17 @@ function CodeCell(props: {
   const [status, setStatus] = useState<'running' | 'idle'>('idle');
   const [source, setSource] = useState(cell.source);
 
+  const { clearOutput } = useCells();
+
   // Subscribe to the websocket event to update the state back to idle.
   useEffect(() => {
     const callback = (message: Message) => {
-      if (message.cell.id === props.cell.id) {
+      if (message.cellId === props.cell.id) {
         setStatus('idle');
       }
     };
-    props.client.on('cell:exec', callback);
-    return () => props.client.off('cell:exec', callback);
+    props.client.on('cell:exited', callback);
+    return () => props.client.off('cell:exited', callback);
   }, [props.client, props.cell.id]);
 
   function onChangeSource(source: string) {
@@ -463,8 +473,7 @@ function CodeCell(props: {
 
   const runCell = async () => {
     setStatus('running');
-    cell.output = [{ type: 'stdout', data: 'Running...' }];
-    props.onUpdateCell(cell, { output: cell.output });
+    clearOutput(cell.id);
     props.client.send('cell:exec', { sessionId: props.session.id, cellId: cell.id, source });
   };
 
@@ -507,25 +516,25 @@ function CodeCell(props: {
           onChange={onChangeSource}
         />
       </div>
-      <CellOutput output={cell.output} />
+      <CellOutput cellId={cell.id} />
     </div>
   );
 }
 
-function CellOutput(props: { output: OutputType[] }) {
-  if (props.output.length === 0) {
+function formatOutput(output: OutputType[]) {
+  return output.map(({ data }) => data).join('');
+}
+
+function CellOutput(props: { cellId: string }) {
+  const { hasOutput, getOutput } = useCells();
+
+  if (!hasOutput(props.cellId)) {
     return null;
   }
 
-  const stdoutText = props.output
-    .filter(({ type }) => type === 'stdout')
-    .map(({ data }) => data)
-    .join('');
+  const stdoutText = formatOutput(getOutput(props.cellId, 'stdout'));
+  const stderrText = formatOutput(getOutput(props.cellId, 'stderr'));
 
-  const stderrText = props.output
-    .filter(({ type }) => type === 'stderr')
-    .map(({ data }) => data)
-    .join('');
   return (
     <div className="border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
       {stdoutText && <div className="p-2 whitespace-pre-wrap overflow-scroll">{stdoutText}</div>}
@@ -591,5 +600,5 @@ function FilenameInput(props: { filename: string; onUpdate: (filename: string) =
   );
 }
 
-Session.loader = loader;
-export default Session;
+SessionPage.loader = loader;
+export default SessionPage;

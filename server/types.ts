@@ -1,20 +1,3 @@
-export type StdoutOutputType = {
-  type: 'stdout';
-  data: string;
-};
-
-export type StderrOutputType = {
-  type: 'stderr';
-  data: string;
-};
-
-export type ProcessOutputType = StdoutOutputType | StderrOutputType;
-
-export type CombinedOutputType = {
-  stdout: string;
-  stderr: string;
-};
-
 export type TitleCellType = {
   id: string;
   type: 'title';
@@ -32,7 +15,6 @@ export type PackageJsonCellType = {
   type: 'package.json';
   source: string;
   filename: 'package.json';
-  output: ProcessOutputType[];
 };
 
 export type CodeCellType = {
@@ -41,7 +23,6 @@ export type CodeCellType = {
   source: string;
   language: string;
   filename: string;
-  output: ProcessOutputType[];
 };
 
 export type CellType = TitleCellType | MarkdownCellType | PackageJsonCellType | CodeCellType;

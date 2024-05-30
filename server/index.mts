@@ -7,64 +7,158 @@ import {
   createSession,
   findSession,
   exportSession,
-  execCell,
   findCell,
   replaceCell,
   removeCell,
   updateSession,
   sessionToResponse,
   listSessions,
-  readPackageJsonContentsFromDisk,
-  installPackage,
-  npmInstallPackageJson,
   insertCellAt,
+  readPackageJsonContentsFromDisk,
 } from './session.mjs';
-import { disk, take, combineOutputs } from './utils.mjs';
+import { disk, take } from './utils.mjs';
 import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from './config.mjs';
-import type { CellType, MarkdownCellType, CodeCellType, SessionType } from './types';
+import type {
+  CellType,
+  MarkdownCellType,
+  CodeCellType,
+  SessionType,
+  PackageJsonCellType,
+} from './types';
+import { node, npmInstall } from './exec.mjs';
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server: server });
 
 // move me
-async function doExec(
+async function doNode(
   ws: WsWebSocketType,
-  message: { sessionId: string; cellId: string; source: string },
+  session: SessionType,
+  cell: CodeCellType,
+  message: { source: string },
 ) {
+  const updatedCell = { ...cell, source: message.source };
+  const updatedCells = replaceCell(session, updatedCell);
+  await updateSession(session, { cells: updatedCells });
+
+  const secrets = await getSecrets();
+
+  node({
+    cwd: session.dir,
+    env: secrets,
+    entry: updatedCell.filename,
+    stdout(data) {
+      const event = {
+        type: 'cell:output',
+        message: {
+          cellId: updatedCell.id,
+          output: { type: 'stdout', data: data.toString('utf8') },
+        },
+      };
+      ws.send(JSON.stringify(event));
+    },
+    stderr(data) {
+      const event = {
+        type: 'cell:output',
+        message: {
+          cellId: updatedCell.id,
+          output: { type: 'stderr', data: data.toString('utf8') },
+        },
+      };
+      ws.send(JSON.stringify(event));
+    },
+    onExit(code) {
+      const event = {
+        type: 'cell:exited',
+        message: {
+          cellId: updatedCell.id,
+          code: code,
+        },
+      };
+      ws.send(JSON.stringify(event));
+    },
+  });
+}
+
+async function doNPMInstall(
+  ws: WsWebSocketType,
+  session: SessionType,
+  cell: PackageJsonCellType,
+  message: { source?: string; package?: string },
+) {
+  if (message.source) {
+    const updatedCell = { ...cell, source: message.source };
+    const updatedCells = replaceCell(session, updatedCell);
+    await updateSession(session, { cells: updatedCells });
+  }
+
+  npmInstall({
+    cwd: session.dir,
+    package: message.package,
+    stdout(data) {
+      const event = {
+        type: 'cell:output',
+        message: {
+          cellId: cell.id,
+          output: { type: 'stdout', data: data.toString('utf8') },
+        },
+      };
+      ws.send(JSON.stringify(event));
+    },
+    stderr(data) {
+      const event = {
+        type: 'cell:output',
+        message: {
+          cellId: cell.id,
+          output: { type: 'stderr', data: data.toString('utf8') },
+        },
+      };
+      ws.send(JSON.stringify(event));
+    },
+    async onExit(code) {
+      const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
+      const updatedCell = { ...cell, source: updatedJsonSource };
+      updateSession(session, { cells: replaceCell(session, updatedCell) }, false);
+
+      const updatedEvent = {
+        type: 'cell:updated',
+        message: { cell: updatedCell },
+      };
+
+      ws.send(JSON.stringify(updatedEvent));
+
+      const exitEvent = {
+        type: 'cell:exited',
+        message: {
+          cellId: updatedCell.id,
+          code: code,
+        },
+      };
+
+      ws.send(JSON.stringify(exitEvent));
+    },
+  });
+}
+
+async function doExec(ws: WsWebSocketType, message: any) {
   const session = await findSession(message.sessionId);
   const cell = findCell(session, message.cellId);
+
   if (!cell) {
     return;
   }
+
   switch (cell.type) {
-    case 'code': {
-      const updatedCell = { ...cell, source: message.source };
-      const updatedCells = replaceCell(session, updatedCell);
-      updateSession(session, { cells: updatedCells });
-
-      const { output } = await execCell(session, updatedCell);
-
-      // Update state
-      const resultingCell = { ...cell, output: output };
-      updateSession(session, { cells: replaceCell(session, resultingCell) });
-
-      ws.send(JSON.stringify({ type: 'cell:exec', message: { cell: resultingCell } }));
-      break;
-    }
-    case 'package.json': {
-      // TODO error handling
-      const { output } = await npmInstallPackageJson(session);
-      const resultingCell = { ...cell, output: output };
-      updateSession(session, { cells: replaceCell(session, resultingCell) });
-      ws.send(JSON.stringify({ type: 'cell:exec', message: { cell: resultingCell } }));
-      break;
-    }
-
+    case 'code':
+      return doNode(ws, session, cell, message);
+    case 'package.json':
+      return doNPMInstall(ws, session, cell, message);
     default:
       throw new Error(`Cannot execute cell of type '${cell.type}'`);
   }
 }
+
 wss.on('connection', function connection(ws) {
   ws.on('error', console.error);
 
@@ -148,29 +242,6 @@ app.post('/sessions/:id/export', cors(), async (req, res) => {
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
-});
-
-app.options('/sessions/:id/npm/install', cors());
-app.post('/sessions/:id/npm/install', cors(), async (req, res) => {
-  const { id } = req.params;
-  const { packageName } = req.body;
-  const session = await findSession(id);
-
-  const { exitCode, output } = await installPackage(session, packageName);
-
-  if (exitCode !== 0) {
-    return res.status(400).json({ error: true, message: output });
-  }
-
-  // Refresh the state of the package.json cell on the sessions object.
-  const cell = session.cells.filter((c) => c.type === 'package.json')[0];
-  if (!cell) {
-    return res.status(400).json({ error: true, message: 'package.json cell not found' });
-  }
-  const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
-  const updatedCell = { ...cell, source: updatedJsonSource };
-  updateSession(session, { cells: replaceCell(session, updatedCell) });
-  return res.json({ result: combineOutputs(output) });
 });
 
 app.options('/sessions/:id/cells', cors());
@@ -260,7 +331,7 @@ app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
 
   const updatedCell: CellType = {
     ...cell,
-    ...take(attrs, 'source', 'filename', 'text', 'output'),
+    ...take(attrs, 'source', 'filename', 'text'),
   };
 
   const updatedCells = replaceCell(session, updatedCell);

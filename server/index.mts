@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { ChildProcess } from 'node:child_process';
 import express from 'express';
 import cors from 'cors';
 import { WebSocketServer } from 'ws';
@@ -26,10 +27,38 @@ import type {
   PackageJsonCellType,
 } from './types';
 import { node, npmInstall } from './exec.mjs';
+import processes from './processes.mjs';
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server: server });
+
+function addRunningProcess(
+  ws: WsWebSocketType,
+  session: SessionType,
+  cell: CodeCellType | PackageJsonCellType,
+  process: ChildProcess,
+) {
+  // If the process was not successfully started, inform the client the cell is 'idle' again.
+  //
+  // TODO:
+  //
+  //     1. If process couldn't start due to an error, add error handling so the client knows
+  //     2. Ensure that there's no way the process could have started and successfully exited before we get here, causing the client to think it didn't run but it did.
+  //
+  if (!process.pid || process.killed) {
+    cell.status = 'idle';
+
+    const event = {
+      type: 'cell:updated',
+      message: { cell },
+    };
+
+    ws.send(JSON.stringify(event));
+  } else {
+    processes.add(session.id, cell.id, process);
+  }
+}
 
 // move me
 async function doNode(
@@ -41,7 +70,7 @@ async function doNode(
   const updatedCell: CodeCellType = {
     ...cell,
     source: message.source,
-    abortController: new AbortController(),
+    status: 'running',
   };
 
   const updatedCells = replaceCell(session, updatedCell);
@@ -49,11 +78,10 @@ async function doNode(
 
   const secrets = await getSecrets();
 
-  node({
+  const process = node({
     cwd: session.dir,
     env: secrets,
     entry: updatedCell.filename,
-    signal: updatedCell.abortController!.signal,
     stdout(data) {
       const event = {
         type: 'cell:output',
@@ -75,18 +103,18 @@ async function doNode(
       ws.send(JSON.stringify(event));
     },
     onExit() {
-      delete updatedCell.abortController;
+      updatedCell.status = 'idle';
 
       const event = {
-        type: 'cell:exited',
-        message: {
-          cellId: updatedCell.id,
-        },
+        type: 'cell:updated',
+        message: { cell: updatedCell },
       };
 
       ws.send(JSON.stringify(event));
     },
   });
+
+  addRunningProcess(ws, session, updatedCell, process);
 }
 
 async function doNPMInstall(
@@ -101,7 +129,11 @@ async function doNPMInstall(
     await updateSession(session, { cells: updatedCells });
   }
 
-  npmInstall({
+  // If it was updated due to source being present, reload the cell.
+  cell = findCell(session, cell.id) as PackageJsonCellType;
+  cell.status = 'running';
+
+  const process = npmInstall({
     cwd: session.dir,
     package: message.package,
     stdout(data) {
@@ -126,7 +158,11 @@ async function doNPMInstall(
     },
     async onExit() {
       const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
-      const updatedCell = { ...cell, source: updatedJsonSource };
+      const updatedCell: PackageJsonCellType = {
+        ...cell,
+        source: updatedJsonSource,
+        status: 'idle',
+      };
       updateSession(session, { cells: replaceCell(session, updatedCell) }, false);
 
       const updatedEvent = {
@@ -135,17 +171,10 @@ async function doNPMInstall(
       };
 
       ws.send(JSON.stringify(updatedEvent));
-
-      const exitEvent = {
-        type: 'cell:exited',
-        message: {
-          cellId: updatedCell.id,
-        },
-      };
-
-      ws.send(JSON.stringify(exitEvent));
     },
   });
+
+  addRunningProcess(ws, session, cell, process);
 }
 
 async function doExec(ws: WsWebSocketType, message: any) {
@@ -174,7 +203,13 @@ async function stopRunningCell(message: { sessionId: string; cellId: string }) {
     return;
   }
 
-  cell.abortController?.abort();
+  const killed = processes.kill(session.id, cell.id);
+
+  if (!killed) {
+    console.error(
+      `Attempted to kill process for session ${session.id} and cell ${cell.id} but it didn't die`,
+    );
+  }
 }
 
 wss.on('connection', function connection(ws) {

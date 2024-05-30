@@ -6,7 +6,6 @@ export type BaseExecRequestType = {
   stdout: (data: Buffer) => void;
   stderr: (data: Buffer) => void;
   onExit: (code: number | null, signal: NodeJS.Signals | null) => void;
-  signal?: AbortSignal;
 };
 
 export type NodeRequestType = BaseExecRequestType & {
@@ -27,7 +26,6 @@ export type NPMInstallRequestType = BaseExecRequestType & {
  *       cwd: '/Users/ben/.srcbook/foo',
  *       env: {FOO_ENV_VAR: 'foooooooo'},
  *       entry: foo.mjs',
- *       signal: abortSignal,
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
@@ -35,17 +33,13 @@ export type NPMInstallRequestType = BaseExecRequestType & {
  *
  */
 export function node(options: NodeRequestType) {
-  const { cwd, env, entry, stdout, stderr, onExit, signal } = options;
+  const { cwd, env, entry, stdout, stderr, onExit } = options;
 
   const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
 
   // Explicitly using spawn here (over fork) to make it clear these
   // processes should be as decoupled from one another as possible.
-  const child = spawn('node', [filepath], {
-    cwd,
-    signal,
-    env: { ...process.env, ...env },
-  });
+  const child = spawn('node', [filepath], { cwd, env: { ...process.env, ...env } });
 
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
@@ -60,6 +54,8 @@ export function node(options: NodeRequestType) {
   child.on('exit', (code, signal) => {
     onExit && onExit(code, signal);
   });
+
+  return child;
 }
 
 /**
@@ -85,12 +81,12 @@ export function node(options: NodeRequestType) {
  *     });
  *
  */
-export async function npmInstall(options: NPMInstallRequestType) {
-  const { cwd, stdout, stderr, onExit, signal } = options;
+export function npmInstall(options: NPMInstallRequestType) {
+  const { cwd, stdout, stderr, onExit } = options;
 
   const args = options.package ? ['install', options.package] : ['install'];
 
-  const child = spawn('npm', args, { cwd, signal });
+  const child = spawn('npm', args, { cwd });
 
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
@@ -105,4 +101,6 @@ export async function npmInstall(options: NPMInstallRequestType) {
   child.on('exit', (code, signal) => {
     onExit && onExit(code, signal);
   });
+
+  return child;
 }

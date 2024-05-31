@@ -85,6 +85,18 @@ export async function loadSession(
   return response.json();
 }
 
+export async function deleteSession(request: { id: string }) {
+  const response = await fetch(SERVER_BASE_URL + '/sessions/' + request.id, {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+}
+
 export async function loadSessions(): Promise<{ error: boolean; result: SessionType[] }> {
   const response = await fetch(SERVER_BASE_URL + '/sessions', {
     method: 'GET',

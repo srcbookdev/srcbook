@@ -38,6 +38,7 @@ import { EditableH1 } from '@/components/ui/heading';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
+import DeleteSessionModal from '@/components/delete-session-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
 import SessionClient, { type Message } from '@/clients/session';
 import { CellsProvider, useCells } from '@/components/use-cell';
@@ -65,6 +66,7 @@ function Session(props: { session: SessionType; client: SessionClient }) {
 
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showSave, setShowSave] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
   // This assumes qwerty layout.
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
@@ -136,6 +138,7 @@ function Session(props: { session: SessionType; client: SessionClient }) {
   return (
     <div>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+      <DeleteSessionModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <SaveModal open={showSave} onOpenChange={setShowSave} session={session} />
 
       <div className="fixed bottom-2 right-2">
@@ -145,6 +148,12 @@ function Session(props: { session: SessionType; client: SessionClient }) {
             onClick={() => setShowSave(!showSave)}
           >
             <Save size={16} />
+          </div>
+          <div
+            className="font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
+            onClick={() => setShowDelete(!showDelete)}
+          >
+            <Trash2 size={16} />
           </div>
           <div
             className="font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"

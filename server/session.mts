@@ -94,6 +94,10 @@ export async function createSession({ dirname, title }: { dirname: string; title
 
   return session;
 }
+export async function deleteSession(session: SessionType) {
+  await fs.rm(session.dir, { recursive: true });
+  delete sessions[session.id];
+}
 
 // We make sure to load sessions from the disk in addition to the ones already in memory.
 export async function listSessions(): Promise<Record<string, SessionType>> {

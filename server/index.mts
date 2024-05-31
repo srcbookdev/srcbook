@@ -266,7 +266,7 @@ app.post('/sessions', cors(), async (req, res) => {
 });
 
 app.get('/sessions', cors(), async (_req, res) => {
-  const sessions = listSessions();
+  const sessions = await listSessions();
   return res.json({ error: false, result: Object.values(sessions).map(sessionToResponse) });
 });
 

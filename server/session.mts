@@ -31,7 +31,7 @@ async function flushSession(session: SessionType) {
   return Promise.all(writes);
 }
 
-async function fromDir(dirname: string) {
+async function fromDir(dirname: string): Promise<SessionType> {
   const existingSession = Object.values(sessions).find((session) => session.dir === dirname);
   if (existingSession) {
     return existingSession;
@@ -95,7 +95,24 @@ export async function createSession({ dirname, title }: { dirname: string; title
   return session;
 }
 
-export function listSessions() {
+// We make sure to load sessions from the disk in addition to the ones already in memory.
+export async function listSessions(): Promise<Record<string, SessionType>> {
+  const srcbookDirs = await fs.readdir(SRCBOOK_DIR, { withFileTypes: true });
+  const loadedSessions = srcbookDirs
+    .filter((entry) => entry.isDirectory())
+    .map(async (entry) => {
+      try {
+        const session = await fromDir(Path.join(entry.parentPath, entry.name));
+        sessions[session.id] = session;
+        return session;
+      } catch (e) {
+        console.error(
+          `Error loading session from ${entry.name}: ${(e as Error).message}. Skipping...`,
+        );
+      }
+    });
+
+  await Promise.all(loadedSessions);
   return sessions;
 }
 

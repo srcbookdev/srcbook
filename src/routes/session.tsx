@@ -538,6 +538,7 @@ function formatOutput(output: OutputType[]) {
 
 function CellOutput(props: { cellId: string }) {
   const { hasOutput, getOutput } = useCells();
+  const { clearOutput } = useCells();
 
   if (!hasOutput(props.cellId)) {
     return null;
@@ -547,7 +548,13 @@ function CellOutput(props: { cellId: string }) {
   const stderrText = formatOutput(getOutput(props.cellId, 'stderr'));
 
   return (
-    <div className="border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
+    <div className="group relative border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
+      <div
+        onClick={() => clearOutput(props.cellId)}
+        className="absolute top-0 right-0 hover:cursor-pointer text-gray-200 hover:underline group-hover:text-gray-400 transition-all p-0.5 text-xs"
+      >
+        Clear
+      </div>
       {stdoutText && <div className="p-2 whitespace-pre-wrap overflow-scroll">{stdoutText}</div>}
       {stderrText && (
         <div className="p-2 whitespace-pre-wrap text-red-500 overflow-scroll">{stderrText}</div>

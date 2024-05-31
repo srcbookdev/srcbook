@@ -26,3 +26,25 @@ export function randomid(byteSize = 16) {
   const bytes = crypto.getRandomValues(new Uint8Array(byteSize));
   return base58.encode(bytes);
 }
+
+export function splitPath(fullPath: string) {
+  // Find the last slash in the path. Assumes macOSX or Linux-style paths
+  // For this, first we normalize the path to use forward slashes
+  const normalizedPath = fullPath.replace(/\\/g, '/');
+
+  const lastSlashIndex = normalizedPath.lastIndexOf('/');
+
+  // If there's no slash, the fullPath is just the basename
+  if (lastSlashIndex === -1) {
+    return {
+      dirname: '',
+      basename: fullPath,
+    };
+  }
+
+  // Split the path into dirname and basename
+  const dirname = fullPath.substring(0, lastSlashIndex);
+  const basename = fullPath.substring(lastSlashIndex + 1);
+
+  return { dirname, basename };
+}

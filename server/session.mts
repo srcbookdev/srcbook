@@ -146,6 +146,7 @@ export function sessionToResponse(session: SessionType) {
   return {
     id: session.id,
     cells: session.cells,
+    dirName: Path.basename(session.dir),
   };
 }
 

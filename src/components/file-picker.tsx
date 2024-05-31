@@ -1,7 +1,7 @@
 import { Form } from 'react-router-dom';
 import { useState } from 'react';
 import { FileCode, Folder } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, splitPath } from '@/lib/utils';
 import { disk } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -132,11 +132,12 @@ function FsEntryItem({
 
 export function FileSaver(props: {
   dirname: string;
+  filename?: string;
   entries: FsObjectType[];
   onSave: (path: string) => void;
 }) {
   const [dirname, setDirname] = useState(props.dirname);
-  const [query, setQuery] = useState(props.dirname);
+  const [query, setQuery] = useState(props.filename || props.dirname);
   const [boldPrefix, setBoldPrefix] = useState<string>('');
   const [entries, _setEntries] = useState(props.entries);
   const [filteredEntries, setFilteredEntries] = useState<FsObjectType[]>(props.entries);
@@ -162,6 +163,7 @@ export function FileSaver(props: {
   }
 
   function suffixQuery(query: string) {
+    console.log('query', query);
     return query.endsWith('.srcmd') ? query : query + '.srcmd';
   }
 
@@ -216,26 +218,4 @@ export function FileSaver(props: {
       </Button>
     </div>
   );
-}
-
-function splitPath(fullPath: string) {
-  // Find the last slash in the path. Assumes macOSX or Linux-style paths
-  // For this, first we normalize the path to use forward slashes
-  const normalizedPath = fullPath.replace(/\\/g, '/');
-
-  const lastSlashIndex = normalizedPath.lastIndexOf('/');
-
-  // If there's no slash, the fullPath is just the basename
-  if (lastSlashIndex === -1) {
-    return {
-      dirname: '',
-      basename: fullPath,
-    };
-  }
-
-  // Split the path into dirname and basename
-  const dirname = fullPath.substring(0, lastSlashIndex);
-  const basename = fullPath.substring(lastSlashIndex + 1);
-
-  return { dirname, basename };
 }

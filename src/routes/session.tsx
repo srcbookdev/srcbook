@@ -548,17 +548,31 @@ function CellOutput(props: { cellId: string }) {
   const stderrText = formatOutput(getOutput(props.cellId, 'stderr'));
 
   return (
-    <div className="group relative border rounded mt-2 font-mono text-sm bg-input/10 divide-y">
+    <div className="relative group border rounded mt-2 font-mono text-sm bg-input/10">
       <div
         onClick={() => clearOutput(props.cellId)}
         className="absolute top-0 right-0 hover:cursor-pointer text-gray-200 hover:underline group-hover:text-gray-400 transition-all p-0.5 text-xs"
       >
         Clear
       </div>
-      {stdoutText && <div className="p-2 whitespace-pre-wrap overflow-scroll">{stdoutText}</div>}
-      {stderrText && (
-        <div className="p-2 whitespace-pre-wrap text-red-500 overflow-scroll">{stderrText}</div>
-      )}
+      <div className="divide-y">
+        {stdoutText && (
+          <>
+            <h1 className="font-bold px-2">Output</h1>
+            <div className="overflow-scroll p-2 whitespace-pre-wrap flex flex-col-reverse max-h-[400px]">
+              {stdoutText}
+            </div>
+          </>
+        )}
+        {stderrText && (
+          <>
+            <h1 className="font-bold px-2">Errors & Warnings</h1>
+            <div className="flex flex-col-reverse max-h-[400px] overflow-scroll p-2 whitespace-pre-wrap text-red-500">
+              {stderrText}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

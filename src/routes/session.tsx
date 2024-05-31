@@ -265,9 +265,10 @@ function MarkdownCell(props: {
   onUpdateCell: (cell: MarkdownCellType, attrs: Partial<MarkdownCellType>) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
-  const [status, setStatus] = useState<'edit' | 'view'>('view');
-  const [text, setText] = useState(props.cell.text);
   const cell = props.cell;
+  const defaultState = cell.text ? 'view' : 'edit';
+  const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
+  const [text, setText] = useState(props.cell.text);
 
   const keyMap = Prec.highest(
     keymap.of([
@@ -284,6 +285,7 @@ function MarkdownCell(props: {
 
   function onChangeSource(source: string) {
     setText(source);
+    props.onUpdateCell(cell, { text: source });
   }
 
   function onSave() {
@@ -321,6 +323,7 @@ function MarkdownCell(props: {
               </Button>
               <Button onClick={onSave}>Save</Button>
             </div>
+            {cell.text === '' && <p className="text-xl text-gray-300">new markdown cell</p>}
             <Button variant="destructive" onClick={() => props.onDeleteCell(cell)}>
               Delete
             </Button>

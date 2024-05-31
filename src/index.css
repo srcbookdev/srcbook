@@ -62,6 +62,7 @@
 
 .cm-editor {
   @apply rounded-b;
+  max-height: 80vh;
 }
 
 .cm-editor.cm-focused {
@@ -79,6 +80,15 @@
 
 .cm-editor .cm-content {
   @apply bg-input/10;
+}
+
+.cm-editor .cm-scroller {
+  overflow: auto;
+}
+
+.cm-editor .cm-gutters,
+.cm-editor .cm-content {
+  min-height: '100px';
 }
 
 .cm-editor * {

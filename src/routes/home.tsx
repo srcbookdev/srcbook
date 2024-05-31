@@ -27,22 +27,6 @@ type HomeLoaderDataType = {
   sessions: SessionType[];
 };
 
-function Session({ session }: { session: SessionType }) {
-  return (
-    <Link
-      to={`sessions/${session.id}`}
-      className="border border-gray-200 rounded-lg p-3 hover:border-gray-300 max-w-md"
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
-          <p className="text-sm text-gray-400">{session.cells.length} cells</p>
-        </div>
-        <CanvasCells numCells={session.cells.length} height={80} width={40} />
-      </div>
-    </Link>
-  );
-}
 function Home() {
   const {
     disk: { dirname },
@@ -88,9 +72,24 @@ function Home() {
           No sessions are currently open. Create a new session or open a previous one.
         </p>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
           {sessions.map((session) => {
-            return <Session key={session.id} session={session} />;
+            return (
+              <div
+                key={session.id}
+                className="border border-gray-200 rounded-lg p-3 transition-all hover:bg-gray-50 w-full"
+              >
+                <Link to={`sessions/${session.id}`}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
+                      <p className="text-sm text-gray-400">{session.cells.length} cells</p>
+                    </div>
+                    <CanvasCells numCells={session.cells.length} height={80} width={40} />
+                  </div>
+                </Link>
+              </div>
+            );
           })}
         </div>
       )}

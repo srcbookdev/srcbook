@@ -24,7 +24,6 @@ export default function CanvasCells({
 
     let bottomPadding = 0;
     if (shownCells < numCells) {
-      console.log('showing some vertical padding');
       bottomPadding = spacing * 5;
     }
     const rectHeight = (height - bottomPadding) / (shownCells + spacing);

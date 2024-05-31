@@ -70,7 +70,7 @@
 }
 
 .cm-editor .cm-gutters {
-  @apply rounded-bl bg-input/10;
+  @apply rounded-bl;
 }
 
 .cm-editor .cm-gutters .cm-gutterElement {

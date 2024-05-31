@@ -1,4 +1,5 @@
 import { exportSession, disk } from '@/lib/server';
+import { splitPath } from '@/lib/utils';
 import { SessionType, FsObjectType } from '@/types';
 import { useEffect, useState } from 'react';
 import { FileSaver } from '@/components/file-picker';
@@ -21,18 +22,26 @@ export default function SaveModal({
 }) {
   const [entries, setEntries] = useState<FsObjectType[]>([]);
   const [dirname, setDirname] = useState('');
+  const [filename, setFilename] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInitialEntries = async () => {
-      const { result } = await disk();
+      const previousPath = localStorage.getItem(`srcbk:save-path:${session.dirName}`);
+      if (previousPath) {
+        const { dirname: dir } = splitPath(previousPath);
+        setDirname(dir);
+        setFilename(previousPath);
+      }
+      const { result } = await disk({ dirname });
       setEntries(result.entries);
       setDirname(result.dirname);
     };
     fetchInitialEntries();
-  }, []);
+  }, [session.dirName, dirname]);
 
   const onSave = async (path: string) => {
+    localStorage.setItem(`srcbk:save-path:${session.dirName}`, path);
     exportSession(session.id, { filename: path })
       .then(() => {
         onOpenChange(false);
@@ -58,7 +67,7 @@ export default function SaveModal({
             </div>
           </DialogDescription>
         </DialogHeader>
-        <FileSaver dirname={dirname} entries={entries} onSave={onSave} />
+        <FileSaver filename={filename} dirname={dirname} entries={entries} onSave={onSave} />
         {error && <p className="text-red-500">{error}</p>}
       </DialogContent>
     </Dialog>

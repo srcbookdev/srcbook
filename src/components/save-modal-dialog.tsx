@@ -33,6 +33,7 @@ export default function SaveModal({
   }, []);
 
   const onSave = async (path: string) => {
+    session.saveFile = path;
     exportSession(session.id, { filename: path })
       .then(() => {
         onOpenChange(false);

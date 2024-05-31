@@ -52,4 +52,5 @@ export type SessionType = {
   id: string;
   path: string;
   cells: CellType[];
+  saveFile?: string;
 };

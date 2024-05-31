@@ -7,6 +7,7 @@ import type { WebSocket as WsWebSocketType } from 'ws';
 import {
   createSession,
   findSession,
+  deleteSession,
   exportSession,
   findCell,
   replaceCell,
@@ -278,6 +279,17 @@ app.get('/sessions/:id', cors(), async (req, res) => {
   try {
     const session = await findSession(id);
     return res.json({ error: false, result: sessionToResponse(session) });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+app.delete('/sessions/:id', cors(), async (req, res) => {
+  try {
+    const session = await findSession(req.params.id);
+    await deleteSession(session);
+    return res.json({ error: false, result: true });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

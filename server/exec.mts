@@ -44,7 +44,7 @@ export function node(options: NodeRequestType) {
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
 
-  child.on('error', (_err) => {
+  child.on('error', () => {
     // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
     // Doing so crashes the parent process unless this callback callback is registered.
     //
@@ -91,7 +91,7 @@ export function npmInstall(options: NPMInstallRequestType) {
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
 
-  child.on('error', (_err) => {
+  child.on('error', () => {
     // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
     // Doing so crashes the parent process unless this callback callback is registered.
     //

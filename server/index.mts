@@ -25,7 +25,7 @@ import type {
   SessionType,
   PackageJsonCellType,
 } from './types';
-import { node, npmInstall } from './exec.mjs';
+import { node, npmInstall, shouldRunDeps } from './exec.mjs';
 import processes from './processes.mjs';
 import WebSocketServer from './web-socket-server.mjs';
 import z from 'zod';
@@ -79,6 +79,8 @@ async function doNode(
   cell: CodeCellType,
   payload: z.infer<typeof CellExecSchema>,
 ) {
+  // Check if we should nudge the user to run `npm install`
+  console.log('shouldRunDeps', await shouldRunDeps(session.dir));
   const updatedCell: CodeCellType = {
     ...cell,
     source: payload.source || cell.source,

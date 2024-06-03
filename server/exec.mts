@@ -1,5 +1,7 @@
 import Path from 'node:path';
+import fs from 'node:fs';
 import { spawn } from 'node:child_process';
+import depcheck from 'depcheck';
 
 export type BaseExecRequestType = {
   cwd: string;
@@ -103,4 +105,63 @@ export function npmInstall(options: NPMInstallRequestType) {
   });
 
   return child;
+}
+
+/**
+ * Utility function to determine if we should nudge the user to run `npm install`.
+ *
+ * There are a few conditions that should trigger this:
+ * - package.json has dependencies but package-lock.json is missing
+ * -
+ */
+export async function shouldRunDeps(cwd: string): Promise<boolean> {
+  const missingDeclaredDeps = hasMissingDeclaredDeps(cwd);
+
+  const missingUndeclaredDeps = await hasMissingUndeclaredDeps(cwd);
+
+  return missingDeclaredDeps || missingUndeclaredDeps;
+}
+
+function hasMissingDeclaredDeps(cwd: string): boolean {
+  const packageJsonPath = Path.join(cwd, 'package.json');
+  const packageLockPath = Path.join(cwd, 'package-lock.json');
+
+  if (!fs.existsSync(packageJsonPath)) {
+    throw new Error('package.json not found in the specified directory.');
+  }
+
+  const packageJsonData = fs.readFileSync(packageJsonPath, 'utf8');
+  const pkgJson = JSON.parse(packageJsonData);
+
+  const dependencies = pkgJson.dependencies || {};
+  const devDependencies = pkgJson.devDependencies || {};
+
+  const allDeps = { ...dependencies, ...devDependencies };
+  const allDepsKeys = Object.keys(allDeps);
+
+  if (allDepsKeys.length === 0) {
+    return false; // No dependencies to install
+  }
+
+  if (!fs.existsSync(packageLockPath)) {
+    return true; // package-lock.json does not exist, need to run npm install
+  }
+
+  const packageLockData = fs.readFileSync(packageLockPath, 'utf8');
+  const pkgLockJson = JSON.parse(packageLockData);
+
+  // This feels brittle but the empty string key is the convention for the root package.
+  const installedDeps = pkgLockJson.packages[''].dependencies || {};
+
+  for (const dep of allDepsKeys) {
+    if (!installedDeps[dep]) {
+      return true; // Dependency in package.json not found in package-lock.json
+    }
+  }
+  return false; // All dependencies are installed
+}
+
+async function hasMissingUndeclaredDeps(cwd: string): Promise<boolean> {
+  const result = await depcheck(cwd, {});
+  return Object.keys(result.missing).length > 0;
 }

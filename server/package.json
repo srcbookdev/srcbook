@@ -11,6 +11,7 @@
   "dependencies": {
     "@scure/base": "^1.1.6",
     "cors": "^2.8.5",
+    "depcheck": "^1.4.7",
     "express": "^4.19.2",
     "marked": "^12.0.2",
     "ws": "^8.17.0",

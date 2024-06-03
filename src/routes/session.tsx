@@ -488,7 +488,7 @@ function CodeCell(props: {
         className={cn(
           'border rounded group',
           cell.status === 'running'
-            ? 'outline-orange-100 outline outline-2'
+            ? 'outline-orange-200 outline outline-2'
             : 'outline-blue-100 focus-within:outline focus-within:outline-2',
         )}
       >
@@ -497,7 +497,13 @@ function CodeCell(props: {
             filename={cell.filename}
             onUpdate={(filename) => props.onUpdateCell(cell, { filename })}
           />
-          <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2">
+          <div
+            className={cn(
+              'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2',
+
+              cell.status === 'running' ? 'opacity-100' : '',
+            )}
+          >
             <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
               <Button variant="ghost" tabIndex={1}>
                 <Trash2 size={16} />

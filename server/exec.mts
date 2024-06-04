@@ -1,6 +1,6 @@
 import Path from 'node:path';
 import fs from 'node:fs';
-import { spawn, exec, execSync } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 
 export type BaseExecRequestType = {
   cwd: string;

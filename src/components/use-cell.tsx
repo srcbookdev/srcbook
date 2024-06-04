@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, ReactNode, useRef } from 'react';
+import { createContext, useCallback, useContext, ReactNode, useRef, useReducer } from 'react';
 import { CellType, OutputType } from '@/types';
 
 import { randomid } from '@/lib/utils';
@@ -29,7 +29,7 @@ type OutputStateType = Record<string, OutputType[]>;
 
 interface CellsContextType {
   cells: CellType[];
-  setCells: React.Dispatch<React.SetStateAction<CellType[]>>;
+  setCells: (cells: CellType[]) => void;
   updateCell: (cell: CellType) => void;
   removeCell: (cell: CellType) => void;
   insertCellAt: (cell: CellType, idx: number) => void;
@@ -47,38 +47,50 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
   initialCells,
   children,
 }) => {
-  const [cells, setCells] = useState<CellType[]>(initialCells);
+  // Use ref to help avoid stale state bugs in closures.
+  const cellsRef = useRef<CellType[]>(initialCells);
 
-  // This needs to be a ref in order for writes to not clobber each other.
+  // Use ref to help avoid stale state bugs in closures.
   const outputRef = useRef<OutputStateType>({});
-  const [_output, _setOutput] = useState<OutputStateType>(outputRef.current);
 
-  function internalSetOutput(output: OutputStateType) {
+  // Because we use refs for our state, we need a way to trigger
+  // component re-renders when the ref state changes.
+  //
+  // https://legacy.reactjs.org/docs/hooks-faq.html#is-there-something-like-forceupdate
+  //
+  const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
+
+  const stableSetCells = useCallback((cells: CellType[]) => {
+    cellsRef.current = cells;
+    forceComponentRerender();
+  }, []);
+
+  const stableSetOutput = useCallback((output: OutputStateType) => {
     outputRef.current = output;
-    _setOutput(output);
-  }
+    forceComponentRerender();
+  }, []);
 
   const updateCell = useCallback(
     (cell: CellType) => {
-      setCells(cells.map((c) => (c.id === cell.id ? cell : c)));
+      stableSetCells(cellsRef.current.map((c) => (c.id === cell.id ? cell : c)));
     },
-    [cells],
+    [stableSetCells],
   );
 
   const removeCell = useCallback(
     (cell: CellType) => {
-      setCells(cells.filter((c) => c.id !== cell.id));
+      stableSetCells(cellsRef.current.filter((c) => c.id !== cell.id));
     },
-    [cells],
+    [stableSetCells],
   );
 
   const insertCellAt = useCallback(
     (cell: CellType, idx: number) => {
-      const copy = [...cells];
+      const copy = [...cellsRef.current];
       copy.splice(idx, 0, cell);
-      setCells(copy);
+      stableSetCells(copy);
     },
-    [cells],
+    [stableSetCells],
   );
 
   const createCodeCell = useCallback(
@@ -99,40 +111,40 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
     [insertCellAt],
   );
 
-  const hasOutput = useCallback(
-    (id: string, type?: 'stdout' | 'stderr') => {
-      const output = _output[id] || [];
-      const length = type ? output.filter((o) => o.type === type).length : output.length;
-      return length > 0;
-    },
-    [_output],
-  );
-
-  const getOutput = useCallback(
-    (id: string, type?: 'stdout' | 'stderr') => {
-      const output = _output[id] || [];
-      return type ? output.filter((o) => o.type === type) : output;
-    },
-    [_output],
-  );
-
-  const setOutput = useCallback((id: string, output: OutputType | OutputType[]) => {
-    output = Array.isArray(output) ? output : [output];
-    internalSetOutput({
-      ...outputRef.current,
-      [id]: (outputRef.current[id] || []).concat(output),
-    });
+  const hasOutput = useCallback((id: string, type?: 'stdout' | 'stderr') => {
+    const output = outputRef.current[id] || [];
+    const length = type ? output.filter((o) => o.type === type).length : output.length;
+    return length > 0;
   }, []);
 
-  const clearOutput = useCallback((id: string) => {
-    internalSetOutput({ ...outputRef.current, [id]: [] });
+  const getOutput = useCallback((id: string, type?: 'stdout' | 'stderr') => {
+    const output = outputRef.current[id] || [];
+    return type ? output.filter((o) => o.type === type) : output;
   }, []);
+
+  const setOutput = useCallback(
+    (id: string, output: OutputType | OutputType[]) => {
+      output = Array.isArray(output) ? output : [output];
+      stableSetOutput({
+        ...outputRef.current,
+        [id]: (outputRef.current[id] || []).concat(output),
+      });
+    },
+    [stableSetOutput],
+  );
+
+  const clearOutput = useCallback(
+    (id: string) => {
+      stableSetOutput({ ...outputRef.current, [id]: [] });
+    },
+    [stableSetOutput],
+  );
 
   return (
     <CellsContext.Provider
       value={{
-        cells,
-        setCells,
+        cells: cellsRef.current,
+        setCells: stableSetCells,
         updateCell,
         removeCell,
         insertCellAt,

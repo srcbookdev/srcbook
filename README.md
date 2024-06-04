@@ -1,6 +1,6 @@
-# Src Book
+# Srcbook
 
-Interactive notebooks for TypeScript.
+Interactive notebooks for JavaScript.
 
 ## Repo architecture
 
@@ -31,11 +31,3 @@ You can pass the following env variables:
 ## Config
 
 Configuration can be modified in the application UI directly, and is present at `$SRC_BOOK_CONFIG_DIR/config.json`
-
-## Testing
-
-We use [jest](https://jestjs.io/docs/getting-started) for testing. You have 3 options to test:
-
-- test client side only with `npm run test-client`
-- test server side only with `npm run test-server`
-- run both test suites with `npm run test`

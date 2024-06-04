@@ -40,26 +40,34 @@ import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import DeleteSessionModal from '@/components/delete-session-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
-import SessionClient, { type Message } from '@/clients/session';
+import { SessionChannel, CellOutputMessageType, CellUpdatedMessageType } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
-  return { session, client: new SessionClient(params.id!) };
+  return { session };
 }
 
 function SessionPage() {
-  const { session, client } = useLoaderData() as { session: SessionType; client: SessionClient };
+  const { session } = useLoaderData() as { session: SessionType };
+
+  const channelRef = useRef(SessionChannel.create(session.id));
+  const channel = channelRef.current;
+
+  useEffect(() => {
+    channel.subscribe();
+    return () => channel.unsubscribe();
+  }, [channel]);
 
   return (
     <CellsProvider initialCells={session.cells}>
-      <Session session={session} client={client} />
+      <Session session={session} channel={channelRef.current} />
     </CellsProvider>
   );
 }
 
-function Session(props: { session: SessionType; client: SessionClient }) {
-  const { session, client } = props;
+function Session(props: { session: SessionType; channel: SessionChannel }) {
+  const { session, channel } = props;
 
   const { cells, setCells, updateCell, removeCell, createCodeCell, createMarkdownCell, setOutput } =
     useCells();
@@ -88,22 +96,24 @@ function Session(props: { session: SessionType; client: SessionClient }) {
   }
 
   useEffect(() => {
-    const callback = (message: Message) => setOutput(message.cellId, message.output);
-
-    client.on('cell:output', callback);
-
-    return () => client.off('cell:output', callback);
-  }, [client, setOutput]);
-
-  useEffect(() => {
-    const callback = (message: Message) => {
-      updateCell(message.cell);
+    const callback = (payload: CellOutputMessageType) => {
+      setOutput(payload.cellId, payload.output);
     };
 
-    client.on('cell:updated', callback);
+    channel.on('cell:output', callback);
 
-    return () => client.off('cell:updated', callback);
-  }, [client, updateCell]);
+    return () => channel.off('cell:output', callback);
+  }, [channel, setOutput]);
+
+  useEffect(() => {
+    const callback = (payload: CellUpdatedMessageType) => {
+      updateCell(payload.cell);
+    };
+
+    channel.on('cell:updated', callback);
+
+    return () => channel.off('cell:updated', callback);
+  }, [channel, updateCell]);
 
   async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
     // Optimistic cell update
@@ -184,7 +194,7 @@ function Session(props: { session: SessionType; client: SessionClient }) {
               key={cell.id}
               cell={cell}
               session={session}
-              client={client}
+              channel={channel}
               onUpdateCell={onUpdateCell}
               onDeleteCell={onDeleteCell}
             />
@@ -206,7 +216,7 @@ function Session(props: { session: SessionType; client: SessionClient }) {
 function Cell(props: {
   cell: CellType;
   session: SessionType;
-  client: SessionClient;
+  channel: SessionChannel;
   onUpdateCell: <T extends CellType>(cell: T, attrs: Partial<T>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
@@ -218,7 +228,7 @@ function Cell(props: {
         <CodeCell
           session={props.session}
           cell={props.cell}
-          client={props.client}
+          channel={props.channel}
           onUpdateCell={props.onUpdateCell}
           onDeleteCell={props.onDeleteCell}
         />
@@ -235,7 +245,7 @@ function Cell(props: {
       return (
         <PackageJsonCell
           session={props.session}
-          client={props.client}
+          channel={props.channel}
           cell={props.cell}
           onUpdateCell={props.onUpdateCell}
         />
@@ -348,11 +358,11 @@ function MarkdownCell(props: {
 
 function PackageJsonCell(props: {
   cell: PackageJsonCellType;
-  client: SessionClient;
+  channel: SessionChannel;
   session: SessionType;
   onUpdateCell: (cell: PackageJsonCellType, attrs: Partial<PackageJsonCellType>) => Promise<void>;
 }) {
-  const { cell, client, session, onUpdateCell } = props;
+  const { cell, channel, session, onUpdateCell } = props;
 
   const [open, setOpen] = useState(false);
 
@@ -370,7 +380,7 @@ function PackageJsonCell(props: {
     // Here we use the client-only updateCell function. The server will know its running from the 'cell:exec'.
     updateCell({ ...cell, status: 'running' });
     clearOutput(cell.id);
-    client.send('cell:exec', {
+    channel.push('cell:exec', {
       sessionId: session.id,
       cellId: cell.id,
       source: cell.source,
@@ -420,7 +430,7 @@ function PackageJsonCell(props: {
               </div>
             )}
           </Button>
-          <InstallPackageModal client={client} session={session}>
+          <InstallPackageModal channel={channel} session={session}>
             <Button
               variant="outline"
               className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
@@ -451,7 +461,7 @@ function PackageJsonCell(props: {
 function CodeCell(props: {
   session: SessionType;
   cell: CodeCellType;
-  client: SessionClient;
+  channel: SessionChannel;
   onUpdateCell: (cell: CodeCellType, attrs: Partial<CodeCellType>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
@@ -471,7 +481,7 @@ function CodeCell(props: {
   function runCell() {
     updateCell({ ...cell, status: 'running' });
     clearOutput(cell.id);
-    props.client.send('cell:exec', {
+    props.channel.push('cell:exec', {
       sessionId: props.session.id,
       cellId: cell.id,
       source: cell.source,
@@ -479,7 +489,7 @@ function CodeCell(props: {
   }
 
   function stopCell() {
-    props.client.send('cell:stop', { sessionId: props.session.id, cellId: cell.id });
+    props.channel.push('cell:stop', { sessionId: props.session.id, cellId: cell.id });
   }
 
   return (

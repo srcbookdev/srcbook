@@ -2,8 +2,6 @@ import http from 'node:http';
 import { ChildProcess } from 'node:child_process';
 import express from 'express';
 import cors from 'cors';
-import { WebSocketServer } from 'ws';
-import type { WebSocket as WsWebSocketType } from 'ws';
 import {
   createSession,
   findSession,
@@ -29,13 +27,34 @@ import type {
 } from './types';
 import { node, npmInstall } from './exec.mjs';
 import processes from './processes.mjs';
+import WebSocketServer from './web-socket-server.mjs';
+import z from 'zod';
 
-const app = express();
-const server = http.createServer(app);
-const wss = new WebSocketServer({ server: server });
+const CellExecSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+  source: z.string().optional(),
+  package: z.string().optional(),
+});
+
+const CellStopSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+});
+
+const CellUpdatedSchema = z.object({
+  cell: z.any(), // TODO: TYPE ME
+});
+
+const CellOutputSchema = z.object({
+  cellId: z.string(),
+  output: z.object({
+    type: z.enum(['stdout', 'stderr']),
+    data: z.string(),
+  }),
+});
 
 function addRunningProcess(
-  ws: WsWebSocketType,
   session: SessionType,
   cell: CodeCellType | PackageJsonCellType,
   process: ChildProcess,
@@ -49,28 +68,20 @@ function addRunningProcess(
   //
   if (!process.pid || process.killed) {
     cell.status = 'idle';
-
-    const event = {
-      type: 'cell:updated',
-      message: { cell },
-    };
-
-    ws.send(JSON.stringify(event));
+    wss.broadcast(`session:${session.id}`, 'cell:updated', { cell });
   } else {
     processes.add(session.id, cell.id, process);
   }
 }
 
-// move me
 async function doNode(
-  ws: WsWebSocketType,
   session: SessionType,
   cell: CodeCellType,
-  message: { source: string },
+  payload: z.infer<typeof CellExecSchema>,
 ) {
   const updatedCell: CodeCellType = {
     ...cell,
-    source: message.source,
+    source: payload.source || cell.source,
     status: 'running',
   };
 
@@ -84,48 +95,33 @@ async function doNode(
     env: secrets,
     entry: updatedCell.filename,
     stdout(data) {
-      const event = {
-        type: 'cell:output',
-        message: {
-          cellId: updatedCell.id,
-          output: { type: 'stdout', data: data.toString('utf8') },
-        },
-      };
-      ws.send(JSON.stringify(event));
+      wss.broadcast(`session:${session.id}`, 'cell:output', {
+        cellId: updatedCell.id,
+        output: { type: 'stdout', data: data.toString('utf8') },
+      });
     },
     stderr(data) {
-      const event = {
-        type: 'cell:output',
-        message: {
-          cellId: updatedCell.id,
-          output: { type: 'stderr', data: data.toString('utf8') },
-        },
-      };
-      ws.send(JSON.stringify(event));
+      wss.broadcast(`session:${session.id}`, 'cell:output', {
+        cellId: updatedCell.id,
+        output: { type: 'stderr', data: data.toString('utf8') },
+      });
     },
     onExit() {
       updatedCell.status = 'idle';
-
-      const event = {
-        type: 'cell:updated',
-        message: { cell: updatedCell },
-      };
-
-      ws.send(JSON.stringify(event));
+      wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: updatedCell });
     },
   });
 
-  addRunningProcess(ws, session, updatedCell, process);
+  addRunningProcess(session, updatedCell, process);
 }
 
 async function doNPMInstall(
-  ws: WsWebSocketType,
   session: SessionType,
   cell: PackageJsonCellType,
-  message: { source?: string; package?: string },
+  payload: z.infer<typeof CellExecSchema>,
 ) {
-  if (message.source) {
-    const updatedCell = { ...cell, source: message.source };
+  if (payload.source) {
+    const updatedCell = { ...cell, source: payload.source };
     const updatedCells = replaceCell(session, updatedCell);
     await updateSession(session, { cells: updatedCells });
   }
@@ -136,26 +132,18 @@ async function doNPMInstall(
 
   const process = npmInstall({
     cwd: session.dir,
-    package: message.package,
+    package: payload.package,
     stdout(data) {
-      const event = {
-        type: 'cell:output',
-        message: {
-          cellId: cell.id,
-          output: { type: 'stdout', data: data.toString('utf8') },
-        },
-      };
-      ws.send(JSON.stringify(event));
+      wss.broadcast(`session:${session.id}`, 'cell:output', {
+        cellId: cell.id,
+        output: { type: 'stdout', data: data.toString('utf8') },
+      });
     },
     stderr(data) {
-      const event = {
-        type: 'cell:output',
-        message: {
-          cellId: cell.id,
-          output: { type: 'stderr', data: data.toString('utf8') },
-        },
-      };
-      ws.send(JSON.stringify(event));
+      wss.broadcast(`session:${session.id}`, 'cell:output', {
+        cellId: cell.id,
+        output: { type: 'stderr', data: data.toString('utf8') },
+      });
     },
     async onExit() {
       const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
@@ -165,22 +153,16 @@ async function doNPMInstall(
         status: 'idle',
       };
       updateSession(session, { cells: replaceCell(session, updatedCell) }, false);
-
-      const updatedEvent = {
-        type: 'cell:updated',
-        message: { cell: updatedCell },
-      };
-
-      ws.send(JSON.stringify(updatedEvent));
+      wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: updatedCell });
     },
   });
 
-  addRunningProcess(ws, session, cell, process);
+  addRunningProcess(session, cell, process);
 }
 
-async function doExec(ws: WsWebSocketType, message: any) {
-  const session = await findSession(message.sessionId);
-  const cell = findCell(session, message.cellId);
+async function executeCell(payload: z.infer<typeof CellExecSchema>) {
+  const session = await findSession(payload.sessionId);
+  const cell = findCell(session, payload.cellId);
 
   if (!cell) {
     return;
@@ -188,17 +170,17 @@ async function doExec(ws: WsWebSocketType, message: any) {
 
   switch (cell.type) {
     case 'code':
-      return doNode(ws, session, cell, message);
+      return doNode(session, cell, payload);
     case 'package.json':
-      return doNPMInstall(ws, session, cell, message);
+      return doNPMInstall(session, cell, payload);
     default:
       throw new Error(`Cannot execute cell of type '${cell.type}'`);
   }
 }
 
-async function stopRunningCell(message: { sessionId: string; cellId: string }) {
-  const session = await findSession(message.sessionId);
-  const cell = findCell(session, message.cellId);
+async function stopCell(payload: z.infer<typeof CellStopSchema>) {
+  const session = await findSession(payload.sessionId);
+  const cell = findCell(session, payload.cellId);
 
   if (!cell || cell.type !== 'code') {
     return;
@@ -213,24 +195,17 @@ async function stopRunningCell(message: { sessionId: string; cellId: string }) {
   }
 }
 
-wss.on('connection', function connection(ws) {
-  ws.on('error', console.error);
+const app = express();
+const server = http.createServer(app);
 
-  ws.on('message', function message(message) {
-    const payload: { type: string; message: any } = JSON.parse(message.toString('utf8'));
+const wss = new WebSocketServer({ server });
 
-    switch (payload.type) {
-      case 'cell:exec':
-        doExec(ws, payload.message);
-        break;
-      case 'cell:stop':
-        stopRunningCell(payload.message);
-        break;
-      default:
-        console.log('Unknown message type', payload.type);
-    }
-  });
-});
+wss
+  .channel('session:*')
+  .incoming('cell:exec', CellExecSchema, executeCell)
+  .incoming('cell:stop', CellStopSchema, stopCell)
+  .outgoing('cell:updated', CellUpdatedSchema)
+  .outgoing('cell:output', CellOutputSchema);
 
 app.use(express.json());
 

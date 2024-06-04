@@ -21,7 +21,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import type { PackageJsonCellType, SessionType } from '@/types';
-import SessionClient, { Message } from '@/clients/session';
+import { CellUpdatedMessageType, SessionChannel } from '@/clients/websocket';
 import { useCells } from './use-cell';
 
 type PackageMetadata = {
@@ -31,11 +31,11 @@ type PackageMetadata = {
 };
 
 export default function InstallPackageModal({
-  client,
+  channel,
   session,
   children,
 }: {
-  client: SessionClient;
+  channel: SessionChannel;
   session: SessionType;
   children: React.ReactNode;
 }) {
@@ -61,20 +61,21 @@ export default function InstallPackageModal({
     .join('');
 
   useEffect(() => {
-    const callback = (message: Message) => {
-      if (message.cell.id === cell.id && message.cell.status === 'idle') {
+    const callback = (payload: CellUpdatedMessageType) => {
+      if (payload.cell.id === cell.id && payload.cell.status === 'idle') {
         setMode('success');
       }
     };
-    client.on('cell:updated', callback);
-    return () => client.off('cell:updated', callback);
-  }, [client, cell]);
+
+    channel.on('cell:updated', callback);
+    return () => channel.off('cell:updated', callback);
+  }, [channel, cell]);
 
   const addPackage = (packageName: string) => {
     setPkg(packageName);
     setMode('loading');
 
-    client.send('cell:exec', {
+    channel.push('cell:exec', {
       sessionId: session.id,
       cellId: cell.id,
       package: packageName,

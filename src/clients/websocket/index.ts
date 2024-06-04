@@ -38,6 +38,15 @@ export const PkgJsonInstallMessageSchema = z.object({
   packages: z.array(z.string()).optional(),
 });
 
+export const FilenameCheckMessageSchema = z.object({
+  filename: z.string(),
+});
+
+export const FilenameCheckResultSchema = z.object({
+  filename: z.string(),
+  exists: z.boolean(),
+});
+
 export type CellExecMessageType = z.infer<typeof CellExecMessageSchema>;
 export type CellStopMessageType = z.infer<typeof CellStopMessageSchema>;
 export type CellUpdatedMessageType = z.infer<typeof CellUpdatedMessageSchema>;
@@ -48,11 +57,13 @@ const IncomingSessionEvents = {
   'cell:output': CellOutputMessageSchema,
   'cell:updated': CellUpdatedMessageSchema,
   'package.json:install': PkgJsonInstallMessageSchema,
+  'filename-check': FilenameCheckResultSchema,
 };
 
 const OutgoingSessionEvents = {
   'cell:exec': CellExecMessageSchema,
   'cell:stop': CellStopMessageSchema,
+  'filename-check': FilenameCheckMessageSchema,
 };
 
 export class SessionChannel extends Channel<

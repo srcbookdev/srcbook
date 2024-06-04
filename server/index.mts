@@ -42,6 +42,15 @@ const CellStopSchema = z.object({
   cellId: z.string(),
 });
 
+const FilenameCheckSchema = z.object({
+  filename: z.string(),
+});
+
+const FilenameCheckResultSchema = z.object({
+  filename: z.string(),
+  exists: z.boolean(),
+});
+
 const CellUpdatedSchema = z.object({
   cell: z.any(), // TODO: TYPE ME
 });
@@ -198,6 +207,9 @@ async function executeCell(payload: z.infer<typeof CellExecSchema>) {
       throw new Error(`Cannot execute cell of type '${cell.type}'`);
   }
 }
+async function filenameCheck(payload: z.infer<typeof FilenameCheckSchema>) {
+  return payload.filename;
+}
 
 async function stopCell(payload: z.infer<typeof CellStopSchema>) {
   const session = await findSession(payload.sessionId);
@@ -225,9 +237,11 @@ wss
   .channel('session:*')
   .incoming('cell:exec', CellExecSchema, executeCell)
   .incoming('cell:stop', CellStopSchema, stopCell)
+  .incoming('filename-check', FilenameCheckSchema, filenameCheck)
   .outgoing('cell:updated', CellUpdatedSchema)
   .outgoing('cell:output', CellOutputSchema)
-  .outgoing('package.json:install', PkgJsonInstallSchema);
+  .outgoing('package.json:install', PkgJsonInstallSchema)
+  .outgoing('filename-check', FilenameCheckResultSchema);
 
 app.use(express.json());
 

@@ -514,6 +514,7 @@ function CodeCell(props: {
   onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;
+  const [enabled, setEnabled] = useState(true);
 
   const { updateCell, clearOutput } = useCells();
 
@@ -524,6 +525,10 @@ function CodeCell(props: {
   function evaluateModEnter() {
     runCell();
     return true;
+  }
+
+  async function updateFilename(filename: string) {
+    props.onUpdateCell(cell, { filename });
   }
 
   function runCell() {
@@ -552,10 +557,7 @@ function CodeCell(props: {
         )}
       >
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
-          <FilenameInput
-            filename={cell.filename}
-            onUpdate={(filename) => props.onUpdateCell(cell, { filename })}
-          />
+          <FilenameInput filename={cell.filename} onUpdate={updateFilename} />
           <div
             className={cn(
               'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2',

@@ -83,9 +83,14 @@ async function doNode(
   if (shouldNpmInstall(session.dir)) {
     ws.send(JSON.stringify({ type: 'package.json:install' }));
   }
-  const missingDeps = await missingUndeclaredDeps(session.dir);
-  for (const dep of missingDeps) {
-    ws.send(JSON.stringify({ type: 'package.json:install-package', message: { package: dep } }));
+  try {
+    const missingDeps = await missingUndeclaredDeps(session.dir);
+    for (const dep of missingDeps) {
+      ws.send(JSON.stringify({ type: 'package.json:install-package', message: { package: dep } }));
+    }
+  } catch (e) {
+    // If we can't check for missing dependencies, just log the error and continue
+    console.error(e);
   }
   const updatedCell: CodeCellType = {
     ...cell,

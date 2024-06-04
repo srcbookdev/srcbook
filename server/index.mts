@@ -77,11 +77,11 @@ function addRunningProcess(
 async function doNode(
   session: SessionType,
   cell: CodeCellType,
-  message: z.infer<typeof CellExecSchema>,
+  payload: z.infer<typeof CellExecSchema>,
 ) {
   const updatedCell: CodeCellType = {
     ...cell,
-    source: message.source || cell.source,
+    source: payload.source || cell.source,
     status: 'running',
   };
 
@@ -118,10 +118,10 @@ async function doNode(
 async function doNPMInstall(
   session: SessionType,
   cell: PackageJsonCellType,
-  message: z.infer<typeof CellExecSchema>,
+  payload: z.infer<typeof CellExecSchema>,
 ) {
-  if (message.source) {
-    const updatedCell = { ...cell, source: message.source };
+  if (payload.source) {
+    const updatedCell = { ...cell, source: payload.source };
     const updatedCells = replaceCell(session, updatedCell);
     await updateSession(session, { cells: updatedCells });
   }
@@ -132,7 +132,7 @@ async function doNPMInstall(
 
   const process = npmInstall({
     cwd: session.dir,
-    package: message.package,
+    package: payload.package,
     stdout(data) {
       wss.broadcast(`session:${session.id}`, 'cell:output', {
         cellId: cell.id,
@@ -160,9 +160,9 @@ async function doNPMInstall(
   addRunningProcess(session, cell, process);
 }
 
-async function executeCell(message: z.infer<typeof CellExecSchema>) {
-  const session = await findSession(message.sessionId);
-  const cell = findCell(session, message.cellId);
+async function executeCell(payload: z.infer<typeof CellExecSchema>) {
+  const session = await findSession(payload.sessionId);
+  const cell = findCell(session, payload.cellId);
 
   if (!cell) {
     return;
@@ -170,17 +170,17 @@ async function executeCell(message: z.infer<typeof CellExecSchema>) {
 
   switch (cell.type) {
     case 'code':
-      return doNode(session, cell, message);
+      return doNode(session, cell, payload);
     case 'package.json':
-      return doNPMInstall(session, cell, message);
+      return doNPMInstall(session, cell, payload);
     default:
       throw new Error(`Cannot execute cell of type '${cell.type}'`);
   }
 }
 
-async function stopCell(message: z.infer<typeof CellStopSchema>) {
-  const session = await findSession(message.sessionId);
-  const cell = findCell(session, message.cellId);
+async function stopCell(payload: z.infer<typeof CellStopSchema>) {
+  const session = await findSession(payload.sessionId);
+  const cell = findCell(session, payload.cellId);
 
   if (!cell || cell.type !== 'code') {
     return;

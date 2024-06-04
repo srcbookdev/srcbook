@@ -61,11 +61,12 @@ export default function InstallPackageModal({
     .join('');
 
   useEffect(() => {
-    const callback = (message: CellUpdatedMessageType) => {
-      if (message.cell.id === cell.id && message.cell.status === 'idle') {
+    const callback = (payload: CellUpdatedMessageType) => {
+      if (payload.cell.id === cell.id && payload.cell.status === 'idle') {
         setMode('success');
       }
     };
+
     channel.on('cell:updated', callback);
     return () => channel.off('cell:updated', callback);
   }, [channel, cell]);

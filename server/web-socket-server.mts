@@ -2,24 +2,22 @@ import { Server } from 'node:http';
 import z from 'zod';
 import { RawData, WebSocket, WebSocketServer as WsWebSocketServer } from 'ws';
 
-const TOPIC_FORMAT = '[a-zA-Z0-9_:]+';
-const VALID_TOPIC_RE = new RegExp(`^${TOPIC_FORMAT}$`);
+const VALID_TOPIC_RE = /^[a-zA-Z0-9_:]+$/;
 
+// A _message_ over websockets
 const WebSocketMessageSchema = z.tuple([
-  z.string(), // Topic name, eg: "sessions:123"
-  z.string(), // Event name, eg: "cell:updated"
-  z.record(z.string(), z.any()), // Event message, eg: "{cell: { <cell properties> }}"
+  z.string(), // The _topic_, eg: "sessions:123"
+  z.string(), // The _event_, eg: "cell:updated"
+  z.record(z.string(), z.any()), // The _payload_, eg: "{cell: { <cell properties> }}"
 ]);
 
 export class Channel {
-  private readonly re: RegExp;
-
   readonly topic: string;
 
   readonly events: {
     incoming: Record<
       string,
-      { schema: z.ZodTypeAny; handler: (message: Record<string, any>) => void }
+      { schema: z.ZodTypeAny; handler: (payload: Record<string, any>) => void }
     >;
     outgoing: Record<string, z.ZodTypeAny>;
   } = { incoming: {}, outgoing: {} };
@@ -30,11 +28,10 @@ export class Channel {
     }
 
     this.topic = topic;
-    this.re = new RegExp(`^${topic}(:${TOPIC_FORMAT})?$`);
   }
 
   matches(topic: string) {
-    return this.re.test(topic);
+    return topic === this.topic || topic.startsWith(this.topic + ':');
   }
 
   incoming<T extends z.ZodTypeAny>(
@@ -98,7 +95,7 @@ export default class WebSocketServer {
     return channel;
   }
 
-  broadcast(topic: string, event: string, message: Record<string, any>) {
+  broadcast(topic: string, event: string, payload: Record<string, any>) {
     const channel = this.findChannel(topic);
 
     if (channel === undefined) {
@@ -111,18 +108,18 @@ export default class WebSocketServer {
       throw new Error(`Cannot broadcast to unknown event '${event}'`);
     }
 
-    const validatedMessage = schema.parse(message);
+    const validatedPayload = schema.parse(payload);
 
     for (const conn of this.connections) {
       if (conn.subscriptions.includes(topic)) {
-        conn.socket.send(JSON.stringify([topic, event, validatedMessage]));
+        conn.socket.send(JSON.stringify([topic, event, validatedPayload]));
       }
     }
   }
 
-  private handleIncomingMessage(conn: ConnectionType, rawData: RawData) {
-    const parsed = JSON.parse(rawData.toString('utf8'));
-    const [topic, event, message] = WebSocketMessageSchema.parse(parsed);
+  private handleIncomingMessage(conn: ConnectionType, message: RawData) {
+    const parsed = JSON.parse(message.toString('utf8'));
+    const [topic, event, payload] = WebSocketMessageSchema.parse(parsed);
 
     const channel = this.findChannel(topic);
 
@@ -150,11 +147,11 @@ export default class WebSocketServer {
 
     const { schema, handler } = registeredEvent;
 
-    const result = schema.safeParse(message);
+    const result = schema.safeParse(payload);
 
     if (!result.success) {
       console.warn(
-        `Server received invalid message for event '${event}' and topic '${topic}':\n\n${JSON.stringify(message)}\n\n`,
+        `Server received invalid payload for event '${event}' and topic '${topic}':\n\n${JSON.stringify(payload)}\n\n`,
       );
       return;
     }

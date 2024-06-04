@@ -45,13 +45,13 @@ import { CellsProvider, useCells } from '@/components/use-cell';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
-  return { session, sessionId: params.id! };
+  return { session };
 }
 
 function SessionPage() {
-  const { session, sessionId } = useLoaderData() as { session: SessionType; sessionId: string };
+  const { session } = useLoaderData() as { session: SessionType };
 
-  const channelRef = useRef(SessionChannel.create(sessionId));
+  const channelRef = useRef(SessionChannel.create(session.id));
   const channel = channelRef.current;
 
   useEffect(() => {
@@ -96,8 +96,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   }
 
   useEffect(() => {
-    const callback = (message: CellOutputMessageType) => {
-      setOutput(message.cellId, message.output);
+    const callback = (payload: CellOutputMessageType) => {
+      setOutput(payload.cellId, payload.output);
     };
 
     channel.on('cell:output', callback);
@@ -106,8 +106,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   }, [channel, setOutput]);
 
   useEffect(() => {
-    const callback = (message: CellUpdatedMessageType) => {
-      updateCell(message.cell);
+    const callback = (payload: CellUpdatedMessageType) => {
+      updateCell(payload.cell);
     };
 
     channel.on('cell:updated', callback);

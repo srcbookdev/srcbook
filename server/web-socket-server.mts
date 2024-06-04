@@ -11,6 +11,15 @@ const WebSocketMessageSchema = z.tuple([
   z.record(z.string(), z.any()), // The _payload_, eg: "{cell: { <cell properties> }}"
 ]);
 
+/**
+ * Channel is responsible for dispatching incoming and outgoing messages for a given topic.
+ *
+ * Examples:
+ *
+ *     const channel = new Channel("session")   // matches "session" only
+ *     const channel = new Channel("session:*") // matches "session:123", "session:456", etc.
+ *
+ */
 export class Channel {
   readonly topic: string;
 
@@ -22,7 +31,15 @@ export class Channel {
     outgoing: Record<string, z.ZodTypeAny>;
   } = { incoming: {}, outgoing: {} };
 
+  private wildcardMatch = false;
+
   constructor(topic: string) {
+    if (topic.endsWith(':*')) {
+      // Remove asterisk from topic
+      topic = topic.slice(0, -1);
+      this.wildcardMatch = true;
+    }
+
     if (!VALID_TOPIC_RE.test(topic)) {
       throw new Error(`Invalid channel topic '${topic}'`);
     }
@@ -31,7 +48,15 @@ export class Channel {
   }
 
   matches(topic: string) {
-    return topic === this.topic || topic.startsWith(this.topic + ':');
+    if (topic === this.topic) {
+      return true;
+    }
+
+    if (this.wildcardMatch) {
+      return topic.startsWith(this.topic) && topic.length > this.topic.length;
+    }
+
+    return false;
   }
 
   incoming<T extends z.ZodTypeAny>(

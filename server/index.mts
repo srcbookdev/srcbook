@@ -25,7 +25,7 @@ import type {
   SessionType,
   PackageJsonCellType,
 } from './types';
-import { node, npmInstall, shouldRunDeps } from './exec.mjs';
+import { node, npmInstall, shouldNpmInstall, missingUndeclaredDeps } from './exec.mjs';
 import processes from './processes.mjs';
 import WebSocketServer from './web-socket-server.mjs';
 import z from 'zod';
@@ -80,7 +80,13 @@ async function doNode(
   payload: z.infer<typeof CellExecSchema>,
 ) {
   // Check if we should nudge the user to run `npm install`
-  console.log('shouldRunDeps', await shouldRunDeps(session.dir));
+  if (shouldNpmInstall(session.dir)) {
+    ws.send(JSON.stringify({ type: 'package.json:install' }));
+  }
+  const missingDeps = await missingUndeclaredDeps(session.dir);
+  for (const dep of missingDeps) {
+    ws.send(JSON.stringify({ type: 'package.json:install-package', message: { package: dep } }));
+  }
   const updatedCell: CodeCellType = {
     ...cell,
     source: payload.source || cell.source,

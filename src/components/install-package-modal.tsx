@@ -11,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Command,
@@ -33,17 +32,22 @@ type PackageMetadata = {
 export default function InstallPackageModal({
   channel,
   session,
-  children,
+  open,
+  setOpen,
+  preset,
 }: {
   channel: SessionChannel;
   session: SessionType;
-  children: React.ReactNode;
+  open: boolean;
+  setOpen: (val: boolean) => void;
+  preset: string;
 }) {
   const [mode, setMode] = useState<'search' | 'loading' | 'success' | 'error'>('search');
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  console.log('Redrawing component with preset: ' + preset);
+  const [query, setQuery] = useState(preset);
+  console.log('Query: ' + query);
   const [results, setResults] = useState<PackageMetadata[]>([]);
-  const [pkg, setPkg] = useState('');
+  const [pkg, setPkg] = useState<string>('');
 
   const { getOutput } = useCells();
 
@@ -86,13 +90,16 @@ export default function InstallPackageModal({
     <Dialog
       open={open}
       onOpenChange={(newOpen) => {
-        setOpen(newOpen);
-        if (newOpen) {
+        if (!newOpen) {
+          setQuery('');
+          // Use a timeout to prevent flickering while it animates out
+          setTimeout(() => setMode('search'), 300);
+        } else {
           setMode('search');
         }
+        setOpen(newOpen);
       }}
     >
-      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
         className={cn(
           'flex flex-col transition-height',

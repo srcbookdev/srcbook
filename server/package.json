@@ -6,7 +6,8 @@
   "scripts": {
     "check": "tsc --noEmit",
     "dev": "vite-node index.mts",
-    "test": "vitest"
+    "test": "vitest",
+    "depcheck": "depcheck"
   },
   "dependencies": {
     "@scure/base": "^1.1.6",
@@ -22,7 +23,6 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.12.12",
     "@types/ws": "^8.5.10",
-    "eslint-plugin-jest": "^28.5.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.11",
     "vite-node": "^1.6.0",

@@ -1,7 +1,6 @@
 import Path from 'node:path';
 import fs from 'node:fs';
-import { spawn } from 'node:child_process';
-import depcheck from 'depcheck';
+import { spawn, exec, execSync } from 'node:child_process';
 
 export type BaseExecRequestType = {
   cwd: string;
@@ -107,22 +106,7 @@ export function npmInstall(options: NPMInstallRequestType) {
   return child;
 }
 
-/**
- * Utility function to determine if we should nudge the user to run `npm install`.
- *
- * There are a few conditions that should trigger this:
- * - package.json has dependencies but package-lock.json is missing
- * -
- */
-export async function shouldRunDeps(cwd: string): Promise<boolean> {
-  const missingDeclaredDeps = hasMissingDeclaredDeps(cwd);
-
-  const missingUndeclaredDeps = await hasMissingUndeclaredDeps(cwd);
-
-  return missingDeclaredDeps || missingUndeclaredDeps;
-}
-
-function hasMissingDeclaredDeps(cwd: string): boolean {
+export function shouldNpmInstall(cwd: string): boolean {
   const packageJsonPath = Path.join(cwd, 'package.json');
   const packageLockPath = Path.join(cwd, 'package-lock.json');
 
@@ -150,7 +134,6 @@ function hasMissingDeclaredDeps(cwd: string): boolean {
   const packageLockData = fs.readFileSync(packageLockPath, 'utf8');
   const pkgLockJson = JSON.parse(packageLockData);
 
-  // This feels brittle but the empty string key is the convention for the root package.
   const installedDeps = pkgLockJson.packages[''].dependencies || {};
 
   for (const dep of allDepsKeys) {
@@ -161,7 +144,28 @@ function hasMissingDeclaredDeps(cwd: string): boolean {
   return false; // All dependencies are installed
 }
 
-async function hasMissingUndeclaredDeps(cwd: string): Promise<boolean> {
-  const result = await depcheck(cwd, {});
-  return Object.keys(result.missing).length > 0;
+export async function missingUndeclaredDeps(cwd: string): Promise<string[]> {
+  let output = '';
+  try {
+    const result = execSync(`npm run depcheck ${cwd} -- --json`);
+    output = result.toString('utf8');
+  } catch (err) {
+    const error = err as { stdout: Buffer; stderr: Buffer; code: number };
+    // When there are missing dependencies, depcheck exists with a non zero code (its 255).
+    if (error.stdout) {
+      output = error.stdout.toString('utf8');
+    }
+  }
+
+  // Use regex to extract JSON object
+  const jsonMatch = output.match(/{.*}/s);
+  if (!jsonMatch) {
+    throw new Error('Failed to extract JSON from depcheck output');
+  }
+
+  // Parse the JSON
+  const parsedResult = JSON.parse(jsonMatch[0]);
+
+  // Process and return the data as needed
+  return Object.keys(parsedResult.missing);
 }

@@ -201,7 +201,7 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 wss
-  .topic('session')
+  .channel('session')
   .incoming('cell:exec', CellExecSchema, executeCell)
   .incoming('cell:stop', CellStopSchema, stopCell)
   .outgoing('cell:updated', CellUpdatedSchema)

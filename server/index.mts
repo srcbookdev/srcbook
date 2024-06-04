@@ -184,7 +184,6 @@ async function doNPMInstall(
 async function executeCell(payload: z.infer<typeof CellExecSchema>) {
   const session = await findSession(payload.sessionId);
   const cell = findCell(session, payload.cellId);
-  console.log('Running execute cell with cell', cell);
 
   if (!cell) {
     return;

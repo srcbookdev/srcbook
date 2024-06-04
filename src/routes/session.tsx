@@ -123,11 +123,6 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
   async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
     // Optimistic cell update
-    console.log('onUpdateCell called', {
-      type: cell.type,
-      id: cell.id,
-      status: cell.status || '',
-    });
     updateCell({ ...cell, ...attrs });
 
     const response = await updateCellServer({

@@ -56,7 +56,6 @@ export default class WebSocketClient {
   }
 
   private handleIncomingMessage(eventData: string) {
-    // console.debug('Received message:', eventData);
     const parsed = JSON.parse(eventData);
     const [topic, event, payload] = WebSocketMessageSchema.parse(parsed);
     for (const callback of this.callbacks[topic] || []) {

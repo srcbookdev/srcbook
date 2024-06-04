@@ -43,9 +43,7 @@ export default function InstallPackageModal({
   preset: string;
 }) {
   const [mode, setMode] = useState<'search' | 'loading' | 'success' | 'error'>('search');
-  console.log('Redrawing component with preset: ' + preset);
   const [query, setQuery] = useState(preset);
-  console.log('Query: ' + query);
   const [results, setResults] = useState<PackageMetadata[]>([]);
   const [pkg, setPkg] = useState<string>('');
 
@@ -65,15 +63,19 @@ export default function InstallPackageModal({
     .join('');
 
   useEffect(() => {
+    setQuery(preset);
+  }, [preset]);
+
+  useEffect(() => {
     const callback = (payload: CellUpdatedMessageType) => {
-      if (payload.cell.id === cell.id && payload.cell.status === 'idle') {
+      if (open && payload.cell.id === cell.id && payload.cell.status === 'idle') {
         setMode('success');
       }
     };
 
     channel.on('cell:updated', callback);
     return () => channel.off('cell:updated', callback);
-  }, [channel, cell]);
+  }, [channel, open, cell]);
 
   const addPackage = (packageName: string) => {
     setPkg(packageName);

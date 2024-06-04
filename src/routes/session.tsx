@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Prec } from '@codemirror/state';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import Markdown from 'marked-react';
@@ -40,8 +40,14 @@ import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import DeleteSessionModal from '@/components/delete-session-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
-import { SessionChannel, CellOutputMessageType, CellUpdatedMessageType } from '@/clients/websocket';
+import {
+  SessionChannel,
+  CellOutputMessageType,
+  CellUpdatedMessageType,
+  PkgJsonInstallMessageType,
+} from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
+import { toast } from 'sonner';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -365,8 +371,47 @@ function PackageJsonCell(props: {
   const { cell, channel, session, onUpdateCell } = props;
 
   const [open, setOpen] = useState(false);
+  const [installModalOpen, setInstallModalOpen] = useState(false);
 
   const { updateCell, clearOutput } = useCells();
+
+  const npmInstall = useCallback(
+    (packages?: Array<string>) => {
+      setOpen(true);
+      // Here we use the client-only updateCell function. The server will know its running from the 'cell:exec'.
+      updateCell({ ...cell, status: 'running' });
+      clearOutput(cell.id);
+
+      channel.push('cell:exec', {
+        sessionId: session.id,
+        cellId: cell.id,
+        source: cell.source,
+        packages: packages || [],
+      });
+    },
+    [cell, clearOutput, channel, session, updateCell],
+  );
+
+  // Useeffect to handle single package install events
+  useEffect(() => {
+    const callback = (payload: PkgJsonInstallMessageType) => {
+      const { packages } = payload;
+      const msg = packages
+        ? `Missing dependencies: ${packages.join(', ')}`
+        : 'Packages need to be installed';
+      toast.warning(msg, {
+        duration: 10000,
+        action: {
+          label: `install`,
+          onClick: () => {
+            npmInstall(packages);
+          },
+        },
+      });
+    };
+    channel.on('package.json:install', callback);
+    return () => channel.off('package.json:install', callback);
+  }, [channel, npmInstall]);
 
   const onOpenChange = (state: boolean) => {
     // Clear the output when we collapse the package.json cell.
@@ -376,28 +421,23 @@ function PackageJsonCell(props: {
     setOpen(state);
   };
 
-  const npmInstall = () => {
-    // Here we use the client-only updateCell function. The server will know its running from the 'cell:exec'.
-    updateCell({ ...cell, status: 'running' });
-    clearOutput(cell.id);
-    channel.push('cell:exec', {
-      sessionId: session.id,
-      cellId: cell.id,
-      source: cell.source,
-    });
-  };
-
   function onChangeSource(source: string) {
     onUpdateCell(cell, { source });
   }
 
   function evaluateModEnter() {
-    onUpdateCell(cell, { source: cell.source });
+    npmInstall();
     return true;
   }
 
   return (
     <>
+      <InstallPackageModal
+        channel={channel}
+        session={session}
+        open={installModalOpen}
+        setOpen={setInstallModalOpen}
+      />
       <Collapsible open={open} onOpenChange={onOpenChange}>
         <div className="flex w-full justify-between items-center gap-2">
           <CollapsibleTrigger className="flex w-full gap-3" asChild>
@@ -414,7 +454,7 @@ function PackageJsonCell(props: {
             </div>
           </CollapsibleTrigger>
           <Button
-            onClick={npmInstall}
+            onClick={() => npmInstall()}
             variant="outline"
             className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
           >
@@ -430,17 +470,25 @@ function PackageJsonCell(props: {
               </div>
             )}
           </Button>
-          <InstallPackageModal channel={channel} session={session}>
-            <Button
-              variant="outline"
-              className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
-            >
-              Install package
-            </Button>
-          </InstallPackageModal>
+          <Button
+            onClick={() => {
+              setInstallModalOpen(true);
+            }}
+            variant="outline"
+            className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
+          >
+            Install package
+          </Button>
         </div>
         <CollapsibleContent className="py-2">
-          <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
+          <div
+            className={cn(
+              'border rounded group',
+              cell.status === 'running'
+                ? 'outline-orange-200 outline outline-2'
+                : 'outline-blue-100 focus-within:outline focus-within:outline-2',
+            )}
+          >
             <CodeMirror
               value={cell.source.trim()}
               theme={githubLight}
@@ -494,6 +542,7 @@ function CodeCell(props: {
 
   return (
     <div className="relative group/cell space-y-1.5">
+      <p className="text-xs text-gray-400">{cell.id}</p>
       <div
         className={cn(
           'border rounded group',
@@ -570,7 +619,7 @@ function CellOutput(props: { cellId: string }) {
     <div className="relative group border rounded mt-2 font-mono text-sm bg-input/10">
       <div
         onClick={() => clearOutput(props.cellId)}
-        className="absolute top-0 right-0 hover:cursor-pointer text-gray-200 hover:underline group-hover:text-gray-400 transition-all p-0.5 text-xs"
+        className="absolute top-0 right-0 hover:cursor-pointer text-gray-200 hover:underline group-hover:text-gray-400 transition-all px-1 py-0.5 text-xs"
       >
         Clear
       </div>
@@ -586,7 +635,7 @@ function CellOutput(props: { cellId: string }) {
         {stderrText && (
           <>
             <h1 className="font-bold px-2">Errors & Warnings</h1>
-            <div className="flex flex-col-reverse max-h-[400px] overflow-scroll p-2 whitespace-pre-wrap text-red-500">
+            <div className="flex flex-col-reverse max-h-[400px] overflow-scroll p-2 whitespace-pre-wrap text-orange-800">
               {stderrText}
             </div>
           </>

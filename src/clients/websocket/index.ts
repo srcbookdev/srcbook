@@ -11,7 +11,9 @@ export const CellExecMessageSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
   source: z.string().optional(),
-  package: z.string().optional(),
+  // Packages can be sent when the cell is a package.json cell
+  // and it will install only the packages listed in the array
+  packages: z.array(z.string()).optional(),
 });
 
 export const CellStopMessageSchema = z.object({
@@ -31,14 +33,21 @@ export const CellOutputMessageSchema = z.object({
   }),
 });
 
+export const PkgJsonInstallMessageSchema = z.object({
+  // If packages is empty, install all dependencies
+  packages: z.array(z.string()).optional(),
+});
+
 export type CellExecMessageType = z.infer<typeof CellExecMessageSchema>;
 export type CellStopMessageType = z.infer<typeof CellStopMessageSchema>;
 export type CellUpdatedMessageType = z.infer<typeof CellUpdatedMessageSchema>;
 export type CellOutputMessageType = z.infer<typeof CellOutputMessageSchema>;
+export type PkgJsonInstallMessageType = z.infer<typeof PkgJsonInstallMessageSchema>;
 
 const IncomingSessionEvents = {
   'cell:output': CellOutputMessageSchema,
   'cell:updated': CellUpdatedMessageSchema,
+  'package.json:install': PkgJsonInstallMessageSchema,
 };
 
 const OutgoingSessionEvents = {

@@ -11,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Command,
@@ -33,17 +32,18 @@ type PackageMetadata = {
 export default function InstallPackageModal({
   channel,
   session,
-  children,
+  open,
+  setOpen,
 }: {
   channel: SessionChannel;
   session: SessionType;
-  children: React.ReactNode;
+  open: boolean;
+  setOpen: (val: boolean) => void;
 }) {
   const [mode, setMode] = useState<'search' | 'loading' | 'success' | 'error'>('search');
-  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PackageMetadata[]>([]);
-  const [pkg, setPkg] = useState('');
+  const [pkg, setPkg] = useState<string>('');
 
   const { getOutput } = useCells();
 
@@ -62,14 +62,14 @@ export default function InstallPackageModal({
 
   useEffect(() => {
     const callback = (payload: CellUpdatedMessageType) => {
-      if (payload.cell.id === cell.id && payload.cell.status === 'idle') {
+      if (open && payload.cell.id === cell.id && payload.cell.status === 'idle') {
         setMode('success');
       }
     };
 
     channel.on('cell:updated', callback);
     return () => channel.off('cell:updated', callback);
-  }, [channel, cell]);
+  }, [channel, open, cell]);
 
   const addPackage = (packageName: string) => {
     setPkg(packageName);
@@ -78,7 +78,7 @@ export default function InstallPackageModal({
     channel.push('cell:exec', {
       sessionId: session.id,
       cellId: cell.id,
-      package: packageName,
+      packages: [packageName],
     });
   };
 
@@ -86,13 +86,16 @@ export default function InstallPackageModal({
     <Dialog
       open={open}
       onOpenChange={(newOpen) => {
-        setOpen(newOpen);
-        if (newOpen) {
+        if (!newOpen) {
+          setQuery('');
+          // Use a timeout to prevent flickering while it animates out
+          setTimeout(() => setMode('search'), 300);
+        } else {
           setMode('search');
         }
+        setOpen(newOpen);
       }}
     >
-      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
         className={cn(
           'flex flex-col transition-height',

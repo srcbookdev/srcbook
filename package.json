@@ -35,6 +35,7 @@
     "react-dom": "^18.2.0",
     "react-hotkeys-hook": "^4.5.0",
     "react-router-dom": "^6.23.0",
+    "sonner": "^1.4.41",
     "sort-by": "^1.2.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",

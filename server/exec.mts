@@ -1,5 +1,6 @@
 import Path from 'node:path';
-import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import { spawn, execSync } from 'node:child_process';
 
 export type BaseExecRequestType = {
   cwd: string;
@@ -14,7 +15,7 @@ export type NodeRequestType = BaseExecRequestType & {
 };
 
 export type NPMInstallRequestType = BaseExecRequestType & {
-  package?: string;
+  packages?: Array<string>;
 };
 
 /**
@@ -84,7 +85,7 @@ export function node(options: NodeRequestType) {
 export function npmInstall(options: NPMInstallRequestType) {
   const { cwd, stdout, stderr, onExit } = options;
 
-  const args = options.package ? ['install', options.package] : ['install'];
+  const args = options.packages ? ['install', ...options.packages] : ['install'];
 
   const child = spawn('npm', args, { cwd });
 
@@ -103,4 +104,68 @@ export function npmInstall(options: NPMInstallRequestType) {
   });
 
   return child;
+}
+
+export function shouldNpmInstall(cwd: string): boolean {
+  const packageJsonPath = Path.join(cwd, 'package.json');
+  const packageLockPath = Path.join(cwd, 'package-lock.json');
+
+  if (!fs.existsSync(packageJsonPath)) {
+    throw new Error('package.json not found in the specified directory.');
+  }
+
+  const packageJsonData = fs.readFileSync(packageJsonPath, 'utf8');
+  const pkgJson = JSON.parse(packageJsonData);
+
+  const dependencies = pkgJson.dependencies || {};
+  const devDependencies = pkgJson.devDependencies || {};
+
+  const allDeps = { ...dependencies, ...devDependencies };
+  const allDepsKeys = Object.keys(allDeps);
+
+  if (allDepsKeys.length === 0) {
+    return false; // No dependencies to install
+  }
+
+  if (!fs.existsSync(packageLockPath)) {
+    return true; // package-lock.json does not exist, need to run npm install
+  }
+
+  const packageLockData = fs.readFileSync(packageLockPath, 'utf8');
+  const pkgLockJson = JSON.parse(packageLockData);
+
+  const installedDeps = pkgLockJson.packages[''].dependencies || {};
+
+  for (const dep of allDepsKeys) {
+    if (!installedDeps[dep]) {
+      return true; // Dependency in package.json not found in package-lock.json
+    }
+  }
+  return false; // All dependencies are installed
+}
+
+export async function missingUndeclaredDeps(cwd: string): Promise<string[]> {
+  let output = '';
+  try {
+    const result = execSync(`npm run depcheck ${cwd} -- --json`);
+    output = result.toString('utf8');
+  } catch (err) {
+    const error = err as { stdout: Buffer; stderr: Buffer; code: number };
+    // When there are missing dependencies, depcheck exists with a non zero code (its 255).
+    if (error.stdout) {
+      output = error.stdout.toString('utf8');
+    }
+  }
+
+  // Use regex to extract JSON object
+  const jsonMatch = output.match(/{.*}/s);
+  if (!jsonMatch) {
+    throw new Error('Failed to extract JSON from depcheck output');
+  }
+
+  // Parse the JSON
+  const parsedResult = JSON.parse(jsonMatch[0]);
+
+  // Process and return the data as needed
+  return Object.keys(parsedResult.missing);
 }

@@ -25,7 +25,7 @@ import type {
   SessionType,
   PackageJsonCellType,
 } from './types';
-import { node, npmInstall } from './exec.mjs';
+import { node, npmInstall, shouldNpmInstall, missingUndeclaredDeps } from './exec.mjs';
 import processes from './processes.mjs';
 import WebSocketServer from './web-socket-server.mjs';
 import z from 'zod';
@@ -34,7 +34,7 @@ const CellExecSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
   source: z.string().optional(),
-  package: z.string().optional(),
+  packages: z.array(z.string()).optional(),
 });
 
 const CellStopSchema = z.object({
@@ -52,6 +52,10 @@ const CellOutputSchema = z.object({
     type: z.enum(['stdout', 'stderr']),
     data: z.string(),
   }),
+});
+
+const PkgJsonInstallSchema = z.object({
+  packages: z.array(z.string()).optional(),
 });
 
 function addRunningProcess(
@@ -74,11 +78,28 @@ function addRunningProcess(
   }
 }
 
+async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
+  if (shouldNpmInstall(session.dir)) {
+    wss.broadcast(`session:${session.id}`, 'package.json:install', {});
+  }
+  const missingDeps = await missingUndeclaredDeps(session.dir);
+  if (missingDeps.length > 0) {
+    wss.broadcast(`session:${session.id}`, 'package.json:install', { packages: missingDeps });
+  }
+}
+
+// move me
 async function doNode(
   session: SessionType,
   cell: CodeCellType,
   payload: z.infer<typeof CellExecSchema>,
 ) {
+  try {
+    nudgeMissingDeps(wss, session);
+  } catch (e) {
+    // If dep check fails, just log the error and continue
+    console.error(e);
+  }
   const updatedCell: CodeCellType = {
     ...cell,
     source: payload.source || cell.source,
@@ -132,7 +153,7 @@ async function doNPMInstall(
 
   const process = npmInstall({
     cwd: session.dir,
-    package: payload.package,
+    packages: payload.packages,
     stdout(data) {
       wss.broadcast(`session:${session.id}`, 'cell:output', {
         cellId: cell.id,
@@ -205,7 +226,8 @@ wss
   .incoming('cell:exec', CellExecSchema, executeCell)
   .incoming('cell:stop', CellStopSchema, stopCell)
   .outgoing('cell:updated', CellUpdatedSchema)
-  .outgoing('cell:output', CellOutputSchema);
+  .outgoing('cell:output', CellOutputSchema)
+  .outgoing('package.json:install', PkgJsonInstallSchema);
 
 app.use(express.json());
 

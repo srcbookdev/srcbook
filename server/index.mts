@@ -74,22 +74,26 @@ function addRunningProcess(
   }
 }
 
+async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
+  if (shouldNpmInstall(session.dir)) {
+    wss.broadcast(`session:${session.id}`, 'package.json:install', {});
+  }
+  const missingDeps = await missingUndeclaredDeps(session.dir);
+  for (const dep of missingDeps) {
+    wss.broadcast(`session:${session.id}`, 'package.json:install-package', { package: dep });
+  }
+}
+
+// move me
 async function doNode(
   session: SessionType,
   cell: CodeCellType,
   payload: z.infer<typeof CellExecSchema>,
 ) {
-  // Check if we should nudge the user to run `npm install`
-  if (shouldNpmInstall(session.dir)) {
-    ws.send(JSON.stringify({ type: 'package.json:install' }));
-  }
   try {
-    const missingDeps = await missingUndeclaredDeps(session.dir);
-    for (const dep of missingDeps) {
-      ws.send(JSON.stringify({ type: 'package.json:install-package', message: { package: dep } }));
-    }
+    nudgeMissingDeps(wss, session);
   } catch (e) {
-    // If we can't check for missing dependencies, just log the error and continue
+    // If dep check fails, just log the error and continue
     console.error(e);
   }
   const updatedCell: CodeCellType = {

@@ -60,6 +60,12 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
 
   const updateCell = useCallback(
     (cell: CellType) => {
+      cell.type === 'code' &&
+        console.log('updateCell called on the client', {
+          type: cell.type,
+          id: cell.id,
+          status: cell.status,
+        });
       setCells(cells.map((c) => (c.id === cell.id ? cell : c)));
     },
     [cells],

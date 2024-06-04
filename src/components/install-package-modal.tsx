@@ -34,16 +34,14 @@ export default function InstallPackageModal({
   session,
   open,
   setOpen,
-  preset,
 }: {
   channel: SessionChannel;
   session: SessionType;
   open: boolean;
   setOpen: (val: boolean) => void;
-  preset: string;
 }) {
   const [mode, setMode] = useState<'search' | 'loading' | 'success' | 'error'>('search');
-  const [query, setQuery] = useState(preset);
+  const [query, setQuery] = useState('');
   const [results, setResults] = useState<PackageMetadata[]>([]);
   const [pkg, setPkg] = useState<string>('');
 
@@ -63,10 +61,6 @@ export default function InstallPackageModal({
     .join('');
 
   useEffect(() => {
-    setQuery(preset);
-  }, [preset]);
-
-  useEffect(() => {
     const callback = (payload: CellUpdatedMessageType) => {
       if (open && payload.cell.id === cell.id && payload.cell.status === 'idle') {
         setMode('success');
@@ -84,7 +78,7 @@ export default function InstallPackageModal({
     channel.push('cell:exec', {
       sessionId: session.id,
       cellId: cell.id,
-      package: packageName,
+      packages: [packageName],
     });
   };
 

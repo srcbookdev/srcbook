@@ -15,7 +15,7 @@ export type NodeRequestType = BaseExecRequestType & {
 };
 
 export type NPMInstallRequestType = BaseExecRequestType & {
-  package?: string;
+  packages?: Array<string>;
 };
 
 /**
@@ -85,7 +85,7 @@ export function node(options: NodeRequestType) {
 export function npmInstall(options: NPMInstallRequestType) {
   const { cwd, stdout, stderr, onExit } = options;
 
-  const args = options.package ? ['install', options.package] : ['install'];
+  const args = options.packages ? ['install', ...options.packages] : ['install'];
 
   const child = spawn('npm', args, { cwd });
 

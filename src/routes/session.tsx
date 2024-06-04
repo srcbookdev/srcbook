@@ -40,7 +40,12 @@ import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import DeleteSessionModal from '@/components/delete-session-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
-import { SessionChannel, CellOutputMessageType, CellUpdatedMessageType } from '@/clients/websocket';
+import {
+  SessionChannel,
+  CellOutputMessageType,
+  CellUpdatedMessageType,
+  PkgJsonInstallMessageType,
+} from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
 
@@ -118,6 +123,11 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
   async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
     // Optimistic cell update
+    console.log('onUpdateCell called', {
+      type: cell.type,
+      id: cell.id,
+      status: cell.status || '',
+    });
     updateCell({ ...cell, ...attrs });
 
     const response = await updateCellServer({
@@ -367,49 +377,40 @@ function PackageJsonCell(props: {
 
   const [open, setOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
-  const [pkg, setPkg] = useState('');
 
   const { updateCell, clearOutput } = useCells();
 
-  const npmInstall = useCallback(() => {
-    setOpen(true);
-    // Here we use the client-only updateCell function. The server will know its running from the 'cell:exec'.
-    updateCell({ ...cell, status: 'running' });
-    clearOutput(cell.id);
+  const npmInstall = useCallback(
+    (packages?: Array<string>) => {
+      setOpen(true);
+      // Here we use the client-only updateCell function. The server will know its running from the 'cell:exec'.
+      updateCell({ ...cell, status: 'running' });
+      clearOutput(cell.id);
 
-    channel.push('cell:exec', {
-      sessionId: session.id,
-      cellId: cell.id,
-      source: cell.source,
-    });
-  }, [cell, clearOutput, channel, session, updateCell]);
+      channel.push('cell:exec', {
+        sessionId: session.id,
+        cellId: cell.id,
+        source: cell.source,
+        packages: packages || [],
+      });
+    },
+    [cell, clearOutput, channel, session, updateCell],
+  );
 
   // Useeffect to handle single package install events
   useEffect(() => {
-    const callback = (message: Message) => {
-      const { package: packageName } = message;
-      toast.warning(`Missing dependency: \`${packageName}\``, {
+    const callback = (payload: PkgJsonInstallMessageType) => {
+      const { packages } = payload;
+      const msg = packages
+        ? `Missing dependencies: ${packages.join(', ')}`
+        : 'Packages need to be installed';
+      toast.warning(msg, {
         duration: 10000,
         action: {
           label: `install`,
           onClick: () => {
-            setPkg(packageName);
-            setInstallModalOpen(true);
+            npmInstall(packages);
           },
-        },
-      });
-    };
-    channel.on('package.json:install-package', callback);
-    return () => channel.off('package.json:install-package', callback);
-  }, [channel, setPkg, setInstallModalOpen]);
-
-  // useeffect to handle npm install global events
-  useEffect(() => {
-    const callback = () => {
-      toast.warning('Packages need to be installed', {
-        action: {
-          label: 'install',
-          onClick: npmInstall,
         },
       });
     };
@@ -441,7 +442,6 @@ function PackageJsonCell(props: {
         session={session}
         open={installModalOpen}
         setOpen={setInstallModalOpen}
-        preset={pkg}
       />
       <Collapsible open={open} onOpenChange={onOpenChange}>
         <div className="flex w-full justify-between items-center gap-2">
@@ -459,7 +459,7 @@ function PackageJsonCell(props: {
             </div>
           </CollapsibleTrigger>
           <Button
-            onClick={npmInstall}
+            onClick={() => npmInstall()}
             variant="outline"
             className={cn('transition-all', open ? 'opacity-100' : 'opacity-0')}
           >
@@ -477,8 +477,6 @@ function PackageJsonCell(props: {
           </Button>
           <Button
             onClick={() => {
-              // Reset the package name if we click the button from here.
-              setPkg('');
               setInstallModalOpen(true);
             }}
             variant="outline"
@@ -549,6 +547,7 @@ function CodeCell(props: {
 
   return (
     <div className="relative group/cell space-y-1.5">
+      <p className="text-xs text-gray-400">{cell.id}</p>
       <div
         className={cn(
           'border rounded group',

@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Prec } from '@codemirror/state';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror from '@uiw/react-codemirror';
-import { keymap } from '@codemirror/view';
+import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
@@ -19,6 +17,12 @@ import {
   ChevronRight,
   Save,
 } from 'lucide-react';
+import {
+  CellOutputPayloadType,
+  CellUpdatedPayloadType,
+  DepsValidateResponsePayloadType,
+  CellValidateResponsePayloadType,
+} from '@srcbook/shared';
 import { loadSession, createCell, updateCell as updateCellServer, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import SaveModal from '@/components/save-modal-dialog';
@@ -40,13 +44,7 @@ import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import DeleteSessionModal from '@/components/delete-session-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
-import {
-  CellOutputPayloadType,
-  CellUpdatedPayloadType,
-  DepsValidateResponsePayloadType,
-  CellValidateResponsePayloadType,
-  SessionChannel,
-} from '@/clients/websocket';
+import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
 import { useEffectOnce } from '@/components/use-effect-once';

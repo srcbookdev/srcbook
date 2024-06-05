@@ -29,55 +29,22 @@ import { node, npmInstall } from './exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from './deps.mjs';
 import processes from './processes.mjs';
 import WebSocketServer from './web-socket-server.mjs';
-import z from 'zod';
-
-const CellExecPayloadSchema = z.object({
-  sessionId: z.string(),
-  cellId: z.string(),
-});
-
-const CellStopPayloadSchema = z.object({
-  sessionId: z.string(),
-  cellId: z.string(),
-});
-
-const CellUpdatedPayloadSchema = z.object({
-  cell: z.any(), // TODO: TYPE ME
-});
-
-const CellOutputPayloadSchema = z.object({
-  cellId: z.string(),
-  output: z.object({
-    type: z.enum(['stdout', 'stderr']),
-    data: z.string(),
-  }),
-});
-
-const DepsInstallPayloadSchema = z.object({
-  sessionId: z.string(),
-  packages: z.array(z.string()).optional(),
-});
-
-const DepsValidatePayloadSchema = z.object({
-  sessionId: z.string(),
-});
-
-const DepsValidateResponsePayloadSchema = z.object({
-  packages: z.array(z.string()).optional(),
-});
-
-const CellValidatePayloadSchema = z.object({
-  cellId: z.string(),
-  sessionId: z.string(),
-  filename: z.string(),
-});
-
-const CellValidateResponsePayloadSchema = z.object({
-  cellId: z.string(),
-  filename: z.string(),
-  error: z.boolean(),
-  message: z.string().optional(),
-});
+import {
+  CellExecPayloadSchema,
+  CellStopPayloadSchema,
+  DepsInstallPayloadSchema,
+  CellValidatePayloadSchema,
+  DepsValidatePayloadSchema,
+  CellUpdatedPayloadSchema,
+  CellOutputPayloadSchema,
+  DepsValidateResponsePayloadSchema,
+  CellValidateResponsePayloadSchema,
+  CellExecPayloadType,
+  DepsInstallPayloadType,
+  DepsValidatePayloadType,
+  CellValidatePayloadType,
+  CellStopPayloadType,
+} from '@srcbook/shared';
 
 function addRunningProcess(
   session: SessionType,
@@ -121,7 +88,7 @@ async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
   }
 }
 
-async function cellExec(payload: z.infer<typeof CellExecPayloadSchema>) {
+async function cellExec(payload: CellExecPayloadType) {
   const session = await findSession(payload.sessionId);
   const cell = findCell(session, payload.cellId);
 
@@ -168,7 +135,7 @@ async function cellExec(payload: z.infer<typeof CellExecPayloadSchema>) {
   );
 }
 
-async function depsInstall(payload: z.infer<typeof DepsInstallPayloadSchema>) {
+async function depsInstall(payload: DepsInstallPayloadType) {
   const session = await findSession(payload.sessionId);
   const cell = session.cells.find(
     (cell) => cell.type === 'package.json',
@@ -213,9 +180,10 @@ async function depsInstall(payload: z.infer<typeof DepsInstallPayloadSchema>) {
   );
 }
 
-async function filenameCheck(payload: z.infer<typeof CellValidatePayloadSchema>) {
+async function filenameCheck(payload: CellValidatePayloadType) {
   const session = await findSession(payload.sessionId);
   const result = validateFilename(session, payload.cellId, payload.filename);
+
   wss.broadcast(`session:${payload.sessionId}`, 'cell:validate:response', {
     cellId: payload.cellId,
     filename: payload.filename,
@@ -225,12 +193,12 @@ async function filenameCheck(payload: z.infer<typeof CellValidatePayloadSchema>)
   });
 }
 
-async function depsValidate(payload: z.infer<typeof DepsValidatePayloadSchema>) {
+async function depsValidate(payload: DepsValidatePayloadType) {
   const session = await findSession(payload.sessionId);
   nudgeMissingDeps(wss, session);
 }
 
-async function cellStop(payload: z.infer<typeof CellStopPayloadSchema>) {
+async function cellStop(payload: CellStopPayloadType) {
   const session = await findSession(payload.sessionId);
   const cell = findCell(session, payload.cellId);
 

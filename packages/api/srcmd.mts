@@ -1,7 +1,7 @@
 import { marked } from 'marked';
 import Path from 'path';
 import fs from 'node:fs/promises';
-import { randomid } from './utils.mjs';
+import { randomid } from '@srcbook/shared';
 import type { Tokens, Token } from 'marked';
 import type {
   CellType,

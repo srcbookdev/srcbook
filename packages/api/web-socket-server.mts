@@ -1,15 +1,9 @@
 import { Server } from 'node:http';
 import z from 'zod';
+import { WebSocketMessageSchema } from '@srcbook/shared';
 import { RawData, WebSocket, WebSocketServer as WsWebSocketServer } from 'ws';
 
 const VALID_TOPIC_RE = /^[a-zA-Z0-9_:]+$/;
-
-// A _message_ over websockets
-const WebSocketMessageSchema = z.tuple([
-  z.string(), // The _topic_, eg: "sessions:123"
-  z.string(), // The _event_, eg: "cell:updated"
-  z.record(z.string(), z.any()), // The _payload_, eg: "{cell: { <cell properties> }}"
-]);
 
 /**
  * Channel is responsible for dispatching incoming and outgoing messages for a given topic.

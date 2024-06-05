@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, ReactNode, useRef, useReducer } from 'react';
 import { CellType, OutputType } from '@/types';
 
-import { randomid } from '@/lib/utils';
+import { randomid } from '@srcbook/shared';
 import type { CodeCellType, MarkdownCellType } from '@/types';
 
 /**

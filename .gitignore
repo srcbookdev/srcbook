@@ -25,5 +25,5 @@ dist-ssr
 
 *.gitignored.*
 
-server/.env
-server/*.local
+packages/api/.env
+packages/api/*.local

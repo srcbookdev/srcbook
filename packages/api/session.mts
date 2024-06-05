@@ -1,8 +1,9 @@
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import Path from 'node:path';
+import { randomid } from '@srcbook/shared';
 import { encode, decode, decodeDir, newContents } from './srcmd.mjs';
-import { randomid, toValidNpmName } from './utils.mjs';
+import { toValidNpmName } from './utils.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
 
 import type { CellType, SessionType } from './types';

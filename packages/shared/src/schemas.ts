@@ -1,11 +1,4 @@
 import z from 'zod';
-import Channel from '@/clients/websocket/channel';
-import WebSocketClient from '@/clients/websocket/client';
-
-// Establish websocket connection immediately.
-const client = new WebSocketClient('ws://localhost:2150/websocket');
-
-export default client;
 
 export const CellExecPayloadSchema = z.object({
   sessionId: z.string(),
@@ -51,9 +44,16 @@ export const CellValidateResponsePayloadSchema = z.object({
   message: z.string().optional(),
 });
 
-const DepsValidatePayloadSchema = z.object({
+export const DepsValidatePayloadSchema = z.object({
   sessionId: z.string(),
 });
+
+// A _message_ over websockets
+export const WebSocketMessageSchema = z.tuple([
+  z.string(), // The _topic_, eg: "sessions:123"
+  z.string(), // The _event_, eg: "cell:updated"
+  z.record(z.string(), z.any()), // The _payload_, eg: "{cell: {<cell properties>}}"
+]);
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
 export type CellStopPayloadType = z.infer<typeof CellStopPayloadSchema>;
@@ -66,30 +66,3 @@ export type DepsValidatePayloadType = z.infer<typeof DepsValidatePayloadSchema>;
 
 export type CellValidatePayloadType = z.infer<typeof CellValidatePayloadSchema>;
 export type CellValidateResponsePayloadType = z.infer<typeof CellValidateResponsePayloadSchema>;
-
-const IncomingSessionEvents = {
-  'cell:output': CellOutputPayloadSchema,
-  'cell:updated': CellUpdatedPayloadSchema,
-  'deps:validate:response': DepsValidateResponsePayloadSchema,
-  'cell:validate:response': CellValidateResponsePayloadSchema,
-};
-
-const OutgoingSessionEvents = {
-  'cell:exec': CellExecPayloadSchema,
-  'cell:stop': CellStopPayloadSchema,
-  'deps:install': DepsInstallPayloadSchema,
-  'cell:validate': CellValidatePayloadSchema,
-  'deps:validate': DepsValidatePayloadSchema,
-};
-
-export class SessionChannel extends Channel<
-  typeof IncomingSessionEvents,
-  typeof OutgoingSessionEvents
-> {
-  static create(sessionId: string) {
-    return new SessionChannel(client, `session:${sessionId}`, {
-      incoming: IncomingSessionEvents,
-      outgoing: OutgoingSessionEvents,
-    });
-  }
-}

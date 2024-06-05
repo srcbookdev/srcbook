@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import z from 'zod';
-
-// A _message_ over websockets
-const WebSocketMessageSchema = z.tuple([
-  z.string(), // The _topic_, eg: "sessions:123"
-  z.string(), // The _event_, eg: "cell:updated"
-  z.record(z.string(), z.any()), // The _payload_, eg: "{cell: { <cell properties> }}"
-]);
+import { WebSocketMessageSchema } from '@srcbook/shared';
 
 export default class WebSocketClient {
   private readonly socket: WebSocket;

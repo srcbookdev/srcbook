@@ -34,7 +34,7 @@ export const DepsInstallPayloadSchema = z.object({
   packages: z.array(z.string()).optional(),
 });
 
-export const DepsOutdatedPayloadSchema = z.object({
+export const DepsValidateResponsePayloadSchema = z.object({
   packages: z.array(z.string()).optional(),
 });
 
@@ -51,13 +51,18 @@ export const CellValidateResponsePayloadSchema = z.object({
   message: z.string().optional(),
 });
 
+const DepsValidatePayloadSchema = z.object({
+  sessionId: z.string(),
+});
+
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
 export type CellStopPayloadType = z.infer<typeof CellStopPayloadSchema>;
 export type CellUpdatedPayloadType = z.infer<typeof CellUpdatedPayloadSchema>;
 export type CellOutputPayloadType = z.infer<typeof CellOutputPayloadSchema>;
 
 export type DepsInstallPayloadType = z.infer<typeof DepsInstallPayloadSchema>;
-export type DepsOutdatedPayloadType = z.infer<typeof DepsOutdatedPayloadSchema>;
+export type DepsValidateResponsePayloadType = z.infer<typeof DepsValidateResponsePayloadSchema>;
+export type DepsValidatePayloadType = z.infer<typeof DepsValidatePayloadSchema>;
 
 export type CellValidatePayloadType = z.infer<typeof CellValidatePayloadSchema>;
 export type CellValidateResponsePayloadType = z.infer<typeof CellValidateResponsePayloadSchema>;
@@ -65,7 +70,7 @@ export type CellValidateResponsePayloadType = z.infer<typeof CellValidateRespons
 const IncomingSessionEvents = {
   'cell:output': CellOutputPayloadSchema,
   'cell:updated': CellUpdatedPayloadSchema,
-  'deps:outdated': DepsOutdatedPayloadSchema,
+  'deps:validate:response': DepsValidateResponsePayloadSchema,
   'cell:validate:response': CellValidateResponsePayloadSchema,
 };
 
@@ -74,6 +79,7 @@ const OutgoingSessionEvents = {
   'cell:stop': CellStopPayloadSchema,
   'deps:install': DepsInstallPayloadSchema,
   'cell:validate': CellValidatePayloadSchema,
+  'deps:validate': DepsValidatePayloadSchema,
 };
 
 export class SessionChannel extends Channel<

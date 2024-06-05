@@ -43,7 +43,7 @@ import InstallPackageModal from '@/components/install-package-modal';
 import {
   CellOutputPayloadType,
   CellUpdatedPayloadType,
-  DepsOutdatedPayloadType,
+  DepsValidateResponsePayloadType,
   CellValidateResponsePayloadType,
   SessionChannel,
 } from '@/clients/websocket';
@@ -66,6 +66,18 @@ function SessionPage() {
     return () => channel.unsubscribe();
   }, [channel]);
 
+  // Because in react-strict mode, useEffect runs twice,
+  // we need to use a ref to ensure it runs only once.
+  const hasRunRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasRunRef.current) {
+      hasRunRef.current = true;
+      channel.push('deps:validate', { sessionId: session.id });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <CellsProvider initialCells={session.cells}>
       <Session session={session} channel={channelRef.current} />
@@ -85,6 +97,14 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
   // This assumes qwerty layout.
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
+
+  // const initializeOnce = useCallback(() => {
+  //   channel.push('deps:validate', { sessionId: session.id });
+  // }, [channel, session.id]);
+  //
+  // useEffect(() => {
+  //   initializeOnce();
+  // }, [initializeOnce]);
 
   async function onDeleteCell(cell: CellType) {
     if (cell.type === 'title') {
@@ -393,7 +413,7 @@ function PackageJsonCell(props: {
 
   // Useeffect to handle single package install events
   useEffect(() => {
-    const callback = (payload: DepsOutdatedPayloadType) => {
+    const callback = (payload: DepsValidateResponsePayloadType) => {
       const { packages } = payload;
       const msg = packages
         ? `Missing dependencies: ${packages.join(', ')}`
@@ -406,8 +426,8 @@ function PackageJsonCell(props: {
         },
       });
     };
-    channel.on('deps:outdated', callback);
-    return () => channel.off('deps:outdated', callback);
+    channel.on('deps:validate:response', callback);
+    return () => channel.off('deps:validate:response', callback);
   }, [channel, npmInstall]);
 
   const onOpenChange = (state: boolean) => {

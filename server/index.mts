@@ -58,7 +58,11 @@ const DepsInstallPayloadSchema = z.object({
   packages: z.array(z.string()).optional(),
 });
 
-const DepsOutdatedPayloadSchema = z.object({
+const DepsValidatePayloadSchema = z.object({
+  sessionId: z.string(),
+});
+
+const DepsValidateResponsePayloadSchema = z.object({
   packages: z.array(z.string()).optional(),
 });
 
@@ -96,15 +100,24 @@ function addRunningProcess(
 }
 
 async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
-  if (await shouldNpmInstall(session.dir)) {
-    wss.broadcast(`session:${session.id}`, 'deps:outdated', {});
-    return;
+  try {
+    if (await shouldNpmInstall(session.dir)) {
+      wss.broadcast(`session:${session.id}`, 'deps:validate:response', {});
+    }
+  } catch (e) {
+    // Don't crash the server on dependency validation, but log the error
+    console.error(`Error validating dependencies for session ${session.id}: ${e}`);
   }
 
-  const missingDeps = await missingUndeclaredDeps(session.dir);
+  try {
+    const missingDeps = await missingUndeclaredDeps(session.dir);
 
-  if (missingDeps.length > 0) {
-    wss.broadcast(`session:${session.id}`, 'deps:outdated', { packages: missingDeps });
+    if (missingDeps.length > 0) {
+      wss.broadcast(`session:${session.id}`, 'deps:validate:response', { packages: missingDeps });
+    }
+  } catch (e) {
+    // Don't crash the server on dependency validation, but log the error
+    console.error(`Error running depcheck for session ${session.id}: ${e}`);
   }
 }
 
@@ -212,6 +225,11 @@ async function filenameCheck(payload: z.infer<typeof CellValidatePayloadSchema>)
   });
 }
 
+async function depsValidate(payload: z.infer<typeof DepsValidatePayloadSchema>) {
+  const session = await findSession(payload.sessionId);
+  nudgeMissingDeps(wss, session);
+}
+
 async function cellStop(payload: z.infer<typeof CellStopPayloadSchema>) {
   const session = await findSession(payload.sessionId);
   const cell = findCell(session, payload.cellId);
@@ -240,9 +258,10 @@ wss
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('cell:validate', CellValidatePayloadSchema, filenameCheck)
+  .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
-  .outgoing('deps:outdated', DepsOutdatedPayloadSchema)
+  .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
   .outgoing('cell:validate:response', CellValidateResponsePayloadSchema);
 
 app.use(express.json());

@@ -20,7 +20,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import type { PackageJsonCellType, SessionType } from '@/types';
-import { CellUpdatedMessageType, SessionChannel } from '@/clients/websocket';
+import { CellUpdatedPayloadType, SessionChannel } from '@/clients/websocket';
 import { useCells } from './use-cell';
 
 type PackageMetadata = {
@@ -61,7 +61,7 @@ export default function InstallPackageModal({
     .join('');
 
   useEffect(() => {
-    const callback = (payload: CellUpdatedMessageType) => {
+    const callback = (payload: CellUpdatedPayloadType) => {
       if (open && payload.cell.id === cell.id && payload.cell.status === 'idle') {
         setMode('success');
       }
@@ -75,9 +75,8 @@ export default function InstallPackageModal({
     setPkg(packageName);
     setMode('loading');
 
-    channel.push('cell:exec', {
+    channel.push('deps:install', {
       sessionId: session.id,
-      cellId: cell.id,
       packages: [packageName],
     });
   };

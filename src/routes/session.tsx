@@ -41,11 +41,11 @@ import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import DeleteSessionModal from '@/components/delete-session-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
 import {
+  CellOutputPayloadType,
+  CellUpdatedPayloadType,
+  DepsOutdatedPayloadType,
+  CellValidateResponsePayloadType,
   SessionChannel,
-  CellOutputMessageType,
-  CellUpdatedMessageType,
-  PkgJsonInstallMessageType,
-  FilenameCheckResultType,
 } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
@@ -103,7 +103,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   }
 
   useEffect(() => {
-    const callback = (payload: CellOutputMessageType) => {
+    const callback = (payload: CellOutputPayloadType) => {
       setOutput(payload.cellId, payload.output);
     };
 
@@ -113,7 +113,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   }, [channel, setOutput]);
 
   useEffect(() => {
-    const callback = (payload: CellUpdatedMessageType) => {
+    const callback = (payload: CellUpdatedPayloadType) => {
       updateCell(payload.cell);
     };
 
@@ -379,15 +379,13 @@ function PackageJsonCell(props: {
   const npmInstall = useCallback(
     (packages?: Array<string>) => {
       setOpen(true);
-      // Here we use the client-only updateCell function. The server will know its running from the 'cell:exec'.
+      // Here we use the client-only updateCell function. The server will know its running from the 'deps:install'.
       updateCell({ ...cell, status: 'running' });
       clearOutput(cell.id);
 
-      channel.push('cell:exec', {
+      channel.push('deps:install', {
         sessionId: session.id,
-        cellId: cell.id,
-        source: cell.source,
-        packages: packages || [],
+        packages: packages,
       });
     },
     [cell, clearOutput, channel, session, updateCell],
@@ -395,7 +393,7 @@ function PackageJsonCell(props: {
 
   // Useeffect to handle single package install events
   useEffect(() => {
-    const callback = (payload: PkgJsonInstallMessageType) => {
+    const callback = (payload: DepsOutdatedPayloadType) => {
       const { packages } = payload;
       const msg = packages
         ? `Missing dependencies: ${packages.join(', ')}`
@@ -403,15 +401,13 @@ function PackageJsonCell(props: {
       toast.warning(msg, {
         duration: 10000,
         action: {
-          label: `install`,
-          onClick: () => {
-            npmInstall(packages);
-          },
+          label: 'Install',
+          onClick: () => npmInstall(packages),
         },
       });
     };
-    channel.on('package.json:install', callback);
-    return () => channel.off('package.json:install', callback);
+    channel.on('deps:outdated', callback);
+    return () => channel.off('deps:outdated', callback);
   }, [channel, npmInstall]);
 
   const onOpenChange = (state: boolean) => {
@@ -522,7 +518,7 @@ function CodeCell(props: {
 
   // Useeffect to handle single package install events
   useEffect(() => {
-    const callback = (payload: FilenameCheckResultType) => {
+    const callback = (payload: CellValidateResponsePayloadType) => {
       const { cellId, filename, error: _error, message } = payload;
       if (cellId !== cell.id) return;
       if (_error && message) {
@@ -532,8 +528,8 @@ function CodeCell(props: {
         onUpdateCell(cell, { filename });
       }
     };
-    channel.on('filename-check', callback);
-    return () => channel.off('filename-check', callback);
+    channel.on('cell:validate:response', callback);
+    return () => channel.off('cell:validate:response', callback);
   }, [channel, onUpdateCell, cell]);
 
   function onChangeSource(source: string) {
@@ -546,13 +542,13 @@ function CodeCell(props: {
   }
 
   // Updating the filename has the following flow:
-  // 1. Disable cell & Push a filename-check event to the server
+  // 1. Disable cell & Push a cell:validate event to the server
   // 2. Receive the response in the useEffect handler callback above
   // 3. If successful, re-enable cell.
   async function updateFilename(filename: string) {
     setError(null);
     setEnabled(false);
-    channel.push('filename-check', {
+    channel.push('cell:validate', {
       cellId: cell.id,
       sessionId: session.id,
       filename,
@@ -562,12 +558,13 @@ function CodeCell(props: {
   function runCell() {
     if (!enabled) return;
 
+    // Update client side only. The server will know it's running from the 'cell:exec' event.
     updateCell({ ...cell, status: 'running' });
     clearOutput(cell.id);
+
     channel.push('cell:exec', {
       sessionId: session.id,
       cellId: cell.id,
-      source: cell.source,
     });
   }
 

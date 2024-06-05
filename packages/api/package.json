@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "check": "tsc --noEmit",
     "dev": "vite-node index.mts",
     "test": "vitest",
+    "check-types": "tsc",
     "depcheck": "depcheck"
   },
   "dependencies": {

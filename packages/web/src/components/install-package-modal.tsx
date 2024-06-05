@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
-import { searchNpmPackages } from '@/lib/server';
 import { useDebounce } from 'use-debounce';
+import type { CellUpdatedPayloadType } from '@srcbook/shared';
+import { cn } from '@/lib/utils';
+import { searchNpmPackages } from '@/lib/server';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -20,7 +21,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import type { PackageJsonCellType, SessionType } from '@/types';
-import { CellUpdatedPayloadType, SessionChannel } from '@/clients/websocket';
+import { SessionChannel } from '@/clients/websocket';
 import { useCells } from './use-cell';
 
 type PackageMetadata = {

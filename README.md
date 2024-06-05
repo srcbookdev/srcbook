@@ -25,6 +25,20 @@ pnpm run dev-web
 
 Then visit http://localhost:5173
 
+## Running pnpm scripts
+
+Same as NPM, check top-level package.json for scripts.
+
+```shell
+pnpm run lint-web
+```
+
+To run a script defined in one of the packages:
+
+```shell
+pnpm --filter api typecheck
+```
+
 ## Adding a dependency
 
 To add a dependency from npm registry:

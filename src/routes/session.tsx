@@ -43,7 +43,7 @@ import InstallPackageModal from '@/components/install-package-modal';
 import {
   CellOutputPayloadType,
   CellUpdatedPayloadType,
-  DepsOutdatedPayloadType,
+  DepsValidateResponsePayloadType,
   CellValidateResponsePayloadType,
   SessionChannel,
 } from '@/clients/websocket';
@@ -65,6 +65,18 @@ function SessionPage() {
     channel.subscribe();
     return () => channel.unsubscribe();
   }, [channel]);
+
+  // Because in react-strict mode useEffect runs twice,
+  // we use a ref to ensure it runs only once.
+  const checkDepsRef = useRef(false);
+
+  useEffect(() => {
+    if (!checkDepsRef.current) {
+      checkDepsRef.current = true;
+      channel.push('deps:validate', { sessionId: session.id });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <CellsProvider initialCells={session.cells}>
@@ -393,7 +405,7 @@ function PackageJsonCell(props: {
 
   // Useeffect to handle single package install events
   useEffect(() => {
-    const callback = (payload: DepsOutdatedPayloadType) => {
+    const callback = (payload: DepsValidateResponsePayloadType) => {
       const { packages } = payload;
       const msg = packages
         ? `Missing dependencies: ${packages.join(', ')}`
@@ -406,8 +418,8 @@ function PackageJsonCell(props: {
         },
       });
     };
-    channel.on('deps:outdated', callback);
-    return () => channel.off('deps:outdated', callback);
+    channel.on('deps:validate:response', callback);
+    return () => channel.off('deps:validate:response', callback);
   }, [channel, npmInstall]);
 
   const onOpenChange = (state: boolean) => {

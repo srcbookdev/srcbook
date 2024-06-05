@@ -34,7 +34,7 @@ export async function shouldNpmInstall(dirPath: string): Promise<boolean> {
   const packageLockData = await fs.readFile(packageLockPath, 'utf8');
   const pkgLockJson = JSON.parse(packageLockData);
 
-  const installedDeps = pkgLockJson.packages[''].dependencies || {};
+  const installedDeps = pkgLockJson.packages['']?.dependencies || {};
 
   for (const dep of allDepsKeys) {
     if (!installedDeps[dep]) {

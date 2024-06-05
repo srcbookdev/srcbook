@@ -30,36 +30,21 @@ import processes from './processes.mjs';
 import WebSocketServer from './web-socket-server.mjs';
 import z from 'zod';
 
-const CellExecSchema = z.object({
-  sessionId: z.string(),
-  cellId: z.string(),
-  source: z.string().optional(),
-  packages: z.array(z.string()).optional(),
-});
-
-const CellStopSchema = z.object({
+const CellExecPayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
 });
 
-const FilenameCheckSchema = z.object({
-  cellId: z.string(),
+const CellStopPayloadSchema = z.object({
   sessionId: z.string(),
-  filename: z.string(),
-});
-
-const FilenameCheckResultSchema = z.object({
   cellId: z.string(),
-  filename: z.string(),
-  error: z.boolean(),
-  message: z.string().optional(),
 });
 
-const CellUpdatedSchema = z.object({
+const CellUpdatedPayloadSchema = z.object({
   cell: z.any(), // TODO: TYPE ME
 });
 
-const CellOutputSchema = z.object({
+const CellOutputPayloadSchema = z.object({
   cellId: z.string(),
   output: z.object({
     type: z.enum(['stdout', 'stderr']),
@@ -67,8 +52,26 @@ const CellOutputSchema = z.object({
   }),
 });
 
-const PkgJsonInstallSchema = z.object({
+const DepsInstallPayloadSchema = z.object({
+  sessionId: z.string(),
   packages: z.array(z.string()).optional(),
+});
+
+const DepsOutdatedPayloadSchema = z.object({
+  packages: z.array(z.string()).optional(),
+});
+
+const CellValidatePayloadSchema = z.object({
+  cellId: z.string(),
+  sessionId: z.string(),
+  filename: z.string(),
+});
+
+const CellValidateResponsePayloadSchema = z.object({
+  cellId: z.string(),
+  filename: z.string(),
+  error: z.boolean(),
+  message: z.string().optional(),
 });
 
 function addRunningProcess(
@@ -93,128 +96,110 @@ function addRunningProcess(
 
 async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
   if (shouldNpmInstall(session.dir)) {
-    wss.broadcast(`session:${session.id}`, 'package.json:install', {});
+    wss.broadcast(`session:${session.id}`, 'deps:outdated', {});
   }
   const missingDeps = await missingUndeclaredDeps(session.dir);
   if (missingDeps.length > 0) {
-    wss.broadcast(`session:${session.id}`, 'package.json:install', { packages: missingDeps });
+    wss.broadcast(`session:${session.id}`, 'deps:outdated', { packages: missingDeps });
   }
 }
 
-// move me
-async function doNode(
-  session: SessionType,
-  cell: CodeCellType,
-  payload: z.infer<typeof CellExecSchema>,
-) {
+async function cellExec(payload: z.infer<typeof CellExecPayloadSchema>) {
+  const session = await findSession(payload.sessionId);
+  const cell = findCell(session, payload.cellId);
+
+  if (!cell || cell.type !== 'code') {
+    console.error(`Cannot execute cell with id ${payload.cellId}; cell not found.`);
+    return;
+  }
+
   try {
     nudgeMissingDeps(wss, session);
   } catch (e) {
     // If dep check fails, just log the error and continue
     console.error(e);
   }
-  const updatedCell: CodeCellType = {
-    ...cell,
-    source: payload.source || cell.source,
-    status: 'running',
-  };
-
-  const updatedCells = replaceCell(session, updatedCell);
-  await updateSession(session, { cells: updatedCells });
 
   const secrets = await getSecrets();
 
-  const process = node({
-    cwd: session.dir,
-    env: secrets,
-    entry: updatedCell.filename,
-    stdout(data) {
-      wss.broadcast(`session:${session.id}`, 'cell:output', {
-        cellId: updatedCell.id,
-        output: { type: 'stdout', data: data.toString('utf8') },
-      });
-    },
-    stderr(data) {
-      wss.broadcast(`session:${session.id}`, 'cell:output', {
-        cellId: updatedCell.id,
-        output: { type: 'stderr', data: data.toString('utf8') },
-      });
-    },
-    onExit() {
-      updatedCell.status = 'idle';
-      wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: updatedCell });
-    },
-  });
-
-  addRunningProcess(session, updatedCell, process);
-}
-
-async function doNPMInstall(
-  session: SessionType,
-  cell: PackageJsonCellType,
-  payload: z.infer<typeof CellExecSchema>,
-) {
-  if (payload.source) {
-    const updatedCell = { ...cell, source: payload.source };
-    const updatedCells = replaceCell(session, updatedCell);
-    await updateSession(session, { cells: updatedCells });
-  }
-
-  // If it was updated due to source being present, reload the cell.
-  cell = findCell(session, cell.id) as PackageJsonCellType;
   cell.status = 'running';
 
-  const process = npmInstall({
-    cwd: session.dir,
-    packages: payload.packages,
-    stdout(data) {
-      wss.broadcast(`session:${session.id}`, 'cell:output', {
-        cellId: cell.id,
-        output: { type: 'stdout', data: data.toString('utf8') },
-      });
-    },
-    stderr(data) {
-      wss.broadcast(`session:${session.id}`, 'cell:output', {
-        cellId: cell.id,
-        output: { type: 'stderr', data: data.toString('utf8') },
-      });
-    },
-    async onExit() {
-      const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
-      const updatedCell: PackageJsonCellType = {
-        ...cell,
-        source: updatedJsonSource,
-        status: 'idle',
-      };
-      updateSession(session, { cells: replaceCell(session, updatedCell) }, false);
-      wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: updatedCell });
-    },
-  });
-
-  addRunningProcess(session, cell, process);
+  addRunningProcess(
+    session,
+    cell,
+    node({
+      cwd: session.dir,
+      env: secrets,
+      entry: cell.filename,
+      stdout(data) {
+        wss.broadcast(`session:${session.id}`, 'cell:output', {
+          cellId: cell.id,
+          output: { type: 'stdout', data: data.toString('utf8') },
+        });
+      },
+      stderr(data) {
+        wss.broadcast(`session:${session.id}`, 'cell:output', {
+          cellId: cell.id,
+          output: { type: 'stderr', data: data.toString('utf8') },
+        });
+      },
+      onExit() {
+        cell.status = 'idle';
+        wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: cell });
+      },
+    }),
+  );
 }
 
-async function executeCell(payload: z.infer<typeof CellExecSchema>) {
+async function depsInstall(payload: z.infer<typeof DepsInstallPayloadSchema>) {
   const session = await findSession(payload.sessionId);
-  const cell = findCell(session, payload.cellId);
+  const cell = session.cells.find(
+    (cell) => cell.type === 'package.json',
+  ) as PackageJsonCellType | void;
 
   if (!cell) {
+    console.error(`Cannot install deps; package.json cell not found`);
     return;
   }
 
-  switch (cell.type) {
-    case 'code':
-      return doNode(session, cell, payload);
-    case 'package.json':
-      return doNPMInstall(session, cell, payload);
-    default:
-      throw new Error(`Cannot execute cell of type '${cell.type}'`);
-  }
+  cell.status = 'running';
+
+  addRunningProcess(
+    session,
+    cell,
+    npmInstall({
+      cwd: session.dir,
+      packages: payload.packages,
+      stdout(data) {
+        wss.broadcast(`session:${session.id}`, 'cell:output', {
+          cellId: cell.id,
+          output: { type: 'stdout', data: data.toString('utf8') },
+        });
+      },
+      stderr(data) {
+        wss.broadcast(`session:${session.id}`, 'cell:output', {
+          cellId: cell.id,
+          output: { type: 'stderr', data: data.toString('utf8') },
+        });
+      },
+      async onExit() {
+        const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
+        const updatedCell: PackageJsonCellType = {
+          ...cell,
+          source: updatedJsonSource,
+          status: 'idle',
+        };
+        updateSession(session, { cells: replaceCell(session, updatedCell) }, false);
+        wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: updatedCell });
+      },
+    }),
+  );
 }
-async function filenameCheck(payload: z.infer<typeof FilenameCheckSchema>) {
+
+async function filenameCheck(payload: z.infer<typeof CellValidatePayloadSchema>) {
   const session = await findSession(payload.sessionId);
   const result = validateFilename(session, payload.cellId, payload.filename);
-  wss.broadcast(`session:${payload.sessionId}`, 'filename-check', {
+  wss.broadcast(`session:${payload.sessionId}`, 'cell:validate:response', {
     cellId: payload.cellId,
     filename: payload.filename,
     error: typeof result === 'string',
@@ -223,7 +208,7 @@ async function filenameCheck(payload: z.infer<typeof FilenameCheckSchema>) {
   });
 }
 
-async function stopCell(payload: z.infer<typeof CellStopSchema>) {
+async function cellStop(payload: z.infer<typeof CellStopPayloadSchema>) {
   const session = await findSession(payload.sessionId);
   const cell = findCell(session, payload.cellId);
 
@@ -247,13 +232,14 @@ const wss = new WebSocketServer({ server });
 
 wss
   .channel('session:*')
-  .incoming('cell:exec', CellExecSchema, executeCell)
-  .incoming('cell:stop', CellStopSchema, stopCell)
-  .incoming('filename-check', FilenameCheckSchema, filenameCheck)
-  .outgoing('cell:updated', CellUpdatedSchema)
-  .outgoing('cell:output', CellOutputSchema)
-  .outgoing('package.json:install', PkgJsonInstallSchema)
-  .outgoing('filename-check', FilenameCheckResultSchema);
+  .incoming('cell:exec', CellExecPayloadSchema, cellExec)
+  .incoming('cell:stop', CellStopPayloadSchema, cellStop)
+  .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
+  .incoming('cell:validate', CellValidatePayloadSchema, filenameCheck)
+  .outgoing('cell:updated', CellUpdatedPayloadSchema)
+  .outgoing('cell:output', CellOutputPayloadSchema)
+  .outgoing('deps:outdated', DepsOutdatedPayloadSchema)
+  .outgoing('cell:validate:response', CellValidateResponsePayloadSchema);
 
 app.use(express.json());
 

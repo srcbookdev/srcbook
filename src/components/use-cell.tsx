@@ -4,11 +4,33 @@ import { CellType, OutputType } from '@/types';
 import { randomid } from '@/lib/utils';
 import type { CodeCellType, MarkdownCellType } from '@/types';
 
-export function buildCodeCell(attrs: Partial<CodeCellType> = {}): CodeCellType {
+/**
+ * Utility function to generate a unique filename for a code cell,
+ * given the list of existing filenames.
+ */
+function generateUniqueFilename(existingFilenames: string[]): string {
+  const baseName = 'untitled';
+  const extension = '.mjs';
+
+  let filename = `${baseName}${extension}`;
+  let counter = 1;
+
+  while (existingFilenames.includes(filename)) {
+    filename = `${baseName}${counter}${extension}`;
+    counter++;
+  }
+
+  return filename;
+}
+
+function buildCodeCell(cells: CellType[], attrs: Partial<CodeCellType> = {}): CodeCellType {
+  const filenames = cells.filter((c) => c.type === 'code').map((c) => (c as CodeCellType).filename);
+  const uniqueFilename = generateUniqueFilename(filenames);
+
   return {
     source: '',
     language: 'javascript',
-    filename: 'untitled.mjs',
+    filename: uniqueFilename,
     status: 'idle',
     ...attrs,
     id: randomid(),
@@ -16,7 +38,7 @@ export function buildCodeCell(attrs: Partial<CodeCellType> = {}): CodeCellType {
   };
 }
 
-export function buildMarkdownCell(attrs: Partial<MarkdownCellType> = {}): MarkdownCellType {
+function buildMarkdownCell(attrs: Partial<MarkdownCellType> = {}): MarkdownCellType {
   return {
     text: '',
     ...attrs,
@@ -95,7 +117,7 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
 
   const createCodeCell = useCallback(
     (idx: number, attrs?: Partial<CodeCellType>) => {
-      const cell = buildCodeCell(attrs);
+      const cell = buildCodeCell(cellsRef.current, attrs);
       insertCellAt(cell, idx);
       return cell;
     },

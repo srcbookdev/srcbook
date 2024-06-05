@@ -42,6 +42,19 @@ const CellStopSchema = z.object({
   cellId: z.string(),
 });
 
+const FilenameCheckSchema = z.object({
+  cellId: z.string(),
+  sessionId: z.string(),
+  filename: z.string(),
+});
+
+const FilenameCheckResultSchema = z.object({
+  cellId: z.string(),
+  filename: z.string(),
+  error: z.boolean(),
+  message: z.string().optional(),
+});
+
 const CellUpdatedSchema = z.object({
   cell: z.any(), // TODO: TYPE ME
 });
@@ -198,6 +211,17 @@ async function executeCell(payload: z.infer<typeof CellExecSchema>) {
       throw new Error(`Cannot execute cell of type '${cell.type}'`);
   }
 }
+async function filenameCheck(payload: z.infer<typeof FilenameCheckSchema>) {
+  const session = await findSession(payload.sessionId);
+  const result = validateFilename(session, payload.cellId, payload.filename);
+  wss.broadcast(`session:${payload.sessionId}`, 'filename-check', {
+    cellId: payload.cellId,
+    filename: payload.filename,
+    error: typeof result === 'string',
+    // Fix this typing... once we delete the web handler also using validateFilename
+    message: result === true ? undefined : result,
+  });
+}
 
 async function stopCell(payload: z.infer<typeof CellStopSchema>) {
   const session = await findSession(payload.sessionId);
@@ -225,9 +249,11 @@ wss
   .channel('session:*')
   .incoming('cell:exec', CellExecSchema, executeCell)
   .incoming('cell:stop', CellStopSchema, stopCell)
+  .incoming('filename-check', FilenameCheckSchema, filenameCheck)
   .outgoing('cell:updated', CellUpdatedSchema)
   .outgoing('cell:output', CellOutputSchema)
-  .outgoing('package.json:install', PkgJsonInstallSchema);
+  .outgoing('package.json:install', PkgJsonInstallSchema)
+  .outgoing('filename-check', FilenameCheckResultSchema);
 
 app.use(express.json());
 
@@ -336,14 +362,14 @@ function validateFilename(session: SessionType, cellId: string, filename: string
   const validFormat = /^[a-zA-Z0-9_-]+\.(mjs|json)$/.test(filename);
 
   if (!validFormat) {
-    return 'Invalid filename: filename must consist of letters, numbers, underscores, dashes and must end with mjs or json';
+    return 'Invalid filename: must consist of letters, numbers, underscores, dashes and must end with mjs or json';
   }
 
   const codeCells = session.cells.filter((c) => c.type === 'code') as CodeCellType[];
-  const unique = codeCells.some((cell) => {
+  const unique = !codeCells.some((cell) => {
     // If a different cell with the same filename exists,
     // this is not a unique filename within the session.
-    return cell.id === cellId || cell.filename !== filename;
+    return cell.id !== cellId && cell.filename === filename;
   });
 
   if (!unique) {

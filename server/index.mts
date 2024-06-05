@@ -25,7 +25,8 @@ import type {
   SessionType,
   PackageJsonCellType,
 } from './types';
-import { node, npmInstall, shouldNpmInstall, missingUndeclaredDeps } from './exec.mjs';
+import { node, npmInstall } from './exec.mjs';
+import { shouldNpmInstall, missingUndeclaredDeps } from './deps.mjs';
 import processes from './processes.mjs';
 import WebSocketServer from './web-socket-server.mjs';
 import z from 'zod';
@@ -95,10 +96,13 @@ function addRunningProcess(
 }
 
 async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
-  if (shouldNpmInstall(session.dir)) {
+  if (await shouldNpmInstall(session.dir)) {
     wss.broadcast(`session:${session.id}`, 'deps:outdated', {});
+    return;
   }
+
   const missingDeps = await missingUndeclaredDeps(session.dir);
+
   if (missingDeps.length > 0) {
     wss.broadcast(`session:${session.id}`, 'deps:outdated', { packages: missingDeps });
   }

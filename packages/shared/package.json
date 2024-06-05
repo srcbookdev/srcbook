@@ -1,0 +1,10 @@
+{
+  "name": "@srcbook/shared",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "@scure/base": "^1.1.6"
+  }
+}

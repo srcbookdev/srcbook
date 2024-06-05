@@ -1,11 +1,5 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
-import { base58 } from '@scure/base';
-
-export function randomid(byteSize = 16) {
-  const bytes = crypto.getRandomValues(new Uint8Array(byteSize));
-  return base58.encode(bytes);
-}
 
 export function take<T extends object, K extends keyof T>(obj: T, ...keys: Array<K>): Pick<T, K> {
   const result = {} as Pick<T, K>;

@@ -10,7 +10,7 @@
     "depcheck": "depcheck"
   },
   "dependencies": {
-    "@scure/base": "^1.1.6",
+    "@srcbook/shared": "workspace:^",
     "cors": "^2.8.5",
     "depcheck": "^1.4.7",
     "express": "^4.19.2",

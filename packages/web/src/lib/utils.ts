@@ -1,6 +1,5 @@
 import type * as React from 'react';
 import { type ClassValue, clsx } from 'clsx';
-import { base58 } from '@scure/base';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -20,11 +19,6 @@ export function mergeRefs<T>(
       }
     });
   };
-}
-
-export function randomid(byteSize = 16) {
-  const bytes = crypto.getRandomValues(new Uint8Array(byteSize));
-  return base58.encode(bytes);
 }
 
 export function splitPath(fullPath: string) {

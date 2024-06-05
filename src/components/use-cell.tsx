@@ -117,11 +117,11 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
 
   const createCodeCell = useCallback(
     (idx: number, attrs?: Partial<CodeCellType>) => {
-      const cell = buildCodeCell(cells, attrs);
+      const cell = buildCodeCell(cellsRef.current, attrs);
       insertCellAt(cell, idx);
       return cell;
     },
-    [insertCellAt, cells],
+    [insertCellAt],
   );
 
   const createMarkdownCell = useCallback(

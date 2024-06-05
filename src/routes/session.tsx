@@ -45,6 +45,7 @@ import {
   CellOutputMessageType,
   CellUpdatedMessageType,
   PkgJsonInstallMessageType,
+  FilenameCheckResultType,
 } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
@@ -513,13 +514,30 @@ function CodeCell(props: {
   onUpdateCell: (cell: CodeCellType, attrs: Partial<CodeCellType>) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
-  const cell = props.cell;
+  const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
   const [enabled, setEnabled] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const { updateCell, clearOutput } = useCells();
 
+  // Useeffect to handle single package install events
+  useEffect(() => {
+    const callback = (payload: FilenameCheckResultType) => {
+      const { cellId, filename, error: _error, message } = payload;
+      if (cellId !== cell.id) return;
+      if (_error && message) {
+        setError(message);
+      } else {
+        setEnabled(true);
+        onUpdateCell(cell, { filename });
+      }
+    };
+    channel.on('filename-check', callback);
+    return () => channel.off('filename-check', callback);
+  }, [channel, onUpdateCell, cell]);
+
   function onChangeSource(source: string) {
-    props.onUpdateCell(cell, { source });
+    onUpdateCell(cell, { source });
   }
 
   function evaluateModEnter() {
@@ -527,37 +545,56 @@ function CodeCell(props: {
     return true;
   }
 
+  // Updating the filename has the following flow:
+  // 1. Disable cell & Push a filename-check event to the server
+  // 2. Receive the response in the useEffect handler callback above
+  // 3. If successful, re-enable cell.
   async function updateFilename(filename: string) {
-    props.onUpdateCell(cell, { filename });
+    setError(null);
+    setEnabled(false);
+    channel.push('filename-check', {
+      cellId: cell.id,
+      sessionId: session.id,
+      filename,
+    });
   }
 
   function runCell() {
+    if (!enabled) return;
+
     updateCell({ ...cell, status: 'running' });
     clearOutput(cell.id);
-    props.channel.push('cell:exec', {
-      sessionId: props.session.id,
+    channel.push('cell:exec', {
+      sessionId: session.id,
       cellId: cell.id,
       source: cell.source,
     });
   }
 
   function stopCell() {
-    props.channel.push('cell:stop', { sessionId: props.session.id, cellId: cell.id });
+    channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
   }
 
   return (
     <div className="relative group/cell space-y-1.5">
-      <p className="text-xs text-gray-400">{cell.id}</p>
       <div
         className={cn(
           'border rounded group',
           cell.status === 'running'
             ? 'outline-orange-200 outline outline-2'
             : 'outline-blue-100 focus-within:outline focus-within:outline-2',
+          error ? 'outline-red-500 outline outline-1' : '',
         )}
       >
         <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
-          <FilenameInput filename={cell.filename} onUpdate={updateFilename} />
+          <div className="flex items-center gap-2">
+            <FilenameInput
+              filename={cell.filename}
+              onUpdate={updateFilename}
+              onChange={() => setError(null)}
+            />
+            {error && <div className="text-red-600 text-sm">{error}</div>}
+          </div>
           <div
             className={cn(
               'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2',
@@ -565,7 +602,7 @@ function CodeCell(props: {
               cell.status === 'running' ? 'opacity-100' : '',
             )}
           >
-            <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+            <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
               <Button variant="ghost" tabIndex={1}>
                 <Trash2 size={16} />
               </Button>
@@ -578,7 +615,7 @@ function CodeCell(props: {
               </Button>
             )}
             {cell.status === 'idle' && (
-              <Button variant="outline" onClick={runCell} tabIndex={1}>
+              <Button variant="outline" onClick={runCell} tabIndex={1} disabled={!enabled}>
                 <div className="flex items-center gap-2">
                   <PlayCircle size={16} />
                   Run
@@ -647,11 +684,14 @@ function CellOutput(props: { cellId: string }) {
   );
 }
 
-function FilenameInput(props: { filename: string; onUpdate: (filename: string) => Promise<void> }) {
+function FilenameInput(props: {
+  filename: string;
+  onUpdate: (filename: string) => Promise<void>;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
   const filename = props.filename;
   const onUpdate = props.onUpdate;
-
-  const [error, setError] = useState<string | null>(null);
+  const onChange = props.onChange;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -670,6 +710,7 @@ function FilenameInput(props: { filename: string; onUpdate: (filename: string) =
           }
         }}
         ref={inputRef}
+        onChange={onChange}
         required
         defaultValue={filename}
         onBlur={() => {
@@ -679,13 +720,7 @@ function FilenameInput(props: { filename: string; onUpdate: (filename: string) =
 
           const updatedFilename = inputRef.current.value;
           if (updatedFilename !== filename) {
-            onUpdate(updatedFilename).catch((e) => {
-              if (inputRef.current) {
-                inputRef.current.value = filename;
-              }
-              setError(e.message);
-              setTimeout(() => setError(null), 1500);
-            });
+            onUpdate(updatedFilename);
           }
         }}
         onKeyDown={(e) => {
@@ -695,7 +730,6 @@ function FilenameInput(props: { filename: string; onUpdate: (filename: string) =
         }}
         className={cn(
           'font-mono font-semibold text-xs border-transparent hover:border-input transition-colors',
-          error && 'border border-red-600 hover:border-red-600 focus-visible:ring-red-600',
         )}
       />
     </div>

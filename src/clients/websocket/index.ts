@@ -39,12 +39,16 @@ export const PkgJsonInstallMessageSchema = z.object({
 });
 
 export const FilenameCheckMessageSchema = z.object({
+  cellId: z.string(),
+  sessionId: z.string(),
   filename: z.string(),
 });
 
 export const FilenameCheckResultSchema = z.object({
+  cellId: z.string(),
   filename: z.string(),
-  exists: z.boolean(),
+  error: z.boolean(),
+  message: z.string().optional(),
 });
 
 export type CellExecMessageType = z.infer<typeof CellExecMessageSchema>;
@@ -52,6 +56,8 @@ export type CellStopMessageType = z.infer<typeof CellStopMessageSchema>;
 export type CellUpdatedMessageType = z.infer<typeof CellUpdatedMessageSchema>;
 export type CellOutputMessageType = z.infer<typeof CellOutputMessageSchema>;
 export type PkgJsonInstallMessageType = z.infer<typeof PkgJsonInstallMessageSchema>;
+export type FilenameCheckMessageType = z.infer<typeof FilenameCheckMessageSchema>;
+export type FilenameCheckResultType = z.infer<typeof FilenameCheckResultSchema>;
 
 const IncomingSessionEvents = {
   'cell:output': CellOutputMessageSchema,

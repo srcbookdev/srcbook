@@ -43,12 +43,16 @@ const CellStopSchema = z.object({
 });
 
 const FilenameCheckSchema = z.object({
+  cellId: z.string(),
+  sessionId: z.string(),
   filename: z.string(),
 });
 
 const FilenameCheckResultSchema = z.object({
+  cellId: z.string(),
   filename: z.string(),
-  exists: z.boolean(),
+  error: z.boolean(),
+  message: z.string().optional(),
 });
 
 const CellUpdatedSchema = z.object({
@@ -208,7 +212,15 @@ async function executeCell(payload: z.infer<typeof CellExecSchema>) {
   }
 }
 async function filenameCheck(payload: z.infer<typeof FilenameCheckSchema>) {
-  return payload.filename;
+  const session = await findSession(payload.sessionId);
+  const result = validateFilename(session, payload.cellId, payload.filename);
+  wss.broadcast(`session:${payload.sessionId}`, 'filename-check', {
+    cellId: payload.cellId,
+    filename: payload.filename,
+    error: typeof result === 'string',
+    // Fix this typing... once we delete the web handler also using validateFilename
+    message: result === true ? undefined : result,
+  });
 }
 
 async function stopCell(payload: z.infer<typeof CellStopSchema>) {
@@ -350,14 +362,14 @@ function validateFilename(session: SessionType, cellId: string, filename: string
   const validFormat = /^[a-zA-Z0-9_-]+\.(mjs|json)$/.test(filename);
 
   if (!validFormat) {
-    return 'Invalid filename: filename must consist of letters, numbers, underscores, dashes and must end with mjs or json';
+    return 'Invalid filename: must consist of letters, numbers, underscores, dashes and must end with mjs or json';
   }
 
   const codeCells = session.cells.filter((c) => c.type === 'code') as CodeCellType[];
-  const unique = codeCells.some((cell) => {
+  const unique = !codeCells.some((cell) => {
     // If a different cell with the same filename exists,
     // this is not a unique filename within the session.
-    return cell.id === cellId || cell.filename !== filename;
+    return cell.id !== cellId && cell.filename === filename;
   });
 
   if (!unique) {

@@ -49,6 +49,7 @@ import {
 } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
+import { useEffectOnce } from '@/components/use-effect-once';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -61,22 +62,14 @@ function SessionPage() {
   const channelRef = useRef(SessionChannel.create(session.id));
   const channel = channelRef.current;
 
-  useEffect(() => {
+  useEffectOnce(() => {
     channel.subscribe();
+
+    // TODO: Push once we know subscription succeeded
+    channel.push('deps:validate', { sessionId: session.id });
+
     return () => channel.unsubscribe();
-  }, [channel]);
-
-  // Because in react-strict mode useEffect runs twice,
-  // we use a ref to ensure it runs only once.
-  const checkDepsRef = useRef(false);
-
-  useEffect(() => {
-    if (!checkDepsRef.current) {
-      checkDepsRef.current = true;
-      channel.push('deps:validate', { sessionId: session.id });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   return (
     <CellsProvider initialCells={session.cells}>

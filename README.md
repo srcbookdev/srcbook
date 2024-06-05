@@ -27,16 +27,16 @@ Then visit http://localhost:5173
 
 ## Running pnpm scripts
 
-Same as NPM, check top-level package.json for scripts.
+Similar to NPM, check top-level package.json for scripts.
 
 ```shell
-pnpm run lint-web
+pnpm check-types
 ```
 
 To run a script defined in one of the packages:
 
 ```shell
-pnpm --filter api typecheck
+pnpm --filter api check-types
 ```
 
 ## Adding a dependency

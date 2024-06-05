@@ -66,13 +66,13 @@ function SessionPage() {
     return () => channel.unsubscribe();
   }, [channel]);
 
-  // Because in react-strict mode, useEffect runs twice,
-  // we need to use a ref to ensure it runs only once.
-  const hasRunRef = useRef(false);
+  // Because in react-strict mode useEffect runs twice,
+  // we use a ref to ensure it runs only once.
+  const checkDepsRef = useRef(false);
 
   useEffect(() => {
-    if (!hasRunRef.current) {
-      hasRunRef.current = true;
+    if (!checkDepsRef.current) {
+      checkDepsRef.current = true;
       channel.push('deps:validate', { sessionId: session.id });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,14 +97,6 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
   // This assumes qwerty layout.
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
-
-  // const initializeOnce = useCallback(() => {
-  //   channel.push('deps:validate', { sessionId: session.id });
-  // }, [channel, session.id]);
-  //
-  // useEffect(() => {
-  //   initializeOnce();
-  // }, [initializeOnce]);
 
   async function onDeleteCell(cell: CellType) {
     if (cell.type === 'title') {

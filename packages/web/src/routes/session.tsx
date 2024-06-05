@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Prec } from '@codemirror/state';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror from '@uiw/react-codemirror';
-import { keymap } from '@codemirror/view';
+import CodeMirror, {keymap, Prec} from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';

@@ -1,7 +1,7 @@
-import { Server } from 'node:http';
+import { IncomingMessage } from 'node:http';
 import z from 'zod';
+import { RawData, WebSocket } from 'ws';
 import { WebSocketMessageSchema } from '@srcbook/shared';
-import { RawData, WebSocket, WebSocketServer as WsWebSocketServer } from 'ws';
 
 const VALID_TOPIC_RE = /^[a-zA-Z0-9_:]+$/;
 
@@ -77,34 +77,34 @@ export default class WebSocketServer {
   private readonly channels: Channel[] = [];
   private connections: ConnectionType[] = [];
 
-  constructor(options: { server: Server }) {
-    const wss = new WsWebSocketServer({ server: options.server });
+  constructor() {
+    this.onConnection = this.onConnection.bind(this);
+  }
 
-    wss.on('connection', (socket, request) => {
-      const url = new URL(request.url!, `http://${request.headers.host}`);
+  onConnection(socket: WebSocket, request: IncomingMessage) {
+    const url = new URL(request.url!, `ws://${request.headers.host}`);
 
-      const match = url.pathname.match(/^\/websocket\/?$/);
-      if (match === null) {
-        socket.close();
-        return;
-      }
+    const match = url.pathname.match(/^\/websocket\/?$/);
+    if (match === null) {
+      socket.close();
+      return;
+    }
 
-      const connection = { socket, subscriptions: [] };
+    const connection = { socket, subscriptions: [] };
 
-      this.connections.push(connection);
+    this.connections.push(connection);
 
-      socket.on('error', (error) => {
-        // TODO: better error handling
-        console.error(error);
-      });
+    socket.on('error', (error) => {
+      // TODO: better error handling
+      console.error(error);
+    });
 
-      socket.on('close', () => {
-        this.removeConnection(socket);
-      });
+    socket.on('close', () => {
+      this.removeConnection(socket);
+    });
 
-      socket.on('message', (message) => {
-        this.handleIncomingMessage(connection, message);
-      });
+    socket.on('message', (message) => {
+      this.handleIncomingMessage(connection, message);
     });
   }
 

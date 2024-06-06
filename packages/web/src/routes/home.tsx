@@ -36,7 +36,7 @@ function Home() {
 
   return (
     <>
-      <h1 className="text-2xl mx-auto mb-8">Src Books</h1>
+      <h1 className="text-2xl mx-auto mb-8">Srcbooks</h1>
       <p>Create your next Srcbook or open an existing one below.</p>
       <div className="mt-4 flex items-center gap-12">
         <Form method="post" className="h-full">

@@ -1,4 +1,5 @@
 import { ChildProcess } from 'node:child_process';
+import { getOrCreateRepl } from '../repl.mjs';
 import {
   findSession,
   findCell,
@@ -19,6 +20,8 @@ import {
   DepsValidatePayloadSchema,
   CellUpdatedPayloadSchema,
   CellOutputPayloadSchema,
+  ReplInputPayloadSchema,
+  ReplOutputPayloadSchema,
   DepsValidateResponsePayloadSchema,
   CellValidateResponsePayloadSchema,
   CellExecPayloadType,
@@ -26,6 +29,7 @@ import {
   DepsValidatePayloadType,
   CellValidatePayloadType,
   CellStopPayloadType,
+  ReplInputPayloadType,
 } from '@srcbook/shared';
 import WebSocketServer from './ws-client.mjs';
 import { validateFilename } from './shared.mjs';
@@ -203,6 +207,12 @@ async function cellStop(payload: CellStopPayloadType) {
   }
 }
 
+async function handleReplIn(payload: ReplInputPayloadType) {
+  const session = await findSession(payload.sessionId);
+  const repl = getOrCreateRepl(session.id, wss);
+  repl.sendInput(payload.input);
+}
+
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
@@ -210,9 +220,11 @@ wss
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('cell:validate', CellValidatePayloadSchema, filenameCheck)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
+  .incoming('repl:input', ReplInputPayloadSchema, handleReplIn)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
   .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
-  .outgoing('cell:validate:response', CellValidateResponsePayloadSchema);
+  .outgoing('cell:validate:response', CellValidateResponsePayloadSchema)
+  .outgoing('repl:output', ReplOutputPayloadSchema);
 
 export default wss;

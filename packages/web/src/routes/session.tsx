@@ -654,6 +654,7 @@ function Repl({ session, channel }: { session: SessionType; channel: SessionChan
 
   useEffect(() => {
     const callback = (payload: ReplOutputPayloadType) => {
+      console.log(messages.current);
       messages.current.push({ role: 'out', content: payload.output });
       setForceUpdate((prev) => prev + 1);
       console.log(messages);

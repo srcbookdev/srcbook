@@ -22,6 +22,7 @@ import {
   CellUpdatedPayloadType,
   DepsValidateResponsePayloadType,
   CellValidateResponsePayloadType,
+  ReplOutputPayloadType,
 } from '@srcbook/shared';
 import { loadSession, createCell, updateCell as updateCellServer, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
@@ -219,6 +220,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
           </div>
         </NewCellPopover>
       </div>
+
+      <Repl session={session} channel={channel} />
     </div>
   );
 }
@@ -638,6 +641,70 @@ function CodeCell(props: {
     </div>
   );
 }
+
+function Repl({ session, channel }: { session: SessionType; channel: SessionChannel }) {
+  const [input, setInput] = useState('');
+  const [_, setForceUpdate] = useState(0);
+
+  const messages = useRef<Array<msgType>>([]);
+  type msgType = {
+    role: 'in' | 'out';
+    content: string;
+  }
+
+  useEffect(() => {
+    const callback = (payload: ReplOutputPayloadType) => {
+      messages.current.push({ role: 'out', content: payload.output });
+      setForceUpdate((prev) => prev + 1);
+      console.log(messages);
+    };
+
+    channel.on('repl:output', callback);
+
+    return () => channel.off('repl:output', callback);
+  }, [channel, messages]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    channel.push('repl:input', { sessionId: session.id, input });
+    messages.current.push({ role: 'in', content: input });
+    setInput('');
+    setForceUpdate((prev) => prev + 1);
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-medium">REPL</h2>
+      <div className="repl-history text-sm">
+        {messages.current.map((msg, index) => {
+          if (msg.role === 'in') {
+            return (
+              <div className="flex gap-2" key={index}>
+                <p>{' >'}</p><pre key={index} className="color-blue-500">{msg.content}</pre>
+              </div>
+            )
+          } else {
+            return (
+              <div className="flex gap-2" key={index}>
+                <pre key={index} className="color-red-500">{msg.content}</pre>
+              </div>
+            )
+          }
+        })}
+      </div>
+      <form onSubmit={handleSubmit}>
+        <div className="flex gap-2 max-w-md">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+          />
+          <Button variant="outline" type="submit">Send</Button>
+        </div>
+      </form>
+    </div >
+  );
+};
+
 
 function formatOutput(output: OutputType[]) {
   return output.map(({ data }) => data).join('');

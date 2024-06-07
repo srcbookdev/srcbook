@@ -48,6 +48,15 @@ export const DepsValidatePayloadSchema = z.object({
   sessionId: z.string(),
 });
 
+export const ReplInputPayloadSchema = z.object({
+  sessionId: z.string(),
+  input: z.string(),
+});
+
+export const ReplOutputPayloadSchema = z.object({
+  output: z.string(),
+});
+
 // A _message_ over websockets
 export const WebSocketMessageSchema = z.tuple([
   z.string(), // The _topic_, eg: "sessions:123"
@@ -66,3 +75,6 @@ export type DepsValidatePayloadType = z.infer<typeof DepsValidatePayloadSchema>;
 
 export type CellValidatePayloadType = z.infer<typeof CellValidatePayloadSchema>;
 export type CellValidateResponsePayloadType = z.infer<typeof CellValidateResponsePayloadSchema>;
+
+export type ReplInputPayloadType = z.infer<typeof ReplInputPayloadSchema>;
+export type ReplOutputPayloadType = z.infer<typeof ReplOutputPayloadSchema>;

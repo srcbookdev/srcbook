@@ -32,4 +32,4 @@ class ReplService {
   }
 }
 
-export default new ReplService();
+export default ReplService;

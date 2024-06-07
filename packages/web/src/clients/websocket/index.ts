@@ -8,6 +8,8 @@ import {
   DepsInstallPayloadSchema,
   CellValidatePayloadSchema,
   DepsValidatePayloadSchema,
+  ReplInputPayloadSchema,
+  ReplOutputPayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -22,6 +24,7 @@ const IncomingSessionEvents = {
   'cell:updated': CellUpdatedPayloadSchema,
   'deps:validate:response': DepsValidateResponsePayloadSchema,
   'cell:validate:response': CellValidateResponsePayloadSchema,
+  'repl:output': ReplOutputPayloadSchema,
 };
 
 const OutgoingSessionEvents = {
@@ -30,6 +33,7 @@ const OutgoingSessionEvents = {
   'deps:install': DepsInstallPayloadSchema,
   'cell:validate': CellValidatePayloadSchema,
   'deps:validate': DepsValidatePayloadSchema,
+  'repl:input': ReplInputPayloadSchema,
 };
 
 export class SessionChannel extends Channel<

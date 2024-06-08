@@ -13,9 +13,8 @@ async function loader() {
 
 async function action({ request }: { request: Request }) {
   const formData = await request.formData();
-  const dirname = formData.get('dirname') as string;
-  const basename = formData.get('basename') as string;
-  const { result } = await createSession({ dirname, title: basename });
+  const path = formData.get('path') as string;
+  const { result } = await createSession({ path });
   return redirect(`/sessions/${result.id}`);
 }
 

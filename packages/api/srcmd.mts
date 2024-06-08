@@ -418,16 +418,3 @@ function serializeMarkdownTokens(tokens: Token[]) {
     })
     .join('');
 }
-
-export function newContents(title: string) {
-  return `# ${title}
-
-###### package.json
-
-\`\`\`json
-{
-  "dependencies": {}
-}
-\`\`\`
-`;
-}

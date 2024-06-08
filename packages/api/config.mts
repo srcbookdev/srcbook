@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { fileExists } from './fs-utils.mjs';
 
 export const HOME_DIR = os.homedir();
 export const SRCBOOK_DIR = path.join(HOME_DIR, '.srcbook');
@@ -60,14 +61,5 @@ export async function initializeConfig() {
 
   if (!hasSecretsFile) {
     fs.writeFile(SECRETS_FILE_PATH, '{}', 'utf8');
-  }
-}
-
-async function fileExists(filepath: string) {
-  try {
-    await fs.access(filepath, fs.constants.F_OK);
-    return true;
-  } catch (error) {
-    return false;
   }
 }

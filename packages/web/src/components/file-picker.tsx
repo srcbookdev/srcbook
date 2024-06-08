@@ -1,8 +1,8 @@
-import { Form } from 'react-router-dom';
-import { useState } from 'react';
+import { Form, useSubmit } from 'react-router-dom';
+import { useRef, useState } from 'react';
 import { FileCode, Folder } from 'lucide-react';
 import { cn, splitPath } from '@/lib/utils';
-import { disk } from '@/lib/server';
+import { disk, importSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -16,6 +16,12 @@ export default function FilePicker(props: {
   const [dirname, setDirname] = useState(props.dirname);
   const [entries, setEntries] = useState(props.entries);
   const [selected, setSelected] = useState<FsObjectType | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const submit = useSubmit();
 
   async function onClick(entry: FsObjectType) {
     if (selected && selected.path === entry.path) {
@@ -35,13 +41,32 @@ export default function FilePicker(props: {
     }
   }
 
+  async function createSrcbookFromSrcmdFile() {
+    if (selected === null || selected.isDirectory) {
+      console.error('Cannot create srcbook from invalid selection. This is a bug in the code.');
+      console.log('Selection:', selected);
+      return;
+    }
+
+    setSubmitting(true);
+
+    const { result } = await importSrcbook({ path: selected.path });
+
+    inputRef.current!.value = result.dir;
+    submit(formRef.current);
+  }
+
   return (
     <div className="space-y-4 mt-4 w-full">
-      <Form method="post" className="flex items-center space-x-2 w-full">
-        <Input value={selected?.path || dirname} name="path" readOnly />
-        <input type="hidden" value={dirname} name="dirname" />
-        <input type="hidden" value={selected?.basename ?? ''} name="basename" />
-        <Button variant="default" className="min-w-32" type="submit" disabled={selected === null}>
+      <Form ref={formRef} method="post" className="flex items-center space-x-2 w-full">
+        <Input value={selected?.path || dirname} name="srcmdpath" readOnly />
+        <input ref={inputRef} type="hidden" name="path" value="" />
+        <Button
+          className="w-32"
+          type="button"
+          disabled={selected === null || submitting}
+          onClick={createSrcbookFromSrcmdFile}
+        >
           {props.cta}
         </Button>
       </Form>
@@ -75,8 +100,8 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
   return (
     <div className="space-y-4 mt-4 w-full">
       <Form method="post" className="flex items-center space-x-2 w-full">
-        <Input value={dirname} name="dirname" readOnly />
-        <Button variant="default" className="min-w-32" type="submit" disabled={selected === null}>
+        <Input value={dirname} name="path" readOnly />
+        <Button className="w-32" type="submit" disabled={selected === null}>
           {props.cta}
         </Button>
       </Form>

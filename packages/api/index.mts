@@ -3,6 +3,9 @@ import { WebSocketServer as WsWebSocketServer } from 'ws';
 
 import app from './server/http.mjs';
 import webSocketServer from './server/ws.mjs';
+import { initializeConfig } from './config.mjs';
+
+initializeConfig();
 
 const server = http.createServer(app);
 

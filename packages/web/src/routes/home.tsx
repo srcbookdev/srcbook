@@ -1,17 +1,17 @@
 import { PlusIcon } from 'lucide-react';
 import { Form, useLoaderData, redirect, Link } from 'react-router-dom';
-import { disk, createSession, loadSessions } from '@/lib/server';
+import { getConfig, createSession, loadSessions } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import CanvasCells from '@/components/canvas-cells';
 
-import type { FsObjectResultType, SessionType, TitleCellType } from '@/types';
+import type { SessionType, TitleCellType } from '@/types';
 
 async function loader() {
-  const { result } = await disk();
+  const { result: config } = await getConfig();
   const { result: sessions } = await loadSessions();
-  return { disk: result, sessions };
+  return { baseDir: config.baseDir, sessions };
 }
 
 async function action({ request }: { request: Request }) {
@@ -23,15 +23,13 @@ async function action({ request }: { request: Request }) {
 }
 
 type HomeLoaderDataType = {
-  disk: FsObjectResultType;
+  baseDir: string;
   sessions: SessionType[];
 };
 
 function Home() {
-  const {
-    disk: { dirname },
-    sessions,
-  } = useLoaderData() as HomeLoaderDataType;
+  const { baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
+
   const [title, setTitle] = useState('');
 
   return (
@@ -40,7 +38,7 @@ function Home() {
       <p>Create your next Srcbook or open an existing one below.</p>
       <div className="mt-4 flex items-center gap-12">
         <Form method="post" className="h-full">
-          <Input type="hidden" name="dirname" value={dirname} />
+          <Input type="hidden" name="dirname" value={baseDir} />
           <div className="flex items-center justify-center h-full gap-2">
             <Input
               placeholder="name your new srcBook"

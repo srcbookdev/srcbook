@@ -1,4 +1,4 @@
-import { CellType } from '@srcbook/shared';
+import { CellType, SrcbookMetadataType } from '@srcbook/shared';
 
 export type SessionType = {
   id: string;
@@ -7,4 +7,5 @@ export type SessionType = {
    */
   dir: string;
   cells: CellType[];
+  metadata: SrcbookMetadataType;
 };

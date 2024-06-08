@@ -1,32 +1,39 @@
 import { marked } from 'marked';
 import Path from 'path';
 import fs from 'node:fs/promises';
-import { randomid } from '@srcbook/shared';
-import type { Tokens, Token } from 'marked';
-import type {
+import { SrcbookMetadataSchema, SrcbookMetadataType, randomid } from '@srcbook/shared';
+import type { Tokens, Token, TokensList } from 'marked';
+import {
   CellType,
   CodeCellType,
   MarkdownCellType,
   PackageJsonCellType,
   TitleCellType,
+  languageFromFilename,
 } from '@srcbook/shared';
 
 marked.use({ gfm: true });
 
-export function encode(cells: CellType[], options: { inline: boolean }) {
-  const encoded = cells
-    .map((cell) => {
-      switch (cell.type) {
-        case 'title':
-          return encodeTitleCell(cell);
-        case 'markdown':
-          return encodeMarkdownCell(cell);
-        case 'package.json':
-          return encodePackageJsonCell(cell, options);
-        case 'code':
-          return encodeCodeCell(cell, options);
-      }
-    })
+export function encode(
+  cells: CellType[],
+  metadata: SrcbookMetadataType,
+  options: { inline: boolean },
+) {
+  const encodedCells = cells.map((cell) => {
+    switch (cell.type) {
+      case 'title':
+        return encodeTitleCell(cell);
+      case 'markdown':
+        return encodeMarkdownCell(cell);
+      case 'package.json':
+        return encodePackageJsonCell(cell, options);
+      case 'code':
+        return encodeCodeCell(cell, options);
+    }
+  });
+
+  const encoded = [`<!-- srcbook:${JSON.stringify(metadata)} -->`]
+    .concat(encodedCells)
     .join('\n\n');
 
   // End every file with exactly one newline.
@@ -65,6 +72,7 @@ export type DecodeErrorResult = {
 export type DecodeSuccessResult = {
   error: false;
   cells: CellType[];
+  metadata: SrcbookMetadataType;
 };
 
 export type DecodeResult = DecodeErrorResult | DecodeSuccessResult;
@@ -73,16 +81,19 @@ export function decode(contents: string): DecodeResult {
   // First, decode the markdown text into tokens.
   const tokens = marked.lexer(contents);
 
-  // Second, group tokens by their function:
+  // Second, pluck out srcbook metadata (ie <!-- srcbook:{<json>} -->):
+  const { metadata, tokens: filteredTokens } = getSrcbookMetadata(tokens);
+
+  // Third, group tokens by their function:
   //
   //     1. title
   //     2. markdown
   //     3. filename
   //     4. code
   //
-  const groups = groupTokens(tokens);
+  const groups = groupTokens(filteredTokens);
 
-  // Third, validate the token groups and return a list of errors.
+  // Fourth, validate the token groups and return a list of errors.
   // Example errors might be:
   //
   //     1. The document contains no title
@@ -95,7 +106,7 @@ export function decode(contents: string): DecodeResult {
   // Finally, return either the set of errors or the tokens converted to cells if no errors were found.
   return errors.length > 0
     ? { error: true, errors: errors }
-    : { error: false, cells: convertToCells(groups) };
+    : { error: false, metadata, cells: convertToCells(groups) };
 }
 
 /**
@@ -139,10 +150,44 @@ export async function decodeDir(dir: string): Promise<DecodeResult> {
     // Wait for all file reads to complete
     await Promise.all(pendingFileReads);
 
-    return { error: false, cells };
+    return { error: false, metadata: readmeResult.metadata, cells };
   } catch (e) {
     const error = e as unknown as Error;
     return { error: true, errors: [error.message] };
+  }
+}
+
+const SRCBOOK_METADATA_RE = /^<!--\s*srcbook:(.+)\s*-->$/;
+
+function getSrcbookMetadata(tokens: TokensList) {
+  let match: RegExpMatchArray | null = null;
+  let srcbookMetdataToken: Token | null = null;
+
+  for (const token of tokens) {
+    if (token.type !== 'html') {
+      continue;
+    }
+
+    match = token.raw.trim().match(SRCBOOK_METADATA_RE);
+
+    if (match) {
+      srcbookMetdataToken = token;
+      break;
+    }
+  }
+
+  if (!match) {
+    throw new Error('Srcbook does not contain required metadata');
+  }
+
+  try {
+    const metadata = JSON.parse(match[1]);
+    return {
+      metadata: SrcbookMetadataSchema.parse(metadata),
+      tokens: tokens.filter((t) => t !== srcbookMetdataToken),
+    };
+  } catch (e) {
+    throw new Error(`Unable to parse srcbook metadata: ${(e as Error).message}`);
   }
 }
 
@@ -283,7 +328,7 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
   return errors;
 }
 
-function convertToCells(groups: GroupedTokensType[]) {
+function convertToCells(groups: GroupedTokensType[]): CellType[] {
   const len = groups.length;
   const cells: CellType[] = [];
 
@@ -355,51 +400,32 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
     id: randomid(),
     type: 'code',
     source: token.text,
-    language: langFromFilename(filename),
+    language: languageFromFilename(filename),
     filename: filename,
     status: 'idle',
   };
-}
-
-function langFromFilename(filename: string) {
-  const ext = Path.extname(filename);
-  switch (ext) {
-    case '.js':
-    case '.mjs':
-      return 'javascript';
-    case '.ts':
-    case '.mts':
-      return 'typescript';
-    default:
-      throw new Error(`Unknown file extension: ${ext}`);
-  }
 }
 
 // Convert a linked code token to the right cell: either a package.json file or a code cell.
 // We assume that the link is in the format [filename](filePath).
 // We don't populate the source field here, as we will read the file contents later.
 function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellType {
-  function toPkgJsonCell(): PackageJsonCellType {
-    return {
-      id: randomid(),
-      type: 'package.json',
-      source: '',
-      filename: 'package.json',
-      status: 'idle',
-    };
-  }
-
-  function toCodeCell(token: Tokens.Link): CodeCellType {
-    return {
-      id: randomid(),
-      type: 'code',
-      source: '',
-      language: langFromFilename(token.text),
-      filename: token.text,
-      status: 'idle',
-    };
-  }
-  return token.text === 'package.json' ? toPkgJsonCell() : toCodeCell(token);
+  return token.text === 'package.json'
+    ? {
+        id: randomid(),
+        type: 'package.json',
+        source: '',
+        filename: 'package.json',
+        status: 'idle',
+      }
+    : {
+        id: randomid(),
+        type: 'code',
+        source: '',
+        language: languageFromFilename(token.text),
+        filename: token.text,
+        status: 'idle',
+      };
 }
 
 function convertMarkdown(tokens: Token[]): MarkdownCellType {

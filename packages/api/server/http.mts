@@ -43,10 +43,10 @@ app.post('/disk', cors(), async (req, res) => {
 // Create a new srcbook
 app.options('/srcbooks', cors());
 app.post('/srcbooks', cors(), async (req, res) => {
-  const { name } = req.body;
+  const { name, language } = req.body;
 
   try {
-    const srcbookDir = await createNewSrcbook(name);
+    const srcbookDir = await createNewSrcbook(name, { language });
     return res.json({ error: false, result: { name, path: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;

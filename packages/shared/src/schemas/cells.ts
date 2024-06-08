@@ -36,6 +36,10 @@ export const CellSchema = z.union([
   CodeCellSchema,
 ]);
 
+export const SrcbookMetadataSchema = z.object({
+  language: z.enum(['javascript', 'typescript']),
+});
+
 ///////////////////////////////////////////
 // ATTRIBUTES ALLOWED IN UPDATE REQUESTS //
 ///////////////////////////////////////////

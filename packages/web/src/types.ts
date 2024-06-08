@@ -1,4 +1,4 @@
-import { CellType } from '@srcbook/shared';
+import { CellType, SrcbookMetadataType } from '@srcbook/shared';
 
 export interface FsObjectType {
   path: string;
@@ -27,4 +27,5 @@ export type SessionType = {
   // A unique identifier for this Srcbook which persists cross sessions
   // It is used to store the files on the disk under ~/.srcbook/<dirName>
   dirName: string;
+  metadata: SrcbookMetadataType;
 };

@@ -10,7 +10,7 @@ import {
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
 import { SessionType } from '../types';
-import { node, npmInstall } from '../exec.mjs';
+import { node, npmInstall, tsx } from '../exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from '../deps.mjs';
 import processes from '../processes.mjs';
 import {
@@ -85,22 +85,19 @@ async function cellExec(payload: CellExecPayloadType) {
     return;
   }
 
-  try {
-    nudgeMissingDeps(wss, session);
-  } catch (e) {
-    // If dep check fails, just log the error and continue
-    console.error(e);
-  }
+  nudgeMissingDeps(wss, session);
 
   const secrets = await getSecrets();
 
   cell.status = 'running';
   wss.broadcast(`session:${session.id}`, 'cell:updated', { cell });
 
+  const exec = cell.language === 'typescript' ? tsx : node;
+
   addRunningProcess(
     session,
     cell,
-    node({
+    exec({
       cwd: session.dir,
       env: secrets,
       entry: cell.filename,

@@ -14,7 +14,7 @@ import {
   insertCellAt,
 } from '../session.mjs';
 import { disk, take } from '../utils.mjs';
-import { getConfig, saveConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
+import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import type { CellType, MarkdownCellType, CodeCellType } from '../types';
 import { validateFilename } from './shared.mjs';
 
@@ -185,12 +185,8 @@ app.get('/settings', cors(), async (_req, res) => {
 });
 
 app.post('/settings', cors(), async (req, res) => {
-  const body = req.body;
-  const config = await getConfig();
-  const newConfig = Object.assign({}, config, body);
-  await saveConfig(newConfig);
-
-  return res.json({ result: newConfig });
+  const updated = await updateConfig(req.body);
+  return res.json({ result: updated });
 });
 
 app.options('/secrets', cors());
@@ -203,9 +199,8 @@ app.get('/secrets', cors(), async (_req, res) => {
 // Create a new secret
 app.post('/secrets', cors(), async (req, res) => {
   const { name, value } = req.body;
-  await addSecret(name, value);
-  const secrets = await getSecrets();
-  return res.json({ result: secrets });
+  const updated = await addSecret(name, value);
+  return res.json({ result: updated });
 });
 
 app.options('/secrets/:name', cors());
@@ -214,16 +209,14 @@ app.post('/secrets/:name', cors(), async (req, res) => {
   const { name } = req.params;
   const { name: newName, value } = req.body;
   await removeSecret(name);
-  await addSecret(newName, value);
-  const secrets = await getSecrets();
-  return res.json({ result: secrets });
+  const updated = await addSecret(newName, value);
+  return res.json({ result: updated });
 });
 
 app.delete('/secrets/:name', cors(), async (req, res) => {
   const { name } = req.params;
-  await removeSecret(name);
-  const secrets = await getSecrets();
-  return res.json({ result: secrets });
+  const updated = await removeSecret(name);
+  return res.json({ result: updated });
 });
 
 app.options('/node_version', cors());

@@ -33,9 +33,61 @@ export async function disk(request?: DiskRequestType): Promise<DiskResponseType>
   return response.json();
 }
 
+interface CreateSrcbookRequestType {
+  path: string;
+  name: string;
+}
+
+interface CreateSrcbookResponseType {
+  error: boolean;
+  result: { path: string; name: string };
+}
+
+export async function createSrcbook(
+  request: CreateSrcbookRequestType,
+): Promise<CreateSrcbookResponseType> {
+  const response = await fetch(SERVER_BASE_URL + '/srcbooks', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
+interface ImportSrcbookRequestType {
+  path: string;
+}
+
+interface ImportSrcbookResponseType {
+  error: boolean;
+  result: { dir: string; name: string };
+}
+
+export async function importSrcbook(
+  request: ImportSrcbookRequestType,
+): Promise<ImportSrcbookResponseType> {
+  const response = await fetch(SERVER_BASE_URL + '/import', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
 interface CreateSessionRequestType {
-  dirname: string;
-  title: string;
+  path: string;
 }
 
 interface CreateSessionResponseType {

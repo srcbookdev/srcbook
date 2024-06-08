@@ -1,100 +1,41 @@
 import fs from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import Path from 'node:path';
 import { randomid } from '@srcbook/shared';
-import { encode, decode, decodeDir, newContents } from './srcmd.mjs';
-import { toValidNpmName } from './utils.mjs';
+import { encode, decodeDir } from './srcmd.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
-
 import type { CellType, SessionType } from './types';
+import { writeToDisk } from './srcbook.mjs';
 
 const sessions: Record<string, SessionType> = {};
 
-async function flushSession(session: SessionType) {
-  function pathFor(file: string) {
-    return Path.join(session.dir, file);
-  }
-
-  const writes = [
-    fs.writeFile(pathFor('README.md'), encode(session.cells, { inline: false }), {
-      encoding: 'utf8',
-    }),
-  ];
-
-  for (const cell of session.cells) {
-    if (cell.type === 'package.json') {
-      writes.push(fs.writeFile(pathFor('package.json'), cell.source, { encoding: 'utf8' }));
-    } else if (cell.type === 'code') {
-      writes.push(fs.writeFile(pathFor(cell.filename), cell.source, { encoding: 'utf8' }));
-    }
-  }
-
-  return Promise.all(writes);
+function findSessionByDirname(dirname: string) {
+  return Object.values(sessions).find((session) => session.dir === dirname);
 }
 
-async function fromDir(dirname: string): Promise<SessionType> {
-  const existingSession = Object.values(sessions).find((session) => session.dir === dirname);
+export async function createSession(srcbookDir: string) {
+  const existingSession = findSessionByDirname(srcbookDir);
+
   if (existingSession) {
     return existingSession;
   }
-  const result = await decodeDir(dirname);
+
+  const result = await decodeDir(srcbookDir);
   if (result.error) {
-    throw new Error(
-      `Cannot load session from ${dirname}. It's not a valid Sourcebook directory:\n${result.errors}`,
-    );
-  }
-  const session = { id: randomid(), dir: dirname, cells: result.cells };
-  sessions[session.id] = session;
-  return session;
-}
-
-export async function createSession({ dirname, title }: { dirname: string; title: string }) {
-  if (typeof dirname !== 'string') {
-    throw new Error('Invalid dirname');
+    console.error(result.errors);
+    throw new Error(`Cannot create session from invalid srcbook directory at ${srcbookDir}`);
   }
 
-  if (typeof title !== 'string') {
-    // We assume we're creating a session by reading an existing directory.
-    return fromDir(dirname);
-  }
-
-  let basename = toValidNpmName(title);
-  if (Path.extname(basename) === '') {
-    basename += '.srcmd';
-  }
-
-  if (Path.extname(basename) !== '.srcmd') {
-    throw new Error(`Sessions cannot be created from file types other than .srcmd`);
-  }
-
-  const path = Path.join(dirname, basename);
-
-  const contents = existsSync(path)
-    ? await fs.readFile(path, { encoding: 'utf8' })
-    : newContents(title);
-
-  const id = randomid();
-  const result = decode(contents);
-
-  if (result.error) {
-    const errors = result.errors.map((msg) => '  * ' + msg).join('\n');
-    throw new Error(`Cannot create session, errors were found when parsing ${path}:\n${errors}`);
-  }
-
-  const session: SessionType = {
-    id: id,
-    dir: Path.join(SRCBOOK_DIR, id),
+  const session = {
+    id: randomid(),
+    dir: srcbookDir,
     cells: result.cells,
   };
 
-  // Persist session to disk.
-  await fs.mkdir(session.dir);
-  await flushSession(session);
-
-  sessions[id] = session;
+  sessions[session.id] = session;
 
   return session;
 }
+
 export async function deleteSession(session: SessionType) {
   await fs.rm(session.dir, { recursive: true });
   delete sessions[session.id];
@@ -107,7 +48,7 @@ export async function listSessions(): Promise<Record<string, SessionType>> {
     .filter((entry) => entry.isDirectory())
     .map(async (entry) => {
       try {
-        const session = await fromDir(Path.join(entry.parentPath, entry.name));
+        const session = await createSession(Path.join(entry.parentPath, entry.name));
         sessions[session.id] = session;
         return session;
       } catch (e) {
@@ -130,7 +71,7 @@ export async function updateSession(
   const updatedSession = { ...session, ...updates };
   sessions[id] = updatedSession;
   if (flush) {
-    await flushSession(updatedSession);
+    await writeToDisk(updatedSession.dir, updatedSession.cells);
   }
   return updatedSession;
 }

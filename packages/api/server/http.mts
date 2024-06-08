@@ -1,3 +1,4 @@
+import Path from 'node:path';
 import express from 'express';
 import cors from 'cors';
 import {
@@ -17,6 +18,8 @@ import { disk, take } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import type { CellType, MarkdownCellType, CodeCellType } from '../types';
 import { validateFilename } from './shared.mjs';
+import { createNewSrcbook, importSrcbookFromSrcmdFile } from '../srcbook.mjs';
+import { readdir } from '../fs-utils.mjs';
 
 const app = express();
 
@@ -39,13 +42,58 @@ app.post('/disk', cors(), async (req, res) => {
   }
 });
 
-app.options('/sessions', cors());
-
-app.post('/sessions', cors(), async (req, res) => {
-  const { dirname, title } = req.body;
+// Create a new srcbook
+app.options('/srcbooks', cors());
+app.post('/srcbooks', cors(), async (req, res) => {
+  const { name } = req.body;
+  const { baseDir } = await getConfig();
 
   try {
-    const session = await createSession({ dirname, title });
+    const srcbookDir = await createNewSrcbook(baseDir, name);
+    return res.json({ error: false, result: { name, path: srcbookDir } });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+// Import a srcbook from a .srcmd file.
+app.options('/import', cors());
+app.post('/import', cors(), async (req, res) => {
+  const { path } = req.body;
+
+  if (Path.extname(path) !== '.srcmd') {
+    return res.json({ error: true, result: 'Importing only works with .srcmd files' });
+  }
+
+  const name = Path.basename(path).replace('.srcmd', '');
+
+  const { baseDir } = await getConfig();
+
+  try {
+    const srcbookDir = await importSrcbookFromSrcmdFile(path, baseDir, name);
+    return res.json({ error: false, result: { name, dir: srcbookDir } });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+// Open an existing srcbook by passing a path to the srcbook's directory
+app.options('/sessions', cors());
+app.post('/sessions', cors(), async (req, res) => {
+  const { path } = req.body;
+
+  const dir = await readdir(path);
+
+  if (!dir.exists) {
+    return res.json({ error: true, result: `${path} is not a srcbook directory` });
+  }
+
+  try {
+    const session = await createSession(path);
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (e) {
     const error = e as unknown as Error;

@@ -1,6 +1,7 @@
 import Path from 'node:path';
 import fs from 'node:fs/promises';
 import { exec } from 'node:child_process';
+import { fileExists } from './fs-utils.mjs';
 
 export async function shouldNpmInstall(dirPath: string): Promise<boolean> {
   const packageJsonPath = Path.resolve(Path.join(dirPath, 'package.json'));
@@ -63,13 +64,4 @@ export async function missingUndeclaredDeps(dirPath: string): Promise<string[]> 
       resolve(Object.keys(parsedResult.missing));
     });
   });
-}
-
-async function fileExists(filepath: string) {
-  try {
-    await fs.access(filepath, fs.constants.F_OK);
-    return true;
-  } catch (error) {
-    return false;
-  }
 }

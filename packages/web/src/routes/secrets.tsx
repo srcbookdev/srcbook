@@ -109,7 +109,7 @@ function SecretRow({ name, value }: { name: string; value: string }) {
               <CopyableSecretValue value={value} />
             </div>
 
-            <div className="flex col-span-1 flex justify-end items-center gap-2">
+            <div className="col-span-1 flex justify-end items-center gap-2">
               <Button variant="outline" onClick={() => setMode('edit')}>
                 Edit
               </Button>

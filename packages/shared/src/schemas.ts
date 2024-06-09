@@ -10,6 +10,12 @@ export const CellStopPayloadSchema = z.object({
   cellId: z.string(),
 });
 
+export const CellStdinPayloadSchema = z.object({
+  cellId: z.string(),
+  sessionId: z.string(),
+  stdin: z.string(),
+});
+
 export const CellUpdatedPayloadSchema = z.object({
   cell: z.any(), // TODO: TYPE ME
 });
@@ -20,15 +26,6 @@ export const CellOutputPayloadSchema = z.object({
     type: z.enum(['stdout', 'stderr']),
     data: z.string(),
   }),
-});
-
-export const DepsInstallPayloadSchema = z.object({
-  sessionId: z.string(),
-  packages: z.array(z.string()).optional(),
-});
-
-export const DepsValidateResponsePayloadSchema = z.object({
-  packages: z.array(z.string()).optional(),
 });
 
 export const CellValidatePayloadSchema = z.object({
@@ -44,8 +41,17 @@ export const CellValidateResponsePayloadSchema = z.object({
   message: z.string().optional(),
 });
 
+export const DepsInstallPayloadSchema = z.object({
+  sessionId: z.string(),
+  packages: z.array(z.string()).optional(),
+});
+
 export const DepsValidatePayloadSchema = z.object({
   sessionId: z.string(),
+});
+
+export const DepsValidateResponsePayloadSchema = z.object({
+  packages: z.array(z.string()).optional(),
 });
 
 // A _message_ over websockets
@@ -57,12 +63,12 @@ export const WebSocketMessageSchema = z.tuple([
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
 export type CellStopPayloadType = z.infer<typeof CellStopPayloadSchema>;
+export type CellStdinPayloadType = z.infer<typeof CellStdinPayloadSchema>;
 export type CellUpdatedPayloadType = z.infer<typeof CellUpdatedPayloadSchema>;
 export type CellOutputPayloadType = z.infer<typeof CellOutputPayloadSchema>;
+export type CellValidatePayloadType = z.infer<typeof CellValidatePayloadSchema>;
+export type CellValidateResponsePayloadType = z.infer<typeof CellValidateResponsePayloadSchema>;
 
 export type DepsInstallPayloadType = z.infer<typeof DepsInstallPayloadSchema>;
 export type DepsValidateResponsePayloadType = z.infer<typeof DepsValidateResponsePayloadSchema>;
 export type DepsValidatePayloadType = z.infer<typeof DepsValidatePayloadSchema>;
-
-export type CellValidatePayloadType = z.infer<typeof CellValidatePayloadSchema>;
-export type CellValidateResponsePayloadType = z.infer<typeof CellValidateResponsePayloadSchema>;

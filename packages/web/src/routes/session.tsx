@@ -48,6 +48,7 @@ import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
 import { useEffectOnce } from '@/components/use-effect-once';
+import { CellStdio } from '@/components/cell-stdio';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -634,7 +635,7 @@ function CodeCell(props: {
           onChange={onChangeSource}
         />
       </div>
-      <CellOutput cellId={cell.id} />
+      <CellStdio sessionId={session.id} cell={cell} channel={channel} />
     </div>
   );
 }

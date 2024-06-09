@@ -26,6 +26,8 @@ import {
   DepsValidatePayloadType,
   CellValidatePayloadType,
   CellStopPayloadType,
+  CellStdinPayloadSchema,
+  CellStdinPayloadType,
 } from '@srcbook/shared';
 import WebSocketServer from './ws-client.mjs';
 import { validateFilename } from './shared.mjs';
@@ -203,10 +205,15 @@ async function cellStop(payload: CellStopPayloadType) {
   }
 }
 
+function cellStdin(payload: CellStdinPayloadType) {
+  processes.send(payload.sessionId, payload.cellId, payload.stdin);
+}
+
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
+  .incoming('cell:stdin', CellStdinPayloadSchema, cellStdin)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('cell:validate', CellValidatePayloadSchema, filenameCheck)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)

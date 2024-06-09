@@ -21,6 +21,24 @@ class Processes {
     });
   }
 
+  send(sessionId: string, cellId: string, stdin: string) {
+    const key = this.toKey(sessionId, cellId);
+
+    const process = this.processes[key];
+
+    if (!process) {
+      console.warn('Cannot send stdin to non-existing process');
+      return;
+    }
+
+    if (typeof process.pid !== 'number' || process.killed) {
+      console.warn('Cannot send stdin to a dead process');
+      return;
+    }
+
+    process.stdin?.write(stdin);
+  }
+
   kill(sessionId: string, cellId: string) {
     const key = this.toKey(sessionId, cellId);
 

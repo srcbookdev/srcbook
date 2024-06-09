@@ -8,6 +8,7 @@ import {
   DepsInstallPayloadSchema,
   CellValidatePayloadSchema,
   DepsValidatePayloadSchema,
+  CellStdinPayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -27,8 +28,9 @@ const IncomingSessionEvents = {
 const OutgoingSessionEvents = {
   'cell:exec': CellExecPayloadSchema,
   'cell:stop': CellStopPayloadSchema,
-  'deps:install': DepsInstallPayloadSchema,
+  'cell:stdin': CellStdinPayloadSchema,
   'cell:validate': CellValidatePayloadSchema,
+  'deps:install': DepsInstallPayloadSchema,
   'deps:validate': DepsValidatePayloadSchema,
 };
 

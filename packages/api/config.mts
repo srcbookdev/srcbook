@@ -26,7 +26,8 @@ export async function getConfig(): Promise<ConfigObjectType> {
 }
 
 export async function updateConfig(attrs: Partial<ConfigObjectType>) {
-  const config = { ...getConfig(), ...attrs };
+  const existingConfig = await getConfig();
+  const config = { ...existingConfig, ...attrs };
   await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(config), 'utf8');
   return config;
 }
@@ -50,7 +51,8 @@ export async function removeSecret(name: string) {
 }
 
 export async function initializeConfig() {
-  const [hasConfigFile, hasSecretsFile] = await Promise.all([
+  const [, hasConfigFile, hasSecretsFile] = await Promise.all([
+    fs.mkdir(SRCBOOK_DIR, { recursive: true }),
     fileExists(CONFIG_FILE_PATH),
     fileExists(SECRETS_FILE_PATH),
   ]);

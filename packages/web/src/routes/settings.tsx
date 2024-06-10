@@ -11,8 +11,8 @@ async function loader() {
 
 async function action({ request }: { request: Request }) {
   const formData = await request.formData();
-  const dirname = formData.get('dirname') as string;
-  await updateConfig({ baseDir: dirname });
+  const baseDir = formData.get('path') as string;
+  await updateConfig({ baseDir });
   return null;
 }
 

@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useCells } from '@/components/use-cell';
-import { OutputType, StdoutOutputType, StderrOutputType, CodeCellType } from '@/types';
+import {
+  OutputType,
+  StdoutOutputType,
+  StderrOutputType,
+  CodeCellType,
+  PackageJsonCellType,
+} from '@/types';
 import { SessionChannel } from '@/clients/websocket';
 
 export function CellStdio({
@@ -11,7 +17,7 @@ export function CellStdio({
   channel,
 }: {
   sessionId: string;
-  cell: CodeCellType;
+  cell: CodeCellType | PackageJsonCellType;
   channel: SessionChannel;
 }) {
   const { hasOutput, getOutput, clearOutput } = useCells();
@@ -52,7 +58,9 @@ export function CellStdio({
                 'stderr'
               )}
             </TabsTrigger>
-            {cell.status === 'running' && <TabsTrigger value="stdin">stdin</TabsTrigger>}
+            {cell.type === 'code' && cell.status === 'running' && (
+              <TabsTrigger value="stdin">stdin</TabsTrigger>
+            )}
           </TabsList>
           {hasOutput(cell.id) && (
             <button

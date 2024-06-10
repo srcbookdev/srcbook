@@ -501,7 +501,8 @@ function PackageJsonCell(props: {
               basicSetup={{ lineNumbers: false, foldGutter: false }}
             />
           </div>
-          <CellOutput cellId={cell.id} />
+
+          <CellStdio sessionId={session.id} cell={cell} channel={channel} />
         </CollapsibleContent>
       </Collapsible>
     </>

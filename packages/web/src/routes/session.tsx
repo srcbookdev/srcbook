@@ -33,7 +33,6 @@ import type {
   TitleCellType,
   MarkdownCellType,
   SessionType,
-  OutputType,
 } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import { Button } from '@/components/ui/button';
@@ -637,51 +636,6 @@ function CodeCell(props: {
         />
       </div>
       <CellStdio sessionId={session.id} cell={cell} channel={channel} />
-    </div>
-  );
-}
-
-function formatOutput(output: OutputType[]) {
-  return output.map(({ data }) => data).join('');
-}
-
-function CellOutput(props: { cellId: string }) {
-  const { hasOutput, getOutput } = useCells();
-  const { clearOutput } = useCells();
-
-  if (!hasOutput(props.cellId)) {
-    return null;
-  }
-
-  const stdoutText = formatOutput(getOutput(props.cellId, 'stdout'));
-  const stderrText = formatOutput(getOutput(props.cellId, 'stderr'));
-
-  return (
-    <div className="relative group border rounded mt-2 font-mono text-sm bg-input/10">
-      <div
-        onClick={() => clearOutput(props.cellId)}
-        className="absolute top-0 right-0 hover:cursor-pointer text-gray-200 hover:underline group-hover:text-gray-400 transition-all px-1 py-0.5 text-xs"
-      >
-        Clear
-      </div>
-      <div className="divide-y">
-        {stdoutText && (
-          <>
-            <h1 className="font-bold px-2">Output</h1>
-            <div className="overflow-scroll p-2 whitespace-pre-wrap flex flex-col-reverse max-h-[400px]">
-              {stdoutText}
-            </div>
-          </>
-        )}
-        {stderrText && (
-          <>
-            <h1 className="font-bold px-2">Errors & Warnings</h1>
-            <div className="flex flex-col-reverse max-h-[400px] overflow-scroll p-2 whitespace-pre-wrap text-orange-800">
-              {stderrText}
-            </div>
-          </>
-        )}
-      </div>
     </div>
   );
 }

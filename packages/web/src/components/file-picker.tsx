@@ -188,7 +188,6 @@ export function FileSaver(props: {
   }
 
   function suffixQuery(query: string) {
-    console.log('query', query);
     return query.endsWith('.srcmd') ? query : query + '.srcmd';
   }
 

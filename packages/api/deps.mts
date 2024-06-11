@@ -15,17 +15,18 @@ export async function shouldNpmInstall(dirPath: string): Promise<boolean> {
     throw new Error(`No package.json was found in ${dirPath}`);
   }
 
-  if (!packageLockResult.exists) {
-    return true; // package-lock.json does not exist, need to run npm install
-  }
-
   const pkgJson = JSON.parse(packageJsonResult.contents);
   const dependencies = Object.keys(pkgJson.dependencies || {});
   const devDependencies = Object.keys(pkgJson.devDependencies || {});
 
-  // No dependencies
+  // No dependencies == nothing to do
   if (dependencies.length === 0 && devDependencies.length === 0) {
     return false;
+  }
+
+  // Dependencies but no lock file == needs install
+  if (!packageLockResult.exists) {
+    return true;
   }
 
   const pkgLock = JSON.parse(packageLockResult.contents);

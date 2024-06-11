@@ -9,7 +9,7 @@ import type {
   MarkdownCellType,
   PackageJsonCellType,
   TitleCellType,
-} from './types';
+} from '@srcbook/shared';
 
 marked.use({ gfm: true });
 
@@ -283,21 +283,6 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
   return errors;
 }
 
-function langFromFilename(filename: string): string {
-  const ext = Path.extname(filename);
-  switch (ext) {
-    case '.js':
-    case '.mjs':
-      return 'javascript';
-    case '.ts':
-    case '.mts':
-      return 'typescript';
-    case '.json':
-      return 'json';
-    default:
-      throw new Error(`Unknown file extension: ${ext}`);
-  }
-}
 function convertToCells(groups: GroupedTokensType[]) {
   const len = groups.length;
   const cells: CellType[] = [];
@@ -370,10 +355,24 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
     id: randomid(),
     type: 'code',
     source: token.text,
-    language: token.lang || 'javascript',
+    language: langFromFilename(filename),
     filename: filename,
     status: 'idle',
   };
+}
+
+function langFromFilename(filename: string) {
+  const ext = Path.extname(filename);
+  switch (ext) {
+    case '.js':
+    case '.mjs':
+      return 'javascript';
+    case '.ts':
+    case '.mts':
+      return 'typescript';
+    default:
+      throw new Error(`Unknown file extension: ${ext}`);
+  }
 }
 
 // Convert a linked code token to the right cell: either a package.json file or a code cell.
@@ -389,6 +388,7 @@ function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellTy
       status: 'idle',
     };
   }
+
   function toCodeCell(token: Tokens.Link): CodeCellType {
     return {
       id: randomid(),

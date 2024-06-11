@@ -1,31 +1,53 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
+import { CellType, CodeCellType, PackageJsonCellType } from '@srcbook/shared';
 import { encode, decode } from './srcmd.mjs';
 import { toFormattedJSON } from './utils.mjs';
 import { readdir } from './fs-utils.mjs';
-import { CellType } from './types';
 import { randomid } from '@srcbook/shared';
 
-export async function writeToDisk(srcbookDir: string, cells: CellType[]) {
-  const writes = [
-    fs.writeFile(Path.join(srcbookDir, 'README.md'), encode(cells, { inline: false }), {
-      encoding: 'utf8',
-    }),
-  ];
+export function writeToDisk(srcbookDir: string, cells: CellType[]) {
+  const writes = [writeReadmeToDisk(srcbookDir, cells)];
 
   for (const cell of cells) {
-    if (cell.type === 'package.json') {
-      writes.push(
-        fs.writeFile(Path.join(srcbookDir, 'package.json'), cell.source, { encoding: 'utf8' }),
-      );
-    } else if (cell.type === 'code') {
+    if (cell.type === 'package.json' || cell.type === 'code') {
       writes.push(
         fs.writeFile(Path.join(srcbookDir, cell.filename), cell.source, { encoding: 'utf8' }),
       );
     }
   }
 
-  await Promise.all(writes);
+  return Promise.all(writes);
+}
+
+export function writeCellToDisk(
+  srcbookDir: string,
+  cells: CellType[],
+  cell: PackageJsonCellType | CodeCellType,
+) {
+  return Promise.all([
+    writeReadmeToDisk(srcbookDir, cells),
+    fs.writeFile(Path.join(srcbookDir, cell.filename), cell.source, { encoding: 'utf8' }),
+  ]);
+}
+
+export function moveCodeCellOnDisk(
+  srcbookDir: string,
+  cells: CellType[],
+  cell: CodeCellType,
+  oldFilename: string,
+) {
+  return Promise.all([
+    writeReadmeToDisk(srcbookDir, cells),
+    fs.unlink(Path.join(srcbookDir, oldFilename)),
+    fs.writeFile(Path.join(srcbookDir, cell.filename), cell.source, { encoding: 'utf8' }),
+  ]);
+}
+
+export function writeReadmeToDisk(srcbookDir: string, cells: CellType[]) {
+  return fs.writeFile(Path.join(srcbookDir, 'README.md'), encode(cells, { inline: false }), {
+    encoding: 'utf8',
+  });
 }
 
 /**

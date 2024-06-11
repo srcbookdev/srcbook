@@ -1,14 +1,9 @@
 import { useEffect, useState } from 'react';
+import { CodeCellType, PackageJsonCellType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useCells } from '@/components/use-cell';
-import {
-  OutputType,
-  StdoutOutputType,
-  StderrOutputType,
-  CodeCellType,
-  PackageJsonCellType,
-} from '@/types';
+import { OutputType, StdoutOutputType, StderrOutputType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
 
 export function CellStdio({

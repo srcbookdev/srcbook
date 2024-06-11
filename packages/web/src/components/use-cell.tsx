@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, ReactNode, useRef, useReducer } from 'react';
-import { CellType, OutputType } from '@/types';
+import { CellType, CodeCellType, MarkdownCellType } from '@srcbook/shared';
+import { OutputType } from '@/types';
 
 import { randomid } from '@srcbook/shared';
-import type { CodeCellType, MarkdownCellType } from '@/types';
 
 /**
  * Utility function to generate a unique filename for a code cell,

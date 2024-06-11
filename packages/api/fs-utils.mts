@@ -9,6 +9,21 @@ export async function fileExists(filepath: string) {
   }
 }
 
+export async function readFile(
+  path: string,
+): Promise<{ exists: true; contents: string } | { exists: false }> {
+  try {
+    const contents = await fs.readFile(path, 'utf8');
+    return { exists: true, contents };
+  } catch (e) {
+    const error = e as NodeJS.ErrnoException;
+    if (error && error.code === 'ENOENT') {
+      return { exists: false };
+    }
+    throw error;
+  }
+}
+
 export async function readdir(
   path: string,
 ): Promise<{ exists: true; files: string[] } | { exists: false }> {
@@ -16,10 +31,10 @@ export async function readdir(
     const files = await fs.readdir(path);
     return { exists: true, files };
   } catch (e) {
-    const error = e as Error & { code: string };
+    const error = e as NodeJS.ErrnoException;
     if (error && error.code === 'ENOENT') {
       return { exists: false };
     }
-    throw e;
+    throw error;
   }
 }

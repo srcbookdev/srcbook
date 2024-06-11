@@ -1,47 +1,49 @@
 import Path from 'node:path';
-import fs from 'node:fs/promises';
 import { exec } from 'node:child_process';
-import { fileExists } from './fs-utils.mjs';
+import { readFile } from './fs-utils.mjs';
 
 export async function shouldNpmInstall(dirPath: string): Promise<boolean> {
   const packageJsonPath = Path.resolve(Path.join(dirPath, 'package.json'));
   const packageLockPath = Path.resolve(Path.join(dirPath, 'package-lock.json'));
 
-  const packageJsonExists = await fileExists(packageJsonPath);
+  const [packageJsonResult, packageLockResult] = await Promise.all([
+    readFile(packageJsonPath),
+    readFile(packageLockPath),
+  ]);
 
-  if (!packageJsonExists) {
+  if (!packageJsonResult.exists) {
     throw new Error(`No package.json was found in ${dirPath}`);
   }
 
-  const packageJsonData = await fs.readFile(packageJsonPath, 'utf8');
-  const pkgJson = JSON.parse(packageJsonData);
-
-  const dependencies = pkgJson.dependencies || {};
-  const devDependencies = pkgJson.devDependencies || {};
-
-  const allDeps = { ...dependencies, ...devDependencies };
-  const allDepsKeys = Object.keys(allDeps);
-
-  if (allDepsKeys.length === 0) {
-    return false; // No dependencies to install
-  }
-
-  const packageLockExists = await fileExists(packageLockPath);
-
-  if (!packageLockExists) {
+  if (!packageLockResult.exists) {
     return true; // package-lock.json does not exist, need to run npm install
   }
 
-  const packageLockData = await fs.readFile(packageLockPath, 'utf8');
-  const pkgLockJson = JSON.parse(packageLockData);
+  const pkgJson = JSON.parse(packageJsonResult.contents);
+  const dependencies = Object.keys(pkgJson.dependencies || {});
+  const devDependencies = Object.keys(pkgJson.devDependencies || {});
 
-  const installedDeps = pkgLockJson.packages['']?.dependencies || {};
+  // No dependencies
+  if (dependencies.length === 0 && devDependencies.length === 0) {
+    return false;
+  }
 
-  for (const dep of allDepsKeys) {
-    if (!installedDeps[dep]) {
-      return true; // Dependency in package.json not found in package-lock.json
+  const pkgLock = JSON.parse(packageLockResult.contents);
+  const lockDependencies = pkgLock.packages['']?.dependencies || {};
+  const lockDevDependencies = pkgLock.packages['']?.devDependencies || {};
+
+  for (const dep of dependencies) {
+    if (!Object.hasOwn(lockDependencies, dep)) {
+      return true;
     }
   }
+
+  for (const devDep of devDependencies) {
+    if (!Object.hasOwn(lockDevDependencies, devDep)) {
+      return true;
+    }
+  }
+
   return false; // All dependencies are installed
 }
 

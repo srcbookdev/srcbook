@@ -1,23 +1,21 @@
 import Path from 'node:path';
 import express from 'express';
 import cors from 'cors';
+import type { MarkdownCellType, CodeCellType } from '@srcbook/shared';
 import {
   createSession,
   findSession,
   deleteSession,
   exportSession,
   findCell,
-  replaceCell,
   removeCell,
   updateSession,
   sessionToResponse,
   listSessions,
   insertCellAt,
 } from '../session.mjs';
-import { disk, take } from '../utils.mjs';
+import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
-import type { CellType, MarkdownCellType, CodeCellType } from '../types';
-import { validateFilename } from './shared.mjs';
 import { createNewSrcbook, importSrcbookFromSrcmdFile } from '../srcbook.mjs';
 import { readdir } from '../fs-utils.mjs';
 
@@ -190,39 +188,6 @@ app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   updateSession(session, { cells: updatedCells });
 
   return res.json({ result: updatedCells });
-});
-
-// updates cell without running it
-app.post('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
-  const { id, cellId } = req.params;
-  const attrs = req.body;
-
-  const session = await findSession(id);
-  const cell = findCell(session, cellId);
-
-  if (!cell) {
-    return res.status(404).json({ error: true, message: 'Cell not found' });
-  }
-
-  if (cell.type === 'code' && typeof attrs.filename === 'string') {
-    const filenameResult = validateFilename(session, cellId, attrs.filename);
-
-    if (typeof filenameResult === 'string') {
-      return res.status(400).json({ error: true, message: filenameResult });
-    }
-  }
-
-  const updatedCell: CellType = {
-    ...cell,
-    ...take(attrs, 'source', 'filename', 'text'),
-  };
-
-  const updatedCells = replaceCell(session, updatedCell);
-
-  // Update state
-  updateSession(session, { cells: updatedCells });
-
-  return res.json({ result: updatedCell });
 });
 
 app.options('/settings', cors());

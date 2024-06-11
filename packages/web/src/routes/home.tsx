@@ -1,11 +1,12 @@
 import { PlusIcon } from 'lucide-react';
 import { Form, useLoaderData, redirect, Link } from 'react-router-dom';
+import { TitleCellType } from '@srcbook/shared';
 import { getConfig, createSession, loadSessions, createSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import CanvasCells from '@/components/canvas-cells';
 
-import type { SessionType, TitleCellType } from '@/types';
+import type { SessionType } from '@/types';
 
 async function loader() {
   const { result: config } = await getConfig();

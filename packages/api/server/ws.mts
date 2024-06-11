@@ -1,13 +1,15 @@
 import { ChildProcess } from 'node:child_process';
+import { CellErrorPayloadSchema, CodeCellType, PackageJsonCellType } from '@srcbook/shared';
 import {
   findSession,
   findCell,
   replaceCell,
   updateSession,
   readPackageJsonContentsFromDisk,
+  updateCell,
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
-import type { CodeCellType, SessionType, PackageJsonCellType } from '../types';
+import { SessionType } from '../types';
 import { node, npmInstall } from '../exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from '../deps.mjs';
 import processes from '../processes.mjs';
@@ -15,22 +17,20 @@ import {
   CellExecPayloadSchema,
   CellStopPayloadSchema,
   DepsInstallPayloadSchema,
-  CellValidatePayloadSchema,
   DepsValidatePayloadSchema,
   CellUpdatedPayloadSchema,
   CellOutputPayloadSchema,
   DepsValidateResponsePayloadSchema,
-  CellValidateResponsePayloadSchema,
   CellExecPayloadType,
   DepsInstallPayloadType,
   DepsValidatePayloadType,
-  CellValidatePayloadType,
   CellStopPayloadType,
   CellStdinPayloadSchema,
   CellStdinPayloadType,
+  CellUpdatePayloadSchema,
+  CellUpdatePayloadType,
 } from '@srcbook/shared';
 import WebSocketServer from './ws-client.mjs';
-import { validateFilename } from './shared.mjs';
 
 const wss = new WebSocketServer();
 
@@ -170,19 +170,6 @@ async function depsInstall(payload: DepsInstallPayloadType) {
   );
 }
 
-async function filenameCheck(payload: CellValidatePayloadType) {
-  const session = await findSession(payload.sessionId);
-  const result = validateFilename(session, payload.cellId, payload.filename);
-
-  wss.broadcast(`session:${payload.sessionId}`, 'cell:validate:response', {
-    cellId: payload.cellId,
-    filename: payload.filename,
-    error: typeof result === 'string',
-    // Fix this typing... once we delete the web handler also using validateFilename
-    message: result === true ? undefined : result,
-  });
-}
-
 async function depsValidate(payload: DepsValidatePayloadType) {
   const session = await findSession(payload.sessionId);
   nudgeMissingDeps(wss, session);
@@ -205,6 +192,35 @@ async function cellStop(payload: CellStopPayloadType) {
   }
 }
 
+async function cellUpdate(payload: CellUpdatePayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  const cell = findCell(session, payload.cellId);
+
+  if (!cell) {
+    throw new Error(`No cell exists for session '${payload.sessionId}' and cell ${payload.cellId}`);
+  }
+
+  const result = await updateCell(session, cell, payload.updates);
+
+  if (!result.success) {
+    wss.broadcast(`session:${session.id}`, 'cell:error', {
+      sessionId: session.id,
+      cellId: cell.id,
+      errors: result.errors,
+    });
+
+    // Revert the client's optimistic updates with most recent server cell state
+    wss.broadcast(`session:${session.id}`, 'cell:updated', {
+      cell: findCell(session, payload.cellId),
+    });
+  }
+}
+
 function cellStdin(payload: CellStdinPayloadType) {
   processes.send(payload.sessionId, payload.cellId, payload.stdin);
 }
@@ -213,13 +229,13 @@ wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
+  .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
   .incoming('cell:stdin', CellStdinPayloadSchema, cellStdin)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
-  .incoming('cell:validate', CellValidatePayloadSchema, filenameCheck)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
+  .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
-  .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
-  .outgoing('cell:validate:response', CellValidateResponsePayloadSchema);
+  .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema);
 
 export default wss;

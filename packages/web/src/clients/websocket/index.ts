@@ -2,13 +2,13 @@ import {
   CellOutputPayloadSchema,
   CellUpdatedPayloadSchema,
   DepsValidateResponsePayloadSchema,
-  CellValidateResponsePayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
   DepsInstallPayloadSchema,
-  CellValidatePayloadSchema,
   DepsValidatePayloadSchema,
   CellStdinPayloadSchema,
+  CellUpdatePayloadSchema,
+  CellErrorPayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -20,16 +20,16 @@ const client = new WebSocketClient('ws://localhost:2150/websocket');
 export default client;
 const IncomingSessionEvents = {
   'cell:output': CellOutputPayloadSchema,
+  'cell:error': CellErrorPayloadSchema,
   'cell:updated': CellUpdatedPayloadSchema,
   'deps:validate:response': DepsValidateResponsePayloadSchema,
-  'cell:validate:response': CellValidateResponsePayloadSchema,
 };
 
 const OutgoingSessionEvents = {
   'cell:exec': CellExecPayloadSchema,
   'cell:stop': CellStopPayloadSchema,
+  'cell:update': CellUpdatePayloadSchema,
   'cell:stdin': CellStdinPayloadSchema,
-  'cell:validate': CellValidatePayloadSchema,
   'deps:install': DepsInstallPayloadSchema,
   'deps:validate': DepsValidatePayloadSchema,
 };

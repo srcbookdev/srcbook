@@ -1,10 +1,25 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
-import { randomid } from '@srcbook/shared';
+import {
+  randomid,
+  CellType,
+  CellUpdateAttrsType,
+  TitleCellUpdateAttrsSchema,
+  MarkdownCellUpdateAttrsSchema,
+  CodeCellUpdateAttrsSchema,
+  PackageJsonCellUpdateAttrsSchema,
+  TitleCellType,
+  MarkdownCellType,
+  PackageJsonCellType,
+  CodeCellType,
+  CellErrorType,
+} from '@srcbook/shared';
 import { encode, decodeDir } from './srcmd.mjs';
 import { SRCBOOK_DIR } from './config.mjs';
-import type { CellType, SessionType } from './types';
-import { writeToDisk } from './srcbook.mjs';
+import { SessionType } from './types';
+import { writeToDisk, writeCellToDisk, writeReadmeToDisk, moveCodeCellOnDisk } from './srcbook.mjs';
+import { fileExists } from './fs-utils.mjs';
+import { validFilename } from '@srcbook/shared';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -82,6 +97,129 @@ export async function exportSession(session: SessionType, writePath: string) {
 
 export async function findSession(id: string): Promise<SessionType> {
   return sessions[id];
+}
+
+type UpdateResultType =
+  | { success: true; cell: CellType }
+  | { success: false; errors: CellErrorType[] };
+
+async function updateCellWithRollback<T extends CellType>(
+  session: SessionType,
+  oldCell: T,
+  updates: Partial<T>,
+  onUpdate: (session: SessionType, cells: CellType) => Promise<CellErrorType[] | void>,
+): Promise<UpdateResultType> {
+  const updatedCell = { ...oldCell, ...updates };
+  const cells = replaceCell(session, updatedCell);
+  session.cells = cells;
+
+  const errors = await onUpdate(session, updatedCell);
+
+  if (errors && errors.length > 0) {
+    // rollback
+    const cells = replaceCell(session, oldCell);
+    session.cells = cells;
+    return { success: false, errors };
+  } else {
+    return { success: true, cell: updatedCell };
+  }
+}
+
+function updateTitleCell(session: SessionType, cell: TitleCellType, updates: any) {
+  const attrs = TitleCellUpdateAttrsSchema.parse(updates);
+  return updateCellWithRollback(session, cell, attrs, async (session) => {
+    try {
+      await writeReadmeToDisk(session.dir, session.cells);
+    } catch (e) {
+      console.error(e);
+      return [{ message: 'An error occurred persisting files to disk' }];
+    }
+  });
+}
+
+function updateMarkdownCell(session: SessionType, cell: MarkdownCellType, updates: any) {
+  const attrs = MarkdownCellUpdateAttrsSchema.parse(updates);
+  return updateCellWithRollback(session, cell, attrs, async (session) => {
+    try {
+      await writeReadmeToDisk(session.dir, session.cells);
+    } catch (e) {
+      console.error(e);
+      return [{ message: 'An error occurred persisting files to disk' }];
+    }
+  });
+}
+
+function updatePackageJsonCell(session: SessionType, cell: PackageJsonCellType, updates: any) {
+  const attrs = PackageJsonCellUpdateAttrsSchema.parse(updates);
+  return updateCellWithRollback(session, cell, attrs, async (session, updatedCell) => {
+    try {
+      await writeCellToDisk(session.dir, session.cells, updatedCell as PackageJsonCellType);
+    } catch (e) {
+      console.error(e);
+      return [{ message: 'An error occurred persisting files to disk' }];
+    }
+  });
+}
+
+async function updateCodeCell(
+  session: SessionType,
+  cell: CodeCellType,
+  updates: any,
+): Promise<UpdateResultType> {
+  const attrs = CodeCellUpdateAttrsSchema.parse(updates);
+
+  // This shouldn't happen but it will cause the code below to fail
+  // when it shouldn't, so here we check if a mistake was made, log it,
+  // and ignore this attribute.
+  if (attrs.filename === cell.filename) {
+    console.warn(
+      `Attempted to update a cell's filename to its existing filename '${cell.filename}'. This is likely a bug in the code.`,
+    );
+    delete attrs.filename;
+  }
+
+  if (attrs.filename && !validFilename(attrs.filename)) {
+    return {
+      success: false,
+      errors: [{ message: `${attrs.filename} is not a valid filename`, attribute: 'filename' }],
+    };
+  }
+
+  if (attrs.filename && (await fileExists(Path.join(session.dir, attrs.filename)))) {
+    return {
+      success: false,
+      errors: [
+        { message: `A file named '${attrs.filename}' already exists`, attribute: 'filename' },
+      ],
+    };
+  }
+
+  const isChangingFilename = !!attrs.filename;
+
+  return updateCellWithRollback(session, cell, attrs, async (session, updatedCell) => {
+    try {
+      const writes = isChangingFilename
+        ? moveCodeCellOnDisk(session.dir, session.cells, updatedCell as CodeCellType, cell.filename)
+        : writeCellToDisk(session.dir, session.cells, updatedCell as CodeCellType);
+      await writes;
+    } catch (e) {
+      console.error(e);
+      return [{ message: 'An error occurred persisting files to disk' }];
+    }
+  });
+}
+
+export function updateCell(session: SessionType, cell: CellType, updates: CellUpdateAttrsType) {
+  switch (cell.type) {
+    case 'title':
+      return updateTitleCell(session, cell, updates);
+    case 'markdown':
+      return updateMarkdownCell(session, cell, updates);
+    case 'package.json':
+      return updatePackageJsonCell(session, cell, updates);
+    case 'code':
+      return updateCodeCell(session, cell, updates);
+  }
 }
 
 export function sessionToResponse(session: SessionType) {

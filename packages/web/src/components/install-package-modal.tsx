@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
-import type { CellUpdatedPayloadType } from '@srcbook/shared';
+import { CellUpdatedPayloadType, PackageJsonCellType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { searchNpmPackages } from '@/lib/server';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import type { PackageJsonCellType, SessionType } from '@/types';
+import type { SessionType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
 import { useCells } from './use-cell';
 
@@ -63,7 +63,7 @@ export default function InstallPackageModal({
 
   useEffect(() => {
     const callback = (payload: CellUpdatedPayloadType) => {
-      if (open && payload.cell.id === cell.id && payload.cell.status === 'idle') {
+      if (open && payload.cell.type === 'package.json' && payload.cell.status === 'idle') {
         setMode('success');
       }
     };

@@ -1,11 +1,5 @@
-import type {
-  SessionType,
-  CellType,
-  FsObjectResultType,
-  CodeCellType,
-  MarkdownCellType,
-  OutputType,
-} from '@/types';
+import { CellType, CodeCellType, MarkdownCellType } from '@srcbook/shared';
+import { SessionType, FsObjectResultType } from '@/types';
 
 const SERVER_BASE_URL = 'http://localhost:2150';
 
@@ -202,47 +196,6 @@ export async function createCell(request: CreateCellRequestType): Promise<Create
   if (!response.ok) {
     console.error(response);
     throw new Error('Request failed');
-  }
-
-  return response.json();
-}
-
-interface UpdateCellRequestType {
-  sessionId: string;
-  cellId: string;
-  source?: string;
-  text?: string;
-  filename?: string;
-  output?: OutputType[];
-}
-
-interface UpdateCellResponseType {
-  error: boolean;
-  result: CellType;
-}
-
-export async function updateCell(request: UpdateCellRequestType): Promise<UpdateCellResponseType> {
-  const response = await fetch(
-    SERVER_BASE_URL + '/sessions/' + request.sessionId + '/cells/' + request.cellId,
-    {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        source: request.source,
-        filename: request.filename,
-        text: request.text,
-        output: request.output,
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    if (response.status === 400) {
-      const error = await response.json();
-      throw new Error(error.message);
-    } else {
-      throw new Error('Request failed');
-    }
   }
 
   return response.json();

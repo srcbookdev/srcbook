@@ -18,22 +18,25 @@ import {
   Save,
 } from 'lucide-react';
 import {
-  CellOutputPayloadType,
-  CellUpdatedPayloadType,
-  DepsValidateResponsePayloadType,
-  CellValidateResponsePayloadType,
-} from '@srcbook/shared';
-import { loadSession, createCell, updateCell as updateCellServer, deleteCell } from '@/lib/server';
-import { cn } from '@/lib/utils';
-import SaveModal from '@/components/save-modal-dialog';
-import type {
   CellType,
   CodeCellType,
   PackageJsonCellType,
   TitleCellType,
   MarkdownCellType,
-  SessionType,
-} from '@/types';
+  CellOutputPayloadType,
+  CellUpdatedPayloadType,
+  DepsValidateResponsePayloadType,
+  CellUpdateAttrsType,
+  TitleCellUpdateAttrsType,
+  CodeCellUpdateAttrsType,
+  PackageJsonCellUpdateAttrsType,
+  MarkdownCellUpdateAttrsType,
+  CellErrorPayloadType,
+} from '@srcbook/shared';
+import { loadSession, createCell, deleteCell } from '@/lib/server';
+import { cn } from '@/lib/utils';
+import SaveModal from '@/components/save-modal-dialog';
+import { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -125,21 +128,14 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     return () => channel.off('cell:updated', callback);
   }, [channel, updateCell]);
 
-  async function onUpdateCell<T extends CellType>(cell: T, attrs: Partial<T>) {
-    // Optimistic cell update
-    updateCell({ ...cell, ...attrs });
+  async function onUpdateCell<T extends CellType>(cell: T, updates: CellUpdateAttrsType) {
+    updateCell({ ...cell, ...(updates as Partial<T>) });
 
-    const response = await updateCellServer({
+    channel.push('cell:update', {
       sessionId: session.id,
       cellId: cell.id,
-      ...attrs,
+      updates,
     });
-
-    if (response.error) {
-      // Undo optimistic cell update
-      setCells(cells);
-      console.error('Failed to update cell', response);
-    }
   }
 
   async function createNewCell(type: 'code' | 'markdown', index: number) {
@@ -227,7 +223,7 @@ function Cell(props: {
   cell: CellType;
   session: SessionType;
   channel: SessionChannel;
-  onUpdateCell: <T extends CellType>(cell: T, attrs: Partial<T>) => Promise<void>;
+  onUpdateCell: <T extends CellType>(cell: T, attrs: CellUpdateAttrsType) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   switch (props.cell.type) {
@@ -267,7 +263,7 @@ function Cell(props: {
 
 function TitleCell(props: {
   cell: TitleCellType;
-  onUpdateCell: (cell: TitleCellType, attrs: Partial<TitleCellType>) => Promise<void>;
+  onUpdateCell: (cell: TitleCellType, attrs: TitleCellUpdateAttrsType) => Promise<void>;
 }) {
   return (
     <div className="my-4">
@@ -282,7 +278,7 @@ function TitleCell(props: {
 
 function MarkdownCell(props: {
   cell: MarkdownCellType;
-  onUpdateCell: (cell: MarkdownCellType, attrs: Partial<MarkdownCellType>) => void;
+  onUpdateCell: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const cell = props.cell;
@@ -370,7 +366,7 @@ function PackageJsonCell(props: {
   cell: PackageJsonCellType;
   channel: SessionChannel;
   session: SessionType;
-  onUpdateCell: (cell: PackageJsonCellType, attrs: Partial<PackageJsonCellType>) => Promise<void>;
+  onUpdateCell: (cell: PackageJsonCellType, attrs: PackageJsonCellUpdateAttrsType) => Promise<void>;
 }) {
   const { cell, channel, session, onUpdateCell } = props;
 
@@ -511,30 +507,13 @@ function CodeCell(props: {
   session: SessionType;
   cell: CodeCellType;
   channel: SessionChannel;
-  onUpdateCell: (cell: CodeCellType, attrs: Partial<CodeCellType>) => Promise<void>;
+  onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<void>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
-  const [enabled, setEnabled] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const { updateCell, clearOutput } = useCells();
-
-  // Useeffect to handle single package install events
-  useEffect(() => {
-    const callback = (payload: CellValidateResponsePayloadType) => {
-      const { cellId, filename, error: _error, message } = payload;
-      if (cellId !== cell.id) return;
-      if (_error && message) {
-        setError(message);
-      } else {
-        setEnabled(true);
-        onUpdateCell(cell, { filename });
-      }
-    };
-    channel.on('cell:validate:response', callback);
-    return () => channel.off('cell:validate:response', callback);
-  }, [channel, onUpdateCell, cell]);
 
   function onChangeSource(source: string) {
     onUpdateCell(cell, { source });
@@ -545,22 +524,37 @@ function CodeCell(props: {
     return true;
   }
 
-  // Updating the filename has the following flow:
-  // 1. Disable cell & Push a cell:validate event to the server
-  // 2. Receive the response in the useEffect handler callback above
-  // 3. If successful, re-enable cell.
+  useEffect(() => {
+    function callback(payload: CellErrorPayloadType) {
+      if (payload.cellId !== cell.id) {
+        return;
+      }
+
+      const filenameError = payload.errors.find((e) => e.attribute === 'filename');
+
+      if (filenameError) {
+        setError(filenameError.message);
+      }
+    }
+
+    channel.on('cell:error', callback);
+
+    return () => channel.off('cell:error', callback);
+  }, [cell.id, channel]);
+
   async function updateFilename(filename: string) {
     setError(null);
-    setEnabled(false);
-    channel.push('cell:validate', {
+    channel.push('cell:update', {
       cellId: cell.id,
       sessionId: session.id,
-      filename,
+      updates: { filename },
     });
   }
 
   function runCell() {
-    if (!enabled) return;
+    if (cell.status === 'running') {
+      return false;
+    }
 
     // Update client side only. The server will know it's running from the 'cell:exec' event.
     updateCell({ ...cell, status: 'running' });
@@ -616,7 +610,7 @@ function CodeCell(props: {
               </Button>
             )}
             {cell.status === 'idle' && (
-              <Button variant="outline" onClick={runCell} tabIndex={1} disabled={!enabled}>
+              <Button variant="outline" onClick={runCell} tabIndex={1}>
                 <div className="flex items-center gap-2">
                   <PlayCircle size={16} />
                   Run

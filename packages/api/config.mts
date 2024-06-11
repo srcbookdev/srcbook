@@ -21,7 +21,6 @@ export async function getConfig(): Promise<Config> {
 }
 
 export async function updateConfig(attrs: Partial<Config>) {
-  console.log('Updating config with attrs:', attrs);
   return db.update(configs).set(attrs).returning();
 }
 

@@ -19,7 +19,7 @@ import { SRCBOOK_DIR } from './config.mjs';
 import { SessionType } from './types';
 import { writeToDisk, writeCellToDisk, writeReadmeToDisk, moveCodeCellOnDisk } from './srcbook.mjs';
 import { fileExists } from './fs-utils.mjs';
-import { validFilename } from './server/shared.mjs';
+import { validFilename } from '@srcbook/shared';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -168,8 +168,13 @@ async function updateCodeCell(
 ): Promise<UpdateResultType> {
   const attrs = CodeCellUpdateAttrsSchema.parse(updates);
 
-  // Ignore it if it's somehow the same as the existing file
+  // This shouldn't happen but it will cause the code below to fail
+  // when it shouldn't, so here we check if a mistake was made, log it,
+  // and ignore this attribute.
   if (attrs.filename === cell.filename) {
+    console.warn(
+      `Attempted to update a cell's filename to its existing filename '${cell.filename}'. This is likely a bug in the code.`,
+    );
     delete attrs.filename;
   }
 

@@ -208,7 +208,6 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
   const result = await updateCell(session, cell, payload.updates);
 
   if (!result.success) {
-    // Tell the client there were error(s)
     wss.broadcast(`session:${session.id}`, 'cell:error', {
       sessionId: session.id,
       cellId: cell.id,

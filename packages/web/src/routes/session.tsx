@@ -540,7 +540,7 @@ function CodeCell(props: {
     channel.on('cell:error', callback);
 
     return () => channel.off('cell:error', callback);
-  }, []);
+  }, [cell.id, channel]);
 
   async function updateFilename(filename: string) {
     setError(null);

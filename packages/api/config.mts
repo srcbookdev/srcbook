@@ -10,8 +10,8 @@ export const SRCBOOK_DIR = path.join(HOME_DIR, '.srcbook');
 export async function getConfig(): Promise<Config> {
   const results = await db.select().from(configs);
   if (results.length === 0) {
-    await initializeConfig();
-    return getConfig();
+    const config = await initializeConfig();
+    return config;
   }
 
   if (results.length !== 1) {
@@ -49,6 +49,8 @@ export async function initializeConfig() {
   const existingConfig = await db.select().from(configs).limit(1);
   if (existingConfig.length === 0) {
     console.log(`Inializing usere config with baseDir: ${HOME_DIR}`);
-    return db.insert(configs).values({ baseDir: HOME_DIR }).returning();
+    const result = await db.insert(configs).values({ baseDir: HOME_DIR }).returning();
+    return result[0];
   }
+  return existingConfig[0];
 }

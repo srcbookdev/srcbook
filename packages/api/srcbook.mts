@@ -4,7 +4,7 @@ import { CellType, CodeCellType, PackageJsonCellType } from '@srcbook/shared';
 import { encode, decode } from './srcmd.mjs';
 import { toFormattedJSON } from './utils.mjs';
 import { randomid } from '@srcbook/shared';
-import { SRCBOOK_DIR } from './constants.mjs';
+import { SRCBOOKS_DIR } from './constants.mjs';
 
 export function writeToDisk(srcbookDir: string, cells: CellType[]) {
   const writes = [writeReadmeToDisk(srcbookDir, cells)];
@@ -100,7 +100,7 @@ export async function createNewSrcbook(title: string) {
 }
 
 async function newSrcbookDir() {
-  const dirname = Path.join(SRCBOOK_DIR, randomid());
+  const dirname = Path.join(SRCBOOKS_DIR, randomid());
   await fs.mkdir(dirname, { recursive: true });
   return dirname;
 }

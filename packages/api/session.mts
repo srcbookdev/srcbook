@@ -15,7 +15,7 @@ import {
   CellErrorType,
 } from '@srcbook/shared';
 import { encode, decodeDir } from './srcmd.mjs';
-import { SRCBOOK_DIR } from './constants.mjs';
+import { SRCBOOKS_DIR } from './constants.mjs';
 import { SessionType } from './types';
 import { writeToDisk, writeCellToDisk, writeReadmeToDisk, moveCodeCellOnDisk } from './srcbook.mjs';
 import { fileExists } from './fs-utils.mjs';
@@ -58,7 +58,7 @@ export async function deleteSession(session: SessionType) {
 
 // We make sure to load sessions from the disk in addition to the ones already in memory.
 export async function listSessions(): Promise<Record<string, SessionType>> {
-  const srcbookDirs = await fs.readdir(SRCBOOK_DIR, { withFileTypes: true });
+  const srcbookDirs = await fs.readdir(SRCBOOKS_DIR, { withFileTypes: true });
   const loadedSessions = srcbookDirs
     .filter((entry) => entry.isDirectory())
     .map(async (entry) => {

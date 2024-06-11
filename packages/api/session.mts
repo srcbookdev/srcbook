@@ -15,7 +15,7 @@ import {
   CellErrorType,
 } from '@srcbook/shared';
 import { encode, decodeDir } from './srcmd.mjs';
-import { SRCBOOK_DIR } from './config.mjs';
+import { SRCBOOK_DIR } from './constants.mjs';
 import { SessionType } from './types';
 import { writeToDisk, writeCellToDisk, writeReadmeToDisk, moveCodeCellOnDisk } from './srcbook.mjs';
 import { fileExists } from './fs-utils.mjs';

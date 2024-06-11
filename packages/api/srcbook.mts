@@ -3,8 +3,8 @@ import Path from 'node:path';
 import { CellType, CodeCellType, PackageJsonCellType } from '@srcbook/shared';
 import { encode, decode } from './srcmd.mjs';
 import { toFormattedJSON } from './utils.mjs';
-import { readdir } from './fs-utils.mjs';
 import { randomid } from '@srcbook/shared';
+import { SRCBOOK_DIR } from './constants.mjs';
 
 export function writeToDisk(srcbookDir: string, cells: CellType[]) {
   const writes = [writeReadmeToDisk(srcbookDir, cells)];
@@ -52,18 +52,11 @@ export function writeReadmeToDisk(srcbookDir: string, cells: CellType[]) {
 
 /**
  * Creates a srcbook directory from a .srcmd file.
+ * TODO: First check for a srcbook directory with this filename linked, as described in
+ * https://linear.app/axflow/issue/AXF-146/files-and-directories-behavior
  */
-export async function importSrcbookFromSrcmdFile(
-  srcmdPath: string,
-  destinationDir: string,
-  name: string,
-) {
-  const dirname = Path.join(destinationDir, name);
-
-  const [srcmd] = await Promise.all([
-    fs.readFile(srcmdPath, 'utf8'),
-    createSrcbookDirectory(dirname),
-  ]);
+export async function importSrcbookFromSrcmdFile(srcmdPath: string) {
+  const [srcmd, dirname] = await Promise.all([fs.readFile(srcmdPath, 'utf8'), newSrcbookDir()]);
 
   const result = decode(srcmd);
 
@@ -79,17 +72,18 @@ export async function importSrcbookFromSrcmdFile(
 
 /**
  * Creates a new srcbook.
+ * Each Srcbook has a directory in ~/.srcbook/ refered to as its private directory.
+ * This private directory has a randomid() private identifier.
+ * Users are not supposed to be aware or modify private directories.
  */
-export async function createNewSrcbook(path: string, name: string) {
-  const dirname = Path.join(path, name);
-
-  await createSrcbookDirectory(dirname);
+export async function createNewSrcbook(title: string) {
+  const dirname = await newSrcbookDir();
 
   const cells: CellType[] = [
     {
       id: randomid(),
       type: 'title',
-      text: name,
+      text: title,
     },
     {
       id: randomid(),
@@ -105,16 +99,10 @@ export async function createNewSrcbook(path: string, name: string) {
   return dirname;
 }
 
-async function createSrcbookDirectory(dirname: string) {
-  const dir = await readdir(dirname);
-
-  if (dir.exists && dir.files.length > 0) {
-    throw new Error(`Cannot create srcbook in non-empty directory ${dirname}`);
-  }
-
-  if (!dir.exists) {
-    await fs.mkdir(dirname, { recursive: true });
-  }
+async function newSrcbookDir() {
+  const dirname = Path.join(SRCBOOK_DIR, randomid());
+  await fs.mkdir(dirname, { recursive: true });
+  return dirname;
 }
 
 function buildPackageJson() {

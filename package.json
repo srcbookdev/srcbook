@@ -8,7 +8,9 @@
     "dev-web": "pnpm --filter web dev",
     "lint-web": "pnpm --filter web lint",
     "check-types": "pnpm --recursive check-types",
-    "check-prettier": "pnpm prettier --check ."
+    "check-prettier": "pnpm prettier --check .",
+    "generate": "pnpm --filter api generate",
+    "migrate": "pnpm --filter api migrate"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

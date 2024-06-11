@@ -9,8 +9,8 @@
     "lint-web": "pnpm --filter web lint",
     "check-types": "pnpm --recursive check-types",
     "check-prettier": "pnpm prettier --check .",
-    "generate": "cd packages/api && npm run generate --",
-    "migrate": "cd packages/api && npm run migrate --"
+    "generate": "pnpm --filter api generate",
+    "migrate": "pnpm --filter api migrate"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

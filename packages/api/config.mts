@@ -1,22 +1,31 @@
-import os from 'node:os';
 import { eq } from 'drizzle-orm';
-import path from 'node:path';
 import { configs, type Config, secrets, type Secret } from './db/schema.mjs';
 import { db } from './db/index.mjs';
+import { HOME_DIR } from './constants.mjs';
 
-export const HOME_DIR = os.homedir();
-export const SRCBOOK_DIR = path.join(HOME_DIR, '.srcbook');
+async function init() {
+  const existingConfig = await db.select().from(configs).limit(1);
+
+  if (existingConfig.length === 0) {
+    const defaultConfig = { baseDir: HOME_DIR };
+    console.log();
+    console.log('Initializing application with the following configuration:\n');
+    console.log(JSON.stringify(defaultConfig, null, 2));
+    console.log();
+    await db.insert(configs).values(defaultConfig).returning();
+  }
+}
+
+// Block rest of module until we have initialized config.
+await init();
 
 export async function getConfig(): Promise<Config> {
   const results = await db.select().from(configs);
-  if (results.length === 0) {
-    const config = await initializeConfig();
-    return config;
-  }
 
   if (results.length !== 1) {
     console.warn('Expected exactly one config record, found:', results.length);
   }
+
   return results[0];
 }
 
@@ -43,14 +52,4 @@ export async function addSecret(name: string, value: string): Promise<Secret> {
 
 export async function removeSecret(name: string) {
   await db.delete(secrets).where(eq(secrets.name, name)).returning();
-}
-
-export async function initializeConfig() {
-  const existingConfig = await db.select().from(configs).limit(1);
-  if (existingConfig.length === 0) {
-    console.log(`Inializing usere config with baseDir: ${HOME_DIR}`);
-    const result = await db.insert(configs).values({ baseDir: HOME_DIR }).returning();
-    return result[0];
-  }
-  return existingConfig[0];
 }

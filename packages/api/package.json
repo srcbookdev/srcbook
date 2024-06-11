@@ -4,11 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "init": "vite-node ./initialization.mts",
+    "predev": "pnpm run init",
     "dev": "vite-node index.mts",
     "test": "vitest",
     "check-types": "tsc",
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",
+    "premigrate": "pnpm run init",
     "migrate": "drizzle-kit migrate"
   },
   "dependencies": {

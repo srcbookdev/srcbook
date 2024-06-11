@@ -233,8 +233,14 @@ app.get('/settings', cors(), async (_req, res) => {
 });
 
 app.post('/settings', cors(), async (req, res) => {
-  const updated = await updateConfig(req.body);
-  return res.json({ result: updated });
+  try {
+    const updated = await updateConfig(req.body);
+    return res.json({ result: updated });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, message: error.stack });
+  }
 });
 
 app.options('/secrets', cors());

@@ -1,67 +1,55 @@
-import fs from 'node:fs/promises';
 import os from 'node:os';
+import { eq } from 'drizzle-orm';
 import path from 'node:path';
-import { fileExists } from './fs-utils.mjs';
+import { configs, type Config, secrets, type Secret } from './db/schema.mjs';
+import { db } from './db/index.mjs';
 
 export const HOME_DIR = os.homedir();
 export const SRCBOOK_DIR = path.join(HOME_DIR, '.srcbook');
 
-const CONFIG_FILE_PATH = path.join(SRCBOOK_DIR, 'config.json');
-const SECRETS_FILE_PATH = path.join(SRCBOOK_DIR, 'secrets.json');
+export async function getConfig(): Promise<Config> {
+  const results = await db.select().from(configs).limit(1);
+  if (results.length === 0) {
+    await initializeConfig();
+    return getConfig();
+  }
 
-// This will hold any user settings and configuration.
-// Right now the only settings is the base directory.
-type ConfigObjectType = {
-  baseDir: string;
-};
-
-async function load(path: string) {
-  const contents = await fs.readFile(path, 'utf8');
-  return JSON.parse(contents);
+  if (results.length !== 1) {
+    console.warn('Expected excatly one config record, found:', results.length);
+  }
+  return results[0];
 }
 
-export async function getConfig(): Promise<ConfigObjectType> {
-  const config = await load(CONFIG_FILE_PATH);
-  return { baseDir: config.baseDir || HOME_DIR };
+export async function updateConfig(attrs: Partial<Config>) {
+  console.log('Updating config with attrs:', attrs);
+  return db.update(configs).set(attrs).returning();
 }
 
-export async function updateConfig(attrs: Partial<ConfigObjectType>) {
-  const existingConfig = await getConfig();
-  const config = { ...existingConfig, ...attrs };
-  await fs.writeFile(CONFIG_FILE_PATH, JSON.stringify(config), 'utf8');
-  return config;
+export async function getSecrets(): Promise<Record<string, string>> {
+  const results = await db.select().from(secrets);
+  return results.reduce((acc: Record<string, string>, { name, value }) => {
+    acc[name] = value;
+    return acc;
+  }, {});
 }
 
-export function getSecrets(): Promise<Record<string, string>> {
-  return load(SECRETS_FILE_PATH);
-}
-
-export async function addSecret(name: string, value: string) {
-  const secrets = await getSecrets();
-  const updated = { ...secrets, [name]: value };
-  await fs.writeFile(SECRETS_FILE_PATH, JSON.stringify(updated), 'utf8');
-  return updated;
+export async function addSecret(name: string, value: string): Promise<Secret> {
+  const result = await db
+    .insert(secrets)
+    .values({ name, value })
+    .onConflictDoUpdate({ target: secrets.name, set: { value } })
+    .returning();
+  return result[0];
 }
 
 export async function removeSecret(name: string) {
-  const secrets = await getSecrets();
-  delete secrets[name];
-  await fs.writeFile(SECRETS_FILE_PATH, JSON.stringify(secrets), 'utf8');
-  return secrets;
+  await db.delete(secrets).where(eq(secrets.name, name)).returning();
 }
 
 export async function initializeConfig() {
-  const [, hasConfigFile, hasSecretsFile] = await Promise.all([
-    fs.mkdir(SRCBOOK_DIR, { recursive: true }),
-    fileExists(CONFIG_FILE_PATH),
-    fileExists(SECRETS_FILE_PATH),
-  ]);
-
-  if (!hasConfigFile) {
-    fs.writeFile(CONFIG_FILE_PATH, '{}', 'utf8');
-  }
-
-  if (!hasSecretsFile) {
-    fs.writeFile(SECRETS_FILE_PATH, '{}', 'utf8');
+  const existingConfig = await db.select().from(configs).limit(1);
+  if (existingConfig.length === 0) {
+    console.log(`Inializing usere config with baseDir: ${HOME_DIR}`);
+    return db.insert(configs).values({ baseDir: HOME_DIR }).returning();
   }
 }

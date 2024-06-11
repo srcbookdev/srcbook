@@ -8,14 +8,14 @@ export const HOME_DIR = os.homedir();
 export const SRCBOOK_DIR = path.join(HOME_DIR, '.srcbook');
 
 export async function getConfig(): Promise<Config> {
-  const results = await db.select().from(configs).limit(1);
+  const results = await db.select().from(configs);
   if (results.length === 0) {
     await initializeConfig();
     return getConfig();
   }
 
   if (results.length !== 1) {
-    console.warn('Expected excatly one config record, found:', results.length);
+    console.warn('Expected exactly one config record, found:', results.length);
   }
   return results[0];
 }

@@ -44,10 +44,9 @@ app.post('/disk', cors(), async (req, res) => {
 app.options('/srcbooks', cors());
 app.post('/srcbooks', cors(), async (req, res) => {
   const { name } = req.body;
-  const { baseDir } = await getConfig();
 
   try {
-    const srcbookDir = await createNewSrcbook(baseDir, name);
+    const srcbookDir = await createNewSrcbook(name);
     return res.json({ error: false, result: { name, path: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;
@@ -65,13 +64,9 @@ app.post('/import', cors(), async (req, res) => {
     return res.json({ error: true, result: 'Importing only works with .srcmd files' });
   }
 
-  const name = Path.basename(path).replace('.srcmd', '');
-
-  const { baseDir } = await getConfig();
-
   try {
-    const srcbookDir = await importSrcbookFromSrcmdFile(path, baseDir, name);
-    return res.json({ error: false, result: { name, dir: srcbookDir } });
+    const srcbookDir = await importSrcbookFromSrcmdFile(path);
+    return res.json({ error: false, result: { dir: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

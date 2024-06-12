@@ -5,7 +5,14 @@
  */
 
 import fs from 'node:fs/promises';
-import { SRCBOOK_DIR } from './constants.mjs';
+import { SRCBOOKS_DIR } from './constants.mjs';
 
-// make sure to await this
-await fs.mkdir(SRCBOOK_DIR, { recursive: true });
+// This single mkdir is creating:
+//
+//     ~/.srcbook
+//     ~/.srcbook/srcbooks
+//
+// Make sure the `recursive` options is true to retain this
+// behavior and make sure both get created during initialization
+// or the app will not work properly.
+await fs.mkdir(SRCBOOKS_DIR, { recursive: true });

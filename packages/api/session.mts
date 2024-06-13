@@ -18,7 +18,7 @@ import {
 } from '@srcbook/shared';
 import { encode, decodeDir } from './srcmd.mjs';
 import { SRCBOOKS_DIR } from './constants.mjs';
-import { SessionType } from './types';
+import { SessionType } from './types.js';
 import { writeToDisk, writeCellToDisk, writeReadmeToDisk, moveCodeCellOnDisk } from './srcbook.mjs';
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';
@@ -226,18 +226,18 @@ async function updateCodeCell(
     try {
       const writes = isChangingFilename
         ? moveCodeCellOnDisk(
-            session.dir,
-            session.metadata,
-            session.cells,
-            updatedCell as CodeCellType,
-            cell.filename,
-          )
+          session.dir,
+          session.metadata,
+          session.cells,
+          updatedCell as CodeCellType,
+          cell.filename,
+        )
         : writeCellToDisk(
-            session.dir,
-            session.metadata,
-            session.cells,
-            updatedCell as CodeCellType,
-          );
+          session.dir,
+          session.metadata,
+          session.cells,
+          updatedCell as CodeCellType,
+        );
       await writes;
     } catch (e) {
       console.error(e);

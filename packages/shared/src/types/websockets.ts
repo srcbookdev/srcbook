@@ -11,7 +11,7 @@ import {
   DepsValidateResponsePayloadSchema,
   DepsValidatePayloadSchema,
   CellErrorPayloadSchema,
-} from '../schemas/websockets';
+} from '../schemas/websockets.js';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
 export type CellStopPayloadType = z.infer<typeof CellStopPayloadSchema>;

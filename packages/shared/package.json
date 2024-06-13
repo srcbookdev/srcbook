@@ -2,8 +2,9 @@
   "name": "@srcbook/shared",
   "version": "0.0.1",
   "type": "module",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
+    "build": "tsc",
     "check-types": "tsc"
   },
   "dependencies": {

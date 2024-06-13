@@ -1,7 +1,6 @@
 {
-  "name": "@srcbook/api",
-  "private": true,
-  "version": "0.0.0",
+  "name": "scratch-srcbook",
+  "version": "0.0.1",
   "type": "module",
   "bin": "./bin/start",
   "scripts": {

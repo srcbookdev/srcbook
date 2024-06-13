@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { execSync } from 'child_process';
 
+console.log('Building shared...');
+execSync('pnpm --filter shared build', { stdio: 'inherit' });
+
 console.log('Building client...');
 execSync('pnpm --filter web build', { stdio: 'inherit' });
 

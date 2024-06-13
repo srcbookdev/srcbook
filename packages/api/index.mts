@@ -4,27 +4,24 @@ import http from 'node:http';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
-import { SRCBOOK_DIR } from './constants.mjs';
+import { SRCBOOKS_DIR } from './constants.mjs';
 import app from './server/http.mjs';
 import webSocketServer from './server/ws.mjs';
-
-// make sure to await this
-console.log("Creating srcbook directory if it doesn't exist...");
-await fs.mkdir(SRCBOOK_DIR, { recursive: true });
-
-// TODO use drizzle programmatic API to run the migrations
-console.log('TODO: running migrations...');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Create our private ~/.srcbook directory, and its child srcbooks/ directory
+console.log("\nCreating srcbook directory if it doesn't exist...");
+await fs.mkdir(SRCBOOKS_DIR, { recursive: true });
+
 // Serve the static files, compiled from the packages/web/ React app
-console.log('Serving static files (React app)');
+console.log('\nServing static files (React app)...');
 app.use(express.static(path.join(__dirname, '/../client_dist/')));
 
 const server = http.createServer(app);
 
-console.log('Creating WebSocket server');
+console.log('\nCreating WebSocket server...');
 const wss = new WsWebSocketServer({ server });
 wss.on('connection', webSocketServer.onConnection);
 

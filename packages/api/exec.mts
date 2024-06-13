@@ -25,7 +25,7 @@ export type NPMInstallRequestType = BaseExecRequestType & {
  *     node({
  *       cwd: '/Users/ben/.srcbook/foo',
  *       env: {FOO_ENV_VAR: 'foooooooo'},
- *       entry: foo.mjs',
+ *       entry: 'foo.js',
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
@@ -40,6 +40,53 @@ export function node(options: NodeRequestType) {
   // Explicitly using spawn here (over fork) to make it clear these
   // processes should be as decoupled from one another as possible.
   const child = spawn('node', [filepath], { cwd, env: { ...process.env, ...env } });
+
+  child.stdout.on('data', stdout);
+  child.stderr.on('data', stderr);
+
+  child.on('error', () => {
+    // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
+    // Doing so crashes the parent process unless this callback callback is registered.
+    //
+    // TODO: Find a way to handle unexpected errors here.
+  });
+
+  child.on('exit', (code, signal) => {
+    onExit && onExit(code, signal);
+  });
+
+  return child;
+}
+
+/**
+ * Execute a TypeScript file using tsx.
+ *
+ * Example:
+ *
+ *     tsx({
+ *       cwd: '/Users/ben/.srcbook/foo',
+ *       env: {FOO_ENV_VAR: 'foooooooo'},
+ *       entry: 'foo.ts',
+ *       stdout(data) {console.log(data.toString('utf8'))},
+ *       stderr(data) {console.error(data.toString('utf8'))},
+ *       onExit(code) {console.log(`Exit code: ${code}`)}
+ *     });
+ *
+ */
+export function tsx(options: NodeRequestType) {
+  const { cwd, env, entry, stdout, stderr, onExit } = options;
+
+  const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
+
+  // We are making an assumption about `tsx` being the tool of choice
+  // for running TypeScript, as well as where it's located on the file system.
+  //
+  // TODO: Propogate good errors to user if this isn't there (deps listed and deps installed).
+  const tsxPath = Path.join(cwd, 'node_modules', '.bin', 'tsx');
+
+  // Explicitly using spawn here (over fork) to make it clear these
+  // processes should be as decoupled from one another as possible.
+  const child = spawn(tsxPath, [filepath], { cwd, env: { ...process.env, ...env } });
 
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);

@@ -13,6 +13,8 @@ import {
   PackageJsonCellType,
   CodeCellType,
   CellErrorType,
+  languageFromFilename,
+  extensionsForLanguage,
 } from '@srcbook/shared';
 import { encode, decodeDir } from './srcmd.mjs';
 import { SRCBOOKS_DIR } from './constants.mjs';
@@ -40,10 +42,11 @@ export async function createSession(srcbookDir: string) {
     throw new Error(`Cannot create session from invalid srcbook directory at ${srcbookDir}`);
   }
 
-  const session = {
+  const session: SessionType = {
     id: randomid(),
     dir: srcbookDir,
     cells: result.cells,
+    metadata: result.metadata,
   };
 
   sessions[session.id] = session;
@@ -86,13 +89,13 @@ export async function updateSession(
   const updatedSession = { ...session, ...updates };
   sessions[id] = updatedSession;
   if (flush) {
-    await writeToDisk(updatedSession.dir, updatedSession.cells);
+    await writeToDisk(updatedSession.dir, session.metadata, updatedSession.cells);
   }
   return updatedSession;
 }
 
 export async function exportSession(session: SessionType, writePath: string) {
-  return fs.writeFile(writePath, encode(session.cells, { inline: true }));
+  return fs.writeFile(writePath, encode(session.cells, session.metadata, { inline: true }));
 }
 
 export async function findSession(id: string): Promise<SessionType> {
@@ -129,7 +132,7 @@ function updateTitleCell(session: SessionType, cell: TitleCellType, updates: any
   const attrs = TitleCellUpdateAttrsSchema.parse(updates);
   return updateCellWithRollback(session, cell, attrs, async (session) => {
     try {
-      await writeReadmeToDisk(session.dir, session.cells);
+      await writeReadmeToDisk(session.dir, session.metadata, session.cells);
     } catch (e) {
       console.error(e);
       return [{ message: 'An error occurred persisting files to disk' }];
@@ -141,7 +144,7 @@ function updateMarkdownCell(session: SessionType, cell: MarkdownCellType, update
   const attrs = MarkdownCellUpdateAttrsSchema.parse(updates);
   return updateCellWithRollback(session, cell, attrs, async (session) => {
     try {
-      await writeReadmeToDisk(session.dir, session.cells);
+      await writeReadmeToDisk(session.dir, session.metadata, session.cells);
     } catch (e) {
       console.error(e);
       return [{ message: 'An error occurred persisting files to disk' }];
@@ -153,7 +156,12 @@ function updatePackageJsonCell(session: SessionType, cell: PackageJsonCellType, 
   const attrs = PackageJsonCellUpdateAttrsSchema.parse(updates);
   return updateCellWithRollback(session, cell, attrs, async (session, updatedCell) => {
     try {
-      await writeCellToDisk(session.dir, session.cells, updatedCell as PackageJsonCellType);
+      await writeCellToDisk(
+        session.dir,
+        session.metadata,
+        session.cells,
+        updatedCell as PackageJsonCellType,
+      );
     } catch (e) {
       console.error(e);
       return [{ message: 'An error occurred persisting files to disk' }];
@@ -185,6 +193,20 @@ async function updateCodeCell(
     };
   }
 
+  const language = session.metadata.language;
+
+  if (attrs.filename && language !== languageFromFilename(attrs.filename)) {
+    return {
+      success: false,
+      errors: [
+        {
+          message: `File must have one of the following extensions: ${extensionsForLanguage(language)}`,
+          attribute: 'filename',
+        },
+      ],
+    };
+  }
+
   if (attrs.filename && (await fileExists(Path.join(session.dir, attrs.filename)))) {
     return {
       success: false,
@@ -196,11 +218,22 @@ async function updateCodeCell(
 
   const isChangingFilename = !!attrs.filename;
 
-  return updateCellWithRollback(session, cell, attrs, async (session, updatedCell) => {
+  return updateCellWithRollback(session, cell, { ...attrs }, async (session, updatedCell) => {
     try {
       const writes = isChangingFilename
-        ? moveCodeCellOnDisk(session.dir, session.cells, updatedCell as CodeCellType, cell.filename)
-        : writeCellToDisk(session.dir, session.cells, updatedCell as CodeCellType);
+        ? moveCodeCellOnDisk(
+            session.dir,
+            session.metadata,
+            session.cells,
+            updatedCell as CodeCellType,
+            cell.filename,
+          )
+        : writeCellToDisk(
+            session.dir,
+            session.metadata,
+            session.cells,
+            updatedCell as CodeCellType,
+          );
       await writes;
     } catch (e) {
       console.error(e);
@@ -227,6 +260,7 @@ export function sessionToResponse(session: SessionType) {
     id: session.id,
     cells: session.cells,
     dirName: Path.basename(session.dir),
+    metadata: session.metadata,
   };
 }
 

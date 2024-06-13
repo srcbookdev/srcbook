@@ -1,4 +1,4 @@
-import { CellType, CodeCellType, MarkdownCellType } from '@srcbook/shared';
+import { CellType, CodeCellType, MarkdownCellType, CodeLanguageType } from '@srcbook/shared';
 import { SessionType, FsObjectResultType } from '@/types';
 
 const SERVER_BASE_URL = 'http://localhost:2150';
@@ -30,6 +30,7 @@ export async function disk(request?: DiskRequestType): Promise<DiskResponseType>
 interface CreateSrcbookRequestType {
   path: string;
   name: string;
+  language: CodeLanguageType;
 }
 
 interface CreateSrcbookResponseType {

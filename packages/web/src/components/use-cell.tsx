@@ -1,5 +1,11 @@
 import { createContext, useCallback, useContext, ReactNode, useRef, useReducer } from 'react';
-import { CellType, CodeCellType, MarkdownCellType } from '@srcbook/shared';
+import {
+  CellType,
+  CodeCellType,
+  CodeLanguageType,
+  MarkdownCellType,
+  getDefaultExtensionForLanguage,
+} from '@srcbook/shared';
 import { OutputType } from '@/types';
 
 import { randomid } from '@srcbook/shared';
@@ -8,9 +14,9 @@ import { randomid } from '@srcbook/shared';
  * Utility function to generate a unique filename for a code cell,
  * given the list of existing filenames.
  */
-function generateUniqueFilename(existingFilenames: string[]): string {
+function generateUniqueFilename(existingFilenames: string[], language: CodeLanguageType): string {
   const baseName = 'untitled';
-  const extension = '.mjs';
+  const extension = getDefaultExtensionForLanguage(language);
 
   let filename = `${baseName}${extension}`;
   let counter = 1;
@@ -23,18 +29,22 @@ function generateUniqueFilename(existingFilenames: string[]): string {
   return filename;
 }
 
-function buildCodeCell(cells: CellType[], attrs: Partial<CodeCellType> = {}): CodeCellType {
+function buildCodeCell(
+  cells: CellType[],
+  language: CodeLanguageType,
+  attrs: Partial<CodeCellType> = {},
+): CodeCellType {
   const filenames = cells.filter((c) => c.type === 'code').map((c) => (c as CodeCellType).filename);
-  const uniqueFilename = generateUniqueFilename(filenames);
+  const uniqueFilename = generateUniqueFilename(filenames, language);
 
   return {
     source: '',
-    language: 'javascript',
     filename: uniqueFilename,
     status: 'idle',
     ...attrs,
     id: randomid(),
     type: 'code',
+    language,
   };
 }
 
@@ -55,7 +65,11 @@ interface CellsContextType {
   updateCell: (cell: CellType) => void;
   removeCell: (cell: CellType) => void;
   insertCellAt: (cell: CellType, idx: number) => void;
-  createCodeCell: (idx: number, attrs?: Partial<CodeCellType>) => CodeCellType;
+  createCodeCell: (
+    idx: number,
+    language: CodeLanguageType,
+    attrs?: Partial<CodeCellType>,
+  ) => CodeCellType;
   createMarkdownCell: (idx: number, attrs?: Partial<MarkdownCellType>) => MarkdownCellType;
   hasOutput: (id: string, type?: 'stdout' | 'stderr') => boolean;
   getOutput: (id: string, type?: 'stdout' | 'stderr') => Array<OutputType>;
@@ -116,8 +130,8 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
   );
 
   const createCodeCell = useCallback(
-    (idx: number, attrs?: Partial<CodeCellType>) => {
-      const cell = buildCodeCell(cellsRef.current, attrs);
+    (idx: number, language: CodeLanguageType, attrs?: Partial<CodeCellType>) => {
+      const cell = buildCodeCell(cellsRef.current, language, attrs);
       insertCellAt(cell, idx);
       return cell;
     },

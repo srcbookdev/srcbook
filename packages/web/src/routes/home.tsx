@@ -1,12 +1,14 @@
 import { PlusIcon } from 'lucide-react';
 import { Form, useLoaderData, redirect, Link } from 'react-router-dom';
-import { TitleCellType } from '@srcbook/shared';
+import { CodeLanguageType, TitleCellType } from '@srcbook/shared';
 import { getConfig, createSession, loadSessions, createSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import CanvasCells from '@/components/canvas-cells';
-
+import { Switch } from '@/components/ui/switch';
 import type { SessionType } from '@/types';
+import { useState } from 'react';
+import { LanguageLogo } from '@/components/logos';
 
 async function loader() {
   const { result: config } = await getConfig();
@@ -18,7 +20,8 @@ async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const path = formData.get('path') as string;
   const name = formData.get('name') as string;
-  const { result } = await createSrcbook({ path, name });
+  const language = formData.get('language') as CodeLanguageType;
+  const { result } = await createSrcbook({ path, name, language: language });
   const { result: sessionResult } = await createSession({ path: result.path });
   return redirect(`/sessions/${sessionResult.id}`);
 }
@@ -31,15 +34,26 @@ type HomeLoaderDataType = {
 function Home() {
   const { baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
 
+  const [language, setLanguage] = useState<CodeLanguageType>('typescript');
+
+  function onChangeLanguage(checked: boolean) {
+    setLanguage(checked ? 'typescript' : 'javascript');
+  }
+
   return (
     <>
       <h1 className="text-2xl mx-auto mb-8">Srcbooks</h1>
       <p>Create a new Srcbook or open an existing one</p>
       <div className="mt-4 flex items-center gap-12">
         <Form method="post" className="h-full">
-          <Input type="hidden" name="path" value={baseDir} />
+          <input type="hidden" name="path" value={baseDir} />
+          <input type="hidden" name="language" value={language} />
           <div className="flex items-center justify-center h-full gap-2">
             <Input placeholder="Srcbook name" required className="w-60" name="name" />
+            <div className="flex items-center space-x-1">
+              <LanguageLogo language={language} width={36} height={36} className="rounded" />
+              <Switch checked={language === 'typescript'} onCheckedChange={onChangeLanguage} />
+            </div>
             <Button className="min-w-32" type="submit">
               <div className="flex gap-2 items-center">
                 Create New <PlusIcon size={16} />

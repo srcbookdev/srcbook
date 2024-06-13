@@ -140,7 +140,10 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
   async function createNewCell(type: 'code' | 'markdown', index: number) {
     // Create on client
-    const cell = type === 'code' ? createCodeCell(index) : createMarkdownCell(index);
+    const cell =
+      type === 'code'
+        ? createCodeCell(index, session.metadata.language)
+        : createMarkdownCell(index);
 
     const response = await createCell({ sessionId: session.id, cell, index });
 

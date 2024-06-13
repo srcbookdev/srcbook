@@ -11,6 +11,7 @@ import {
   PackageJsonCellUpdateAttrsSchema,
   CodeCellUpdateAttrsSchema,
   CellUpdateAttrsSchema,
+  SrcbookMetadataSchema,
 } from '../schemas/cells';
 
 export type TitleCellType = z.infer<typeof TitleCellSchema>;
@@ -29,3 +30,7 @@ export type CellErrorType = {
   message: string;
   attribute?: string;
 };
+
+export type CodeLanguageType = 'javascript' | 'typescript';
+
+export type SrcbookMetadataType = z.infer<typeof SrcbookMetadataSchema>;

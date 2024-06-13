@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "bin": "./dist/start",
   "main": "index.js",
   "scripts": {
     "init": "vite-node ./initialization.mts",

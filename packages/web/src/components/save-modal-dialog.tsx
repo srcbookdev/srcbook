@@ -40,7 +40,7 @@ export default function SaveModal({
           <DialogDescription asChild>
             <div>
               <p>
-                Export your Srcbook to a <code>.srcmd</code> file. This file can be shared and
+                Export this Srcbook to a <code>.srcmd</code> file which is shareable and can be
                 imported into any Srcbook application.
               </p>
             </div>

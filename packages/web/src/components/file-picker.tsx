@@ -1,12 +1,13 @@
 import { Form, useSubmit } from 'react-router-dom';
 import { useRef, useState } from 'react';
 import { FileCode, Folder } from 'lucide-react';
-import { cn, splitPath } from '@/lib/utils';
-import { disk, importSrcbook } from '@/lib/server';
+import { cn } from '@/lib/utils';
+import { DiskResponseType, disk, importSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 import type { FsObjectType } from '@/types';
+import { useEffectOnce } from './use-effect-once';
 
 export default function FilePicker(props: {
   dirname: string;
@@ -124,122 +125,100 @@ function FsEntryItem({
   entry,
   onClick,
   selected,
-  boldPrefix = '',
+  disabled,
 }: {
   entry: FsObjectType;
   selected: boolean;
+  disabled?: boolean;
   onClick: (entry: FsObjectType) => void;
-  boldPrefix?: string;
 }) {
   const Icon = entry.isDirectory ? Folder : FileCode;
 
-  const boldedBasename = (
-    <>
-      <span className="ml-1.5 font-semibold">{boldPrefix}</span>
-      <span className="truncate">{entry.basename.replace(boldPrefix, '')}</span>
-    </>
-  );
+  let classes: string;
+
+  if (selected) {
+    classes = 'cursor-pointer bg-accent text-accent-foreground';
+  } else if (disabled) {
+    classes = 'pointer-events-none';
+  } else {
+    classes = 'hover:bg-accent hover:text-accent-foreground';
+  }
+
   return (
-    <li
-      className={cn(
-        'my-0.5 py-2 flex items-center text-sm cursor-pointer rounded w-1/2 md:w-1/3',
-        selected
-          ? 'bg-accent text-accent-foreground'
-          : 'hover:bg-accent hover:text-accent-foreground',
-      )}
-      onClick={() => onClick(entry)}
-    >
-      <Icon size={16} />
-      {boldedBasename}
+    <li className="text-sm w-1/2 md:w-1/3">
+      <button
+        className={cn('my-0.5 py-2 px-1 rounded w-full flex items-center cursor-pointer', classes)}
+        disabled={disabled}
+        onClick={() => onClick(entry)}
+      >
+        <Icon size={16} />
+        <span className="ml-1.5 truncate">{entry.basename}</span>
+      </button>
     </li>
   );
 }
 
-export function FileSaver(props: {
-  dirname: string;
-  filename?: string;
-  entries: FsObjectType[];
-  onSave: (path: string) => void;
-}) {
-  const [dirname, setDirname] = useState(props.dirname);
-  const [query, setQuery] = useState(props.filename || props.dirname);
-  const [boldPrefix, setBoldPrefix] = useState<string>('');
-  const [entries, _setEntries] = useState(props.entries);
-  const [filteredEntries, setFilteredEntries] = useState<FsObjectType[]>(props.entries);
+export function ExportLocationPicker(props: { onSave: (directory: string, path: string) => void }) {
+  const filenameRef = useRef<HTMLInputElement | null>(null);
+  const [filename, setFilename] = useState('untitled.srcmd');
+  const [entries, setEntries] = useState<FsObjectType[]>([]);
+  const [selectedDirectory, setSelectedDirectory] = useState('');
 
-  const setEntries = (entries: FsObjectType[], basename: string) => {
-    _setEntries(entries);
-    setFilteredEntries(entries.filter((entry) => entry.basename.startsWith(basename)));
-  };
+  function onDiskResponse({ result }: DiskResponseType) {
+    setSelectedDirectory(result.dirname);
+    setEntries(result.entries);
+  }
 
-  async function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { basename, dirname: newDir } = splitPath(e.target.value);
-    if (newDir !== dirname) {
-      setDirname(newDir);
-      disk({ dirname: newDir }).then(({ result }) => {
-        setEntries(result.entries, basename);
-        setBoldPrefix(basename);
-        setQuery(e.target.value);
-      });
+  useEffectOnce(() => {
+    disk().then(onDiskResponse);
+
+    const el = filenameRef.current;
+    if (el) {
+      el.setSelectionRange(0, el.value.length - '.srcmd'.length);
     }
-    setEntries(entries, basename);
-    setBoldPrefix(basename);
-    setQuery(e.target.value);
-  }
+  });
 
-  function suffixQuery(query: string) {
-    return query.endsWith('.srcmd') ? query : query + '.srcmd';
-  }
+  const validFilename = /.+\.srcmd$/.test(filename);
 
-  async function onClick(entry: FsObjectType) {
-    if (!entry.isDirectory) {
-      // Clicking a file
-      setDirname(entry.dirname);
-      setQuery(entry.path);
-    } else {
-      // Opening a directory
-      const { result } = await disk({ dirname: entry.path });
-      setDirname(result.dirname);
-      setQuery(result.dirname);
-      setEntries(result.entries, '');
-      setFilteredEntries([]);
-    }
-  }
   return (
-    <div className="space-y-4 mt-4 w-full">
-      <Input className="mb-2" value={query} name="path" onChange={onChange} />
+    <div className="space-y-4 w-full">
+      <div className="space-y-1.5">
+        <Input
+          ref={filenameRef}
+          className="mb-2"
+          tabIndex={1}
+          autoFocus
+          defaultValue={filename}
+          onChange={(e) => setFilename(e.currentTarget.value.trimEnd())}
+        />
+      </div>
 
       <div className="flex flex-col h-[383px] bg-gray-50 p-2 rounded border border-input overflow-y-scroll divide-y divide-dashed">
         <ul className="flex flex-wrap">
-          {filteredEntries &&
-            filteredEntries.map((entry) => (
-              <FsEntryItem
-                key={entry.path}
-                entry={entry}
-                onClick={onClick}
-                selected={false}
-                boldPrefix={boldPrefix}
-              />
-            ))}
-        </ul>
-        <ul className="flex flex-wrap">
-          {entries &&
-            entries.map((entry) => (
-              <FsEntryItem key={entry.path} entry={entry} onClick={onClick} selected={false} />
-            ))}
+          {entries.map((entry) => (
+            <FsEntryItem
+              key={entry.path}
+              entry={entry}
+              disabled={!entry.isDirectory}
+              onClick={(entry) => disk({ dirname: entry.path }).then(onDiskResponse)}
+              selected={false}
+            />
+          ))}
         </ul>
       </div>
-      <h2 className="mt-4 font-semibold">File</h2>
-      <p className="font-mono text-sm">{suffixQuery(query)}</p>
-      <Button
-        variant="default"
-        className="mt-4"
-        type="submit"
-        disabled={query.endsWith('/.srcmd')}
-        onClick={() => props.onSave(suffixQuery(query))}
-      >
-        Save
-      </Button>
+      <div className="flex items-center justify-between">
+        <div className="text-sm">
+          {selectedDirectory}/<span className="font-bold">{filename}</span>
+        </div>
+        <Button
+          tabIndex={2}
+          variant="default"
+          disabled={!validFilename}
+          onClick={() => props.onSave(selectedDirectory, filename)}
+        >
+          Save
+        </Button>
+      </div>
     </div>
   );
 }

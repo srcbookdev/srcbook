@@ -94,8 +94,12 @@ export async function updateSession(
   return updatedSession;
 }
 
-export async function exportSession(session: SessionType, writePath: string) {
-  return fs.writeFile(writePath, encode(session.cells, session.metadata, { inline: true }));
+export async function exportSrcmdFile(session: SessionType, destinationPath: string) {
+  if (await fileExists(destinationPath)) {
+    throw new Error(`Cannot export .srcmd file: ${destinationPath} already exists`);
+  }
+
+  return fs.writeFile(destinationPath, encode(session.cells, session.metadata, { inline: true }));
 }
 
 export async function findSession(id: string): Promise<SessionType> {
@@ -259,7 +263,6 @@ export function sessionToResponse(session: SessionType) {
   return {
     id: session.id,
     cells: session.cells,
-    dirName: Path.basename(session.dir),
     metadata: session.metadata,
   };
 }

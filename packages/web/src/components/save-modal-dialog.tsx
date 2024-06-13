@@ -1,8 +1,7 @@
-import { exportSession, disk } from '@/lib/server';
-import { splitPath } from '@/lib/utils';
-import { SessionType, FsObjectType } from '@/types';
-import { useEffect, useState } from 'react';
-import { FileSaver } from '@/components/file-picker';
+import { exportSrcmdFile } from '@/lib/server';
+import { SessionType } from '@/types';
+import { useState } from 'react';
+import { ExportLocationPicker } from '@/components/file-picker';
 import {
   Dialog,
   DialogContent,
@@ -20,38 +19,18 @@ export default function SaveModal({
   onOpenChange: (open: boolean) => void;
   session: SessionType;
 }) {
-  const [entries, setEntries] = useState<FsObjectType[]>([]);
-  const [dirname, setDirname] = useState('');
-  const [filename, setFilename] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchInitialEntries = async () => {
-      const previousPath = localStorage.getItem(`srcbk:save-path:${session.dirName}`);
-      if (previousPath) {
-        const { dirname: dir } = splitPath(previousPath);
-        setDirname(dir);
-        setFilename(previousPath);
-      }
-      const { result } = await disk({ dirname });
-      setEntries(result.entries);
-      setDirname(result.dirname);
-    };
-    fetchInitialEntries();
-  }, [session.dirName, dirname]);
-
-  const onSave = async (path: string) => {
-    localStorage.setItem(`srcbk:save-path:${session.dirName}`, path);
-    exportSession(session.id, { filename: path })
-      .then(() => {
-        onOpenChange(false);
-      })
-      .catch((err: Error) => {
-        console.error(err);
-        setError('Something went wrong. Please try again.');
-        setTimeout(() => setError(null), 3000);
-      });
-  };
+  async function onSave(directory: string, filename: string) {
+    try {
+      exportSrcmdFile(session.id, { directory, filename });
+      onOpenChange(false);
+    } catch (error) {
+      console.error(error);
+      setError('Something went wrong. Please try again.');
+      setTimeout(() => setError(null), 3000);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,13 +40,13 @@ export default function SaveModal({
           <DialogDescription asChild>
             <div>
               <p>
-                Export your notebook to a <code>.srcbookmd</code> file. This file can be shared an
-                easily imported into any Srcbook application.
+                Export this Srcbook to a <code>.srcmd</code> file which is shareable and can be
+                imported into any Srcbook application.
               </p>
             </div>
           </DialogDescription>
         </DialogHeader>
-        <FileSaver filename={filename} dirname={dirname} entries={entries} onSave={onSave} />
+        <ExportLocationPicker onSave={onSave} />
         {error && <p className="text-red-500">{error}</p>}
       </DialogContent>
     </Dialog>

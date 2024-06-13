@@ -7,7 +7,7 @@ interface DiskRequestType {
   dirname?: string;
 }
 
-interface DiskResponseType {
+export interface DiskResponseType {
   error: boolean;
   result: FsObjectResultType;
 }
@@ -158,10 +158,12 @@ export async function loadSessions(): Promise<{ error: boolean; result: SessionT
   return response.json();
 }
 
-interface ExportSessionRequestType {
+interface ExportSrcmdFileRequestType {
   filename: string;
+  directory: string;
 }
-export async function exportSession(sessionId: string, request: ExportSessionRequestType) {
+
+export async function exportSrcmdFile(sessionId: string, request: ExportSrcmdFileRequestType) {
   const response = await fetch(SERVER_BASE_URL + '/sessions/' + sessionId + '/export', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

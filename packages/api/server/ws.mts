@@ -114,8 +114,14 @@ async function cellExec(payload: CellExecPayloadType) {
         });
       },
       onExit() {
-        cell.status = 'idle';
-        wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: cell });
+        // Reload cell to get most recent version which may have been updated since
+        // in the time between initially running this cell and when running finishes.
+        //
+        // TODO: Real state management pls.
+        //
+        const mostRecentCell = session.cells.find((c) => c.id === cell.id) as CodeCellType;
+        mostRecentCell.status = 'idle';
+        wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: mostRecentCell });
       },
     }),
   );

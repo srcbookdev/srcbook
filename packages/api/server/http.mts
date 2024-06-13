@@ -6,7 +6,7 @@ import {
   createSession,
   findSession,
   deleteSession,
-  exportSession,
+  exportSrcmdFile,
   findCell,
   removeCell,
   updateSession,
@@ -128,11 +128,13 @@ app.delete('/sessions/:id', cors(), async (req, res) => {
 
 app.options('/sessions/:id/export', cors());
 app.post('/sessions/:id/export', cors(), async (req, res) => {
-  const { filename } = req.body;
+  const { directory, filename } = req.body;
   const session = await findSession(req.params.id);
 
+  const path = Path.join(directory, filename);
+
   try {
-    await exportSession(session, filename);
+    await exportSrcmdFile(session, path);
     return res.json({ error: false, result: filename });
   } catch (e) {
     const error = e as unknown as Error;

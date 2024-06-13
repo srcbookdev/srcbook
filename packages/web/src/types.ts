@@ -22,10 +22,6 @@ export type OutputType = StdoutOutputType | StderrOutputType;
 
 export type SessionType = {
   id: string;
-  path: string;
   cells: CellType[];
-  // A unique identifier for this Srcbook which persists cross sessions
-  // It is used to store the files on the disk under ~/.srcbook/<dirName>
-  dirName: string;
   metadata: SrcbookMetadataType;
 };

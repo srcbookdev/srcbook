@@ -7,6 +7,6 @@
     "check-types": "tsc"
   },
   "dependencies": {
-    "@scure/base": "^1.1.6"
+    "@scure/base": "^1.1.7"
   }
 }

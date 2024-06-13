@@ -64,7 +64,6 @@ function SessionPage() {
   const channel = channelRef.current;
 
   useEffectOnce(() => {
-    console.log('Calling subscribe');
     channel.subscribe();
 
     // TODO: Push once we know subscription succeeded

@@ -6,7 +6,7 @@ import { DiskResponseType, disk, importSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-import type { FsObjectType } from '@/types';
+import type { FsObjectResultType, FsObjectType } from '@/types';
 import { useEffectOnce } from './use-effect-once';
 
 export default function FilePicker(props: {
@@ -161,12 +161,10 @@ function FsEntryItem({
 export function ExportLocationPicker(props: { onSave: (directory: string, path: string) => void }) {
   const filenameRef = useRef<HTMLInputElement | null>(null);
   const [filename, setFilename] = useState('untitled.srcmd');
-  const [entries, setEntries] = useState<FsObjectType[]>([]);
-  const [selectedDirectory, setSelectedDirectory] = useState('');
+  const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
 
   function onDiskResponse({ result }: DiskResponseType) {
-    setSelectedDirectory(result.dirname);
-    setEntries(result.entries);
+    setFsResult(result);
   }
 
   useEffectOnce(() => {
@@ -195,7 +193,7 @@ export function ExportLocationPicker(props: { onSave: (directory: string, path: 
 
       <div className="flex flex-col h-[383px] bg-gray-50 p-2 rounded border border-input overflow-y-scroll divide-y divide-dashed">
         <ul className="flex flex-wrap">
-          {entries.map((entry) => (
+          {fsResult.entries.map((entry) => (
             <FsEntryItem
               key={entry.path}
               entry={entry}
@@ -208,13 +206,13 @@ export function ExportLocationPicker(props: { onSave: (directory: string, path: 
       </div>
       <div className="flex items-center justify-between">
         <div className="text-sm">
-          {selectedDirectory}/<span className="font-bold">{filename}</span>
+          {fsResult.dirname}/<span className="font-bold">{filename}</span>
         </div>
         <Button
           tabIndex={2}
           variant="default"
           disabled={!validFilename}
-          onClick={() => props.onSave(selectedDirectory, filename)}
+          onClick={() => props.onSave(fsResult.dirname, filename)}
         >
           Save
         </Button>

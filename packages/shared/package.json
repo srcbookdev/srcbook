@@ -1,11 +1,12 @@
 {
   "name": "@srcbook/shared",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.1",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc",
-    "check-types": "tsc"
+    "check-types": "tsc",
+    "prepublish": "npm run build"
   },
   "dependencies": {
     "@scure/base": "^1.1.7"

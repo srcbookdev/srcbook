@@ -1,3 +1,8 @@
+/**
+ * Make sure we've created the .srcbook directory on disk
+ * before creating the DB
+ */
+import '../initialization.mjs';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
 import * as schema from './schema.mjs';

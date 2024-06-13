@@ -11,7 +11,8 @@
     "check-types": "pnpm --recursive check-types",
     "check-prettier": "pnpm prettier --check .",
     "generate": "pnpm --filter api generate",
-    "migrate": "pnpm --filter api migrate"
+    "migrate": "pnpm --filter api migrate",
+    "start": "pnpm --filter api start"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

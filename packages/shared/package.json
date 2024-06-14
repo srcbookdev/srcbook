@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "check-types": "tsc",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@scure/base": "^1.1.7",

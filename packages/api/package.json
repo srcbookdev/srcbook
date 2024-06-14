@@ -16,8 +16,7 @@
     "premigrate": "pnpm run init",
     "migrate": "drizzle-kit migrate",
     "prepublishOnly": "tsc && pnpm -w run vendorize-web",
-    "preversion": "vitest run",
-    "version": "pnpm run build",
+    "preversion": "vitest run && pnpm run build",
     "postversion": "git push && git push --tags"
   },
   "dependencies": {

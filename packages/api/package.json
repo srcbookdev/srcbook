@@ -14,7 +14,8 @@
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",
     "premigrate": "pnpm run init",
-    "migrate": "drizzle-kit migrate"
+    "migrate": "drizzle-kit migrate",
+    "prepublishOnly": "tsc && pnpm -w run vendorize-web"
   },
   "dependencies": {
     "@srcbook/shared": "workspace:^",

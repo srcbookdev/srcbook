@@ -15,7 +15,10 @@
     "generate": "drizzle-kit generate",
     "premigrate": "pnpm run init",
     "migrate": "drizzle-kit migrate",
-    "prepublishOnly": "tsc && pnpm -w run vendorize-web"
+    "prepublishOnly": "tsc && pnpm -w run vendorize-web",
+    "preversion": "vitest run",
+    "version": "pnpm run build",
+    "postversion": "git push && git push --tags"
   },
   "dependencies": {
     "@srcbook/shared": "workspace:^",

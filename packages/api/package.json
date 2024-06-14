@@ -1,6 +1,6 @@
 {
   "name": "scratch-srcbook",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "type": "module",
   "bin": "./bin/start",
   "scripts": {
@@ -25,7 +25,8 @@
     "drizzle-orm": "^0.31.2",
     "express": "^4.19.2",
     "marked": "^12.0.2",
-    "ws": "^8.17.0"
+    "ws": "^8.17.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.10",

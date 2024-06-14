@@ -1,6 +1,6 @@
 {
   "name": "scratch-srcbook",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "module",
   "bin": "./bin/start",
   "scripts": {
@@ -9,7 +9,7 @@
     "dev": "vite-node dev-server.mts",
     "start": "NODE_ENV=production node dist/index.mjs",
     "test": "vitest",
-    "build": "tsc",
+    "build": "tsc && cp -R drizzle dist/drizzle",
     "check-types": "tsc",
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",

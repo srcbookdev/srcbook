@@ -7,12 +7,13 @@
     "dev-api": "pnpm --filter api dev",
     "dev-web": "pnpm --filter web dev",
     "vendorize-web": "./scripts/vendorize-web.js",
+    "build": "./scripts/build.js",
     "lint-web": "pnpm --filter web lint",
     "check-types": "pnpm --recursive check-types",
     "check-prettier": "pnpm prettier --check .",
     "generate": "pnpm --filter api generate",
     "migrate": "pnpm --filter api migrate",
-    "start": "pnpm --filter api start"
+    "start": "pnpm --filter srcbook start"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

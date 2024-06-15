@@ -1,4 +1,4 @@
 #!/usr/bin/env node
 
 import '../dist/initialization.mjs';
-import '../dist/index.mjs';
+import '../dist/run.mjs';

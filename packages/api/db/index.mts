@@ -13,7 +13,6 @@ import { DIST_DIR } from '../constants.mjs';
 // We can't use a relative directory for drizzle since this application
 // can get run from anywhere, so use DIST_DIR as ground truth.
 const drizzleFolder = path.join(DIST_DIR, 'drizzle');
-console.log('Drizzle folder: ', drizzleFolder);
 
 const DB_PATH = `${process.env.HOME}/.srcbook/srcbook.db`;
 

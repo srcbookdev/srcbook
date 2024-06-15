@@ -9,13 +9,13 @@ This application runs notebooks using the node runtime, all locally on your mach
 ### With npx
 
 ```
-npx srcbook-scratch
+npx scratch-srcbook
 ```
 
 ### With pnpm
 
 ```
-pnpm dlx scrbook-scratch
+pnpm dlx scratch-srcbook
 ```
 
 ### Global install

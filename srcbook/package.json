@@ -1,14 +1,14 @@
 {
-  "name": "srcbook",
-  "version": "0.0.1-alpha.1",
+  "name": "scratch-srcbook",
+  "version": "0.0.9",
   "type": "module",
   "bin": "./bin/start",
   "scripts": {
     "start": "NODE_ENV=production ./bin/start",
     "build": "pnpm -w run build-server",
     "depcheck": "depcheck",
-    "prepublishOnly": "tsc && pnpm -w run vendorize-web",
-    "preversion": "vitest run && pnpm run build",
+    "prepublishOnly": "pnpm -w run build",
+    "preversion": "pnpm run build",
     "postversion": "git push && git push --tags"
   },
   "dependencies": {

@@ -236,12 +236,6 @@ importers:
       '@srcbook/shared':
         specifier: workspace:^
         version: link:../packages/shared
-      '@srcbook/web':
-        specifier: workspace:^
-        version: link:../packages/web
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
       better-sqlite3:
         specifier: ^11.0.0
         version: 11.0.0
@@ -263,6 +257,10 @@ importers:
       ws:
         specifier: ^8.17.0
         version: 8.17.0
+    devDependencies:
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
 
 packages:
 

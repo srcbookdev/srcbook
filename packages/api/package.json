@@ -1,6 +1,6 @@
 {
   "name": "@srcbook/api",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.1",
   "type": "module",
   "main": "./dist/index.mjs",
   "scripts": {
@@ -14,7 +14,7 @@
     "generate": "drizzle-kit generate",
     "premigrate": "pnpm run init",
     "migrate": "drizzle-kit migrate",
-    "prepublishOnly": "tsc && pnpm -w run vendorize-web",
+    "prepublishOnly": "tsc",
     "preversion": "vitest run && pnpm run build",
     "postversion": "git push && git push --tags"
   },

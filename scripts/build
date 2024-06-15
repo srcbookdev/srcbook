@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+echo 'Building srcbook by compiling the shared, web, and api packages to the srcbook/dist/ directory.'
+echo 'Building shared...'
+pnpm --filter shared build
+
+echo 'Building client...'
+pnpm --filter web build
+
+echo 'Moving client files to srcbook/web_dist/...'
+rm -rf srcbook/web_dist/
+mkdir -p srcbook/web_dist/
+cp -R packages/web/dist/* srcbook/web_dist
+
+echo 'Building api...'
+pnpm --filter api build
+
+echo 'Moving api files to srcbook/dist/...'
+rm -rf srcbook/dist/
+mkdir -p srcbook/dist/
+cp -R packages/api/dist/* srcbook/dist
+
+echo 'Add the entrypoint run.mjs to srcbook/dist/...'
+cp srcbook/run.mjs srcbook/dist/run.mjs

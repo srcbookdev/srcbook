@@ -61,7 +61,7 @@ export async function missingUndeclaredDeps(dirPath: string): Promise<string[]> 
         // Use regex to extract JSON object
         const jsonMatch = output.match(/{.*}/s);
         if (!jsonMatch) {
-          throw new Error('Failed to extract JSON from depcheck output. Got ' + output);
+          throw new Error('Failed to extract JSON from depcheck output.');
         }
 
         // Parse the JSON

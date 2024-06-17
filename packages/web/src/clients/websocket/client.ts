@@ -5,6 +5,8 @@ import { WebSocketMessageSchema } from '@srcbook/shared';
 export default class WebSocketClient {
   private readonly socket: WebSocket;
 
+  private queue: { topic: string; event: string; payload: Record<string, any> }[] = [];
+
   private callbacks: Record<string, Array<(event: string, payload: Record<string, any>) => void>> =
     {};
 
@@ -20,13 +22,17 @@ export default class WebSocketClient {
     });
 
     this.socket.addEventListener('open', () => {
-      // TODO: track open state?
+      this.flush();
     });
 
     this.socket.addEventListener('close', () => {
       console.warn('WebSocket connection closed');
       // TODO: reopen?
     });
+  }
+
+  get open() {
+    return this.socket.readyState === WebSocket.OPEN;
   }
 
   on(topic: string, callback: (event: string, payload: Record<string, any>) => void) {
@@ -45,7 +51,30 @@ export default class WebSocketClient {
   }
 
   push(topic: string, event: string, payload: Record<string, any>) {
-    this.socket.send(JSON.stringify([topic, event, payload]));
+    if (this.open) {
+      this.send(topic, event, payload);
+    } else {
+      this.queue.push({ topic, event, payload });
+    }
+  }
+
+  private flush() {
+    while (this.queue.length > 0) {
+      const message = this.queue.shift()!;
+      this.send(message.topic, message.event, message.payload);
+    }
+  }
+
+  private send(topic: string, event: string, payload: Record<string, any>) {
+    const message = JSON.stringify([topic, event, payload]);
+
+    if (this.open) {
+      this.socket.send(message);
+    } else {
+      console.error(
+        `Attempting to send a message to a closed socket. This is a bug in WebSocketClient.\n\nMessage:\n${message}`,
+      );
+    }
   }
 
   private handleIncomingMessage(eventData: string) {

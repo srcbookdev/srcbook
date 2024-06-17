@@ -36,7 +36,7 @@ function Home() {
   const { baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
 
   const [showDelete, setShowDelete] = useState(false);
-  const [srcbookDir, setSrcbookDir] = useState<string | undefined>(undefined);
+  const [session, setSession] = useState<SessionType | undefined>(undefined);
   const [language, setLanguage] = useState<CodeLanguageType>('typescript');
 
   function onChangeLanguage(checked: boolean) {
@@ -45,7 +45,7 @@ function Home() {
 
   return (
     <>
-      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} srcbookDir={srcbookDir} />
+      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <h1 className="text-2xl mx-auto mb-8">Srcbooks</h1>
       <p>Create a new Srcbook or open an existing one</p>
       <div className="mt-4 flex items-center gap-12">
@@ -99,7 +99,7 @@ function Home() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          setSrcbookDir(session.dir);
+                          setSession(session);
                           setShowDelete(true);
                         }}
                       >

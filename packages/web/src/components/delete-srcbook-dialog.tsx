@@ -1,6 +1,8 @@
 import { deleteSrcbook } from '@/lib/server';
 import { useNavigate } from 'react-router-dom';
+import { getTitleForSession } from '@/lib/utils';
 import { useState } from 'react';
+import type { SessionType } from '../types';
 import {
   Dialog,
   DialogContent,
@@ -10,24 +12,21 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-export default function DeleteSessionModal({
+export default function DeleteSrcbookModal({
   open,
   onOpenChange,
-  srcbookDir,
+  session,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  srcbookDir: string | undefined;
+  session: SessionType | undefined;
 }) {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  if (!session) return;
 
   const onConfirmDelete = async () => {
-    if (!srcbookDir) {
-      onOpenChange(false);
-      return;
-    }
-    deleteSrcbook({ dir: srcbookDir })
+    deleteSrcbook({ dir: session.dir })
       .then(() => {
         onOpenChange(false);
         navigate('/', { replace: true });
@@ -43,7 +42,7 @@ export default function DeleteSessionModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete srcbook {srcbookDir}</DialogTitle>
+          <DialogTitle className="mb-6">Delete "{getTitleForSession(session)}"</DialogTitle>
           <DialogDescription asChild>
             <div>
               <p>Deleting this srcbook is a permanent action and cannot be undone. Are you sure?</p>

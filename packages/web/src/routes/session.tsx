@@ -157,7 +157,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   return (
     <div>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} srcbookDir={session.dir} />
+      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <SaveModal open={showSave} onOpenChange={setShowSave} session={session} />
 
       <div className="fixed bottom-2 right-2">

@@ -1,6 +1,6 @@
 import { IncomingMessage } from 'node:http';
 import z from 'zod';
-import { RawData, WebSocket } from 'ws';
+import { type RawData, WebSocket } from 'ws';
 import { WebSocketMessageSchema } from '@srcbook/shared';
 
 const VALID_TOPIC_RE = /^[a-zA-Z0-9_:]+$/;

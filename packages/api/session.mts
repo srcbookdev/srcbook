@@ -1,24 +1,26 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
-import {
-  randomid,
+import type {
   CellType,
   CellUpdateAttrsType,
-  TitleCellUpdateAttrsSchema,
-  MarkdownCellUpdateAttrsSchema,
-  CodeCellUpdateAttrsSchema,
-  PackageJsonCellUpdateAttrsSchema,
   TitleCellType,
   MarkdownCellType,
   PackageJsonCellType,
   CodeCellType,
   CellErrorType,
+} from '@srcbook/shared';
+import {
+  randomid,
+  TitleCellUpdateAttrsSchema,
+  MarkdownCellUpdateAttrsSchema,
+  CodeCellUpdateAttrsSchema,
+  PackageJsonCellUpdateAttrsSchema,
   languageFromFilename,
   extensionsForLanguage,
 } from '@srcbook/shared';
 import { encode, decodeDir } from './srcmd.mjs';
 import { SRCBOOKS_DIR } from './constants.mjs';
-import { SessionType } from './types.mjs';
+import type { SessionType } from './types.mjs';
 import { writeToDisk, writeCellToDisk, writeReadmeToDisk, moveCodeCellOnDisk } from './srcbook.mjs';
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';

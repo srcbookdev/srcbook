@@ -1,4 +1,6 @@
 import type * as React from 'react';
+import type { SessionType } from '../types';
+import type { CellType, TitleCellType } from '@srcbook/shared';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -19,4 +21,9 @@ export function mergeRefs<T>(
       }
     });
   };
+}
+
+export function getTitleForSession(session: SessionType) {
+  const titleCell = session.cells.find((cell: CellType) => cell.type === 'title') as TitleCellType;
+  return titleCell?.text;
 }

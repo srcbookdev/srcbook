@@ -22,6 +22,7 @@ export type OutputType = StdoutOutputType | StderrOutputType;
 
 export type SessionType = {
   id: string;
+  dir: string;
   cells: CellType[];
   metadata: SrcbookMetadataType;
 };

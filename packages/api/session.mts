@@ -54,9 +54,11 @@ export async function createSession(srcbookDir: string) {
   return session;
 }
 
-export async function deleteSession(session: SessionType) {
-  await fs.rm(session.dir, { recursive: true });
-  delete sessions[session.id];
+export async function deleteSessionByDirname(dirName: string) {
+  const session = findSessionByDirname(dirName);
+  if (session) {
+    delete sessions[session.id];
+  }
 }
 
 // We make sure to load sessions from the disk in addition to the ones already in memory.
@@ -264,6 +266,8 @@ export function sessionToResponse(session: SessionType) {
     id: session.id,
     cells: session.cells,
     metadata: session.metadata,
+    // Only pass the dir ID to the client, making it easier to use it as an identifier in urls
+    dir: Path.basename(session.dir),
   };
 }
 

@@ -5,7 +5,7 @@ import type { MarkdownCellType, CodeCellType } from '@srcbook/shared';
 import {
   createSession,
   findSession,
-  deleteSession,
+  deleteSessionByDirname,
   exportSrcmdFile,
   findCell,
   removeCell,
@@ -16,7 +16,12 @@ import {
 } from '../session.mjs';
 import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
-import { createNewSrcbook, importSrcbookFromSrcmdFile } from '../srcbook.mjs';
+import {
+  createSrcbook,
+  importSrcbookFromSrcmdFile,
+  removeSrcbook,
+  fullSrcbookDir,
+} from '../srcbook.mjs';
 import { readdir } from '../fs-utils.mjs';
 
 const app = express();
@@ -48,13 +53,22 @@ router.post('/srcbooks', cors(), async (req, res) => {
   const { name, language } = req.body;
 
   try {
-    const srcbookDir = await createNewSrcbook(name, { language });
+    const srcbookDir = await createSrcbook(name, { language });
     return res.json({ error: false, result: { name, path: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
+});
+
+router.options('/srcbooks/:dir', cors());
+router.delete('/srcbooks/:dir', cors(), async (req, res) => {
+  const { dir } = req.params;
+  const fullDir = fullSrcbookDir(dir);
+  await removeSrcbook(fullDir);
+  await deleteSessionByDirname(fullDir);
+  return res.json({ error: false, deleted: true });
 });
 
 // Import a srcbook from a .srcmd file.
@@ -110,17 +124,6 @@ router.get('/sessions/:id', cors(), async (req, res) => {
   try {
     const session = await findSession(id);
     return res.json({ error: false, result: sessionToResponse(session) });
-  } catch (e) {
-    const error = e as unknown as Error;
-    console.error(error);
-    return res.json({ error: true, result: error.stack });
-  }
-});
-router.delete('/sessions/:id', cors(), async (req, res) => {
-  try {
-    const session = await findSession(req.params.id);
-    await deleteSession(session);
-    return res.json({ error: false, result: true });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

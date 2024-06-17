@@ -44,7 +44,7 @@ import { EditableH1 } from '@/components/ui/heading';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
-import DeleteSessionModal from '@/components/delete-session-dialog';
+import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
 import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
@@ -157,7 +157,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   return (
     <div>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-      <DeleteSessionModal open={showDelete} onOpenChange={setShowDelete} session={session} />
+      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} srcbookDir={session.dir} />
       <SaveModal open={showSave} onOpenChange={setShowSave} session={session} />
 
       <div className="fixed bottom-2 right-2">

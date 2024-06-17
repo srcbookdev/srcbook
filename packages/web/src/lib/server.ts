@@ -55,6 +55,18 @@ export async function createSrcbook(
   return response.json();
 }
 
+export async function deleteSrcbook(request: { dir: string }) {
+  const response = await fetch(API_BASE_URL + '/srcbooks/' + request.dir, {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+}
+
 interface ImportSrcbookRequestType {
   path: string;
 }
@@ -130,18 +142,6 @@ export async function loadSession(
   }
 
   return response.json();
-}
-
-export async function deleteSession(request: { id: string }) {
-  const response = await fetch(API_BASE_URL + '/sessions/' + request.id, {
-    method: 'DELETE',
-    headers: { 'content-type': 'application/json' },
-  });
-
-  if (!response.ok) {
-    console.error(response);
-    throw new Error('Request failed');
-  }
 }
 
 export async function loadSessions(): Promise<{ error: boolean; result: SessionType[] }> {

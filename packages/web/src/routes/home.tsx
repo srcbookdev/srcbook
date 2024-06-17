@@ -1,6 +1,7 @@
 import { PlusIcon } from 'lucide-react';
 import { Form, useLoaderData, redirect, Link } from 'react-router-dom';
 import { CodeLanguageType, TitleCellType } from '@srcbook/shared';
+import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { getConfig, createSession, loadSessions, createSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,8 @@ type HomeLoaderDataType = {
 function Home() {
   const { baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
 
+  const [showDelete, setShowDelete] = useState(false);
+  const [srcbookDir, setSrcbookDir] = useState<string | undefined>(undefined);
   const [language, setLanguage] = useState<CodeLanguageType>('typescript');
 
   function onChangeLanguage(checked: boolean) {
@@ -42,6 +45,7 @@ function Home() {
 
   return (
     <>
+      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} srcbookDir={srcbookDir} />
       <h1 className="text-2xl mx-auto mb-8">Srcbooks</h1>
       <p>Create a new Srcbook or open an existing one</p>
       <div className="mt-4 flex items-center gap-12">
@@ -88,6 +92,19 @@ function Home() {
                     <div>
                       <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
                       <p className="text-sm text-gray-400">{session.cells.length} cells</p>
+                      <Button
+                        variant="outline"
+                        className="mt-2"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSrcbookDir(session.dir);
+                          setShowDelete(true);
+                        }}
+                      >
+                        Delete
+                      </Button>
                     </div>
                     <CanvasCells numCells={session.cells.length} height={80} width={40} />
                   </div>

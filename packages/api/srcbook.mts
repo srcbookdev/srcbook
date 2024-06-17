@@ -92,7 +92,7 @@ export async function importSrcbookFromSrcmdFile(srcmdPath: string) {
  * This private directory has a randomid() private identifier.
  * Users are not supposed to be aware or modify private directories.
  */
-export async function createNewSrcbook(title: string, metadata: SrcbookMetadataType) {
+export async function createSrcbook(title: string, metadata: SrcbookMetadataType) {
   const dirname = await newSrcbookDir();
 
   const cells: CellType[] = [
@@ -140,4 +140,12 @@ function buildTSPackageJson() {
       typescript: 'latest',
     },
   };
+}
+
+export function fullSrcbookDir(dirId: string) {
+  return Path.join(SRCBOOKS_DIR, dirId);
+}
+
+export async function removeSrcbook(srcbookDir: string) {
+  await fs.rm(srcbookDir, { recursive: true });
 }

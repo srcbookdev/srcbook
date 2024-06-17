@@ -83,10 +83,8 @@ export function tsc(options: NodeRequestType) {
 
   const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
 
-  const tscPath = Path.join(cwd, 'node_modules', '.bin', 'tsc');
-
   return spawnCall({
-    command: tscPath,
+    command: Path.join(cwd, 'node_modules', '.bin', 'tsc'),
     cwd,
     args: [filepath, '--noEmit'],
     stdout,
@@ -118,12 +116,9 @@ export function tsx(options: NodeRequestType) {
 
   // We are making an assumption about `tsx` being the tool of choice
   // for running TypeScript, as well as where it's located on the file system.
-  //
-  // TODO: Propogate good errors to user if this isn't there (deps listed and deps installed).
-  const tsxPath = Path.join(cwd, 'node_modules', '.bin', 'tsx');
 
   return spawnCall({
-    command: tsxPath,
+    command: Path.join(cwd, 'node_modules', '.bin', 'tsx'),
     cwd,
     args: [filepath],
     stdout,

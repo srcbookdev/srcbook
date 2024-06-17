@@ -98,10 +98,14 @@ async function cellExec(payload: CellExecPayloadType) {
 
   switch (cell.language) {
     case 'javascript':
-      return jsExec({ session, cell, secrets });
+      jsExec({ session, cell, secrets });
+      break;
     case 'typescript':
       tscExec({ session, cell, secrets });
-      return tsxExec({ session, cell, secrets });
+      tsxExec({ session, cell, secrets });
+      break;
+    default:
+      console.error(`Unsupported language '${cell.language}' for cell ${cell.id}`);
   }
 }
 

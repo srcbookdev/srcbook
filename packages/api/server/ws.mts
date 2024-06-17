@@ -9,7 +9,7 @@ import {
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
 import type { SessionType } from '../types.mjs';
-import { node, npmInstall, tsx } from '../exec.mjs';
+import { node, npmInstall, tsc, tsx } from '../exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from '../deps.mjs';
 import processes from '../processes.mjs';
 import type {
@@ -96,12 +96,26 @@ async function cellExec(payload: CellExecPayloadType) {
   cell.status = 'running';
   wss.broadcast(`session:${session.id}`, 'cell:updated', { cell });
 
-  const exec = cell.language === 'typescript' ? tsx : node;
+  switch (cell.language) {
+    case 'javascript':
+      return jsExec({ session, cell, secrets });
+    case 'typescript':
+      tscExec({ session, cell, secrets });
+      return tsxExec({ session, cell, secrets });
+  }
+}
 
+type ExecRequestType = {
+  session: SessionType;
+  cell: CodeCellType;
+  secrets: Record<string, string>;
+};
+
+async function jsExec({ session, cell, secrets }: ExecRequestType) {
   addRunningProcess(
     session,
     cell,
-    exec({
+    node({
       cwd: session.dir,
       env: secrets,
       entry: cell.filename,
@@ -109,6 +123,74 @@ async function cellExec(payload: CellExecPayloadType) {
         wss.broadcast(`session:${session.id}`, 'cell:output', {
           cellId: cell.id,
           output: { type: 'stdout', data: data.toString('utf8') },
+        });
+      },
+      stderr(data) {
+        wss.broadcast(`session:${session.id}`, 'cell:output', {
+          cellId: cell.id,
+          output: { type: 'stderr', data: data.toString('utf8') },
+        });
+      },
+      onExit() {
+        // Reload cell to get most recent version which may have been updated since
+        // in the time between initially running this cell and when running finishes.
+        //
+        // TODO: Real state management pls.
+        //
+        const mostRecentCell = session.cells.find((c) => c.id === cell.id) as CodeCellType;
+        mostRecentCell.status = 'idle';
+        wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: mostRecentCell });
+      },
+    }),
+  );
+}
+
+async function tsxExec({ session, cell, secrets }: ExecRequestType) {
+  addRunningProcess(
+    session,
+    cell,
+    tsx({
+      cwd: session.dir,
+      env: secrets,
+      entry: cell.filename,
+      stdout(data) {
+        wss.broadcast(`session:${session.id}`, 'cell:output', {
+          cellId: cell.id,
+          output: { type: 'stdout', data: data.toString('utf8') },
+        });
+      },
+      stderr(data) {
+        wss.broadcast(`session:${session.id}`, 'cell:output', {
+          cellId: cell.id,
+          output: { type: 'stderr', data: data.toString('utf8') },
+        });
+      },
+      onExit() {
+        // Reload cell to get most recent version which may have been updated since
+        // in the time between initially running this cell and when running finishes.
+        //
+        // TODO: Real state management pls.
+        //
+        const mostRecentCell = session.cells.find((c) => c.id === cell.id) as CodeCellType;
+        mostRecentCell.status = 'idle';
+        wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: mostRecentCell });
+      },
+    }),
+  );
+}
+
+async function tscExec({ session, cell, secrets }: ExecRequestType) {
+  addRunningProcess(
+    session,
+    cell,
+    tsc({
+      cwd: session.dir,
+      env: secrets,
+      entry: cell.filename,
+      stdout(data) {
+        wss.broadcast(`session:${session.id}`, 'cell:output', {
+          cellId: cell.id,
+          output: { type: 'tsc', data: data.toString('utf8') },
         });
       },
       stderr(data) {

@@ -17,6 +17,36 @@ export type NPMInstallRequestType = BaseExecRequestType & {
   packages?: Array<string>;
 };
 
+type SpawnCallRequestType = {
+  cwd: string;
+  env: NodeJS.ProcessEnv;
+  command: string;
+  args: Array<string>;
+  stdout: (data: Buffer) => void;
+  stderr: (data: Buffer) => void;
+  onExit: (code: number | null, signal: NodeJS.Signals | null) => void;
+};
+
+export function spawnCall(options: SpawnCallRequestType) {
+  const { cwd, env, command, args, stdout, stderr, onExit } = options;
+  const child = spawn(command, args, { cwd: cwd, env: env });
+
+  child.stdout.on('data', stdout);
+  child.stderr.on('data', stderr);
+
+  child.on('error', () => {
+    // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
+    // Doing so crashes the parent process unless this callback callback is registered.
+    //
+    // TODO: Find a way to handle unexpected errors here.
+  });
+
+  child.on('exit', (code, signal) => {
+    onExit && onExit(code, signal);
+  });
+  return child;
+}
+
 /**
  * Execute a JavaScript file using node.
  *
@@ -37,25 +67,33 @@ export function node(options: NodeRequestType) {
 
   const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
 
-  // Explicitly using spawn here (over fork) to make it clear these
-  // processes should be as decoupled from one another as possible.
-  const child = spawn('node', [filepath], { cwd, env: { ...process.env, ...env } });
-
-  child.stdout.on('data', stdout);
-  child.stderr.on('data', stderr);
-
-  child.on('error', () => {
-    // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
-    // Doing so crashes the parent process unless this callback callback is registered.
-    //
-    // TODO: Find a way to handle unexpected errors here.
+  return spawnCall({
+    command: 'node',
+    cwd,
+    args: [filepath],
+    stdout,
+    stderr,
+    onExit,
+    env: { ...process.env, ...env },
   });
+}
 
-  child.on('exit', (code, signal) => {
-    onExit && onExit(code, signal);
+export function tsc(options: NodeRequestType) {
+  const { cwd, env, entry, stdout, stderr, onExit } = options;
+
+  const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
+
+  const tscPath = Path.join(cwd, 'node_modules', '.bin', 'tsc');
+
+  return spawnCall({
+    command: tscPath,
+    cwd,
+    args: [filepath, '--noEmit'],
+    stdout,
+    stderr,
+    onExit,
+    env: { ...process.env, ...env },
   });
-
-  return child;
 }
 
 /**
@@ -84,25 +122,15 @@ export function tsx(options: NodeRequestType) {
   // TODO: Propogate good errors to user if this isn't there (deps listed and deps installed).
   const tsxPath = Path.join(cwd, 'node_modules', '.bin', 'tsx');
 
-  // Explicitly using spawn here (over fork) to make it clear these
-  // processes should be as decoupled from one another as possible.
-  const child = spawn(tsxPath, [filepath], { cwd, env: { ...process.env, ...env } });
-
-  child.stdout.on('data', stdout);
-  child.stderr.on('data', stderr);
-
-  child.on('error', () => {
-    // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
-    // Doing so crashes the parent process unless this callback callback is registered.
-    //
-    // TODO: Find a way to handle unexpected errors here.
+  return spawnCall({
+    command: tsxPath,
+    cwd,
+    args: [filepath],
+    stdout,
+    stderr,
+    onExit,
+    env: { ...process.env, ...env },
   });
-
-  child.on('exit', (code, signal) => {
-    onExit && onExit(code, signal);
-  });
-
-  return child;
 }
 
 /**
@@ -133,21 +161,5 @@ export function npmInstall(options: NPMInstallRequestType) {
 
   const args = options.packages ? ['install', ...options.packages] : ['install'];
 
-  const child = spawn('npm', args, { cwd });
-
-  child.stdout.on('data', stdout);
-  child.stderr.on('data', stderr);
-
-  child.on('error', () => {
-    // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
-    // Doing so crashes the parent process unless this callback callback is registered.
-    //
-    // TODO: Find a way to handle unexpected errors here.
-  });
-
-  child.on('exit', (code, signal) => {
-    onExit && onExit(code, signal);
-  });
-
-  return child;
+  return spawnCall({ command: 'npm', cwd, args, stdout, stderr, onExit, env: process.env });
 }

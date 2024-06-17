@@ -18,7 +18,8 @@ export type SettingsType = {
 
 export type StdoutOutputType = { type: 'stdout'; data: string };
 export type StderrOutputType = { type: 'stderr'; data: string };
-export type OutputType = StdoutOutputType | StderrOutputType;
+export type TscOutputType = { type: 'tsc'; data: string };
+export type OutputType = StdoutOutputType | StderrOutputType | TscOutputType;
 
 export type SessionType = {
   id: string;

@@ -6,11 +6,31 @@ type PropsType = {
   className?: string;
 };
 
+export function SrcbookLogo(props: PropsType) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.width ?? '18'}
+      height={props.height ?? '18'}
+      viewBox="0 0 18 18"
+      fill="none"
+    >
+      <path
+        d="M17 1.5V5.5L9 8.5L1 5.5V9.5L9 12.5L17 9.5V13.5L9 16.5L1 13.5V16.5"
+        stroke="#39B7FF"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function JavaScriptLogo(props: PropsType) {
   return (
     <svg
       width={props.width ?? '24'}
-      height={props.width ?? '24'}
+      height={props.height ?? '24'}
       viewBox="0 0 512 512"
       fill="none"
       className={props.className}
@@ -36,7 +56,7 @@ export function TypeScriptLogo(props: PropsType) {
   return (
     <svg
       width={props.width ?? '24'}
-      height={props.width ?? '24'}
+      height={props.height ?? '24'}
       viewBox="0 0 512 512"
       fill="none"
       className={props.className}

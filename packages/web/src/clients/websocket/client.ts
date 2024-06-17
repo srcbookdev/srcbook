@@ -72,8 +72,24 @@ export default class WebSocketClient {
       this.socket.send(message);
     } else {
       console.error(
-        `Attempting to send a message to a closed socket. This is a bug in WebSocketClient.\n\nMessage:\n${message}`,
+        `Attempting to send a message to a socket with readyState '${this.humanReadyState()}'. This is a bug in WebSocketClient.\n\nMessage:\n${message}`,
       );
+    }
+  }
+
+  private humanReadyState() {
+    switch (this.socket.readyState) {
+      case WebSocket.CONNECTING:
+        return 'CONNECTING';
+      case WebSocket.OPEN:
+        return 'OPEN';
+      case WebSocket.CLOSING:
+        return 'CLOSING';
+      case WebSocket.CLOSED:
+        return 'CLOSED';
+      default:
+        // This should never happen.
+        return 'UNKNOWN';
     }
   }
 

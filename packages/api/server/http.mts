@@ -21,11 +21,13 @@ import { readdir } from '../fs-utils.mjs';
 
 const app = express();
 
-app.use(express.json());
+const router = express.Router();
 
-app.options('/disk', cors());
+router.use(express.json());
 
-app.post('/disk', cors(), async (req, res) => {
+router.options('/disk', cors());
+
+router.post('/disk', cors(), async (req, res) => {
   let { dirname } = req.body;
 
   try {
@@ -41,8 +43,8 @@ app.post('/disk', cors(), async (req, res) => {
 });
 
 // Create a new srcbook
-app.options('/srcbooks', cors());
-app.post('/srcbooks', cors(), async (req, res) => {
+router.options('/srcbooks', cors());
+router.post('/srcbooks', cors(), async (req, res) => {
   const { name, language } = req.body;
 
   try {
@@ -56,8 +58,8 @@ app.post('/srcbooks', cors(), async (req, res) => {
 });
 
 // Import a srcbook from a .srcmd file.
-app.options('/import', cors());
-app.post('/import', cors(), async (req, res) => {
+router.options('/import', cors());
+router.post('/import', cors(), async (req, res) => {
   const { path } = req.body;
 
   if (Path.extname(path) !== '.srcmd') {
@@ -75,8 +77,8 @@ app.post('/import', cors(), async (req, res) => {
 });
 
 // Open an existing srcbook by passing a path to the srcbook's directory
-app.options('/sessions', cors());
-app.post('/sessions', cors(), async (req, res) => {
+router.options('/sessions', cors());
+router.post('/sessions', cors(), async (req, res) => {
   const { path } = req.body;
 
   const dir = await readdir(path);
@@ -95,14 +97,14 @@ app.post('/sessions', cors(), async (req, res) => {
   }
 });
 
-app.get('/sessions', cors(), async (_req, res) => {
+router.get('/sessions', cors(), async (_req, res) => {
   const sessions = await listSessions();
   return res.json({ error: false, result: Object.values(sessions).map(sessionToResponse) });
 });
 
-app.options('/sessions/:id', cors());
+router.options('/sessions/:id', cors());
 
-app.get('/sessions/:id', cors(), async (req, res) => {
+router.get('/sessions/:id', cors(), async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -114,7 +116,7 @@ app.get('/sessions/:id', cors(), async (req, res) => {
     return res.json({ error: true, result: error.stack });
   }
 });
-app.delete('/sessions/:id', cors(), async (req, res) => {
+router.delete('/sessions/:id', cors(), async (req, res) => {
   try {
     const session = await findSession(req.params.id);
     await deleteSession(session);
@@ -126,8 +128,8 @@ app.delete('/sessions/:id', cors(), async (req, res) => {
   }
 });
 
-app.options('/sessions/:id/export', cors());
-app.post('/sessions/:id/export', cors(), async (req, res) => {
+router.options('/sessions/:id/export', cors());
+router.post('/sessions/:id/export', cors(), async (req, res) => {
   const { directory, filename } = req.body;
   const session = await findSession(req.params.id);
 
@@ -143,9 +145,9 @@ app.post('/sessions/:id/export', cors(), async (req, res) => {
   }
 });
 
-app.options('/sessions/:id/cells', cors());
+router.options('/sessions/:id/cells', cors());
 // Create a new cell. If no index is provided, append to the end, otherwise insert at the index
-app.post('/sessions/:id/cells', cors(), async (req, res) => {
+router.post('/sessions/:id/cells', cors(), async (req, res) => {
   const { id } = req.params;
   const { cell, index } = req.body as { cell: CodeCellType | MarkdownCellType; index: number };
 
@@ -166,9 +168,9 @@ app.post('/sessions/:id/cells', cors(), async (req, res) => {
   return res.json({ error: false, result: cell });
 });
 
-app.options('/sessions/:id/cells/:cellId', cors());
+router.options('/sessions/:id/cells/:cellId', cors());
 
-app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
+router.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   const { id, cellId } = req.params;
   const session = await findSession(id);
   const cell = findCell(session, cellId);
@@ -187,14 +189,14 @@ app.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
   return res.json({ result: updatedCells });
 });
 
-app.options('/settings', cors());
+router.options('/settings', cors());
 
-app.get('/settings', cors(), async (_req, res) => {
+router.get('/settings', cors(), async (_req, res) => {
   const config = await getConfig();
   return res.json({ error: false, result: config });
 });
 
-app.post('/settings', cors(), async (req, res) => {
+router.post('/settings', cors(), async (req, res) => {
   try {
     const updated = await updateConfig(req.body);
     return res.json({ result: updated });
@@ -205,23 +207,23 @@ app.post('/settings', cors(), async (req, res) => {
   }
 });
 
-app.options('/secrets', cors());
+router.options('/secrets', cors());
 
-app.get('/secrets', cors(), async (_req, res) => {
+router.get('/secrets', cors(), async (_req, res) => {
   const secrets = await getSecrets();
   return res.json({ result: secrets });
 });
 
 // Create a new secret
-app.post('/secrets', cors(), async (req, res) => {
+router.post('/secrets', cors(), async (req, res) => {
   const { name, value } = req.body;
   const updated = await addSecret(name, value);
   return res.json({ result: updated });
 });
 
-app.options('/secrets/:name', cors());
+router.options('/secrets/:name', cors());
 
-app.post('/secrets/:name', cors(), async (req, res) => {
+router.post('/secrets/:name', cors(), async (req, res) => {
   const { name } = req.params;
   const { name: newName, value } = req.body;
   await removeSecret(name);
@@ -229,14 +231,14 @@ app.post('/secrets/:name', cors(), async (req, res) => {
   return res.json({ result: updated });
 });
 
-app.delete('/secrets/:name', cors(), async (req, res) => {
+router.delete('/secrets/:name', cors(), async (req, res) => {
   const { name } = req.params;
   const updated = await removeSecret(name);
   return res.json({ result: updated });
 });
 
-app.options('/node_version', cors());
-app.get('/node_version', cors(), async (_req, res) => {
+router.options('/node_version', cors());
+router.get('/node_version', cors(), async (_req, res) => {
   return res.json({ result: process.version });
 });
 
@@ -253,8 +255,8 @@ type NpmSearchResult = {
  * Returns the name, version and description of the packages.
  * Consider debouncing calls to this API on the client side.
  */
-app.options('/npm/search', cors());
-app.get('/npm/search', cors(), async (req, res) => {
+router.options('/npm/search', cors());
+router.get('/npm/search', cors(), async (req, res) => {
   const { q } = req.query;
   const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=10`);
   if (!response.ok) {
@@ -266,5 +268,7 @@ app.get('/npm/search', cors(), async (req, res) => {
   });
   return res.json({ result: results });
 });
+
+app.use('/api', router);
 
 export default app;

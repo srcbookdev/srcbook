@@ -1,5 +1,5 @@
 import z from 'zod';
-import { CellSchema, CellUpdateAttrsSchema } from './cells';
+import { CellSchema, CellUpdateAttrsSchema } from './cells.js';
 
 export const CellExecPayloadSchema = z.object({
   sessionId: z.string(),

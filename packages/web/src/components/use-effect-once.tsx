@@ -5,7 +5,11 @@ export function useEffectOnce(effect: EffectCallback) {
 
   useEffect(() => {
     ref.current += 1;
+    console.log('Process env: ', process.env.NODE_ENV);
 
+    if (process.env.NODE_ENV === 'production') {
+      return effect();
+    }
     // Only run effect on second call
     if (ref.current === 2) {
       return effect();

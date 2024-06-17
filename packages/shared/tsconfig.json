@@ -1,14 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "module": "nodenext",
     "target": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "rootDir": "./",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["./index.ts", "./src/**/*.ts"],
   "exclude": ["node_modules"]
 }

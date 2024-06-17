@@ -1,6 +1,7 @@
 import Path from 'node:path';
 import { exec } from 'node:child_process';
 import { readFile } from './fs-utils.mjs';
+import { DIST_DIR } from './constants.mjs';
 
 export async function shouldNpmInstall(dirPath: string): Promise<boolean> {
   const packageJsonPath = Path.resolve(Path.join(dirPath, 'package.json'));
@@ -51,20 +52,24 @@ export async function shouldNpmInstall(dirPath: string): Promise<boolean> {
 export async function missingUndeclaredDeps(dirPath: string): Promise<string[]> {
   return new Promise((resolve) => {
     // Ignore the err argument because depcheck exists with a non zero code (255) when there are missing deps.
-    exec(`npm run depcheck ${Path.resolve(dirPath)} -- --json`, (_err, stdout) => {
-      const output = stdout || '';
+    exec(
+      `npm run depcheck ${Path.resolve(dirPath)} -- --json`,
+      { cwd: DIST_DIR },
+      (_err, stdout) => {
+        const output = stdout || '';
 
-      // Use regex to extract JSON object
-      const jsonMatch = output.match(/{.*}/s);
-      if (!jsonMatch) {
-        throw new Error('Failed to extract JSON from depcheck output');
-      }
+        // Use regex to extract JSON object
+        const jsonMatch = output.match(/{.*}/s);
+        if (!jsonMatch) {
+          throw new Error('Failed to extract JSON from depcheck output.');
+        }
 
-      // Parse the JSON
-      const parsedResult = JSON.parse(jsonMatch[0]);
+        // Parse the JSON
+        const parsedResult = JSON.parse(jsonMatch[0]);
 
-      // Process and return the data as needed
-      resolve(Object.keys(parsedResult.missing));
-    });
+        // Process and return the data as needed
+        resolve(Object.keys(parsedResult.missing));
+      },
+    );
   });
 }

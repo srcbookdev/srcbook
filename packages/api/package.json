@@ -1,18 +1,22 @@
 {
   "name": "@srcbook/api",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.1",
   "type": "module",
+  "main": "./dist/index.mjs",
   "scripts": {
     "init": "vite-node ./initialization.mts",
     "predev": "pnpm run init",
-    "dev": "vite-node index.mts",
+    "dev": "vite-node dev-server.mts",
     "test": "vitest",
+    "build": "tsc && cp -R drizzle dist/drizzle",
     "check-types": "tsc",
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",
     "premigrate": "pnpm run init",
-    "migrate": "drizzle-kit migrate"
+    "migrate": "drizzle-kit migrate",
+    "prepublishOnly": "tsc",
+    "preversion": "vitest run && pnpm run build",
+    "postversion": "git push && git push --tags"
   },
   "dependencies": {
     "@srcbook/shared": "workspace:^",
@@ -22,7 +26,8 @@
     "drizzle-orm": "^0.31.2",
     "express": "^4.19.2",
     "marked": "^12.0.2",
-    "ws": "^8.17.0"
+    "ws": "^8.17.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.10",

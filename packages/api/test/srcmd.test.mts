@@ -5,20 +5,23 @@ import type { DecodeErrorResult, DecodeSuccessResult } from '../srcmd.mjs';
 
 describe('encoding and decoding srcmd files', () => {
   let srcmd: string;
+  const languagePrefix = '<!-- srcbook:{"language": "javascript"} -->\n\n';
 
   beforeAll(async () => {
     srcmd = await getRelativeFileContents('srcmd_files/notebook.srcmd');
   });
 
   it('is an error when there is no title', () => {
-    const result = decode('## Heading 2\n\nFollowed by a paragraph') as DecodeErrorResult;
+    const result = decode(
+      languagePrefix + '## Heading 2\n\nFollowed by a paragraph',
+    ) as DecodeErrorResult;
     expect(result.error).toBe(true);
     expect(result.errors).toEqual(['Document must contain exactly one h1 heading']);
   });
 
   it('is an error when there are multiple titles', () => {
     const result = decode(
-      '# Heading 1\n\nFollowed by a paragraph\n\n# Followed by another heading 1',
+      languagePrefix + '# Heading 1\n\nFollowed by a paragraph\n\n# Followed by another heading 1',
     ) as DecodeErrorResult;
     expect(result.error).toBe(true);
     expect(result.errors).toEqual(['Document must contain exactly one h1 heading']);
@@ -26,6 +29,7 @@ describe('encoding and decoding srcmd files', () => {
 
   it('is an error when there is a heading 6 without a corresponding code block', () => {
     const result = decode(
+      languagePrefix +
       '# Heading 1\n\n###### supposed_to_be_a_filename.mjs\n\nBut no code is found.',
     ) as DecodeErrorResult;
     expect(result.error).toBe(true);
@@ -44,6 +48,7 @@ describe('encoding and decoding srcmd files', () => {
         type: 'package.json',
         source: `{\n  "dependencies": {}\n}`,
         filename: 'package.json',
+        status: 'idle',
       },
       {
         id: expect.any(String),
@@ -56,6 +61,7 @@ describe('encoding and decoding srcmd files', () => {
         source: '// A code snippet here.\nexport function add(a, b) { return a + b }',
         language: 'javascript',
         filename: 'index.mjs',
+        status: 'idle',
       },
       {
         id: expect.any(String),
@@ -68,6 +74,7 @@ describe('encoding and decoding srcmd files', () => {
         source: "import {add} from './index.mjs';\nconst res = add(2, 3);\nconsole.log(res);",
         language: 'javascript',
         filename: 'foo.mjs',
+        status: 'idle',
       },
       {
         id: expect.any(String),
@@ -96,6 +103,7 @@ describe('it can decode from directories', () => {
         type: 'package.json',
         source: `{\n  "dependencies": {}\n}\n`,
         filename: 'package.json',
+        status: 'idle',
       },
       {
         id: expect.any(String),
@@ -108,6 +116,7 @@ describe('it can decode from directories', () => {
         source: 'const foo = 42;\nexport const bar = true;\nconsole.log(foo, bar);\n',
         language: 'javascript',
         filename: 'foo.mjs',
+        status: 'idle',
       },
       {
         id: expect.any(String),

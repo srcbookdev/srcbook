@@ -1,7 +1,7 @@
 import { CellType, CodeCellType, MarkdownCellType, CodeLanguageType } from '@srcbook/shared';
 import { SessionType, FsObjectResultType } from '@/types';
 
-const SERVER_BASE_URL = 'http://localhost:2150';
+const API_BASE_URL = 'http://localhost:2150/api';
 
 interface DiskRequestType {
   dirname?: string;
@@ -13,7 +13,7 @@ export interface DiskResponseType {
 }
 
 export async function disk(request?: DiskRequestType): Promise<DiskResponseType> {
-  const response = await fetch(SERVER_BASE_URL + '/disk', {
+  const response = await fetch(API_BASE_URL + '/disk', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -41,7 +41,7 @@ interface CreateSrcbookResponseType {
 export async function createSrcbook(
   request: CreateSrcbookRequestType,
 ): Promise<CreateSrcbookResponseType> {
-  const response = await fetch(SERVER_BASE_URL + '/srcbooks', {
+  const response = await fetch(API_BASE_URL + '/srcbooks', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -67,7 +67,7 @@ interface ImportSrcbookResponseType {
 export async function importSrcbook(
   request: ImportSrcbookRequestType,
 ): Promise<ImportSrcbookResponseType> {
-  const response = await fetch(SERVER_BASE_URL + '/import', {
+  const response = await fetch(API_BASE_URL + '/import', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -93,7 +93,7 @@ interface CreateSessionResponseType {
 export async function createSession(
   request: CreateSessionRequestType,
 ): Promise<CreateSessionResponseType> {
-  const response = await fetch(SERVER_BASE_URL + '/sessions', {
+  const response = await fetch(API_BASE_URL + '/sessions', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -119,7 +119,7 @@ interface LoadSessionResponseType {
 export async function loadSession(
   request: LoadSessionRequestType,
 ): Promise<LoadSessionResponseType> {
-  const response = await fetch(SERVER_BASE_URL + '/sessions/' + request.id, {
+  const response = await fetch(API_BASE_URL + '/sessions/' + request.id, {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -133,7 +133,7 @@ export async function loadSession(
 }
 
 export async function deleteSession(request: { id: string }) {
-  const response = await fetch(SERVER_BASE_URL + '/sessions/' + request.id, {
+  const response = await fetch(API_BASE_URL + '/sessions/' + request.id, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json' },
   });
@@ -145,7 +145,7 @@ export async function deleteSession(request: { id: string }) {
 }
 
 export async function loadSessions(): Promise<{ error: boolean; result: SessionType[] }> {
-  const response = await fetch(SERVER_BASE_URL + '/sessions', {
+  const response = await fetch(API_BASE_URL + '/sessions', {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -164,7 +164,7 @@ interface ExportSrcmdFileRequestType {
 }
 
 export async function exportSrcmdFile(sessionId: string, request: ExportSrcmdFileRequestType) {
-  const response = await fetch(SERVER_BASE_URL + '/sessions/' + sessionId + '/export', {
+  const response = await fetch(API_BASE_URL + '/sessions/' + sessionId + '/export', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -190,7 +190,7 @@ interface CreateCellResponseType {
 }
 
 export async function createCell(request: CreateCellRequestType): Promise<CreateCellResponseType> {
-  const response = await fetch(SERVER_BASE_URL + '/sessions/' + request.sessionId + '/cells', {
+  const response = await fetch(API_BASE_URL + '/sessions/' + request.sessionId + '/cells', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ cell: request.cell, index: request.index }),
@@ -222,7 +222,7 @@ type DeleteCellResponseType = DeleteResponseType | SuccessDeleteResponseType;
 
 export async function deleteCell(request: DeleteCellRequestType): Promise<DeleteCellResponseType> {
   const response = await fetch(
-    SERVER_BASE_URL + '/sessions/' + request.sessionId + '/cells/' + request.cellId,
+    API_BASE_URL + '/sessions/' + request.sessionId + '/cells/' + request.cellId,
     {
       method: 'DELETE',
       headers: { 'content-type': 'application/json' },
@@ -243,7 +243,7 @@ interface EditConfigRequestType {
 }
 
 export async function getConfig() {
-  const response = await fetch(SERVER_BASE_URL + '/settings', {
+  const response = await fetch(API_BASE_URL + '/settings', {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -256,7 +256,7 @@ export async function getConfig() {
 }
 
 export async function updateConfig(request: EditConfigRequestType) {
-  const response = await fetch(SERVER_BASE_URL + '/settings', {
+  const response = await fetch(API_BASE_URL + '/settings', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -270,7 +270,7 @@ export async function updateConfig(request: EditConfigRequestType) {
 
 // Secret management
 export async function getSecrets() {
-  const response = await fetch(SERVER_BASE_URL + '/secrets', {
+  const response = await fetch(API_BASE_URL + '/secrets', {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -288,7 +288,7 @@ interface CreateSecretRequestType {
 }
 
 export async function createSecret(request: CreateSecretRequestType) {
-  const response = await fetch(SERVER_BASE_URL + '/secrets', {
+  const response = await fetch(API_BASE_URL + '/secrets', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -306,7 +306,7 @@ interface UpdateSecretRequestType {
   value: string;
 }
 export async function updateSecret(request: UpdateSecretRequestType) {
-  const response = await fetch(SERVER_BASE_URL + '/secrets/' + request.previousName, {
+  const response = await fetch(API_BASE_URL + '/secrets/' + request.previousName, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -322,7 +322,7 @@ interface DeleteSecretRequestType {
   name: string;
 }
 export async function deleteSecret(request: DeleteSecretRequestType) {
-  const response = await fetch(SERVER_BASE_URL + '/secrets/' + request.name, {
+  const response = await fetch(API_BASE_URL + '/secrets/' + request.name, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json' },
   });
@@ -334,7 +334,7 @@ export async function deleteSecret(request: DeleteSecretRequestType) {
 }
 
 export async function getNodeVersion() {
-  const response = await fetch(SERVER_BASE_URL + '/node_version', {
+  const response = await fetch(API_BASE_URL + '/node_version', {
     headers: { 'content-type': 'application/json' },
   });
 
@@ -350,7 +350,7 @@ export async function searchNpmPackages(query: string) {
   if (query === '') {
     return { error: false, result: [] };
   }
-  const response = await fetch(SERVER_BASE_URL + '/npm/search?q=' + query, {
+  const response = await fetch(API_BASE_URL + '/npm/search?q=' + query, {
     headers: { 'content-type': 'application/json' },
   });
   if (!response.ok) {

@@ -1,16 +1,18 @@
 {
-  "name": "srcbook",
+  "name": "srcbook-monorepo",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev-api": "pnpm --filter api dev",
     "dev-web": "pnpm --filter web dev",
+    "build": "./scripts/build",
     "lint-web": "pnpm --filter web lint",
     "check-types": "pnpm --recursive check-types",
     "check-prettier": "pnpm prettier --check .",
     "generate": "pnpm --filter api generate",
-    "migrate": "pnpm --filter api migrate"
+    "migrate": "pnpm --filter api migrate",
+    "start": "pnpm --filter srcbook start"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

@@ -8,10 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
 dist-ssr
 *.local
-web_dist
 
 # Editor directories and files
 .vscode/*
@@ -25,6 +23,3 @@ web_dist
 *.sw?
 
 *.gitignored.*
-
-packages/api/.env
-packages/api/*.local

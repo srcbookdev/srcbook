@@ -15,6 +15,7 @@
     "@srcbook/api": "workspace:^",
     "@srcbook/shared": "workspace:^",
     "better-sqlite3": "^11.0.0",
+    "chalk": "^5.3.0",
     "cors": "^2.8.5",
     "depcheck": "^1.4.7",
     "drizzle-orm": "^0.31.2",

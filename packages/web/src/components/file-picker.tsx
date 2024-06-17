@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 import type { FsObjectResultType, FsObjectType } from '@/types';
-import { useEffectOnce } from './use-effect-once';
+import useEffectOnce from './use-effect-once';
 
 export default function FilePicker(props: {
   dirname: string;

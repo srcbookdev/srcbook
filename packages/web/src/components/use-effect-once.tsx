@@ -1,15 +1,11 @@
 import { useRef, useEffect, type EffectCallback } from 'react';
 
-export function useEffectOnce(effect: EffectCallback) {
+function useEffectDev(effect: EffectCallback) {
   const ref = useRef(0);
 
   useEffect(() => {
     ref.current += 1;
-    console.log('Process env: ', process.env.NODE_ENV);
 
-    if (process.env.NODE_ENV === 'production') {
-      return effect();
-    }
     // Only run effect on second call
     if (ref.current === 2) {
       return effect();
@@ -18,3 +14,9 @@ export function useEffectOnce(effect: EffectCallback) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }
+
+function useEffectProd(effect: EffectCallback) {
+  useEffect(effect);
+}
+
+export default process.env.NODE_ENV === 'production' ? useEffectProd : useEffectDev;

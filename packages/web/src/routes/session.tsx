@@ -49,7 +49,7 @@ import InstallPackageModal from '@/components/install-package-modal';
 import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
-import { useEffectOnce } from '@/components/use-effect-once';
+import useEffectOnce from '@/components/use-effect-once';
 import { CellStdio } from '@/components/cell-stdio';
 
 async function loader({ params }: LoaderFunctionArgs) {

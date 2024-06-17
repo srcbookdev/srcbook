@@ -9,7 +9,7 @@ import {
   updateCell,
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
-import { SessionType } from '../types.js';
+import { SessionType } from '../types.mjs';
 import { node, npmInstall, tsx } from '../exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from '../deps.mjs';
 import processes from '../processes.mjs';

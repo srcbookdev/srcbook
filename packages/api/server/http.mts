@@ -1,5 +1,5 @@
 import Path from 'node:path';
-import express from 'express';
+import express, { type Application } from 'express';
 import cors from 'cors';
 import type { MarkdownCellType, CodeCellType } from '@srcbook/shared';
 import {
@@ -24,7 +24,7 @@ import {
 } from '../srcbook.mjs';
 import { readdir } from '../fs-utils.mjs';
 
-const app = express();
+const app: Application = express();
 
 const router = express.Router();
 

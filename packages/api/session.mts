@@ -18,7 +18,7 @@ import {
 } from '@srcbook/shared';
 import { encode, decodeDir } from './srcmd.mjs';
 import { SRCBOOKS_DIR } from './constants.mjs';
-import { SessionType } from './types.js';
+import { SessionType } from './types.mjs';
 import { writeToDisk, writeCellToDisk, writeReadmeToDisk, moveCodeCellOnDisk } from './srcbook.mjs';
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';

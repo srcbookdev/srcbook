@@ -1,16 +1,16 @@
 import { marked } from 'marked';
 import Path from 'path';
 import fs from 'node:fs/promises';
-import { SrcbookMetadataSchema, SrcbookMetadataType, randomid } from '@srcbook/shared';
+import { SrcbookMetadataSchema, type SrcbookMetadataType, randomid } from '@srcbook/shared';
 import type { Tokens, Token, TokensList } from 'marked';
-import {
+import type {
   CellType,
   CodeCellType,
   MarkdownCellType,
   PackageJsonCellType,
   TitleCellType,
-  languageFromFilename,
 } from '@srcbook/shared';
+import { languageFromFilename } from '@srcbook/shared';
 
 marked.use({ gfm: true });
 

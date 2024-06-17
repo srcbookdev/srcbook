@@ -1,5 +1,4 @@
 import { ChildProcess } from 'node:child_process';
-import { CellErrorPayloadSchema, CodeCellType, PackageJsonCellType } from '@srcbook/shared';
 import {
   findSession,
   findCell,
@@ -9,11 +8,24 @@ import {
   updateCell,
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
-import { SessionType } from '../types.js';
+import type { SessionType } from '../types.mjs';
 import { node, npmInstall, tsx } from '../exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from '../deps.mjs';
 import processes from '../processes.mjs';
+import type {
+  CodeCellType,
+  PackageJsonCellType,
+  CellExecPayloadType,
+  DepsInstallPayloadType,
+  DepsValidatePayloadType,
+  CellStopPayloadType,
+  CellStdinPayloadType,
+  CellUpdatePayloadType,
+} from '@srcbook/shared';
 import {
+  CellErrorPayloadSchema,
+  CellStdinPayloadSchema,
+  CellUpdatePayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
   DepsInstallPayloadSchema,
@@ -21,14 +33,6 @@ import {
   CellUpdatedPayloadSchema,
   CellOutputPayloadSchema,
   DepsValidateResponsePayloadSchema,
-  CellExecPayloadType,
-  DepsInstallPayloadType,
-  DepsValidatePayloadType,
-  CellStopPayloadType,
-  CellStdinPayloadSchema,
-  CellStdinPayloadType,
-  CellUpdatePayloadSchema,
-  CellUpdatePayloadType,
 } from '@srcbook/shared';
 import WebSocketServer from './ws-client.mjs';
 

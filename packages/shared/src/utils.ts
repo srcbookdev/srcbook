@@ -1,5 +1,5 @@
 import { base58 } from '@scure/base';
-import { CodeLanguageType } from './types/cells.js';
+import type { CodeLanguageType } from './types/cells.js';
 
 export function randomid(byteSize = 16) {
   const bytes = crypto.getRandomValues(new Uint8Array(byteSize));

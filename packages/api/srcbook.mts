@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
-import {
+import type {
   CellType,
   CodeCellType,
   CodeLanguageType,

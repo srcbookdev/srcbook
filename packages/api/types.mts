@@ -1,4 +1,4 @@
-import { CellType, SrcbookMetadataType } from '@srcbook/shared';
+import type { CellType, SrcbookMetadataType } from '@srcbook/shared';
 
 export type SessionType = {
   id: string;

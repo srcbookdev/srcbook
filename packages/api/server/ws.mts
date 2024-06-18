@@ -205,7 +205,9 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
   const cell = findCell(session, payload.cellId);
 
   if (!cell) {
-    throw new Error(`No cell exists for session '${payload.sessionId}' and cell ${payload.cellId}`);
+    throw new Error(
+      `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+    );
   }
 
   const result = await updateCell(session, cell, payload.updates);

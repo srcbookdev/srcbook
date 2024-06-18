@@ -41,12 +41,16 @@ function Secrets() {
       <h1 className="text-2xl my-4">Secrets</h1>
       <p>
         Secrets are a safe way to share credentials and tokens with notebooks. You can think of
-        these as environment variables, and access them with the usual{' '}
-        <code className="px-1 py-0.5 border border-gray-200 rounded-sm">process.env</code>{' '}
+        these as environment variables, and access them with{' '}
+        <code className="px-1 py-0.5 border border-gray-200 rounded-sm">
+          process.env.SECRET_NAME
+        </code>{' '}
       </p>
       {secrets && (
         <div>
           <h2 className="text-xl mt-8 pb-4">Current Secrets</h2>
+          {Object.keys(secrets).length === 0 && <p>You have not set any secrets.</p>}
+
           <ul className="flex flex-col gap-2">
             {Object.entries(secrets)
               .sort(([nameA], [nameB]) => nameA.localeCompare(nameB))

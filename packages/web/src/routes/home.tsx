@@ -40,7 +40,6 @@ function Home() {
   const [session, setSession] = useState<SessionType | undefined>(undefined);
   const [language, setLanguage] = useState<CodeLanguageType>(defaultLanguage);
 
-  console.log(defaultLanguage);
   function onChangeLanguage(checked: boolean) {
     setLanguage(checked ? 'typescript' : 'javascript');
   }

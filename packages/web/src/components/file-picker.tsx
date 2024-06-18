@@ -45,7 +45,6 @@ export default function FilePicker(props: {
   async function createSrcbookFromSrcmdFile() {
     if (selected === null || selected.isDirectory) {
       console.error('Cannot create srcbook from invalid selection. This is a bug in the code.');
-      console.log('Selection:', selected);
       return;
     }
 

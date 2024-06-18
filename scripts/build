@@ -17,8 +17,11 @@ cp -R packages/web/dist/* srcbook/web_dist
 echo 'Building api...'
 cd packages/api/
 pnpm build
+
+echo 'Packing api...'
 pnpm pack --pack-destination ../../srcbook/
 
+echo 'Vendorizing api into srcbook...'
 cd ../../srcbook/
 TARBALL_NAME=$(ls srcbook-api-*.tgz)
 
@@ -28,11 +31,4 @@ mkdir vendor/
 tar -xzf $TARBALL_NAME -C vendor/ --strip-components=1
 
 rm $TARBALL_NAME
-
-# echo 'Moving api files to srcbook/dist/...'
-# rm -rf srcbook/dist/
-# mkdir -p srcbook/dist/
-# cp -R packages/api/dist/* srcbook/dist
-#
-# echo 'Add the entrypoint run.mjs to srcbook/dist/...'
-# cp srcbook/run.mjs srcbook/dist/run.mjs
+echo 'All done!'

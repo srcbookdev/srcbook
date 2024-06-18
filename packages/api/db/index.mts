@@ -2,13 +2,14 @@
  * Make sure we've created the .srcbook directory on disk
  * before creating the DB
  */
-import '../initialization.mjs';
+console.log('before imports in db/index.mts');
 import path from 'node:path';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
 import * as schema from './schema.mjs';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { DIST_DIR } from '../constants.mjs';
+console.log('after imports in db/index.mts');
 
 // We can't use a relative directory for drizzle since this application
 // can get run from anywhere, so use DIST_DIR as ground truth.

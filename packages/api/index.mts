@@ -1,5 +1,3 @@
-import './initialization.mjs';
-import './db/index.mjs';
 import app from './server/http.mjs';
 import wss from './server/ws.mjs';
 import { SRCBOOKS_DIR } from './constants.mjs';

@@ -17,6 +17,8 @@ import { WebSocketServer as WsWebSocketServer } from 'ws';
 import { SRCBOOKS_DIR, wss, app } from '@srcbook/api';
 import chalk from 'chalk';
 
+console.log('After imports in run.mjs');
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const __client_dist = path.join(__dirname, '/../web_dist/');

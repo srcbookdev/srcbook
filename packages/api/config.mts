@@ -4,10 +4,11 @@ import { db } from './db/index.mjs';
 import { HOME_DIR } from './constants.mjs';
 
 async function init() {
+  console.log('Initializing');
   const existingConfig = await db.select().from(configs).limit(1);
 
   if (existingConfig.length === 0) {
-    const defaultConfig = { baseDir: HOME_DIR };
+    const defaultConfig = { baseDir: HOME_DIR, defaultLanguage: 'typescript' };
     console.log();
     console.log('Initializing application with the following configuration:\n');
     console.log(JSON.stringify(defaultConfig, null, 2));

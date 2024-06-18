@@ -14,6 +14,7 @@ export interface FsObjectResultType {
 
 export type SettingsType = {
   baseDir: string;
+  defaultLanguage: 'javascript' | 'typescript';
 };
 
 export type StdoutOutputType = { type: 'stdout'; data: string };

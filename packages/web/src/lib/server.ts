@@ -239,7 +239,8 @@ export async function deleteCell(request: DeleteCellRequestType): Promise<Delete
 
 // Config settings
 interface EditConfigRequestType {
-  baseDir: string;
+  baseDir?: string;
+  defaultLanguage?: 'typescript' | 'javascript';
 }
 
 export async function getConfig() {

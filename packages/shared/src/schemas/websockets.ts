@@ -41,7 +41,7 @@ export const CellUpdatedPayloadSchema = z.object({
 export const CellOutputPayloadSchema = z.object({
   cellId: z.string(),
   output: z.object({
-    type: z.enum(['stdout', 'stderr']),
+    type: z.enum(['stdout', 'stderr', 'tsc']),
     data: z.string(),
   }),
 });

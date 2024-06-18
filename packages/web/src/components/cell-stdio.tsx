@@ -3,7 +3,7 @@ import { CodeCellType, PackageJsonCellType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useCells } from '@/components/use-cell';
-import { OutputType, StdoutOutputType, StderrOutputType } from '@/types';
+import { OutputType, StdoutOutputType, StderrOutputType, TscOutputType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
 
 export function CellStdio({
@@ -18,6 +18,7 @@ export function CellStdio({
   const { hasOutput, getOutput, clearOutput } = useCells();
 
   const [activeTab, setActiveTab] = useState('stdout');
+  const [showStdin, setShowStdin] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'stdin' && cell.status !== 'running') {
@@ -25,8 +26,16 @@ export function CellStdio({
     }
   }, [activeTab, cell.status]);
 
+  useEffect(() => {
+    if (cell.status === 'running') {
+      setTimeout(() => setShowStdin(true), 2000);
+    }
+    setShowStdin(false);
+  }, [cell.status]);
+
   const stdout = getOutput(cell.id, 'stdout') as StdoutOutputType[];
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
+  const tscOutput = getOutput(cell.id, 'tsc') as TscOutputType[];
 
   // Make sure to also check cell.status here because the user may want
   // to access stdin when a cell is running regardless of stdout/stderr
@@ -53,7 +62,18 @@ export function CellStdio({
                 'stderr'
               )}
             </TabsTrigger>
-            {cell.type === 'code' && cell.status === 'running' && (
+            {cell.type === 'code' && cell.language === 'typescript' && (
+              <TabsTrigger value="problems">
+                {tscOutput.length > 0 ? (
+                  <>
+                    problems <span className="text-orange-800">({tscOutput.length})</span>
+                  </>
+                ) : (
+                  'problems'
+                )}
+              </TabsTrigger>
+            )}
+            {cell.type === 'code' && cell.status === 'running' && showStdin && (
               <TabsTrigger value="stdin">stdin</TabsTrigger>
             )}
           </TabsList>
@@ -75,6 +95,11 @@ export function CellStdio({
         {cell.status === 'running' && (
           <TabsContent value="stdin" className="mt-0">
             <Stdin onSubmit={sendStdin} />
+          </TabsContent>
+        )}
+        {cell.type === 'code' && cell.language === 'typescript' && (
+          <TabsContent value="problems" className="mt-0">
+            <TscOutput tsc={tscOutput} />
           </TabsContent>
         )}
       </Tabs>
@@ -111,6 +136,14 @@ function Stderr({ stderr }: { stderr: StderrOutputType[] }) {
       ) : (
         formatOutput(stderr)
       )}
+    </div>
+  );
+}
+
+function TscOutput({ tsc }: { tsc: TscOutputType[] }) {
+  return (
+    <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap">
+      {tsc.length === 0 ? <div className="italic text-center">No output</div> : formatOutput(tsc)}
     </div>
   );
 }

@@ -71,8 +71,8 @@ interface CellsContextType {
     attrs?: Partial<CodeCellType>,
   ) => CodeCellType;
   createMarkdownCell: (idx: number, attrs?: Partial<MarkdownCellType>) => MarkdownCellType;
-  hasOutput: (id: string, type?: 'stdout' | 'stderr') => boolean;
-  getOutput: (id: string, type?: 'stdout' | 'stderr') => Array<OutputType>;
+  hasOutput: (id: string, type?: 'stdout' | 'stderr' | 'tsc') => boolean;
+  getOutput: (id: string, type?: 'stdout' | 'stderr' | 'tsc') => Array<OutputType>;
   setOutput: (id: string, output: OutputType | OutputType[]) => void;
   clearOutput: (id: string) => void;
 }

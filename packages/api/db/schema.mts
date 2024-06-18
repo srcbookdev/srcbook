@@ -2,7 +2,8 @@ import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
 export const configs = sqliteTable('config', {
   // Directory where .srcmd files will be stored and searched by default
-  baseDir: text('baseDir').notNull(),
+  baseDir: text('base_dir').notNull(),
+  defaultLanguage: text('default_language').notNull().default('typescript'),
 });
 
 export type Config = typeof configs.$inferSelect;

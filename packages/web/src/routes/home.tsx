@@ -14,7 +14,7 @@ import { LanguageLogo } from '@/components/logos';
 async function loader() {
   const { result: config } = await getConfig();
   const { result: sessions } = await loadSessions();
-  return { baseDir: config.baseDir, sessions };
+  return { defaultLanguage: config.defaultLanguage, baseDir: config.baseDir, sessions };
 }
 
 async function action({ request }: { request: Request }) {
@@ -30,15 +30,17 @@ async function action({ request }: { request: Request }) {
 type HomeLoaderDataType = {
   baseDir: string;
   sessions: SessionType[];
+  defaultLanguage: CodeLanguageType;
 };
 
 function Home() {
-  const { baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
+  const { defaultLanguage, baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
 
   const [showDelete, setShowDelete] = useState(false);
   const [session, setSession] = useState<SessionType | undefined>(undefined);
-  const [language, setLanguage] = useState<CodeLanguageType>('typescript');
+  const [language, setLanguage] = useState<CodeLanguageType>(defaultLanguage);
 
+  console.log(defaultLanguage);
   function onChangeLanguage(checked: boolean) {
     setLanguage(checked ? 'typescript' : 'javascript');
   }

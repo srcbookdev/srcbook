@@ -1,4 +1,4 @@
-import { CellType, SrcbookMetadataType } from '@srcbook/shared';
+import { CellType, SrcbookMetadataType, CodeLanguageType } from '@srcbook/shared';
 
 export interface FsObjectType {
   path: string;
@@ -14,6 +14,7 @@ export interface FsObjectResultType {
 
 export type SettingsType = {
   baseDir: string;
+  defaultLanguage: CodeLanguageType;
 };
 
 export type StdoutOutputType = { type: 'stdout'; data: string };

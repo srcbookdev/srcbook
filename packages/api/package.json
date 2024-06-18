@@ -8,7 +8,7 @@
     "predev": "pnpm run init",
     "dev": "vite-node dev-server.mts",
     "test": "vitest",
-    "build": "tsc && cp -R drizzle dist/drizzle",
+    "build": "tsc && rm -rf ./dist/drizzle && cp -R ./drizzle ./dist/drizzle",
     "check-types": "tsc",
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",

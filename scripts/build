@@ -15,12 +15,14 @@ mkdir -p srcbook/web_dist/
 cp -R packages/web/dist/* srcbook/web_dist
 
 echo 'Building api...'
-pnpm --filter api build
+cd packages/api/
+pnpm build
+pnpm pack --pack-destination ../../srcbook/vendor/
 
-echo 'Moving api files to srcbook/dist/...'
-rm -rf srcbook/dist/
-mkdir -p srcbook/dist/
-cp -R packages/api/dist/* srcbook/dist
-
-echo 'Add the entrypoint run.mjs to srcbook/dist/...'
-cp srcbook/run.mjs srcbook/dist/run.mjs
+# echo 'Moving api files to srcbook/dist/...'
+# rm -rf srcbook/dist/
+# mkdir -p srcbook/dist/
+# cp -R packages/api/dist/* srcbook/dist
+#
+# echo 'Add the entrypoint run.mjs to srcbook/dist/...'
+# cp srcbook/run.mjs srcbook/dist/run.mjs

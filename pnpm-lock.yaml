@@ -234,8 +234,8 @@ importers:
   srcbook:
     dependencies:
       '@srcbook/api':
-        specifier: workspace:^
-        version: link:../packages/api
+        specifier: file:../packages/api/srcbook-api-0.0.1-alpha.1.tgz
+        version: file:packages/api/srcbook-api-0.0.1-alpha.1.tgz(@types/better-sqlite3@7.6.10)(@types/react@18.3.3)(react@18.3.1)
       '@srcbook/shared':
         specifier: workspace:^
         version: link:../packages/shared
@@ -1331,6 +1331,10 @@ packages:
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
+
+  '@srcbook/api@file:packages/api/srcbook-api-0.0.1-alpha.1.tgz':
+    resolution: {integrity: sha512-Uv3K9aNJpy3HqBYQzLDbtEGBIoKSWWi+UrkCCbx2hw+1A5CskxVMXbPucKGsHZZcUHYjZU8MrkTuor0V4WN9fg==, tarball: file:packages/api/srcbook-api-0.0.1-alpha.1.tgz}
+    version: 0.0.1-alpha.1
 
   '@swc/core-darwin-arm64@1.5.25':
     resolution: {integrity: sha512-YbD0SBgVJS2DM0vwJTU5m7+wOyCjHPBDMf3nCBJQzFZzOLzK11eRW7SzU2jhJHr9HI9sKcNFfN4lIC2Sj+4inA==}
@@ -4437,6 +4441,47 @@ snapshots:
   '@scure/base@1.1.7': {}
 
   '@sinclair/typebox@0.27.8': {}
+
+  '@srcbook/api@file:packages/api/srcbook-api-0.0.1-alpha.1.tgz(@types/better-sqlite3@7.6.10)(@types/react@18.3.3)(react@18.3.1)':
+    dependencies:
+      '@srcbook/shared': link:packages/shared
+      better-sqlite3: 11.0.0
+      cors: 2.8.5
+      depcheck: 1.4.7
+      drizzle-orm: 0.31.2(@types/better-sqlite3@7.6.10)(@types/react@18.3.3)(better-sqlite3@11.0.0)(react@18.3.1)
+      express: 4.19.2
+      marked: 12.0.2
+      ws: 8.17.0
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - '@aws-sdk/client-rds-data'
+      - '@cloudflare/workers-types'
+      - '@electric-sql/pglite'
+      - '@libsql/client'
+      - '@neondatabase/serverless'
+      - '@op-engineering/op-sqlite'
+      - '@opentelemetry/api'
+      - '@planetscale/database'
+      - '@tidbcloud/serverless'
+      - '@types/better-sqlite3'
+      - '@types/pg'
+      - '@types/react'
+      - '@types/sql.js'
+      - '@vercel/postgres'
+      - '@xata.io/client'
+      - bufferutil
+      - bun-types
+      - expo-sqlite
+      - knex
+      - kysely
+      - mysql2
+      - pg
+      - postgres
+      - react
+      - sql.js
+      - sqlite3
+      - supports-color
+      - utf-8-validate
 
   '@swc/core-darwin-arm64@1.5.25':
     optional: true

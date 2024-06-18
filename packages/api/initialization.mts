@@ -19,5 +19,3 @@ import { DEFAULT_TSCONFIG, DEFAULT_TSCONFIG_PATH, SRCBOOKS_DIR } from './constan
 await fs.mkdir(SRCBOOKS_DIR, { recursive: true });
 
 await fs.writeFile(Path.join(DEFAULT_TSCONFIG_PATH), JSON.stringify(DEFAULT_TSCONFIG, null, 2));
-
-console.log('Running initialization.mjs...');

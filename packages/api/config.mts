@@ -4,7 +4,6 @@ import { db } from './db/index.mjs';
 import { HOME_DIR } from './constants.mjs';
 
 async function init() {
-  console.log('Initializing init() in config.mjs');
   const existingConfig = await db.select().from(configs).limit(1);
 
   if (existingConfig.length === 0) {

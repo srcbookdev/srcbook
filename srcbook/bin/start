@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-import '../dist/initialization.mjs';
-import '../dist/db/index.mjs';
-import '../dist/run.mjs';
+import '@srcbook/api/dist/initialization.mjs';
+import '@srcbook/api/dist/db/index.mjs';
+import '../run.mjs';

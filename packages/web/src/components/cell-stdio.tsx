@@ -55,13 +55,13 @@ export function CellStdio({
               )}
             </TabsTrigger>
             {cell.type === 'code' && cell.language === 'typescript' && (
-              <TabsTrigger value="tsc">
+              <TabsTrigger value="problems">
                 {tscOutput.length > 0 ? (
                   <>
-                    tsc <span className="text-orange-800">({tscOutput.length})</span>
+                    problems <span className="text-orange-800">({tscOutput.length})</span>
                   </>
                 ) : (
-                  'tsc'
+                  'problems'
                 )}
               </TabsTrigger>
             )}
@@ -90,7 +90,7 @@ export function CellStdio({
           </TabsContent>
         )}
         {cell.type === 'code' && cell.language === 'typescript' && (
-          <TabsContent value="tsc" className="mt-0">
+          <TabsContent value="problems" className="mt-0">
             <TscOutput tsc={tscOutput} />
           </TabsContent>
         )}

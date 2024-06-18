@@ -11,4 +11,14 @@ const __dirname = path.dirname(__filename);
 export const HOME_DIR = os.homedir();
 export const SRCBOOK_DIR = path.join(HOME_DIR, '.srcbook');
 export const SRCBOOKS_DIR = path.join(SRCBOOK_DIR, 'srcbooks');
+export const DEFAULT_TSCONFIG_PATH = path.join(SRCBOOK_DIR, 'tsconfig.json');
 export const DIST_DIR = __dirname;
+
+export const DEFAULT_TSCONFIG = {
+  module: 'nodenext',
+  moduleResolution: 'nodenext',
+  target: 'es2022',
+  resolveJsonModule: true,
+  noEmit: true,
+  allowImportingTsExtensions: true,
+};

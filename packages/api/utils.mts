@@ -41,13 +41,13 @@ export async function disk(dirname: string, ext: string) {
   return isRootPath(dirname)
     ? entries
     : [
-        {
-          path: Path.dirname(dirname),
-          dirname: Path.dirname(dirname),
-          basename: '..',
-          isDirectory: true,
-        },
-      ].concat(entries);
+      {
+        path: Path.dirname(dirname),
+        dirname: Path.dirname(dirname),
+        basename: '..',
+        isDirectory: true,
+      },
+    ].concat(entries);
 }
 
 function isRootPath(path: string) {
@@ -66,4 +66,24 @@ function isRootPath(path: string) {
 
 export function toFormattedJSON(o: any) {
   return JSON.stringify(o, null, 2);
+}
+
+/**
+ * Given a configuration object like
+ *  const defaultTsConfig = {
+ *    target: 'es2022',
+ *    resolveJsonModule: true,
+ *    noEmit: true,
+ *   };
+ *
+ * Return an array of CLI args:
+ *   ['--target', 'es2022', '--resolveJsonModule', '--noEmit']
+ */
+export function tsConfigToArgs(config: Record<string, any>): string[] {
+  return Object.entries(config).flatMap(([key, value]) => {
+    if (typeof value === 'boolean') {
+      return value ? [`--${key}`] : [];
+    }
+    return [`--${key}`, String(value)];
+  });
 }

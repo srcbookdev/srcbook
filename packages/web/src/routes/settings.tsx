@@ -20,8 +20,7 @@ async function loader() {
 async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const baseDir = formData.get('path') as string | undefined;
-  const defaultLanguage = formData.get('default-language') as CodeLanguageType | undefined;
-  await updateConfig({ baseDir, defaultLanguage });
+  await updateConfig({ baseDir });
   return null;
 }
 

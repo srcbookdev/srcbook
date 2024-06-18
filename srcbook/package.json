@@ -1,6 +1,6 @@
 {
-  "name": "srcbook",
-  "version": "0.0.1-alpha.1",
+  "name": "scratch-srcbook",
+  "version": "0.0.23",
   "type": "module",
   "bin": "./bin/start",
   "scripts": {
@@ -12,7 +12,6 @@
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
-    "@srcbook/api": "workspace:^",
     "@srcbook/shared": "workspace:^",
     "better-sqlite3": "^11.0.0",
     "chalk": "^5.3.0",

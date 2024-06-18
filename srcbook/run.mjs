@@ -7,18 +7,29 @@
  *  - Serve the API
  *
  */
+import readline from 'node:readline';
 import fs from 'node:fs/promises';
 import express from 'express';
 import http from 'node:http';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
-import { SRCBOOKS_DIR, wss, app } from '@srcbook/api';
+import { SRCBOOKS_DIR, wss, app } from './vendor/dist/index.mjs';
 import chalk from 'chalk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const __client_dist = path.join(__dirname, '/../web_dist/');
+const __client_dist = path.join(__dirname, '/web_dist/');
+
+function clearScreen() {
+  const repeatCount = process.stdout.rows - 2;
+  const blank = repeatCount > 0 ? '\n'.repeat(repeatCount) : '';
+  console.log(blank);
+  readline.cursorTo(process.stdout, 0, 0);
+  readline.clearScreenDown(process.stdout);
+}
+
+clearScreen();
 
 console.log(chalk.bgGreen.black('  Srcbook  '));
 // Create our private ~/.srcbook directory, and its child srcbooks/ directory

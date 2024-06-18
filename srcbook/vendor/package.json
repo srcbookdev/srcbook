@@ -1,0 +1,41 @@
+{
+  "name": "@srcbook/api",
+  "version": "0.0.1-alpha.1",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.5",
+    "depcheck": "^1.4.7",
+    "drizzle-orm": "^0.31.2",
+    "express": "^4.19.2",
+    "marked": "^12.0.2",
+    "ws": "^8.17.0",
+    "zod": "^3.23.8",
+    "@srcbook/shared": "^0.0.1-alpha.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.10",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/ws": "^8.5.10",
+    "drizzle-kit": "^0.22.7",
+    "vite": "^5.2.11",
+    "vite-node": "^1.6.0",
+    "vitest": "^1.6.0"
+  },
+  "scripts": {
+    "init": "vite-node ./initialization.mts",
+    "predev": "pnpm run init",
+    "dev": "vite-node dev-server.mts",
+    "test": "vitest",
+    "build": "tsc && rm -rf ./dist/drizzle && cp -R ./drizzle ./dist/drizzle",
+    "check-types": "tsc",
+    "depcheck": "depcheck",
+    "generate": "drizzle-kit generate",
+    "premigrate": "pnpm run init",
+    "migrate": "drizzle-kit migrate",
+    "preversion": "vitest run && pnpm run build",
+    "postversion": "git push && git push --tags"
+  }
+}

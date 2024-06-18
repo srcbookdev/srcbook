@@ -233,9 +233,6 @@ importers:
 
   srcbook:
     dependencies:
-      '@srcbook/api':
-        specifier: workspace:^
-        version: link:../packages/api
       '@srcbook/shared':
         specifier: workspace:^
         version: link:../packages/shared

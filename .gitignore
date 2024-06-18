@@ -13,6 +13,8 @@ dist-ssr
 *.local
 web_dist
 
+srcbook-api-*.tgz
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

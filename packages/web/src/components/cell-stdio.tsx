@@ -18,12 +18,20 @@ export function CellStdio({
   const { hasOutput, getOutput, clearOutput } = useCells();
 
   const [activeTab, setActiveTab] = useState('stdout');
+  const [showStdin, setShowStdin] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'stdin' && cell.status !== 'running') {
       setActiveTab('stdout');
     }
   }, [activeTab, cell.status]);
+
+  useEffect(() => {
+    if (cell.status === 'running') {
+      setTimeout(() => setShowStdin(true), 2000);
+    }
+    setShowStdin(false);
+  }, [cell.status]);
 
   const stdout = getOutput(cell.id, 'stdout') as StdoutOutputType[];
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
@@ -65,7 +73,7 @@ export function CellStdio({
                 )}
               </TabsTrigger>
             )}
-            {cell.type === 'code' && cell.status === 'running' && (
+            {cell.type === 'code' && cell.status === 'running' && showStdin && (
               <TabsTrigger value="stdin">stdin</TabsTrigger>
             )}
           </TabsList>

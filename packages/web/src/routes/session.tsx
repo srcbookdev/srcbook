@@ -583,7 +583,7 @@ function CodeCell(props: {
             )}
           >
             <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-              <Button variant="ghost" tabIndex={1}>
+              <Button variant="ghost" size="icon" tabIndex={1}>
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>

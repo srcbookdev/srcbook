@@ -53,6 +53,8 @@
   }
 
   :root {
+    --primary-hover: var(--sb-core-80);
+    --secondary-hover: var(--sb-core-80);
     --tertiary: var(--sb-core-0);
     --tertiary-foreground: var(--sb-core-60);
     --run: var(--sb-yellow-50);
@@ -61,6 +63,8 @@
   }
 
   .dark {
+    --primary-hover: var(--sb-core-30);
+    --secondary-hover: var(--sb-core-30);
     --tertiary: var(--sb-core-130);
     --tertiary-foreground: var(--sb-core-60);
     --run: var(--sb-yellow-50);

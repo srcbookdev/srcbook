@@ -147,13 +147,13 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
     [insertCellAt],
   );
 
-  const hasOutput = useCallback((id: string, type?: 'stdout' | 'stderr') => {
+  const hasOutput = useCallback((id: string, type?: 'stdout' | 'stderr' | 'tsc') => {
     const output = outputRef.current[id] || [];
     const length = type ? output.filter((o) => o.type === type).length : output.length;
     return length > 0;
   }, []);
 
-  const getOutput = useCallback((id: string, type?: 'stdout' | 'stderr') => {
+  const getOutput = useCallback((id: string, type?: 'stdout' | 'stderr' | 'tsc') => {
     const output = outputRef.current[id] || [];
     return type ? output.filter((o) => o.type === type) : output;
   }, []);

@@ -1,6 +1,6 @@
 {
-  "name": "srcbook",
-  "version": "0.0.1-alpha.1",
+  "name": "scratch-srcbook",
+  "version": "0.0.12",
   "type": "module",
   "bin": "./bin/start",
   "scripts": {

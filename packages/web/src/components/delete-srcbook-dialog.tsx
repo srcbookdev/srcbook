@@ -51,7 +51,7 @@ export default function DeleteSrcbookModal({
         </DialogHeader>
         {error && <p className="text-red-500">{error}</p>}
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={onConfirmDelete}>

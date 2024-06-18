@@ -39,16 +39,15 @@ function Settings() {
         <h1 className="text-2xl pb-4">Settings</h1>
         <h2 className="text-xl pb-2">Base Directory</h2>
         <label className="opacity-70">
-          This is the default directory from which we look for Srcbooks, and where new Srcbooks will
-          be saved by default.
+          The default directory to look for Srcbooks when importing.
         </label>
         <DirPicker dirname={baseDir} entries={entries} cta="Change" />
       </div>
 
       <div>
         <h2 className="text-xl pb-2">Default Language</h2>
-        <label className="opacity-70">
-          Which language should be used by default when creating a new Srcbook.
+        <label className="opacity-70 block pb-2">
+          The default language to use when creating new Srcbooks.
         </label>
         <Select onValueChange={updateDefaultLanguage}>
           <SelectTrigger className="w-[180px]">

@@ -3,12 +3,7 @@ const plugin = require('tailwindcss/plugin');
 
 module.exports = {
   darkMode: ['class'],
-  content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-  ],
+  content: ['./index.html', './src/**/*.{css,ts,tsx}'],
   prefix: '',
   theme: {
     container: {
@@ -50,10 +45,12 @@ module.exports = {
         foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
+          hover: 'hsl(var(--primary-hover))',
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
+          hover: 'hsl(var(--secondary-hover))',
           foreground: 'hsl(var(--secondary-foreground))',
         },
         destructive: {
@@ -76,11 +73,64 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        tertiary: {
+          DEFAULT: 'hsl(var(--tertiary))',
+          foreground: 'hsl(var(--tertiary-foreground))',
+        },
+        run: {
+          DEFAULT: 'hsl(var(--run))',
+          foreground: 'hsl(var(--run-foreground))',
+          ring: 'hsl(var(--run-ring))',
+        },
+        sb: {
+          'core-0': 'hsl(var(--sb-core-0))',
+          'core-10': 'hsl(var(--sb-core-10))',
+          'core-20': 'hsl(var(--sb-core-20))',
+          'core-30': 'hsl(var(--sb-core-30))',
+          'core-40': 'hsl(var(--sb-core-40))',
+          'core-50': 'hsl(var(--sb-core-50))',
+          'core-60': 'hsl(var(--sb-core-60))',
+          'core-70': 'hsl(var(--sb-core-70))',
+          'core-80': 'hsl(var(--sb-core-80))',
+          'core-90': 'hsl(var(--sb-core-90))',
+          'core-100': 'hsl(var(--sb-core-100))',
+          'core-110': 'hsl(var(--sb-core-110))',
+          'core-120': 'hsl(var(--sb-core-120))',
+          'core-130': 'hsl(var(--sb-core-130))',
+          'core-140': 'hsl(var(--sb-core-140))',
+          'core-150': 'hsl(var(--sb-core-150))',
+          'core-160': 'hsl(var(--sb-core-160))',
+
+          'yellow-10': 'hsl(var(--sb-yellow-10))',
+          'yellow-20': 'hsl(var(--sb-yellow-20))',
+          'yellow-30': 'hsl(var(--sb-yellow-30))',
+          'yellow-40': 'hsl(var(--sb-yellow-40))',
+          'yellow-50': 'hsl(var(--sb-yellow-50))',
+          'yellow-60': 'hsl(var(--sb-yellow-60))',
+          'yellow-70': 'hsl(var(--sb-yellow-70))',
+          'yellow-80': 'hsl(var(--sb-yellow-80))',
+
+          'red-10': 'hsl(var(--sb-red-10))',
+          'red-20': 'hsl(var(--sb-red-20))',
+          'red-30': 'hsl(var(--sb-red-30))',
+          'red-40': 'hsl(var(--sb-red-40))',
+          'red-50': 'hsl(var(--sb-red-50))',
+          'red-60': 'hsl(var(--sb-red-60))',
+          'red-70': 'hsl(var(--sb-red-70))',
+          'red-80': 'hsl(var(--sb-red-80))',
+
+          'blue-10': 'hsl(var(--sb-blue-10))',
+          'blue-20': 'hsl(var(--sb-blue-20))',
+          'blue-30': 'hsl(var(--sb-blue-30))',
+          'blue-40': 'hsl(var(--sb-blue-40))',
+          'blue-50': 'hsl(var(--sb-blue-50))',
+          'blue-60': 'hsl(var(--sb-blue-60))',
+          'blue-70': 'hsl(var(--sb-blue-70))',
+          'blue-80': 'hsl(var(--sb-blue-80))',
+        },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        sm: '0.1875rem', // 3px
       },
       transitionProperty: {
         height: 'height',

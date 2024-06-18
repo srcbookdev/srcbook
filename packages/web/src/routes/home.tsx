@@ -60,17 +60,15 @@ function Home() {
               <LanguageLogo language={language} width={36} height={36} className="rounded" />
               <Switch checked={language === 'typescript'} onCheckedChange={onChangeLanguage} />
             </div>
-            <Button className="min-w-32" type="submit">
-              <div className="flex gap-2 items-center">
-                Create New <PlusIcon size={16} />
-              </div>
+            <Button size="default-with-icon">
+              <PlusIcon size={16} /> Create New
             </Button>
           </div>
         </Form>
         <p>or</p>
         <div className="flex flex-col items-center justify-center h-full">
           <Link to="/open" className="flex items-center space-x-2">
-            <Button variant="outline" className="min-w-32" type="submit">
+            <Button variant="secondary" type="submit">
               Open
             </Button>
           </Link>
@@ -95,7 +93,7 @@ function Home() {
                       <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
                       <p className="text-sm text-gray-400">{session.cells.length} cells</p>
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         className="mt-2"
                         size="sm"
                         onClick={(e) => {

@@ -6,10 +6,6 @@
 
 @layer base {
   :root {
-    --radius: 0.5rem;
-  }
-
-  :root {
     --sb-core-0: 0 0% 100%;
     --sb-core-10: 210 33% 99%;
     --sb-core-20: 210 7% 95%;

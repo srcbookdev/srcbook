@@ -150,7 +150,7 @@ export default function InstallPackageModal({
                               {result.description}
                             </p>
                           </div>
-                          <Button variant="outline" onClick={() => addPackage(result.name)}>
+                          <Button variant="secondary" onClick={() => addPackage(result.name)}>
                             Add
                           </Button>
                         </div>

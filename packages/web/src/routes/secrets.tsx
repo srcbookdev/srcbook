@@ -114,7 +114,7 @@ function SecretRow({ name, value }: { name: string; value: string }) {
             </div>
 
             <div className="col-span-1 flex justify-end items-center gap-2">
-              <Button variant="outline" onClick={() => setMode('edit')}>
+              <Button variant="secondary" onClick={() => setMode('edit')}>
                 Edit
               </Button>
               <Dialog open={open} onOpenChange={setOpen}>
@@ -129,7 +129,7 @@ function SecretRow({ name, value }: { name: string; value: string }) {
                     </DialogDescription>
                     <div className="flex w-full justify-end items-center gap-2 pt-4 bg-background">
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         onClick={() => {
                           setOpen(false);
                         }}
@@ -162,7 +162,7 @@ function SecretRow({ name, value }: { name: string; value: string }) {
               onChange={(e) => setUpdatedValue(e.target.value)}
             />
             <div className="col-span-1 flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setMode('view')}>
+              <Button variant="secondary" onClick={() => setMode('view')}>
                 Cancel
               </Button>
               <Button className="col-span-1" type="submit" onClick={handleUpdate}>

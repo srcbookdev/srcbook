@@ -18,7 +18,7 @@ export default function NewCellPopover({
           <p className="font-semibold text-center">Insert cell</p>
           <div className="flex items-center justify-center gap-2 p-2">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 createNewCell('code');
                 setOpen(false);
@@ -27,7 +27,7 @@ export default function NewCellPopover({
               Code
             </Button>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 createNewCell('markdown');
                 setOpen(false);

@@ -28,7 +28,7 @@ export default function DeleteCellWithConfirmationModal({
           </DialogDescription>
           <div className="flex w-full justify-end items-center gap-2 pt-4 bg-background">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => {
                 setOpen(false);
               }}

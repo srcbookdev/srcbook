@@ -2,7 +2,9 @@
  * Make sure we've created the .srcbook directory on disk
  * before creating the DB
  */
+
 console.log('before imports in db/index.mts');
+import '../initialization.mjs';
 import path from 'node:path';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';

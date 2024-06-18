@@ -14,7 +14,7 @@ import http from 'node:http';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
-import { SRCBOOKS_DIR, wss, app } from '@srcbook/api';
+import { SRCBOOKS_DIR, wss, app } from './vendor/dist/index.mjs';
 import chalk from 'chalk';
 
 const __filename = fileURLToPath(import.meta.url);

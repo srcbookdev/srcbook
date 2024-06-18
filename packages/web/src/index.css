@@ -6,51 +6,116 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
   }
 
-  /* 204, 12%, 17% */
-  /* 200, 15%, 20% */
+  :root {
+    --sb-core-0: 0 0% 100%;
+    --sb-core-10: 210 33% 99%;
+    --sb-core-20: 210 7% 95%;
+    --sb-core-30: 204 7% 86%;
+    --sb-core-40: 207 7% 76%;
+    --sb-core-50: 205 7% 67%;
+    --sb-core-60: 204 7% 59%;
+    --sb-core-70: 203 7% 49%;
+    --sb-core-80: 205 11% 40%;
+    --sb-core-90: 204 16% 32%;
+    --sb-core-100: 203 17% 26%;
+    --sb-core-110: 204 17% 23%;
+    --sb-core-120: 206 16% 19%;
+    --sb-core-130: 203 17% 15%;
+    --sb-core-140: 204 17% 11%;
+    --sb-core-150: 206 18% 8%;
+    --sb-core-160: 200 16% 4%;
+
+    --sb-yellow-10: 33 100% 95%;
+    --sb-yellow-20: 33 100% 90%;
+    --sb-yellow-30: 33 97% 85%;
+    --sb-yellow-40: 34 96% 81%;
+    --sb-yellow-50: 35 95% 76%;
+    --sb-yellow-60: 33 76% 69%;
+    --sb-yellow-70: 35 31% 45%;
+    --sb-yellow-80: 34 28% 32%;
+
+    --sb-red-10: 0 100% 96%;
+    --sb-red-20: 0 100% 86%;
+    --sb-red-30: 0 100% 76%;
+    --sb-red-40: 0 100% 66%;
+    --sb-red-50: 0 66% 53%;
+    --sb-red-60: 0 66% 41%;
+    --sb-red-70: 0 74% 30%;
+    --sb-red-80: 0 82% 20%;
+
+    --sb-blue-10: 203 100% 95%;
+    --sb-blue-20: 202 100% 84%;
+    --sb-blue-30: 202 100% 73%;
+    --sb-blue-40: 202 100% 61%;
+    --sb-blue-50: 202 100% 50%;
+    --sb-blue-60: 202 100% 40%;
+    --sb-blue-70: 202 100% 30%;
+    --sb-blue-80: 202 100% 20%;
+  }
+
+  :root {
+    --tertiary: var(--sb-core-0);
+    --tertiary-foreground: var(--sb-core-60);
+    --run: var(--sb-yellow-50);
+    --run-foreground: var(--sb-core-100);
+    --run-ring: var(--sb-yellow-50);
+  }
 
   .dark {
-    --background: 204, 12%, 17%;
-    --foreground: 0 0% 100%;
-    --card: 222.2 84% 4.9%; /* Old */
-    --card-foreground: 210 40% 98%; /* Old */
-    --popover: 222.2 84% 4.9%; /* Old */
-    --popover-foreground: 210 40% 98%; /* Old */
-    --primary: 217.2 91.2% 59.8%; /* Old */
-    --primary-foreground: 222.2 47.4% 11.2%; /* Old */
-    --secondary: 217.2 32.6% 17.5%; /* Old */
-    --secondary-foreground: 210 40% 98%; /* Old */
-    --muted: 215, 8%, 45%;
-    --muted-foreground: 215 20.2% 65.1%; /* Old */
-    --accent: 217.2 32.6% 17.5%; /* Old */
-    --accent-foreground: 210 40% 98%; /* Old */
-    --destructive: 0 62.8% 30.6%; /* Old */
-    --destructive-foreground: 210 40% 98%; /* Old */
-    --border: 204, 19%, 26%;
-    --input: 200, 15%, 20%;
-    --ring: 224.3 76.3% 48%; /* Old */
+    --tertiary: var(--sb-core-130);
+    --tertiary-foreground: var(--sb-core-60);
+    --run: var(--sb-yellow-50);
+    --run-foreground: var(--sb-core-100);
+    --run-ring: var(--sb-yellow-50);
+  }
+
+  /* shadcn variables light */
+  :root {
+    --background: var(--sb-core-0);
+    --foreground: var(--sb-core-100);
+    --card: var(--sb-core-0);
+    --card-foreground: var(--sb-core-100);
+    --popover: var(--sb-core-0);
+    --popover-foreground: var(--sb-core-100);
+    --primary: var(--sb-core-100);
+    --primary-foreground: var(--sb-core-0);
+    --secondary: var(--sb-core-0);
+    --secondary-foreground: var(--sb-core-100);
+    --muted: var(--sb-core-10);
+    --muted-foreground: var(--sb-core-30);
+    --accent: var(--sb-blue-60);
+    --accent-foreground: var(--sb-core-0);
+    --destructive: var(--sb-red-40);
+    --destructive-foreground: var(--sb-core-0);
+    --border: var(--sb-core-30);
+    --input: var(--sb-core-30);
+    --ring: var(--sb-core-100);
+  }
+
+  /* shadcn variables dark */
+  .dark {
+    --background: var(--sb-core-130);
+    --foreground: var(--sb-core-0);
+    --card: var(--sb-core-130);
+    --card-foreground: var(--sb-core-0);
+    --popover: var(--sb-core-130);
+    --popover-foreground: var(--sb-core-0);
+    --primary: var(--sb-core-0);
+    --primary-foreground: var(--sb-core-100);
+    --secondary: var(--sb-core-130);
+    --secondary-foreground: var(--sb-core-0);
+    --muted: var(--sb-core-120);
+    --muted-foreground: var(--sb-core-90);
+    --accent: var(--sb-blue-60);
+    --accent-foreground: var(--sb-core-0);
+    --destructive: var(--sb-red-40);
+    --destructive-foreground: var(--sb-core-0);
+    --border: var(--sb-core-100);
+    --input: var(--sb-core-100);
+    --ring: var(--sb-core-0);
   }
 }
 

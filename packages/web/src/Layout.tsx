@@ -6,8 +6,8 @@ export default function Layout() {
   return (
     <>
       <div className="flex flex-col">
-        <header className="p-6">
-          <nav>
+        <header className="h-12 min-h-12 max-h-12 flex items-center">
+          <nav className="px-6 w-full">
             <ul className="flex items-center space-x-8">
               <li>
                 <NavLink to="/">
@@ -20,7 +20,7 @@ export default function Layout() {
               <li>
                 <NavLink
                   to="/"
-                  className="text-muted-foreground visited:text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
                 >
                   Home
                 </NavLink>
@@ -28,7 +28,7 @@ export default function Layout() {
               <li>
                 <NavLink
                   to="/secrets"
-                  className="text-muted-foreground visited:text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
                 >
                   Secrets
                 </NavLink>
@@ -36,7 +36,7 @@ export default function Layout() {
               <li>
                 <NavLink
                   to="/settings"
-                  className="text-muted-foreground visited:text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
                 >
                   Settings
                 </NavLink>
@@ -44,7 +44,7 @@ export default function Layout() {
             </ul>
           </nav>
         </header>
-        <div className="w-full max-w-4xl mx-auto p-6">
+        <div className="w-full max-w-4xl mx-auto p-12">
           <Outlet />
         </div>
       </div>

@@ -2,37 +2,33 @@
 
 import { WebSocketMessageSchema } from '@srcbook/shared';
 
+// A connection that is closed on purpose for "normal" reasons.
+// https://www.rfc-editor.org/rfc/rfc6455.html#section-7.4.1
+const EXPECTED_CLOSURE_CODE = 1000;
+
+// If we lose a connection unexpectedly, retry with a backoff strategy.
+const RETRY_IN_MS = [10, 250, 1000, 2500];
+const DEFAULT_RETRY_IN_MS = 5000;
+
 export default class WebSocketClient {
-  private readonly socket: WebSocket;
+  private url: string;
+
+  private socket: WebSocket | null = null;
 
   private queue: { topic: string; event: string; payload: Record<string, any> }[] = [];
 
   private callbacks: Record<string, Array<(event: string, payload: Record<string, any>) => void>> =
     {};
 
+  private currentRetry = 0;
+
   constructor(url: string) {
-    this.socket = new WebSocket(url);
-
-    this.socket.addEventListener('message', (event) => {
-      if (event.type === 'message') {
-        this.handleIncomingMessage(event.data);
-      } else {
-        console.warn(`Received unknown websockete event '${event.type}'`);
-      }
-    });
-
-    this.socket.addEventListener('open', () => {
-      this.flush();
-    });
-
-    this.socket.addEventListener('close', () => {
-      console.warn('WebSocket connection closed');
-      // TODO: reopen?
-    });
+    this.url = url;
+    this.connect();
   }
 
   get open() {
-    return this.socket.readyState === WebSocket.OPEN;
+    return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
   }
 
   on(topic: string, callback: (event: string, payload: Record<string, any>) => void) {
@@ -68,7 +64,7 @@ export default class WebSocketClient {
   private send(topic: string, event: string, payload: Record<string, any>) {
     const message = JSON.stringify([topic, event, payload]);
 
-    if (this.open) {
+    if (this.socket && this.open) {
       this.socket.send(message);
     } else {
       console.error(
@@ -78,7 +74,7 @@ export default class WebSocketClient {
   }
 
   private humanReadyState() {
-    switch (this.socket.readyState) {
+    switch (this.socket?.readyState) {
       case WebSocket.CONNECTING:
         return 'CONNECTING';
       case WebSocket.OPEN:
@@ -99,5 +95,55 @@ export default class WebSocketClient {
     for (const callback of this.callbacks[topic] || []) {
       callback(event, payload);
     }
+  }
+
+  private retryInMs() {
+    return RETRY_IN_MS[this.currentRetry - 1] || DEFAULT_RETRY_IN_MS;
+  }
+
+  private onOpen = () => {
+    this.currentRetry = 0;
+    this.flush();
+  };
+
+  private onMessage = (event: MessageEvent<any>) => {
+    if (event.type === 'message') {
+      this.handleIncomingMessage(event.data);
+    } else {
+      console.warn(`Received unknown WebSocket event '${event.type}'`);
+    }
+  };
+
+  private onClose = (event: CloseEvent) => {
+    this.teardown();
+
+    // If we lost the connection for unexpected reasons, retry.
+    if (event.code !== EXPECTED_CLOSURE_CODE) {
+      this.currentRetry += 1;
+      setTimeout(this.connect, this.retryInMs());
+    }
+  };
+
+  private onError = () => {
+    // NO-OP for now
+  };
+
+  private connect = () => {
+    this.socket = new WebSocket(this.url);
+    this.socket.addEventListener('open', this.onOpen);
+    this.socket.addEventListener('message', this.onMessage);
+    this.socket.addEventListener('close', this.onClose);
+    this.socket.addEventListener('error', this.onError);
+  };
+
+  private teardown() {
+    if (this.socket) {
+      this.socket.removeEventListener('open', this.onOpen);
+      this.socket.removeEventListener('message', this.onMessage);
+      this.socket.removeEventListener('close', this.onClose);
+      this.socket.removeEventListener('error', this.onError);
+    }
+
+    this.socket = null;
   }
 }

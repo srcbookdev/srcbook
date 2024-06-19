@@ -267,10 +267,11 @@
 
 .cm-editor .cm-gutters .cm-gutterElement {
   @apply px-1.5;
+  font-size: 12px;
 }
 
-.cm-editor .cm-content {
-  @apply bg-input/10;
+.cm-editor .cm-gutters .cm-activeLineGutter {
+  background-color: transparent;
 }
 
 .cm-editor .cm-scroller {

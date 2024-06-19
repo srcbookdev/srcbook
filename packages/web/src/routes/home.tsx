@@ -84,9 +84,9 @@ function Home() {
                 onClick={() => openTutorial(guide.name)}
               >
                 <div className="w-full h-44 bg-border"></div>
-                <div className="w-full border p-4 gap-2">
+                <div className="w-full border p-4 space-y-2">
                   <h4 className="h4">{guide.title}</h4>
-                  <p className="text-sm">{guide.description}</p>
+                  <p className="text-sm text-tertiary-foreground">{guide.description}</p>
                 </div>
               </div>
             ))}
@@ -123,7 +123,7 @@ function Home() {
       <div className="mb-16">
         <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
         {sessions.length === 0 ? (
-          <p className="text-gray-500">
+          <p className="text-tertiary-foreground">
             No sessions are currently open. Create a new session or open a previous one.
           </p>
         ) : (
@@ -138,7 +138,9 @@ function Home() {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
-                        <p className="text-sm text-gray-400">{session.cells.length} cells</p>
+                        <p className="text-sm text-tertiary-foreground">
+                          {session.cells.length} cells
+                        </p>
                         <Button
                           variant="secondary"
                           className="mt-2"

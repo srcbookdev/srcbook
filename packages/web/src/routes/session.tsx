@@ -270,7 +270,7 @@ function TitleCell(props: {
     <div className="my-4">
       <EditableH1
         text={props.cell.text}
-        className="text-5xl font-bold"
+        className="title"
         onUpdated={(text) => props.onUpdateCell(props.cell, { text })}
       />
     </div>

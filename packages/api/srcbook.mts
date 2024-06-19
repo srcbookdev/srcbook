@@ -10,7 +10,7 @@ import type {
 import { encode, decode } from './srcmd.mjs';
 import { toFormattedJSON } from './utils.mjs';
 import { randomid } from '@srcbook/shared';
-import { SRCBOOKS_DIR } from './constants.mjs';
+import { SRCBOOKS_DIR, DIST_DIR } from './constants.mjs';
 
 export function writeToDisk(srcbookDir: string, metadata: SrcbookMetadataType, cells: CellType[]) {
   const writes = [writeReadmeToDisk(srcbookDir, metadata, cells)];
@@ -72,7 +72,10 @@ export function writeReadmeToDisk(
  * https://linear.app/axflow/issue/AXF-146/files-and-directories-behavior
  */
 export async function importSrcbookFromSrcmdFile(srcmdPath: string) {
-  const [srcmd, dirname] = await Promise.all([fs.readFile(srcmdPath, 'utf8'), newSrcbookDir()]);
+  // When we import tutorials, we don't have absolute paths but rather want to
+  // import them from the vendored srcbook application.
+  const finalPath = srcmdPath.startsWith('tutorials') ? Path.join(DIST_DIR, srcmdPath) : srcmdPath;
+  const [srcmd, dirname] = await Promise.all([fs.readFile(finalPath, 'utf8'), newSrcbookDir()]);
 
   const result = decode(srcmd);
 

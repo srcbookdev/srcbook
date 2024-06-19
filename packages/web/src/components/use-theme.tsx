@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { srcbookLight, srcbookDark } from '@/lib/code-theme';
 
 export type ThemeType = 'light' | 'dark';
+export type CodeThemeType = typeof srcbookLight | typeof srcbookDark;
 
 export function getTheme(): ThemeType {
   const theme = localStorage.getItem('sb:theme');
@@ -29,9 +31,14 @@ function updateClass(theme: ThemeType) {
 export default function useTheme() {
   const [theme, _setTheme] = useState<ThemeType>(getTheme());
 
+  const [codeTheme, setCodeTheme] = useState<CodeThemeType>(
+    getTheme() === 'dark' ? srcbookDark : srcbookLight,
+  );
+
   function setTheme(theme: ThemeType) {
     updateClass(theme);
     persistTheme(theme);
+    setCodeTheme(theme === 'dark' ? srcbookDark : srcbookLight);
     _setTheme(theme);
   }
 
@@ -39,5 +46,5 @@ export default function useTheme() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   }
 
-  return { theme, toggleTheme, setTheme };
+  return { theme, codeTheme, toggleTheme, setTheme };
 }

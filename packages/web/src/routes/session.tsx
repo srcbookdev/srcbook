@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { githubLight } from '@uiw/codemirror-theme-github';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -42,6 +41,7 @@ import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
 import useEffectOnce from '@/components/use-effect-once';
 import { CellStdio } from '@/components/cell-stdio';
+import useTheme from '@/components/use-theme';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -72,6 +72,7 @@ function SessionPage() {
 
 function Session(props: { session: SessionType; channel: SessionChannel }) {
   const { session, channel } = props;
+  const { toggleTheme } = useTheme();
 
   const { cells, setCells, updateCell, removeCell, createCodeCell, createMarkdownCell, setOutput } =
     useCells();
@@ -147,6 +148,12 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
   return (
     <div>
+      <p
+        className="fixed right-3 top-3 text-muted-foreground text-sm hover:cursor-pointer"
+        onClick={toggleTheme}
+      >
+        toggle theme
+      </p>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <SaveModal open={showSave} onOpenChange={setShowSave} session={session} />
@@ -275,6 +282,7 @@ function MarkdownCell(props: {
   onUpdateCell: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
+  const { codeTheme } = useTheme();
   const cell = props.cell;
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
@@ -361,7 +369,7 @@ function MarkdownCell(props: {
           <div className="px-3 border rounded-sm">
             <CodeMirror
               autoFocus
-              theme={githubLight}
+              theme={codeTheme}
               indentWithTab={false}
               value={text}
               basicSetup={{ lineNumbers: false, foldGutter: false }}
@@ -387,6 +395,7 @@ function PackageJsonCell(props: {
   const [installModalOpen, setInstallModalOpen] = useState(false);
 
   const { updateCell, clearOutput } = useCells();
+  const { codeTheme } = useTheme();
 
   const npmInstall = useCallback(
     (packages?: Array<string>) => {
@@ -491,7 +500,7 @@ function PackageJsonCell(props: {
           >
             <CodeMirror
               value={cell.source.trim()}
-              theme={githubLight}
+              theme={codeTheme}
               extensions={[
                 json(),
                 Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
@@ -517,6 +526,7 @@ function CodeCell(props: {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
   const [error, setError] = useState<string | null>(null);
 
+  const { codeTheme } = useTheme();
   const { updateCell, clearOutput } = useCells();
 
   function onChangeSource(source: string) {
@@ -621,7 +631,7 @@ function CodeCell(props: {
         </div>
         <CodeMirror
           value={cell.source}
-          theme={githubLight}
+          theme={codeTheme}
           extensions={[
             javascript(),
             Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),

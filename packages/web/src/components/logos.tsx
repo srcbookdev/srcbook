@@ -18,9 +18,9 @@ export function SrcbookLogo(props: PropsType) {
       <path
         d="M17 1.5V5.5L9 8.5L1 5.5V9.5L9 12.5L17 9.5V13.5L9 16.5L1 13.5V16.5"
         stroke="#39B7FF"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

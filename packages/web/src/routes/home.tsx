@@ -1,8 +1,8 @@
 import { PlusIcon } from 'lucide-react';
-import { Form, useLoaderData, redirect, Link } from 'react-router-dom';
+import { Form, useLoaderData, useNavigate, redirect, Link } from 'react-router-dom';
 import { CodeLanguageType, TitleCellType } from '@srcbook/shared';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
-import { getConfig, createSession, loadSessions, createSrcbook } from '@/lib/server';
+import { getConfig, createSession, loadSessions, createSrcbook, importSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import CanvasCells from '@/components/canvas-cells';
@@ -35,6 +35,7 @@ type HomeLoaderDataType = {
 
 function Home() {
   const { defaultLanguage, baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
+  const navigate = useNavigate();
 
   const [showDelete, setShowDelete] = useState(false);
   const [session, setSession] = useState<SessionType | undefined>(undefined);
@@ -44,10 +45,30 @@ function Home() {
     setLanguage(checked ? 'typescript' : 'javascript');
   }
 
+  async function openTutorial(tutorial: string) {
+    const { result } = await importSrcbook({ path: `tutorials/${tutorial}.srcmd` });
+    const { result: newSession } = await createSession({ path: result.dir });
+
+    return navigate(`/sessions/${newSession.id}`);
+  }
+
   return (
     <>
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
-      <h1 className="text-2xl mx-auto mb-8">Srcbooks</h1>
+      <h1 className="text-2xl mx-auto mb-8">Get started</h1>
+      <div className="flex gap-4">
+        <div
+          className="flex flex-col items-center hover:cursor-pointer"
+          onClick={() => openTutorial('getting-started')}
+        >
+          <div className="w-48 h-24 bg-sb-core-90 w-full"></div>
+          <div className="w-48 border flex flex-col p-2 gap-2">
+            <h3 className="font-bold text-xl">Getting started</h3>
+            <p className="text-xs">Understand the basic concepts of srcbooks.</p>
+          </div>
+        </div>
+      </div>
+      <h1 className="text-2xl mx-auto my-8">Srcbooks</h1>
       <p>Create a new Srcbook or open an existing one</p>
       <div className="mt-4 flex items-center gap-12">
         <Form method="post" className="h-full">

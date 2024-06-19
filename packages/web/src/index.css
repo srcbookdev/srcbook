@@ -128,6 +128,125 @@
   }
 }
 
+.sb-prose {
+  @apply font-sans;
+  @apply text-lg;
+  @apply leading-7;
+}
+
+.sb-prose > *:first-child {
+  margin-top: 0;
+}
+
+.sb-prose p {
+  @apply my-3;
+}
+
+.sb-prose blockquote {
+  @apply font-semibold;
+  @apply my-5;
+  @apply italic;
+  @apply text-sb-core-110;
+  @apply ps-5;
+  @apply border-s-4;
+  @apply border-s-border;
+  quotes: '\201C' '\201D' '\2018' '\2019';
+}
+
+.sb-prose blockquote p:first-of-type::before {
+  content: open-quote;
+}
+
+.sb-prose blockquote p:last-of-type::after {
+  content: close-quote;
+}
+
+.sb-prose pre {
+  @apply overflow-x-auto;
+  @apply bg-primary;
+  @apply text-primary-foreground;
+  @apply text-sm;
+  @apply p-4;
+  @apply rounded-sm;
+  @apply my-4;
+}
+
+.sb-prose code {
+  @apply text-sm;
+}
+
+.sb-prose h1 > code,
+.sb-prose h2 > code,
+.sb-prose h3 > code,
+.sb-prose h4 > code,
+.sb-prose h5 > code {
+  @apply font-mono;
+  font-size: inherit;
+}
+
+.sb-prose h1 {
+  @apply text-4xl;
+  @apply font-bold;
+}
+
+.sb-prose h2 {
+  font-size: 2rem;
+  @apply leading-9;
+  @apply font-bold;
+  @apply my-5;
+}
+
+.sb-prose h3 {
+  font-size: 1.75rem;
+  @apply leading-8;
+  @apply font-bold;
+  @apply my-4;
+}
+
+.sb-prose h4 {
+  @apply text-2xl;
+  @apply font-bold;
+  @apply my-3;
+}
+
+.sb-prose h5 {
+  @apply text-lg;
+  @apply font-bold;
+  @apply my-3;
+}
+
+.sb-prose hr {
+  @apply my-5;
+}
+
+.sb-prose ol {
+  @apply list-decimal;
+  @apply ps-6;
+  margin: 1.15em 0;
+}
+
+.sb-prose ol > li:marker {
+  @apply font-normal;
+}
+
+.sb-prose ul {
+  @apply list-disc;
+  @apply ps-6;
+  margin: 1.15em 0;
+}
+
+.sb-prose li {
+  margin: 5px 0;
+}
+
+.sb-prose ol > li {
+  @apply ps-1.5;
+}
+
+.sb-prose ul > li {
+  @apply ps-1.5;
+}
+
 .cm-editor {
   @apply rounded-b;
   max-height: 80vh;

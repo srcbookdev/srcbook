@@ -263,7 +263,7 @@ function TitleCell(props: {
     <div className="my-4">
       <EditableH1
         text={props.cell.text}
-        className="text-4xl font-bold"
+        className="text-5xl font-bold"
         onUpdated={(text) => props.onUpdateCell(props.cell, { text })}
       />
     </div>
@@ -278,7 +278,13 @@ function MarkdownCell(props: {
   const cell = props.cell;
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
-  const [text, setText] = useState(props.cell.text);
+  const [text, setText] = useState(cell.text);
+
+  useEffect(() => {
+    if (status === 'edit') {
+      setText(cell.text);
+    }
+  }, [status, cell]);
 
   const keyMap = Prec.highest(
     keymap.of([
@@ -293,11 +299,6 @@ function MarkdownCell(props: {
     ]),
   );
 
-  function onChangeSource(source: string) {
-    setText(source);
-    props.onUpdateCell(cell, { text: source });
-  }
-
   function onSave() {
     props.onUpdateCell(cell, { text });
     setStatus('view');
@@ -307,36 +308,54 @@ function MarkdownCell(props: {
   return (
     <div
       onDoubleClick={() => setStatus('edit')}
-      className="group/cell relative w-full border border-transparent p-4 hover:border-gray-200 rounded-sm transition-all"
+      className={cn(
+        'group/cell relative w-full pb-3 px-3 rounded-sm hover:bg-input',
+        status === 'edit' && 'bg-input ring-2 ring-ring',
+        'transition-colors',
+      )}
     >
       {status === 'view' ? (
-        <div className="prose dark:prose-invert prose-p:my-0 max-w-full prose-inline-code:rounded prose-inline-code:bg-gray-100 prose-inline-code:border prose-inline-code:border-gray-200 prose-inline-code:px-1">
-          <Markdown>{text}</Markdown>
-          <div className="absolute top-1 right-1 hidden group-hover/cell:flex group-focus-within/cell:flex items-center gap-0.5 border border-gray-200 rounded-sm px-1 py-0.5 bg-background z-10">
-            <Button variant="secondary" onClick={() => setStatus('edit')}>
-              <Pencil size={16} />
-            </Button>
-
-            <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-              <Button variant="secondary" size={'icon'}>
-                <Trash2 size={16} />
+        <div>
+          <div className="w-full h-11 hidden group-hover/cell:flex items-center justify-between z-10">
+            <h5 className="text-sm font-mono font-bold">Markdown</h5>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="secondary"
+                size="icon"
+                className="border-transparent"
+                onClick={() => setStatus('edit')}
+              >
+                <Pencil size={16} />
               </Button>
-            </DeleteCellWithConfirmation>
+
+              <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+                <Button variant="secondary" size="icon" className="border-transparent">
+                  <Trash2 size={16} />
+                </Button>
+              </DeleteCellWithConfirmation>
+            </div>
+          </div>
+          <div className="sb-prose pt-11 group-hover/cell:pt-0">
+            <Markdown>{cell.text}</Markdown>
           </div>
         </div>
       ) : (
         <div className="flex flex-col">
-          <div className="flex items-center justify-between pb-2">
-            <div className="flex gap-2 items-center">
+          <div className="w-full h-11 flex items-center justify-between z-10">
+            <h5 className="text-sm font-mono font-bold">Markdown</h5>
+            <div className="flex items-center gap-0.5">
+              <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+                <Button variant="secondary" size="icon">
+                  <Trash2 size={16} />
+                </Button>
+              </DeleteCellWithConfirmation>
+
               <Button variant="secondary" onClick={() => setStatus('view')}>
                 Cancel
               </Button>
+
               <Button onClick={onSave}>Save</Button>
             </div>
-            {cell.text === '' && <p className="text-xl text-gray-300">new markdown cell</p>}
-            <Button variant="destructive" onClick={() => props.onDeleteCell(cell)}>
-              Delete
-            </Button>
           </div>
 
           <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
@@ -347,7 +366,7 @@ function MarkdownCell(props: {
               value={text}
               basicSetup={{ lineNumbers: false, foldGutter: false }}
               extensions={[markdown(), keyMap]}
-              onChange={onChangeSource}
+              onChange={(source) => setText(source)}
             />
           </div>
         </div>

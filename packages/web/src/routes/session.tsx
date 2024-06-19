@@ -309,14 +309,14 @@ function MarkdownCell(props: {
     <div
       onDoubleClick={() => setStatus('edit')}
       className={cn(
-        'group/cell relative w-full pb-3 px-3 rounded-sm hover:bg-input',
+        'group/cell relative w-full pb-3 rounded-sm hover:bg-input',
         status === 'edit' && 'bg-input ring-2 ring-ring',
         'transition-colors',
       )}
     >
       {status === 'view' ? (
         <div>
-          <div className="w-full h-11 hidden group-hover/cell:flex items-center justify-between z-10">
+          <div className="pl-3 pr-1 w-full h-11 hidden group-hover/cell:flex items-center justify-between z-10">
             <h5 className="text-sm font-mono font-bold">Markdown</h5>
             <div className="flex items-center gap-0.5">
               <Button
@@ -335,13 +335,13 @@ function MarkdownCell(props: {
               </DeleteCellWithConfirmation>
             </div>
           </div>
-          <div className="sb-prose pt-11 group-hover/cell:pt-0">
+          <div className="sb-prose px-3 pt-11 group-hover/cell:pt-0">
             <Markdown>{cell.text}</Markdown>
           </div>
         </div>
       ) : (
         <div className="flex flex-col">
-          <div className="w-full h-11 flex items-center justify-between z-10">
+          <div className="px-3 w-full h-11 flex items-center justify-between z-10">
             <h5 className="text-sm font-mono font-bold">Markdown</h5>
             <div className="flex items-center gap-0.5">
               <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
@@ -358,7 +358,7 @@ function MarkdownCell(props: {
             </div>
           </div>
 
-          <div className="border rounded group outline-blue-100 focus-within:outline focus-within:outline-2">
+          <div className="px-3 border rounded-sm">
             <CodeMirror
               autoFocus
               theme={githubLight}

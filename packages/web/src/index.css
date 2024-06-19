@@ -138,6 +138,10 @@
   margin-top: 0;
 }
 
+.sb-prose > *:last-child {
+  margin-bottom: 0;
+}
+
 .sb-prose p {
   @apply my-3;
 }

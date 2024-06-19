@@ -200,18 +200,11 @@ async function tscExec({ session, cell, secrets }: ExecRequestType) {
       stderr(data) {
         wss.broadcast(`session:${session.id}`, 'cell:output', {
           cellId: cell.id,
-          output: { type: 'stderr', data: data.toString('utf8') },
+          output: { type: 'tsc', data: data.toString('utf8') },
         });
       },
       onExit() {
-        // Reload cell to get most recent version which may have been updated since
-        // in the time between initially running this cell and when running finishes.
-        //
-        // TODO: Real state management pls.
-        //
-        const mostRecentCell = session.cells.find((c) => c.id === cell.id) as CodeCellType;
-        mostRecentCell.status = 'idle';
-        wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: mostRecentCell });
+        // TSC is only used to send data over stdout
       },
     }),
   );

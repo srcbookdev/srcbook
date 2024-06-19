@@ -47,10 +47,8 @@ function Home() {
 
   async function openTutorial(tutorial: string) {
     const { result } = await importSrcbook({ path: `tutorials/${tutorial}.srcmd` });
-    console.log('Result from importSrcbook:', result);
-
     const { result: newSession } = await createSession({ path: result.dir });
-    console.log('Result from creating session', newSession);
+
     return navigate(`/sessions/${newSession.id}`);
   }
 

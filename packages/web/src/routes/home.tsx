@@ -100,7 +100,13 @@ function Home() {
             <input type="hidden" name="path" value={baseDir} />
             <input type="hidden" name="language" value={language} />
             <div className="flex items-center justify-center h-full gap-2">
-              <Input placeholder="Srcbook name" required className="w-60" name="name" />
+              <Input
+                required
+                name="name"
+                placeholder="Srcbook name"
+                autoComplete="off"
+                className="w-60"
+              />
               <div className="flex items-center space-x-1">
                 <LanguageLogo language={language} width={36} height={36} className="rounded" />
                 <Switch checked={language === 'typescript'} onCheckedChange={onChangeLanguage} />
@@ -132,7 +138,7 @@ function Home() {
               return (
                 <div
                   key={session.id}
-                  className="border border-border rounded-lg p-3 hover:bg-muted transition-all w-full"
+                  className="border border-border rounded-lg p-3 hover:bg-muted hover:shadow transition-shadow w-full"
                 >
                   <Link to={`sessions/${session.id}`}>
                     <div className="flex items-start justify-between">

@@ -176,16 +176,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    require('tailwindcss-animate'),
-    require('@tailwindcss/typography'),
-    // This allows us to target the inline code blocks only
-    // https://aaronfrancis.com/2023/targeting-only-inline-code-elements-with-tailwind-typography-3b5e8d43#:~:text=To%20only%20target%20inline%20code,to%20add%20a%20custom%20variant.&text=To%20add%20an%20prose%2Dinline,config.
-    plugin(function ({ addVariant }) {
-      addVariant(
-        'prose-inline-code',
-        '&.prose :where(:not(pre)>code):not(:where([class~="not-prose"] *))',
-      );
-    }),
-  ],
+  plugins: [require('tailwindcss-animate')],
 };

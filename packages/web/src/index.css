@@ -119,6 +119,44 @@
   }
 }
 
+@layer components {
+  .title {
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  .h1 {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    font-weight: 700;
+  }
+
+  .h2 {
+    font-size: 2rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+  }
+
+  .h3 {
+    font-size: 1.75rem;
+    line-height: 2.125rem;
+    font-weight: 700;
+  }
+
+  .h4 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+  }
+
+  .h5 {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -189,33 +227,27 @@
 }
 
 .sb-prose h1 {
-  @apply text-4xl;
-  @apply font-bold;
+  @apply h1;
+  @apply my-5;
 }
 
 .sb-prose h2 {
-  font-size: 2rem;
-  @apply leading-9;
-  @apply font-bold;
+  @apply h2;
   @apply my-5;
 }
 
 .sb-prose h3 {
-  font-size: 1.75rem;
-  @apply leading-8;
-  @apply font-bold;
+  @apply h3;
   @apply my-4;
 }
 
 .sb-prose h4 {
-  @apply text-2xl;
-  @apply font-bold;
+  @apply h4;
   @apply my-3;
 }
 
 .sb-prose h5 {
-  @apply text-lg;
-  @apply font-bold;
+  @apply h5;
   @apply my-3;
 }
 

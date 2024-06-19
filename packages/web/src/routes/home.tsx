@@ -27,6 +27,24 @@ async function action({ request }: { request: Request }) {
   return redirect(`/sessions/${sessionResult.id}`);
 }
 
+const guides = [
+  {
+    name: 'getting-started',
+    title: 'Getting started',
+    description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
+  },
+  {
+    name: 'getting-started',
+    title: 'Getting started',
+    description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
+  },
+  {
+    name: 'getting-started',
+    title: 'Getting started',
+    description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
+  },
+];
+
 type HomeLoaderDataType = {
   baseDir: string;
   sessions: SessionType[];
@@ -53,88 +71,98 @@ function Home() {
   }
 
   return (
-    <>
+    <div className="divide-y divide-border">
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
-      <h1 className="text-2xl mx-auto mb-8">Get started</h1>
-      <div className="flex gap-4">
-        <div
-          className="flex flex-col items-center hover:cursor-pointer"
-          onClick={() => openTutorial('getting-started')}
-        >
-          <div className="w-48 h-24 bg-sb-core-90 w-full"></div>
-          <div className="w-48 border flex flex-col p-2 gap-2">
-            <h3 className="font-bold text-xl">Getting started</h3>
-            <p className="text-xs">Understand the basic concepts of srcbooks.</p>
-          </div>
-        </div>
-      </div>
-      <h1 className="text-2xl mx-auto my-8">Srcbooks</h1>
-      <p>Create a new Srcbook or open an existing one</p>
-      <div className="mt-4 flex items-center gap-12">
-        <Form method="post" className="h-full">
-          <input type="hidden" name="path" value={baseDir} />
-          <input type="hidden" name="language" value={language} />
-          <div className="flex items-center justify-center h-full gap-2">
-            <Input placeholder="Srcbook name" required className="w-60" name="name" />
-            <div className="flex items-center space-x-1">
-              <LanguageLogo language={language} width={36} height={36} className="rounded" />
-              <Switch checked={language === 'typescript'} onCheckedChange={onChangeLanguage} />
-            </div>
-            <Button size="default-with-icon">
-              <PlusIcon size={16} /> Create New
-            </Button>
-          </div>
-        </Form>
-        <p>or</p>
-        <div className="flex flex-col items-center justify-center h-full">
-          <Link to="/open" className="flex items-center space-x-2">
-            <Button variant="secondary" type="submit">
-              Open
-            </Button>
-          </Link>
-        </div>
-      </div>
-      <h2 className="text-xl mx-auto mt-8 mb-4">Recent notebooks</h2>
-      {sessions.length === 0 ? (
-        <p className="text-gray-500">
-          No sessions are currently open. Create a new session or open a previous one.
-        </p>
-      ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-          {sessions.map((session) => {
-            return (
+
+      {guides.length > 0 && (
+        <div className="mb-11">
+          <h4 className="h4 mx-auto mb-10">Get started</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {guides.map((guide) => (
               <div
-                key={session.id}
-                className="border border-gray-200 rounded-lg p-3 transition-all hover:bg-gray-50 w-full"
+                className="flex flex-col items-center hover:cursor-pointer hover:shadow transition-shadow"
+                onClick={() => openTutorial(guide.name)}
               >
-                <Link to={`sessions/${session.id}`}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
-                      <p className="text-sm text-gray-400">{session.cells.length} cells</p>
-                      <Button
-                        variant="secondary"
-                        className="mt-2"
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setSession(session);
-                          setShowDelete(true);
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                    <CanvasCells numCells={session.cells.length} height={80} width={40} />
-                  </div>
-                </Link>
+                <div className="w-full h-44 bg-border"></div>
+                <div className="w-full border p-4 gap-2">
+                  <h4 className="h4">{guide.title}</h4>
+                  <p className="text-sm">{guide.description}</p>
+                </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       )}
-    </>
+      <div className="mb-16">
+        <h4 className="h4 mx-auto my-6">New Srcbook</h4>
+        <div className="mt-4 flex items-center gap-12">
+          <Form method="post" className="h-full">
+            <input type="hidden" name="path" value={baseDir} />
+            <input type="hidden" name="language" value={language} />
+            <div className="flex items-center justify-center h-full gap-2">
+              <Input placeholder="Srcbook name" required className="w-60" name="name" />
+              <div className="flex items-center space-x-1">
+                <LanguageLogo language={language} width={36} height={36} className="rounded" />
+                <Switch checked={language === 'typescript'} onCheckedChange={onChangeLanguage} />
+              </div>
+              <Button size="default-with-icon">
+                <PlusIcon size={16} /> Create New
+              </Button>
+            </div>
+          </Form>
+          <p>or</p>
+          <div className="flex flex-col items-center justify-center h-full">
+            <Link to="/open" className="flex items-center space-x-2">
+              <Button variant="secondary" type="submit">
+                Open
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+      <div className="mb-16">
+        <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
+        {sessions.length === 0 ? (
+          <p className="text-gray-500">
+            No sessions are currently open. Create a new session or open a previous one.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+            {sessions.map((session) => {
+              return (
+                <div
+                  key={session.id}
+                  className="border border-border rounded-lg p-3 hover:bg-muted transition-all w-full"
+                >
+                  <Link to={`sessions/${session.id}`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
+                        <p className="text-sm text-gray-400">{session.cells.length} cells</p>
+                        <Button
+                          variant="secondary"
+                          className="mt-2"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSession(session);
+                            setShowDelete(true);
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                      <CanvasCells numCells={session.cells.length} height={80} width={40} />
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

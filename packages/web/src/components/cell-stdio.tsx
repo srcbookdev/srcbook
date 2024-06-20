@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Ban, X } from 'lucide-react';
 import { CodeCellType, PackageJsonCellType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
 import { useCells } from '@/components/use-cell';
 import { OutputType, StdoutOutputType, StderrOutputType, TscOutputType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
@@ -10,12 +11,16 @@ export function CellStdio({
   sessionId,
   cell,
   channel,
+  show,
+  setShow,
 }: {
   sessionId: string;
   cell: CodeCellType | PackageJsonCellType;
   channel: SessionChannel;
+  show: boolean;
+  setShow: (show: boolean) => void;
 }) {
-  const { hasOutput, getOutput, clearOutput } = useCells();
+  const { getOutput, clearOutput } = useCells();
 
   const [activeTab, setActiveTab] = useState('stdout');
   const [showStdin, setShowStdin] = useState(false);
@@ -37,9 +42,7 @@ export function CellStdio({
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
   const tscOutput = getOutput(cell.id, 'tsc') as TscOutputType[];
 
-  // Make sure to also check cell.status here because the user may want
-  // to access stdin when a cell is running regardless of stdout/stderr
-  if (!hasOutput(cell.id) && cell.status !== 'running') {
+  if (!show) {
     return null;
   }
 
@@ -47,16 +50,21 @@ export function CellStdio({
     channel.push('cell:stdin', { sessionId: sessionId, cellId: cell.id, stdin });
   }
 
+  function dismiss() {
+    clearOutput(cell.id);
+    setShow(false);
+  }
+
   return (
-    <div className="border rounded mt-2 font-mono text-sm bg-input/10">
+    <div className="border-t font-mono text-sm">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="p-0.5 flex items-center justify-between bg-muted text-muted-foreground rounded-t">
-          <TabsList className="w-full justify-start rounded-none">
+        <div className="px-3 flex items-center justify-between bg-muted text-tertiary-foreground border-b">
+          <TabsList className="h-full">
             <TabsTrigger value="stdout">stdout</TabsTrigger>
             <TabsTrigger value="stderr">
               {stderr.length > 0 ? (
                 <>
-                  stderr <span className="text-orange-800">({stderr.length})</span>
+                  stderr <span className="text-destructive/80 px-2">({stderr.length})</span>
                 </>
               ) : (
                 'stderr'
@@ -66,7 +74,7 @@ export function CellStdio({
               <TabsTrigger value="problems">
                 {tscOutput.length > 0 ? (
                   <>
-                    problems <span className="text-orange-800">({tscOutput.length})</span>
+                    problems <span className="text-destructive/80">({tscOutput.length})</span>
                   </>
                 ) : (
                   'problems'
@@ -77,14 +85,14 @@ export function CellStdio({
               <TabsTrigger value="stdin">stdin</TabsTrigger>
             )}
           </TabsList>
-          {hasOutput(cell.id) && (
-            <button
-              className="px-3 py-1 ring-offset-background hover:font-medium hover:underline underline-offset-2"
-              onClick={() => clearOutput(cell.id)}
-            >
-              clear
+          <div className="flex items-center gap-6">
+            <button className=" hover:text-secondary-hover" onClick={() => clearOutput(cell.id)}>
+              <Ban size={16} />
             </button>
-          )}
+            <button className=" hover:text-secondary-hover" onClick={dismiss}>
+              <X size={20} />
+            </button>
+          </div>
         </div>
         <TabsContent value="stdout" className="mt-0">
           <Stdout stdout={stdout} />
@@ -115,7 +123,7 @@ function Stdout({ stdout }: { stdout: StdoutOutputType[] }) {
   return (
     <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap">
       {stdout.length === 0 ? (
-        <div className="italic text-center">No output</div>
+        <div className="italic text-center text-muted-foreground text-sm">No output</div>
       ) : (
         formatOutput(stdout)
       )}
@@ -128,11 +136,13 @@ function Stderr({ stderr }: { stderr: StderrOutputType[] }) {
     <div
       className={cn(
         'p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap',
-        stderr.length > 0 && 'text-orange-800',
+        stderr.length > 0 && 'text-destructive/80',
       )}
     >
       {stderr.length === 0 ? (
-        <div className="italic text-center">No errors or warnings</div>
+        <div className="italic text-center text-muted-foreground text-sm">
+          No errors or warnings
+        </div>
       ) : (
         formatOutput(stderr)
       )}

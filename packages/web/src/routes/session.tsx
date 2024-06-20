@@ -392,12 +392,14 @@ function PackageJsonCell(props: {
 
   const [open, setOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
+  const [showStdio, setShowStdio] = useState(false);
 
   const { updateCell, clearOutput } = useCells();
   const { codeTheme } = useTheme();
 
   const npmInstall = useCallback(
     (packages?: Array<string>) => {
+      setShowStdio(true);
       setOpen(true);
       // Here we use the client-only updateCell function. The server will know its running from the 'deps:install'.
       updateCell({ ...cell, status: 'running' });
@@ -433,7 +435,7 @@ function PackageJsonCell(props: {
   const onOpenChange = (state: boolean) => {
     // Clear the output when we collapse the package.json cell.
     if (!state) {
-      clearOutput(cell.id);
+      setShowStdio(false);
     }
     setOpen(state);
   };
@@ -521,7 +523,13 @@ function PackageJsonCell(props: {
               basicSetup={{ lineNumbers: true, foldGutter: false }}
             />
 
-            <CellStdio sessionId={session.id} cell={cell} channel={channel} />
+            <CellStdio
+              sessionId={session.id}
+              cell={cell}
+              channel={channel}
+              show={showStdio}
+              setShow={setShowStdio}
+            />
           </CollapsibleContent>
         </div>
       </Collapsible>
@@ -537,6 +545,7 @@ function CodeCell(props: {
 }) {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
   const [error, setError] = useState<string | null>(null);
+  const [showStdio, setShowStdio] = useState(false);
 
   const { codeTheme } = useTheme();
   const { updateCell, clearOutput } = useCells();
@@ -581,6 +590,7 @@ function CodeCell(props: {
     if (cell.status === 'running') {
       return false;
     }
+    setShowStdio(true);
 
     // Update client side only. The server will know it's running from the 'cell:exec' event.
     updateCell({ ...cell, status: 'running' });
@@ -597,7 +607,7 @@ function CodeCell(props: {
   }
 
   return (
-    <div className="relative group/cell space-y-1.5">
+    <div className="relative group/cell">
       <div
         className={cn(
           'border rounded-md group',
@@ -625,7 +635,7 @@ function CodeCell(props: {
             )}
           >
             <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-              <Button variant="ghost" size="icon" tabIndex={1}>
+              <Button variant="icon" size="icon" tabIndex={1}>
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
@@ -651,8 +661,14 @@ function CodeCell(props: {
           ]}
           onChange={onChangeSource}
         />
+        <CellStdio
+          sessionId={session.id}
+          cell={cell}
+          channel={channel}
+          show={showStdio}
+          setShow={setShowStdio}
+        />
       </div>
-      <CellStdio sessionId={session.id} cell={cell} channel={channel} />
     </div>
   );
 }

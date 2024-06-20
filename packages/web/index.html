@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Srcbook</title>
     <script type="text/javascript">
-      (function(theme) {
+      (function (theme) {
         if (theme === null) {
           return;
         }
@@ -17,7 +17,6 @@
           html.classList.remove('dark');
           html.classList.add('light');
         }
-
       })(localStorage.getItem('sb:theme'));
     </script>
   </head>

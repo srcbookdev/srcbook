@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 import { ExportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
+import SessionMenu from '@/components/session-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
@@ -153,6 +154,11 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
       >
         toggle theme
       </p>
+      <SessionMenu
+        showShortcuts={showShortcuts}
+        setShowShortcuts={setShowShortcuts}
+        session={session}
+      />
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
@@ -236,6 +242,7 @@ function Cell(props: {
     case 'code':
       return (
         <CodeCell
+          id={props.id}
           session={props.session}
           cell={props.cell}
           channel={props.channel}
@@ -270,7 +277,7 @@ function TitleCell(props: {
   onUpdateCell: (cell: TitleCellType, attrs: TitleCellUpdateAttrsType) => Promise<void>;
 }) {
   return (
-    <div className="my-4">
+    <div id={`cell-${props.cell.id}`} className="my-4">
       <EditableH1
         text={props.cell.text}
         className="title"
@@ -318,6 +325,7 @@ function MarkdownCell(props: {
 
   return (
     <div
+      id={`cell-${props.cell.id}`}
       onDoubleClick={() => setStatus('edit')}
       className={cn(
         'group/cell relative w-full pb-3 rounded-md hover:bg-input',
@@ -461,7 +469,7 @@ function PackageJsonCell(props: {
   }
 
   return (
-    <>
+    <div id={`cell-${props.cell.id}`}>
       <InstallPackageModal
         channel={channel}
         session={session}
@@ -544,7 +552,7 @@ function PackageJsonCell(props: {
           </CollapsibleContent>
         </div>
       </Collapsible>
-    </>
+    </div>
   );
 }
 function CodeCell(props: {
@@ -618,7 +626,7 @@ function CodeCell(props: {
   }
 
   return (
-    <div className="relative group/cell">
+    <div className="relative group/cell" id={`cell-${props.cell.id}`}>
       <div
         className={cn(
           'border rounded-md group',

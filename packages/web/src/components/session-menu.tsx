@@ -51,7 +51,7 @@ export default function SessionMenu({ session }: Props) {
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
   return (
-    <div className="fixed top-20 left-0 bg-background p-6 rounded space-y-8">
+    <div className="fixed top-20 left-0 bg-background p-6 rounded space-y-8 text-sm">
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
@@ -62,7 +62,7 @@ export default function SessionMenu({ session }: Props) {
           return (
             <p
               key={`toc-${index}`}
-              className="pl-3 hover:text-primary-hover hover:cursor-pointer :border-l hover:border-l-foreground -ml-[1px]"
+              className="pl-3 hover:text-primary-hover hover:cursor-pointer border-l hover:border-l-foreground -ml-[1px]"
               onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
             >
               {tocFromCell(cell)}
@@ -77,14 +77,14 @@ export default function SessionMenu({ session }: Props) {
           className="flex items-center gap-2 hover:cursor-pointer text-tertiary-foreground hover:text-primary-hover"
         >
           <Upload size={16} />
-          <p className="text-sm">Export</p>
+          <p>Export</p>
         </div>
         <div
           onClick={() => setShowDelete(true)}
           className="flex items-center gap-2 hover:cursor-pointer text-tertiary-foreground hover:text-primary-hover"
         >
           <Trash2 size={16} />
-          <p className="text-sm">Delete</p>
+          <p>Delete</p>
         </div>
 
         <div
@@ -92,7 +92,7 @@ export default function SessionMenu({ session }: Props) {
           className="flex items-center gap-2 hover:cursor-pointer text-tertiary-foreground hover:text-primary-hover"
         >
           <MessageCircleQuestion size={16} />
-          <p className="text-sm">Shortcuts</p>
+          <p>Shortcuts</p>
         </div>
       </div>
     </div>

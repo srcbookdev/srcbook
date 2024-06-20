@@ -6,7 +6,7 @@ export default function Layout() {
   return (
     <>
       <div className="flex flex-col">
-        <header className="h-12 min-h-12 max-h-12 flex items-center">
+        <header className="h-12 min-h-12 max-h-12 w-full flex items-center fixed bg-background z-20">
           <nav className="px-6 w-full">
             <ul className="flex items-center space-x-8">
               <li>

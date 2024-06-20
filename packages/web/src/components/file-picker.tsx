@@ -24,7 +24,7 @@ export default function FilePicker(props: {
 
   const submit = useSubmit();
 
-  async function onClick(entry: FsObjectType) {
+  async function onChange(entry: FsObjectType) {
     if (selected && selected.path === entry.path) {
       // Deselecting a file
       setSelected(null);
@@ -71,16 +71,7 @@ export default function FilePicker(props: {
         </Button>
       </Form>
 
-      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll bg-gray-50 p-2 rounded">
-        {entries.map((entry) => (
-          <FsEntryItem
-            key={entry.path}
-            entry={entry}
-            onClick={onClick}
-            selected={selected !== null && selected.path === entry.path}
-          />
-        ))}
-      </ul>
+      <FsEntrySelect entries={entries} selected={selected} onChange={onChange} />
     </div>
   );
 }
@@ -90,7 +81,7 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
   const [entries, setEntries] = useState(props.entries.filter((entry) => entry.isDirectory));
   const [selected, setSelected] = useState<null | FsObjectType>(null);
 
-  async function onClick(entry: FsObjectType) {
+  async function onChange(entry: FsObjectType) {
     setSelected(entry);
     const { result } = await disk({ dirname: entry.path });
     setDirname(result.dirname);
@@ -106,17 +97,31 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
         </Button>
       </Form>
 
-      <ul className="flex flex-wrap max-h-[383px] overflow-y-scroll bg-gray-50 p-2 rounded">
-        {entries.map((entry) => (
-          <FsEntryItem
-            key={entry.path}
-            entry={entry}
-            onClick={onClick}
-            selected={selected !== null && selected.path === entry.path}
-          />
-        ))}
-      </ul>
+      <FsEntrySelect entries={entries} selected={selected} onChange={onChange} />
     </div>
+  );
+}
+
+function FsEntrySelect({
+  entries,
+  selected,
+  onChange,
+}: {
+  entries: FsObjectType[];
+  selected: FsObjectType | null;
+  onChange: (entry: FsObjectType) => void;
+}) {
+  return (
+    <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-3 max-h-96 overflow-y-scroll bg-muted border p-2 rounded-sm">
+      {entries.map((entry) => (
+        <FsEntryItem
+          key={entry.path}
+          entry={entry}
+          onClick={onChange}
+          selected={selected !== null && selected.path === entry.path}
+        />
+      ))}
+    </ul>
   );
 }
 
@@ -136,15 +141,15 @@ function FsEntryItem({
   let classes: string;
 
   if (selected) {
-    classes = 'cursor-pointer bg-accent text-accent-foreground';
+    classes = 'cursor-pointer bg-primary text-primary-foreground';
   } else if (disabled) {
     classes = 'pointer-events-none';
   } else {
-    classes = 'hover:bg-accent hover:text-accent-foreground';
+    classes = 'hover:bg-primary hover:text-primary-foreground';
   }
 
   return (
-    <li className="text-sm w-1/2 md:w-1/3">
+    <li className="text-sm">
       <button
         className={cn('my-0.5 py-2 px-1 rounded w-full flex items-center cursor-pointer', classes)}
         disabled={disabled}
@@ -190,19 +195,12 @@ export function ExportLocationPicker(props: { onSave: (directory: string, path: 
         />
       </div>
 
-      <div className="flex flex-col h-[383px] bg-gray-50 p-2 rounded border border-input overflow-y-scroll divide-y divide-dashed">
-        <ul className="flex flex-wrap">
-          {fsResult.entries.map((entry) => (
-            <FsEntryItem
-              key={entry.path}
-              entry={entry}
-              disabled={!entry.isDirectory}
-              onClick={(entry) => disk({ dirname: entry.path }).then(onDiskResponse)}
-              selected={false}
-            />
-          ))}
-        </ul>
-      </div>
+      <FsEntrySelect
+        entries={fsResult.entries}
+        selected={null}
+        onChange={(entry) => disk({ dirname: entry.path }).then(onDiskResponse)}
+      />
+
       <div className="flex items-center justify-between">
         <div className="text-sm">
           {fsResult.dirname}/<span className="font-bold">{filename}</span>

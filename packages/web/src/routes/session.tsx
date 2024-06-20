@@ -143,6 +143,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
       >
         toggle theme
       </p>
+
       <SessionMenu session={session} />
 
       <div>
@@ -440,11 +441,11 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                'border rounded-md group',
-                cell.status === 'running'
-                  ? 'ring ring-2 ring-run-ring border-run-ring'
-                  : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
-              )
+                  'border rounded-md group',
+                  cell.status === 'running'
+                    ? 'ring ring-2 ring-run-ring border-run-ring'
+                    : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+                )
               : ''
           }
         >

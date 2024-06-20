@@ -1,8 +1,9 @@
 import { marked } from 'marked';
+import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import type { Tokens } from 'marked';
 import { useState } from 'react';
-import { Upload, Trash2, MessageCircleQuestion } from 'lucide-react';
+import { Upload, Trash2, MessageCircleQuestion, Circle } from 'lucide-react';
 import type { SessionType } from '../types';
 import type { CodeCellType, MarkdownCellType, TitleCellType } from '@srcbook/shared';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
@@ -61,29 +62,40 @@ export default function SessionMenu({ session }: Props) {
       {/** table of contents */}
       <div className="max-w-48 text-tertiary-foreground">
         {cells.map((cell) => {
+          const isRunningCell = cell.type === 'code' && cell.status === 'running';
           return (
-            <p
+            <div
               key={cell.id}
-              className="py-1 pl-3 hover:text-primary-hover border-l hover:border-l-foreground cursor-pointer truncate"
-              onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
+              className={cn(
+                'flex items-center py-1 pl-3 gap-2 border-l hover:text-foreground hover:font-medium hover:border-l-foreground cursor-pointer',
+                isRunningCell && 'text-run font-medium',
+              )}
             >
-              {tocFromCell(cell)}
-            </p>
+              {cell.type === 'code' && cell.status === 'running' && (
+                <Circle size={14} strokeWidth={3} className="text-run" />
+              )}
+              <p
+                className="truncate"
+                onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
+              >
+                {tocFromCell(cell)}
+              </p>
+            </div>
           );
         })}
       </div>
       {/** actions menus */}
-      <div className="space-y-1.5 text-tertiary-foreground">
+      <div className="space-y-1.5 text - tertiary - foreground">
         <div
           onClick={() => setShowSave(true)}
-          className="flex items-center gap-2 hover:text-primary-hover cursor-pointer"
+          className="flex items-center gap-2 hover:text-foreground hover:font-medium cursor-pointer"
         >
           <Upload size={16} />
           <p>Export</p>
         </div>
         <div
           onClick={() => setShowDelete(true)}
-          className="flex items-center gap-2 hover:text-primary-hover cursor-pointer"
+          className="flex items-center gap-2 hover:text-foreground hover:font-medium cursor-pointer"
         >
           <Trash2 size={16} />
           <p>Delete</p>
@@ -91,7 +103,7 @@ export default function SessionMenu({ session }: Props) {
 
         <div
           onClick={() => setShowShortcuts(true)}
-          className="flex items-center gap-2 hover:text-primary-hover cursor-pointer"
+          className="flex items-center gap-2 hover:text-foreground hover:font-medium cursor-pointer"
         >
           <MessageCircleQuestion size={16} />
           <p>Shortcuts</p>

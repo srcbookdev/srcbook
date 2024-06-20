@@ -188,7 +188,7 @@
   @apply font-semibold;
   @apply my-5;
   @apply italic;
-  @apply text-sb-core-110;
+  @apply text-tertiary-foreground;
   @apply ps-5;
   @apply border-s-4;
   @apply border-s-border;

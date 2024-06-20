@@ -131,6 +131,7 @@ module.exports = {
       },
       borderRadius: {
         sm: '0.1875rem', // 3px
+        md: '0.4375rem', // 7px
       },
       transitionProperty: {
         height: 'height',

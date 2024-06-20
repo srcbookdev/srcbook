@@ -288,8 +288,8 @@ function MarkdownCell(props: {
       id={`cell-${props.cell.id}`}
       onDoubleClick={() => setStatus('edit')}
       className={cn(
-        'group/cell relative w-full pb-3 rounded-md hover:bg-input',
-        status === 'edit' && 'bg-input ring-2 ring-ring',
+        'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border',
+        status === 'edit' && 'ring-2 ring-ring',
         'transition-colors',
       )}
     >
@@ -333,11 +333,7 @@ function MarkdownCell(props: {
                 </Button>
               </DeleteCellWithConfirmation>
 
-              <Button
-                variant="secondary"
-                onClick={() => setStatus('view')}
-                className="border-secondary hover:border-muted"
-              >
+              <Button variant="secondary" onClick={() => setStatus('view')}>
                 Cancel
               </Button>
 
@@ -345,7 +341,7 @@ function MarkdownCell(props: {
             </div>
           </div>
 
-          <div className="px-3 border rounded-sm">
+          <div className="px-3">
             <CodeMirror
               theme={codeTheme}
               indentWithTab={false}
@@ -441,15 +437,15 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group',
-                  cell.status === 'running'
-                    ? 'ring ring-2 ring-run-ring border-run-ring'
-                    : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
-                )
+                'border rounded-md group',
+                cell.status === 'running'
+                  ? 'ring ring-2 ring-run-ring border-run-ring'
+                  : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+              )
               : ''
           }
         >
-          <div className="flex w-full justify-between items-start p-1">
+          <div className="flex w-full justify-between items-start">
             <CollapsibleTrigger className="flex gap-3" asChild>
               <div>
                 <Button
@@ -474,7 +470,7 @@ function PackageJsonCell(props: {
             </CollapsibleTrigger>
 
             {open && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-1">
                 <Button variant="secondary" onClick={() => setInstallModalOpen(true)}>
                   Install package
                 </Button>

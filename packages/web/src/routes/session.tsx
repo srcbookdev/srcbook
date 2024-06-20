@@ -6,7 +6,7 @@ import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { Circle, Plus, Play, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
+import { Circle, Play, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
 import {
   CellType,
   CodeCellType,
@@ -32,7 +32,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import NewCellPopover from '@/components/new-cell-popover';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
@@ -184,17 +183,15 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
             {idx > 1 && (
-              <div className="flex justify-center w-full group">
-                <NewCellPopover
-                  createNewCell={(type) => {
-                    return createNewCell(type, idx);
-                  }}
-                  key={`popover-${cell.id}`}
-                >
-                  <div className="m-1 p-0.5 border rounded-full border-transparent text-transparent group-hover:text-foreground hover:border-foreground transition-all active:translate-y-0.5">
-                    <Plus size={16} />
-                  </div>
-                </NewCellPopover>
+              <div className="flex items-center gap-2 min-h-10 opacity-0 hover:opacity-100 transition-all">
+                <div className="flex-grow border-t border-foreground"></div>
+                <Button variant="secondary" onClick={() => createNewCell('code', idx)}>
+                  Code
+                </Button>
+                <Button variant="secondary" onClick={() => createNewCell('markdown', idx)}>
+                  Markdown
+                </Button>
+                <div className="flex-grow border-t border-foreground"></div>
               </div>
             )}
             <Cell
@@ -209,12 +206,18 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         ))}
       </div>
 
-      <div className="flex justify-center">
-        <NewCellPopover createNewCell={(type) => createNewCell(type, cells.length)}>
-          <div className="m-4 p-2 border rounded-full hover:bg-foreground hover:text-background hover:border-background transition-all active:translate-y-0.5">
-            <Plus size={24} />
-          </div>
-        </NewCellPopover>
+      {/** -- Add some padding at the bottom to make it more breathable + activate the new cell more easily */}
+      <div className="min-h-64 opacity-0 hover:opacity-100 transition-all">
+        <div className="flex items-center gap-2 min-h-10">
+          <div className="flex-grow border-t border-foreground"></div>
+          <Button variant="secondary" onClick={() => createNewCell('code', cells.length)}>
+            Code
+          </Button>
+          <Button variant="secondary" onClick={() => createNewCell('markdown', cells.length)}>
+            Markdown
+          </Button>
+          <div className="flex-grow border-t border-foreground"></div>
+        </div>
       </div>
     </div>
   );
@@ -462,11 +465,11 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                'border rounded-md group',
-                cell.status === 'running'
-                  ? 'ring ring-2 ring-run-ring border-run-ring'
-                  : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
-              )
+                  'border rounded-md group',
+                  cell.status === 'running'
+                    ? 'ring ring-2 ring-run-ring border-run-ring'
+                    : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+                )
               : ''
           }
         >

@@ -26,9 +26,13 @@ function Open() {
       <h1 className="text-2xl">Open a Srcbook</h1>
       <Tabs defaultValue="file" className="">
         <div className="flex w-full justify-center">
-          <TabsList className="">
-            <TabsTrigger value="file">open a .srcmd file</TabsTrigger>
-            <TabsTrigger value="directory">open a directory</TabsTrigger>
+          <TabsList className="border">
+            <TabsTrigger value="file" className="data-[active=true]:shadow">
+              open a <code className="px-1.5 text-sm">.srcmd</code> file
+            </TabsTrigger>
+            <TabsTrigger value="directory" className="data-[active=true]:shadow">
+              open a directory
+            </TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="file">

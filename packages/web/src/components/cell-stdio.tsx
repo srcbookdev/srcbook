@@ -64,7 +64,7 @@ export function CellStdio({
             <TabsTrigger value="stderr">
               {stderr.length > 0 ? (
                 <>
-                  stderr <span className="text-destructive/80 px-2">({stderr.length})</span>
+                  stderr <span className="text-sb-red-30 px-2">({stderr.length})</span>
                 </>
               ) : (
                 'stderr'
@@ -74,7 +74,7 @@ export function CellStdio({
               <TabsTrigger value="problems">
                 {tscOutput.length > 0 ? (
                   <>
-                    problems <span className="text-destructive/80">({tscOutput.length})</span>
+                    problems <span className="text-sb-red-30">({tscOutput.length})</span>
                   </>
                 ) : (
                   'problems'
@@ -136,7 +136,7 @@ function Stderr({ stderr }: { stderr: StderrOutputType[] }) {
     <div
       className={cn(
         'p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap',
-        stderr.length > 0 && 'text-destructive/80',
+        stderr.length > 0 && 'text-sb-red-30',
       )}
     >
       {stderr.length === 0 ? (

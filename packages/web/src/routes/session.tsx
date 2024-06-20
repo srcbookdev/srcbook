@@ -6,7 +6,7 @@ import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { StopCircle, Plus, PlayCircle, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
+import { Circle, Plus, Play, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
 import {
   CellType,
   CodeCellType,
@@ -317,16 +317,16 @@ function MarkdownCell(props: {
     <div
       onDoubleClick={() => setStatus('edit')}
       className={cn(
-        'group/cell relative w-full pb-3 rounded-sm hover:bg-input',
+        'group/cell relative w-full pb-3 rounded-md hover:bg-input',
         status === 'edit' && 'bg-input ring-2 ring-ring',
         'transition-colors',
       )}
     >
       {status === 'view' ? (
         <div>
-          <div className="pl-3 pr-1 w-full h-11 hidden group-hover/cell:flex items-center justify-between z-10">
-            <h5 className="text-sm font-mono font-bold">Markdown</h5>
-            <div className="flex items-center gap-0.5">
+          <div className="p-1 w-full h-11 hidden group-hover/cell:flex items-center justify-between z-10">
+            <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
+            <div className="flex items-center gap-1">
               <Button
                 variant="secondary"
                 size="icon"
@@ -349,9 +349,9 @@ function MarkdownCell(props: {
         </div>
       ) : (
         <div className="flex flex-col">
-          <div className="px-3 w-full h-11 flex items-center justify-between z-10">
-            <h5 className="text-sm font-mono font-bold">Markdown</h5>
-            <div className="flex items-center gap-0.5">
+          <div className="p-1 w-full flex items-center justify-between z-10">
+            <h5 className="pl-4 text-sm font-mono font-bold">Markdown</h5>
+            <div className="flex items-center gap-1">
               <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
                 <Button variant="secondary" size="icon">
                   <Trash2 size={16} />
@@ -368,7 +368,6 @@ function MarkdownCell(props: {
 
           <div className="px-3 border rounded-sm">
             <CodeMirror
-              autoFocus
               theme={codeTheme}
               indentWithTab={false}
               value={text}
@@ -393,12 +392,14 @@ function PackageJsonCell(props: {
 
   const [open, setOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
+  const [showStdio, setShowStdio] = useState(false);
 
   const { updateCell, clearOutput } = useCells();
   const { codeTheme } = useTheme();
 
   const npmInstall = useCallback(
     (packages?: Array<string>) => {
+      setShowStdio(true);
       setOpen(true);
       // Here we use the client-only updateCell function. The server will know its running from the 'deps:install'.
       updateCell({ ...cell, status: 'running' });
@@ -434,7 +435,7 @@ function PackageJsonCell(props: {
   const onOpenChange = (state: boolean) => {
     // Clear the output when we collapse the package.json cell.
     if (!state) {
-      clearOutput(cell.id);
+      setShowStdio(false);
     }
     setOpen(state);
   };
@@ -457,47 +458,60 @@ function PackageJsonCell(props: {
         setOpen={setInstallModalOpen}
       />
       <Collapsible open={open} onOpenChange={onOpenChange}>
-        <div className="flex w-full justify-between items-center gap-2">
-          <CollapsibleTrigger className="flex gap-3" asChild>
-            <div>
-              <Button variant="secondary" className="font-mono font-semibold active:translate-y-0">
-                package.json
-                <ChevronRight
-                  size="24"
-                  style={{
-                    transform: open ? `rotate(90deg)` : 'none',
-                  }}
-                />
-              </Button>
-            </div>
-          </CollapsibleTrigger>
+        <div
+          className={
+            open
+              ? cn(
+                'border rounded-md group',
+                cell.status === 'running'
+                  ? 'ring ring-2 ring-run-ring border-run-ring'
+                  : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+              )
+              : ''
+          }
+        >
+          <div className="flex w-full justify-between items-start p-1">
+            <CollapsibleTrigger className="flex gap-3" asChild>
+              <div>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'font-mono font-semibold active:translate-y-0 flex items-center gap-2',
+                    open ? 'hover:border-transparent' : '',
+                  )}
+                  size="lg"
+                >
+                  <p>package.json</p>
+                  <ChevronRight
+                    size="24"
+                    style={{
+                      transform: open ? `rotate(90deg)` : 'none',
+                      transition: 'transform 0.2s',
+                      color: 'hsl(var(--tertiary-foreground))',
+                    }}
+                  />
+                </Button>
+              </div>
+            </CollapsibleTrigger>
 
-          {open && (
-            <div className="flex items-center gap-2">
-              <Button variant="secondary" onClick={() => setInstallModalOpen(true)}>
-                Install package
-              </Button>
-              <Button
-                size="default-with-icon"
-                onClick={() => npmInstall()}
-                disabled={cell.status !== 'idle'}
-                className="font-mono"
-              >
-                <PlayCircle size={16} />
-                Run
-              </Button>
-            </div>
-          )}
-        </div>
-        <CollapsibleContent className="py-2">
-          <div
-            className={cn(
-              'border rounded group',
-              cell.status === 'running'
-                ? 'outline-orange-200 outline outline-2'
-                : 'outline-blue-100 focus-within:outline focus-within:outline-2',
+            {open && (
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" onClick={() => setInstallModalOpen(true)}>
+                  Install package
+                </Button>
+                <Button
+                  size="default-with-icon"
+                  onClick={() => npmInstall()}
+                  disabled={cell.status !== 'idle'}
+                  className="font-mono"
+                >
+                  <Play size={16} />
+                  Run
+                </Button>
+              </div>
             )}
-          >
+          </div>
+          <CollapsibleContent className="py-2">
             <CodeMirror
               value={cell.source.trim()}
               theme={codeTheme}
@@ -506,12 +520,18 @@ function PackageJsonCell(props: {
                 Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
               ]}
               onChange={onChangeSource}
-              basicSetup={{ lineNumbers: false, foldGutter: false }}
+              basicSetup={{ lineNumbers: true, foldGutter: false }}
             />
-          </div>
 
-          <CellStdio sessionId={session.id} cell={cell} channel={channel} />
-        </CollapsibleContent>
+            <CellStdio
+              sessionId={session.id}
+              cell={cell}
+              channel={channel}
+              show={showStdio}
+              setShow={setShowStdio}
+            />
+          </CollapsibleContent>
+        </div>
       </Collapsible>
     </>
   );
@@ -525,6 +545,7 @@ function CodeCell(props: {
 }) {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
   const [error, setError] = useState<string | null>(null);
+  const [showStdio, setShowStdio] = useState(false);
 
   const { codeTheme } = useTheme();
   const { updateCell, clearOutput } = useCells();
@@ -569,6 +590,7 @@ function CodeCell(props: {
     if (cell.status === 'running') {
       return false;
     }
+    setShowStdio(true);
 
     // Update client side only. The server will know it's running from the 'cell:exec' event.
     updateCell({ ...cell, status: 'running' });
@@ -585,22 +607,23 @@ function CodeCell(props: {
   }
 
   return (
-    <div className="relative group/cell space-y-1.5">
+    <div className="relative group/cell">
       <div
         className={cn(
-          'border rounded group',
+          'border rounded-md group',
           cell.status === 'running'
-            ? 'outline-orange-200 outline outline-2'
-            : 'outline-blue-100 focus-within:outline focus-within:outline-2',
+            ? 'ring ring-2 ring-run-ring border-run-ring'
+            : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
           error ? 'outline-red-500 outline outline-1' : '',
         )}
       >
-        <div className="px-1.5 py-2 border-b flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="p-1 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 w-[200px]">
             <FilenameInput
               filename={cell.filename}
               onUpdate={updateFilename}
               onChange={() => setError(null)}
+              className="group-hover:border-input"
             />
             {error && <div className="text-red-600 text-sm">{error}</div>}
           </div>
@@ -612,18 +635,18 @@ function CodeCell(props: {
             )}
           >
             <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-              <Button variant="ghost" size="icon" tabIndex={1}>
+              <Button variant="icon" size="icon" tabIndex={1}>
                 <Trash2 size={16} />
               </Button>
             </DeleteCellWithConfirmation>
             {cell.status === 'running' && (
               <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
-                <StopCircle size={16} /> Stop
+                <Circle size={16} /> Stop
               </Button>
             )}
             {cell.status === 'idle' && (
-              <Button variant="run" size="default-with-icon" onClick={runCell} tabIndex={1}>
-                <PlayCircle size={16} />
+              <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
+                <Play size={16} />
                 Run
               </Button>
             )}
@@ -638,14 +661,21 @@ function CodeCell(props: {
           ]}
           onChange={onChangeSource}
         />
+        <CellStdio
+          sessionId={session.id}
+          cell={cell}
+          channel={channel}
+          show={showStdio}
+          setShow={setShowStdio}
+        />
       </div>
-      <CellStdio sessionId={session.id} cell={cell} channel={channel} />
     </div>
   );
 }
 
 function FilenameInput(props: {
   filename: string;
+  className: string;
   onUpdate: (filename: string) => Promise<void>;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
@@ -656,43 +686,41 @@ function FilenameInput(props: {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <div className="font-bold">
-      <Input
-        autoFocus
-        onFocus={(e) => {
-          const input = e.target;
-          const value = input.value;
-          const dotIndex = value.lastIndexOf('.');
-          if (dotIndex !== -1) {
-            input.setSelectionRange(0, dotIndex);
-          } else {
-            input.select(); // In case there's no dot, select the whole value
-          }
-        }}
-        ref={inputRef}
-        onChange={onChange}
-        required
-        defaultValue={filename}
-        onBlur={() => {
-          if (!inputRef.current) {
-            return;
-          }
+    <Input
+      onFocus={(e) => {
+        const input = e.target;
+        const value = input.value;
+        const dotIndex = value.lastIndexOf('.');
+        if (dotIndex !== -1) {
+          input.setSelectionRange(0, dotIndex);
+        } else {
+          input.select(); // In case there's no dot, select the whole value
+        }
+      }}
+      ref={inputRef}
+      onChange={onChange}
+      required
+      defaultValue={filename}
+      onBlur={() => {
+        if (!inputRef.current) {
+          return;
+        }
 
-          const updatedFilename = inputRef.current.value;
-          if (updatedFilename !== filename) {
-            onUpdate(updatedFilename);
-          }
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && inputRef.current) {
-            inputRef.current.blur();
-          }
-        }}
-        className={cn(
-          'font-mono font-semibold text-xs border-transparent hover:border-input transition-colors',
-        )}
-      />
-    </div>
+        const updatedFilename = inputRef.current.value;
+        if (updatedFilename !== filename) {
+          onUpdate(updatedFilename);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && inputRef.current) {
+          inputRef.current.blur();
+        }
+      }}
+      className={cn(
+        'font-mono font-semibold text-xs border-transparent hover:border-input transition-colors',
+        props.className,
+      )}
+    />
   );
 }
 

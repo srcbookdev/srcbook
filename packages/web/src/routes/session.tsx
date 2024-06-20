@@ -356,12 +356,20 @@ function MarkdownCell(props: {
             <h5 className="pl-4 text-sm font-mono font-bold">Markdown</h5>
             <div className="flex items-center gap-1">
               <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-                <Button variant="secondary" size="icon">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="border-secondary hover:border-muted"
+                >
                   <Trash2 size={16} />
                 </Button>
               </DeleteCellWithConfirmation>
 
-              <Button variant="secondary" onClick={() => setStatus('view')}>
+              <Button
+                variant="secondary"
+                onClick={() => setStatus('view')}
+                className="border-secondary hover:border-muted"
+              >
                 Cancel
               </Button>
 
@@ -465,11 +473,11 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group',
-                  cell.status === 'running'
-                    ? 'ring ring-2 ring-run-ring border-run-ring'
-                    : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
-                )
+                'border rounded-md group',
+                cell.status === 'running'
+                  ? 'ring ring-2 ring-run-ring border-run-ring'
+                  : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+              )
               : ''
           }
         >
@@ -479,7 +487,7 @@ function PackageJsonCell(props: {
                 <Button
                   variant="ghost"
                   className={cn(
-                    'font-mono font-semibold active:translate-y-0 flex items-center gap-2',
+                    'font-mono font-semibold active:translate-y-0 flex items-center gap-2 pr-1',
                     open ? 'hover:border-transparent' : '',
                   )}
                   size="lg"

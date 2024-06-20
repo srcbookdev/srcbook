@@ -138,7 +138,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   return (
     <div>
       <p
-        className="fixed right-3 top-3 text-muted-foreground text-sm hover:cursor-pointer"
+        className="fixed right-3 top-12 text-muted-foreground text-sm hover:cursor-pointer"
         onClick={toggleTheme}
       >
         toggle theme

@@ -11,10 +11,10 @@ export default function ErrorPage() {
 
       <p>
         Sorry, an unexpected error has occured:
-        <span className="text-red-400 italic"> {error.statusText || error.message}</span>
+        <span className="text-destructive italic"> {error.statusText || error.message}</span>
       </p>
 
-      <Link to="/" className="text-blue-500 hover:underline">
+      <Link to="/" className="text-accent underline underline-offset-2">
         go home
       </Link>
     </div>

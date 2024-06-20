@@ -49,7 +49,7 @@ export default function DeleteSrcbookModal({
             </div>
           </DialogDescription>
         </DialogHeader>
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-destructive">{error}</p>}
         <div className="flex justify-end space-x-2">
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
             Cancel

@@ -1,30 +1,28 @@
-import { Form, useSubmit } from 'react-router-dom';
+import { Form } from 'react-router-dom';
 import { useRef, useState } from 'react';
 import { FileCode, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DiskResponseType, disk, importSrcbook } from '@/lib/server';
+import { DiskResponseType, disk } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 import type { FsObjectResultType, FsObjectType } from '@/types';
 import useEffectOnce from './use-effect-once';
 
-export default function FilePicker(props: {
+export function FilePicker(props: {
   dirname: string;
   entries: FsObjectType[];
   cta: string;
+  onChange: (entry: FsObjectType) => void;
 }) {
   const [dirname, setDirname] = useState(props.dirname);
   const [entries, setEntries] = useState(props.entries);
   const [selected, setSelected] = useState<FsObjectType | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const submit = useSubmit();
-
   async function onChange(entry: FsObjectType) {
+    setSubmitting(false);
+
     if (selected && selected.path === entry.path) {
       // Deselecting a file
       setSelected(null);
@@ -47,20 +45,20 @@ export default function FilePicker(props: {
       console.error('Cannot create srcbook from invalid selection. This is a bug in the code.');
       return;
     }
-
     setSubmitting(true);
-
-    const { result } = await importSrcbook({ path: selected.path });
-
-    inputRef.current!.value = result.dir;
-    submit(formRef.current);
+    props.onChange(selected);
   }
 
   return (
-    <div className="space-y-4 mt-4 w-full">
-      <Form ref={formRef} method="post" className="flex items-center space-x-2 w-full">
-        <Input value={selected?.path || dirname} name="srcmdpath" readOnly />
-        <input ref={inputRef} type="hidden" name="path" value="" />
+    <div className="space-y-4 w-full">
+      <div className="flex items-center space-x-2 w-full">
+        <Input
+          value={selected?.path || dirname}
+          name="srcmdpath"
+          readOnly
+          tabIndex={-1}
+          className="pointer-events-none"
+        />
         <Button
           className="w-32"
           type="button"
@@ -69,7 +67,7 @@ export default function FilePicker(props: {
         >
           {props.cta}
         </Button>
-      </Form>
+      </div>
 
       <FsEntrySelect entries={entries} selected={selected} onChange={onChange} />
     </div>
@@ -91,7 +89,7 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
   return (
     <div className="space-y-4 mt-4 w-full">
       <Form method="post" className="flex items-center space-x-2 w-full">
-        <Input value={dirname} name="path" readOnly />
+        <Input value={dirname} name="path" readOnly tabIndex={-1} className="pointer-events-none" />
         <Button className="w-32" type="submit" disabled={selected === null}>
           {props.cta}
         </Button>
@@ -187,9 +185,8 @@ export function ExportLocationPicker(props: { onSave: (directory: string, path: 
       <div className="space-y-1.5">
         <Input
           ref={filenameRef}
-          className="mb-2"
-          tabIndex={1}
-          autoFocus
+          className="mb-2 pointer-events-none"
+          tabIndex={-1}
           defaultValue={filename}
           onChange={(e) => setFilename(e.currentTarget.value.trimEnd())}
         />

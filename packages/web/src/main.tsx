@@ -4,7 +4,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './Layout';
 import './index.css';
 import Home from './routes/home';
-import Open from './routes/open';
 import Session from './routes/session';
 import Settings from './routes/settings';
 import Secrets from './routes/secrets';
@@ -21,13 +20,6 @@ const router = createBrowserRouter([
         element: <Home />,
         loader: Home.loader,
         action: Home.action,
-        errorElement: <ErrorPage />,
-      },
-      {
-        path: '/open',
-        loader: Open.loader,
-        element: <Open />,
-        action: Open.action,
         errorElement: <ErrorPage />,
       },
       {

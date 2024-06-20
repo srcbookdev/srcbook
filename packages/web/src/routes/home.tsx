@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import type { SessionType } from '@/types';
 import { useState } from 'react';
 import { LanguageLogo } from '@/components/logos';
+import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
 
 async function loader() {
   const { result: config } = await getConfig();
@@ -29,16 +30,19 @@ async function action({ request }: { request: Request }) {
 
 const guides = [
   {
+    id: 1,
     name: 'getting-started',
     title: 'Getting started',
     description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
   },
   {
+    id: 2,
     name: 'getting-started',
     title: 'Getting started',
     description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
   },
   {
+    id: 3,
     name: 'getting-started',
     title: 'Getting started',
     description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
@@ -58,6 +62,7 @@ function Home() {
   const [showDelete, setShowDelete] = useState(false);
   const [session, setSession] = useState<SessionType | undefined>(undefined);
   const [language, setLanguage] = useState<CodeLanguageType>(defaultLanguage);
+  const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
 
   function onChangeLanguage(checked: boolean) {
     setLanguage(checked ? 'typescript' : 'javascript');
@@ -73,6 +78,7 @@ function Home() {
   return (
     <div className="divide-y divide-border">
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
+      <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
       {guides.length > 0 && (
         <div className="mb-11">
@@ -80,6 +86,7 @@ function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {guides.map((guide) => (
               <div
+                key={guide.id}
                 className="flex flex-col items-center hover:cursor-pointer hover:shadow transition-shadow"
                 onClick={() => openTutorial(guide.name)}
               >
@@ -118,21 +125,15 @@ function Home() {
           </Form>
           <p>or</p>
           <div className="flex flex-col items-center justify-center h-full">
-            <Link to="/open" className="flex items-center space-x-2">
-              <Button variant="secondary" type="submit">
-                Open
-              </Button>
-            </Link>
+            <Button variant="secondary" onClick={() => setShowImportSrcbookModal(true)}>
+              Open
+            </Button>
           </div>
         </div>
       </div>
-      <div className="mb-16">
-        <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
-        {sessions.length === 0 ? (
-          <p className="text-tertiary-foreground">
-            No sessions are currently open. Create a new session or open a previous one.
-          </p>
-        ) : (
+      {sessions.length > 0 && (
+        <div className="mb-16">
+          <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
             {sessions.map((session) => {
               return (
@@ -168,8 +169,8 @@ function Home() {
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

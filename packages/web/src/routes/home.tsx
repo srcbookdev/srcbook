@@ -139,7 +139,7 @@ function Home() {
               return (
                 <div
                   key={session.id}
-                  className="border border-border rounded-lg p-3 hover:bg-muted hover:shadow transition-shadow w-full"
+                  className="border border-border rounded-sm p-3 hover:bg-muted hover:shadow transition-shadow w-full"
                 >
                   <Link to={`sessions/${session.id}`}>
                     <div className="flex items-start justify-between">

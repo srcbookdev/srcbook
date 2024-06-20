@@ -172,7 +172,7 @@ function SecretRow({ name, value }: { name: string; value: string }) {
           </>
         )}
       </li>
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
     </>
   );
 }

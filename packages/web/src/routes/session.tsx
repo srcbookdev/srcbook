@@ -25,7 +25,7 @@ import {
 } from '@srcbook/shared';
 import { loadSession, createCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
-import SaveModal from '@/components/save-modal-dialog';
+import { ExportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import { Button } from '@/components/ui/button';
@@ -156,7 +156,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
       </p>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
-      <SaveModal open={showSave} onOpenChange={setShowSave} session={session} />
+      <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
 
       <div className="fixed bottom-3 right-3">
         <div className="flex flex-col items-center gap-1.5">

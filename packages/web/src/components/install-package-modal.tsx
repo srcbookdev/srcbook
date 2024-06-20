@@ -104,7 +104,7 @@ export default function InstallPackageModal({
       >
         {mode === 'error' && (
           <div className="flex flex-col w-full h-full items-center justify-center gap-3">
-            <DialogTitle className="text-red-400">Something went wrong</DialogTitle>
+            <DialogTitle className="text-destructive">Something went wrong</DialogTitle>
             <p>Failed to install {pkg}, please try again.</p>
           </div>
         )}

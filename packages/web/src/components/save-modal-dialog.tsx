@@ -34,16 +34,14 @@ export default function SaveModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[800px]">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Save to file</DialogTitle>
           <DialogDescription asChild>
-            <div>
-              <p>
-                Export this Srcbook to a <code>.srcmd</code> file which is shareable and can be
-                imported into any Srcbook application.
-              </p>
-            </div>
+            <p>
+              Export this Srcbook to a <code>.srcmd</code> file which is shareable and can be
+              imported into any Srcbook application.
+            </p>
           </DialogDescription>
         </DialogHeader>
         <ExportLocationPicker onSave={onSave} />

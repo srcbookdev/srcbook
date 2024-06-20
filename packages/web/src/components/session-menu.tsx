@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import { useHotkeys } from 'react-hotkeys-hook';
 import type { Tokens } from 'marked';
 import { useState } from 'react';
 import { Upload, Trash2, MessageCircleQuestion } from 'lucide-react';
@@ -10,8 +11,6 @@ import { ExportSrcbookModal } from '@/components/import-export-srcbook-modal';
 
 type Props = {
   session: SessionType;
-  showShortcuts: boolean;
-  setShowShortcuts: (show: boolean) => void;
 };
 
 marked.use({ gfm: true });
@@ -42,10 +41,14 @@ const tocFromCell = (cell: CellType) => {
   }
 };
 
-export default function SessionMenu(props: Props) {
-  const { showShortcuts, setShowShortcuts, session } = props;
+export default function SessionMenu({ session }: Props) {
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
+
+  // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
+  // This assumes qwerty layout.
+  useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
   return (
     <div className="fixed top-20 left-0 bg-background p-6 rounded space-y-8">

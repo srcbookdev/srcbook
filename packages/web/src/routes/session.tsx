@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
-import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { Circle, Play, Trash2, Pencil, ChevronRight, Save } from 'lucide-react';
+import { Circle, Play, Trash2, Pencil, ChevronRight } from 'lucide-react';
 import {
   CellType,
   CodeCellType,
@@ -25,16 +24,13 @@ import {
 } from '@srcbook/shared';
 import { loadSession, createCell, deleteCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
-import { ExportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import { SessionType } from '@/types';
-import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import SessionMenu from '@/components/session-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EditableH1 } from '@/components/ui/heading';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
-import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import InstallPackageModal from '@/components/install-package-modal';
 import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
@@ -76,13 +72,6 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
   const { cells, setCells, updateCell, removeCell, createCodeCell, createMarkdownCell, setOutput } =
     useCells();
-
-  const [showShortcuts, setShowShortcuts] = useState(false);
-  const [showSave, setShowSave] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
-  // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
-  // This assumes qwerty layout.
-  useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
   async function onDeleteCell(cell: CellType) {
     if (cell.type === 'title') {
@@ -154,37 +143,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
       >
         toggle theme
       </p>
-      <SessionMenu
-        showShortcuts={showShortcuts}
-        setShowShortcuts={setShowShortcuts}
-        session={session}
-      />
-      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
-      <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
+      <SessionMenu session={session} />
 
-      <div className="fixed bottom-3 right-3">
-        <div className="flex flex-col items-center gap-1.5">
-          <div
-            className="font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
-            onClick={() => setShowSave(!showSave)}
-          >
-            <Save size={16} />
-          </div>
-          <div
-            className="font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
-            onClick={() => setShowDelete(!showDelete)}
-          >
-            <Trash2 size={16} />
-          </div>
-          <div
-            className="font-mono bg-gray-100 border border-gray-200 rounded-full shadow h-7 w-7 flex items-center justify-center hover:cursor-pointer text-gray-500 text-sm"
-            onClick={() => setShowShortcuts(!showShortcuts)}
-          >
-            ?
-          </div>
-        </div>
-      </div>
       <div>
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
@@ -481,11 +441,11 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                'border rounded-md group',
-                cell.status === 'running'
-                  ? 'ring ring-2 ring-run-ring border-run-ring'
-                  : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
-              )
+                  'border rounded-md group',
+                  cell.status === 'running'
+                    ? 'ring ring-2 ring-run-ring border-run-ring'
+                    : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+                )
               : ''
           }
         >

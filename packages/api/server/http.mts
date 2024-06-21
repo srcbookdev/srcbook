@@ -1,4 +1,6 @@
 import Path from 'node:path';
+import fs from 'node:fs/promises';
+import { SRCBOOKS_DIR } from '../constants.mjs';
 import express, { type Application } from 'express';
 import cors from 'cors';
 import type { MarkdownCellType, CodeCellType } from '@srcbook/shared';
@@ -130,7 +132,16 @@ router.get('/sessions/:id', cors(), async (req, res) => {
   const { id } = req.params;
 
   try {
-    const session = await findSession(id);
+    let session = await findSession(id);
+
+    if (!session) {
+      // This might be after a server restart, so we should try
+      // to see if we have a directory for this sessionId.
+      const exists = await fs.stat(Path.join(SRCBOOKS_DIR, id));
+      if (exists) {
+        session = await createSession(Path.join(SRCBOOKS_DIR, id));
+      }
+    }
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (e) {
     const error = e as unknown as Error;

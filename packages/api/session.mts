@@ -10,7 +10,6 @@ import type {
   CellErrorType,
 } from '@srcbook/shared';
 import {
-  randomid,
   TitleCellUpdateAttrsSchema,
   MarkdownCellUpdateAttrsSchema,
   CodeCellUpdateAttrsSchema,
@@ -45,7 +44,7 @@ export async function createSession(srcbookDir: string) {
   }
 
   const session: SessionType = {
-    id: randomid(),
+    id: Path.basename(srcbookDir),
     dir: srcbookDir,
     cells: result.cells,
     metadata: result.metadata,

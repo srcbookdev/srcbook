@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigate } from 'react-router-dom';
+import { useNavigate, useLoaderData, useNavigate, redirect } from 'react-router-dom';
 import { CodeLanguageType, TitleCellType } from '@srcbook/shared';
 import { getConfig, createSession, loadSessions, createSrcbook, importSrcbook } from '@/lib/server';
 import type { SessionType } from '@/types';
@@ -61,13 +61,14 @@ export default function Home() {
   async function onCreateSrcbook(title: string, language: CodeLanguageType) {
     const { result } = await createSrcbook({ path: baseDir, name: title, language: language });
     const { result: sessionResult } = await createSession({ path: result.path });
-    return navigate(`/sessions/${sessionResult.id}`);
+    return navigate(`/srcbooks/${sessionResult.id}`);
   }
 
   async function openTutorial(tutorial: string) {
     const { result } = await importSrcbook({ path: `tutorials/${tutorial}.srcmd` });
     const { result: newSession } = await createSession({ path: result.dir });
-    return navigate(`/sessions/${newSession.id}`);
+
+    return navigate(`/srcbooks/${newSession.id}`);
   }
 
   return (
@@ -109,7 +110,7 @@ export default function Home() {
                 running={session.cells.some((c) => c.type === 'code' && c.status === 'running')}
                 language={session.metadata.language}
                 cellCount={session.cells.length}
-                onClick={() => navigate(`/sessions/${session.id}`)}
+                onClick={() => navigate(`/srcbooks/${session.id}`)}
                 onDelete={() => onDeleteSession(session)}
               />
             ))}

@@ -227,8 +227,7 @@
 .sb-prose code:not(pre code) {
   @apply text-base;
   @apply rounded-sm;
-  @apply border;
-  @apply bg-muted;
+  @apply bg-sb-core-20;
   @apply px-1.5;
   @apply py-1;
 }
@@ -293,10 +292,12 @@
 
 .sb-prose ol > li {
   @apply ps-1.5;
+  @apply my-1;
 }
 
 .sb-prose ul > li {
   @apply ps-1.5;
+  @apply my-1;
 }
 
 .cm-editor {

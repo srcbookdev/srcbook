@@ -141,6 +141,7 @@ function buildTSPackageJson() {
     dependencies: {
       tsx: 'latest',
       typescript: 'latest',
+      '@types/node': 'latest',
     },
   };
 }

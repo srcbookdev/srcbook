@@ -37,9 +37,9 @@ const guides = [
   },
   {
     id: 2,
-    name: 'getting-started',
-    title: 'Getting started',
-    description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
+    name: 'langgraph-web-agent',
+    title: 'LangGraph agent',
+    description: 'Learn to write a stateful agent with  emory using langgraph and tavily.',
   },
   {
     id: 3,
@@ -90,7 +90,7 @@ function Home() {
                 className="flex flex-col items-center hover:cursor-pointer hover:shadow transition-shadow"
                 onClick={() => openTutorial(guide.name)}
               >
-                <div className="w-full h-44 bg-border"></div>
+                <div className="w-full grow h-44 bg-border"></div>
                 <div className="w-full border p-4 space-y-2">
                   <h4 className="h4">{guide.title}</h4>
                   <p className="text-sm text-tertiary-foreground">{guide.description}</p>

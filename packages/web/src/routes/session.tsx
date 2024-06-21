@@ -38,6 +38,7 @@ import { toast } from 'sonner';
 import useEffectOnce from '@/components/use-effect-once';
 import { CellStdio } from '@/components/cell-stdio';
 import useTheme from '@/components/use-theme';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -369,6 +370,12 @@ function PackageJsonCell(props: {
   const [installModalOpen, setInstallModalOpen] = useState(false);
   const [showStdio, setShowStdio] = useState(false);
 
+  useHotkeys('meta+i', () => {
+    if (!installModalOpen) {
+      setInstallModalOpen(true);
+    }
+  });
+
   const { updateCell, clearOutput } = useCells();
   const { codeTheme } = useTheme();
 
@@ -437,11 +444,11 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                'border rounded-md group',
-                cell.status === 'running'
-                  ? 'ring ring-2 ring-run-ring border-run-ring'
-                  : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
-              )
+                  'border rounded-md group',
+                  cell.status === 'running'
+                    ? 'ring ring-2 ring-run-ring border-run-ring'
+                    : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+                )
               : ''
           }
         >

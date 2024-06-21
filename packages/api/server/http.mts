@@ -52,6 +52,14 @@ router.options('/srcbooks', cors());
 router.post('/srcbooks', cors(), async (req, res) => {
   const { name, language } = req.body;
 
+  // TODO: Zod
+  if (typeof name !== 'string' || name.length < 1 || name.length > 32 || name.trim() === '') {
+    return res.json({
+      error: true,
+      result: 'Srcbook is required and cannot be more than 32 characters',
+    });
+  }
+
   try {
     const srcbookDir = await createSrcbook(name, { language });
     return res.json({ error: false, result: { name, path: srcbookDir } });

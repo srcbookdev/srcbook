@@ -44,7 +44,7 @@ export default function Layout() {
             </ul>
           </nav>
         </header>
-        <div className="w-full max-w-4xl mx-auto p-12 mt-12">
+        <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-12">
           <Outlet />
         </div>
       </div>

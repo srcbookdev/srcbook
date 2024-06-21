@@ -88,14 +88,14 @@ export default function SessionMenu({ session }: Props) {
       <div className="space-y-1.5 text - tertiary - foreground">
         <div
           onClick={() => setShowSave(true)}
-          className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+          className="flex items-center gap-2 hover:text-foreground/75 cursor-pointer"
         >
           <Upload size={16} />
           <p>Export</p>
         </div>
         <div
           onClick={() => setShowDelete(true)}
-          className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+          className="flex items-center gap-2 hover:text-foreground/75 cursor-pointer"
         >
           <Trash2 size={16} />
           <p>Delete</p>
@@ -103,7 +103,7 @@ export default function SessionMenu({ session }: Props) {
 
         <div
           onClick={() => setShowShortcuts(true)}
-          className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+          className="flex items-center gap-2 hover:text-foreground/75 cursor-pointer"
         >
           <MessageCircleQuestion size={16} />
           <p>Shortcuts</p>

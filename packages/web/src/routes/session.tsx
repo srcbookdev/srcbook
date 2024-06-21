@@ -446,8 +446,8 @@ function PackageJsonCell(props: {
               ? cn(
                   'border rounded-md group',
                   cell.status === 'running'
-                    ? 'ring ring-2 ring-run-ring border-run-ring'
-                    : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+                    ? 'ring-2 ring-run-ring border-run-ring'
+                    : 'focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
                 )
               : ''
           }
@@ -594,8 +594,8 @@ function CodeCell(props: {
         className={cn(
           'border rounded-md group',
           cell.status === 'running'
-            ? 'ring ring-2 ring-run-ring border-run-ring'
-            : 'focus-within:ring focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+            ? 'ring-2 ring-run-ring border-run-ring'
+            : 'focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
           error ? 'outline-red-500 outline outline-1' : '',
         )}
       >

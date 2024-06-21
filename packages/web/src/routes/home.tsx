@@ -1,16 +1,15 @@
 import { PlusIcon } from 'lucide-react';
 import { Form, useLoaderData, useNavigate, redirect, Link } from 'react-router-dom';
 import { CodeLanguageType, TitleCellType } from '@srcbook/shared';
-import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { getConfig, createSession, loadSessions, createSrcbook, importSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import CanvasCells from '@/components/canvas-cells';
 import { Switch } from '@/components/ui/switch';
 import type { SessionType } from '@/types';
 import { useState } from 'react';
 import { LanguageLogo } from '@/components/logos';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
+import { SrcbookCard } from '@/components/srcbook-cards';
 
 async function loader() {
   const { result: config } = await getConfig();
@@ -23,6 +22,7 @@ async function action({ request }: { request: Request }) {
   const path = formData.get('path') as string;
   const name = formData.get('name') as string;
   const language = formData.get('language') as CodeLanguageType;
+  // TODO: Move away from forms and display create error
   const { result } = await createSrcbook({ path, name, language: language });
   const { result: sessionResult } = await createSession({ path: result.path });
   return redirect(`/sessions/${sessionResult.id}`);
@@ -59,8 +59,6 @@ function Home() {
   const { defaultLanguage, baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
   const navigate = useNavigate();
 
-  const [showDelete, setShowDelete] = useState(false);
-  const [session, setSession] = useState<SessionType | undefined>(undefined);
   const [language, setLanguage] = useState<CodeLanguageType>(defaultLanguage);
   const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
 
@@ -77,7 +75,6 @@ function Home() {
 
   return (
     <div className="divide-y divide-border">
-      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
       {guides.length > 0 && (
@@ -113,6 +110,7 @@ function Home() {
                 placeholder="Srcbook name"
                 autoComplete="off"
                 className="w-60"
+                maxLength={32}
               />
               <div className="flex items-center space-x-1">
                 <LanguageLogo language={language} width={36} height={36} className="rounded" />
@@ -134,38 +132,16 @@ function Home() {
       {sessions.length > 0 && (
         <div className="mb-16">
           <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {sessions.map((session) => {
               return (
-                <div
+                <SrcbookCard
                   key={session.id}
-                  className="border border-border rounded-sm p-3 hover:bg-muted hover:shadow transition-shadow w-full"
-                >
-                  <Link to={`sessions/${session.id}`}>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-semibold">{(session.cells[0] as TitleCellType).text}</p>
-                        <p className="text-sm text-tertiary-foreground">
-                          {session.cells.length} cells
-                        </p>
-                        <Button
-                          variant="secondary"
-                          className="mt-2"
-                          size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setSession(session);
-                            setShowDelete(true);
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                      <CanvasCells numCells={session.cells.length} height={80} width={40} />
-                    </div>
-                  </Link>
-                </div>
+                  title={(session.cells[0] as TitleCellType).text}
+                  cellCount={session.cells.length}
+                  language={session.metadata.language}
+                  onClick={() => navigate(`/sessions/${session.id}`)}
+                />
               );
             })}
           </div>

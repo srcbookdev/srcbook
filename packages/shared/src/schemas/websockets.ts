@@ -28,12 +28,6 @@ export const CellErrorPayloadSchema = z.object({
   ),
 });
 
-export const CellStdinPayloadSchema = z.object({
-  cellId: z.string(),
-  sessionId: z.string(),
-  stdin: z.string(),
-});
-
 export const CellUpdatedPayloadSchema = z.object({
   cell: CellSchema,
 });

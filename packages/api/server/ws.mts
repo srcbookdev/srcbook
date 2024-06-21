@@ -19,12 +19,10 @@ import type {
   DepsInstallPayloadType,
   DepsValidatePayloadType,
   CellStopPayloadType,
-  CellStdinPayloadType,
   CellUpdatePayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
-  CellStdinPayloadSchema,
   CellUpdatePayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
@@ -311,16 +309,11 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
   }
 }
 
-function cellStdin(payload: CellStdinPayloadType) {
-  processes.send(payload.sessionId, payload.cellId, payload.stdin);
-}
-
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
-  .incoming('cell:stdin', CellStdinPayloadSchema, cellStdin)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)

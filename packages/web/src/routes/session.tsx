@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { marked } from 'marked';
-import type { Tokens } from 'marked';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
@@ -295,7 +294,13 @@ function MarkdownCell(props: {
 
   const keyMap = Prec.highest(
     keymap.of([
-      { key: 'Mod-Enter', run: onSave },
+      {
+        key: 'Mod-Enter',
+        run: () => {
+          onSave();
+          return true;
+        },
+      },
       {
         key: 'Escape',
         run: () => {

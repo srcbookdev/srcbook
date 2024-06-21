@@ -409,6 +409,7 @@ function PackageJsonCell(props: {
 
   const npmInstall = useCallback(
     (packages?: Array<string>) => {
+      if (validationErrors(cell)) return;
       setShowStdio(true);
       setOpen(true);
       // Here we use the client-only updateCell function. The server will know its running from the 'deps:install'.
@@ -450,7 +451,7 @@ function PackageJsonCell(props: {
     setOpen(state);
   };
 
-  function validate(cell: PackageJsonCellType) {
+  function validationErrors(cell: PackageJsonCellType) {
     try {
       JSON.parse(cell.source);
       return null;
@@ -460,7 +461,7 @@ function PackageJsonCell(props: {
     }
   }
   async function onChangeSource(source: string) {
-    const error = await onUpdateCell(cell, { source }, validate);
+    const error = await onUpdateCell(cell, { source }, validationErrors);
     setError(error);
   }
 
@@ -503,7 +504,7 @@ function PackageJsonCell(props: {
                   className={cn(
                     'font-mono font-semibold active:translate-y-0 flex items-center gap-2 pr-1 hover:bg-transparent',
                     open ? 'hover:border-transparent' : '',
-                    error && 'border-sb-red-30',
+                    error && !open && 'border-sb-red-30 ring-1 ring-sb-red-30',
                   )}
                   size="lg"
                 >
@@ -528,7 +529,7 @@ function PackageJsonCell(props: {
                 <Button
                   size="default-with-icon"
                   onClick={() => npmInstall()}
-                  disabled={cell.status !== 'idle'}
+                  disabled={cell.status !== 'idle' || !!error}
                   className="font-mono"
                 >
                   <Play size={16} />

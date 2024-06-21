@@ -516,10 +516,10 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                'border rounded-md group ring-1 ring-ring border-ring',
-                cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-                error && 'ring-sb-red-30 border-sb-red-30',
-              )
+                  'border rounded-md group ring-1 ring-ring border-ring',
+                  cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                  error && 'ring-sb-red-30 border-sb-red-30',
+                )
               : ''
           }
         >
@@ -530,7 +530,7 @@ function PackageJsonCell(props: {
                   variant="secondary"
                   className={cn(
                     'font-mono font-semibold active:translate-y-0 flex items-center gap-2 pr-1 hover:bg-transparent',
-                    open ? 'hover:border-transparent' : '',
+                    open && 'border-transparent',
                     error && !open && 'border-sb-red-30 ring-1 ring-sb-red-30',
                   )}
                   size="lg"

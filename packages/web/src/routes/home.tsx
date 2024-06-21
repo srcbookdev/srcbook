@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { LanguageLogo } from '@/components/logos';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import { SrcbookCard } from '@/components/srcbook-cards';
+import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 
 async function loader() {
   const { result: config } = await getConfig();
@@ -61,9 +62,16 @@ function Home() {
 
   const [language, setLanguage] = useState<CodeLanguageType>(defaultLanguage);
   const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [session, setSession] = useState<SessionType | undefined>(undefined);
 
   function onChangeLanguage(checked: boolean) {
     setLanguage(checked ? 'typescript' : 'javascript');
+  }
+
+  function onDeleteSession(session: SessionType) {
+    setSession(session);
+    setShowDelete(true);
   }
 
   async function openTutorial(tutorial: string) {
@@ -75,6 +83,7 @@ function Home() {
 
   return (
     <div className="divide-y divide-border">
+      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
       {guides.length > 0 && (
@@ -138,9 +147,11 @@ function Home() {
                 <SrcbookCard
                   key={session.id}
                   title={(session.cells[0] as TitleCellType).text}
-                  cellCount={session.cells.length}
+                  running={session.cells.some((c) => c.type === 'code' && c.status === 'running')}
                   language={session.metadata.language}
+                  cellCount={session.cells.length}
                   onClick={() => navigate(`/sessions/${session.id}`)}
+                  onDelete={() => onDeleteSession(session)}
                 />
               );
             })}

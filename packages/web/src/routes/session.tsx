@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { marked } from 'marked';
+import type { Tokens } from 'marked';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
@@ -39,6 +41,8 @@ import useEffectOnce from '@/components/use-effect-once';
 import { CellStdio } from '@/components/cell-stdio';
 import useTheme from '@/components/use-theme';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+marked.use({ gfm: true });
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -272,15 +276,16 @@ function MarkdownCell(props: {
   onUpdateCell: (
     cell: MarkdownCellType,
     attrs: MarkdownCellUpdateAttrsType,
+    getValidationError?: (cell: MarkdownCellType) => string | null,
   ) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
-  getValidationError?: (cell: MarkdownCellType) => string | null;
 }) {
   const { codeTheme } = useTheme();
   const cell = props.cell;
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
   const [text, setText] = useState(cell.text);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'edit') {
@@ -301,10 +306,24 @@ function MarkdownCell(props: {
     ]),
   );
 
-  function onSave() {
-    props.onUpdateCell(cell, { text });
-    setStatus('view');
-    return true;
+  function getValidationError(cell: MarkdownCellType) {
+    const tokens = marked.lexer(cell.text);
+    const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
+    const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
+
+    if (hasH1 || hasH6) {
+      return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
+    }
+    return null;
+  }
+
+  async function onSave() {
+    const error = await props.onUpdateCell(cell, { text }, getValidationError);
+    setError(error);
+    if (error === null) {
+      setStatus('view');
+      return true;
+    }
   }
 
   return (
@@ -312,9 +331,9 @@ function MarkdownCell(props: {
       id={`cell-${props.cell.id}`}
       onDoubleClick={() => setStatus('edit')}
       className={cn(
-        'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border',
+        'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border transition-all',
         status === 'edit' && 'ring-1 ring-ring border-ring hover:border-ring',
-        'transition-colors',
+        error && 'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30',
       )}
     >
       {status === 'view' ? (
@@ -343,39 +362,47 @@ function MarkdownCell(props: {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col">
-          <div className="p-1 w-full flex items-center justify-between z-10">
-            <h5 className="pl-4 text-sm font-mono font-bold">Markdown</h5>
-            <div className="flex items-center gap-1">
-              <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="border-secondary hover:border-muted"
-                >
-                  <Trash2 size={16} />
+        <>
+          {error && (
+            <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
+              <CircleAlert size={16} />
+              <p className="text-xs">{error}</p>
+            </div>
+          )}
+          <div className="flex flex-col">
+            <div className="p-1 w-full flex items-center justify-between z-10">
+              <h5 className="pl-4 text-sm font-mono font-bold">Markdown</h5>
+              <div className="flex items-center gap-1">
+                <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="border-secondary hover:border-muted"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </DeleteCellWithConfirmation>
+
+                <Button variant="secondary" onClick={() => setStatus('view')}>
+                  Cancel
                 </Button>
-              </DeleteCellWithConfirmation>
 
-              <Button variant="secondary" onClick={() => setStatus('view')}>
-                Cancel
-              </Button>
+                <Button onClick={onSave}>Save</Button>
+              </div>
+            </div>
 
-              <Button onClick={onSave}>Save</Button>
+            <div className="px-3">
+              <CodeMirror
+                theme={codeTheme}
+                indentWithTab={false}
+                value={text}
+                basicSetup={{ lineNumbers: false, foldGutter: false }}
+                extensions={[markdown(), keyMap]}
+                onChange={(source) => setText(source)}
+              />
             </div>
           </div>
-
-          <div className="px-3">
-            <CodeMirror
-              theme={codeTheme}
-              indentWithTab={false}
-              value={text}
-              basicSetup={{ lineNumbers: false, foldGutter: false }}
-              extensions={[markdown(), keyMap]}
-              onChange={(source) => setText(source)}
-            />
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -473,7 +500,7 @@ function PackageJsonCell(props: {
   return (
     <div id={`cell-${props.cell.id}`} className="relative">
       {error && open && (
-        <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-90 bg-sb-red-30 rounded-sm">
+        <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
           <CircleAlert size={16} />
           <p className="text-xs">{error}</p>
         </div>
@@ -489,10 +516,10 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group ring-1 ring-ring border-ring',
-                  cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-                  error && 'ring-sb-red-30 border-sb-red-30',
-                )
+                'border rounded-md group ring-1 ring-ring border-ring',
+                cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                error && 'ring-sb-red-30 border-sb-red-30',
+              )
               : ''
           }
         >

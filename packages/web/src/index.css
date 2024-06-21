@@ -184,6 +184,17 @@
   @apply my-3;
 }
 
+.sb-prose a {
+  font-weight: bold;
+  @apply underline;
+  @apply decoration-2;
+  @apply underline-offset-2;
+}
+
+.sb-prose a:hover {
+  @apply text-primary-hover;
+}
+
 .sb-prose blockquote {
   @apply font-semibold;
   @apply my-5;
@@ -207,14 +218,18 @@
   @apply overflow-x-auto;
   @apply bg-primary;
   @apply text-primary-foreground;
-  @apply text-sm;
+  @apply text-base;
   @apply p-4;
   @apply rounded-sm;
   @apply my-4;
 }
 
-.sb-prose code {
-  @apply text-sm;
+.sb-prose code:not(pre code) {
+  @apply text-base;
+  @apply rounded-sm;
+  @apply bg-sb-core-20;
+  @apply px-1.5;
+  @apply py-1;
 }
 
 .sb-prose h1 > code,
@@ -277,10 +292,12 @@
 
 .sb-prose ol > li {
   @apply ps-1.5;
+  @apply my-1;
 }
 
 .sb-prose ul > li {
   @apply ps-1.5;
+  @apply my-1;
 }
 
 .cm-editor {

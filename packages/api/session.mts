@@ -230,18 +230,18 @@ async function updateCodeCell(
     try {
       const writes = isChangingFilename
         ? moveCodeCellOnDisk(
-          session.dir,
-          session.metadata,
-          session.cells,
-          updatedCell as CodeCellType,
-          cell.filename,
-        )
+            session.dir,
+            session.metadata,
+            session.cells,
+            updatedCell as CodeCellType,
+            cell.filename,
+          )
         : writeCellToDisk(
-          session.dir,
-          session.metadata,
-          session.cells,
-          updatedCell as CodeCellType,
-        );
+            session.dir,
+            session.metadata,
+            session.cells,
+            updatedCell as CodeCellType,
+          );
       await writes;
     } catch (e) {
       console.error(e);

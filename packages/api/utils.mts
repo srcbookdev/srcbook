@@ -41,13 +41,13 @@ export async function disk(dirname: string, ext: string) {
   return isRootPath(dirname)
     ? entries
     : [
-      {
-        path: Path.dirname(dirname),
-        dirname: Path.dirname(dirname),
-        basename: '..',
-        isDirectory: true,
-      },
-    ].concat(entries);
+        {
+          path: Path.dirname(dirname),
+          dirname: Path.dirname(dirname),
+          basename: '..',
+          isDirectory: true,
+        },
+      ].concat(entries);
 }
 
 function isRootPath(path: string) {

@@ -113,12 +113,12 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   async function onUpdateCell<T extends CellType>(
     cell: T,
     updates: CellUpdateAttrsType,
-    validate?: (cell: T) => string | null,
+    getValidationError?: (cell: T) => string | null,
   ) {
-    validate = validate || ((_: T) => null);
+    getValidationError = getValidationError || ((_: T) => null);
     updateCell({ ...cell, ...(updates as Partial<T>) });
 
-    const error = validate({ ...cell, ...(updates as Partial<T>) });
+    const error = getValidationError({ ...cell, ...(updates as Partial<T>) });
     if (typeof error === 'string') {
       return error;
     }
@@ -209,7 +209,7 @@ function Cell(props: {
   onUpdateCell: <T extends CellType>(
     cell: T,
     attrs: CellUpdateAttrsType,
-    validate?: (cell: T) => string | null,
+    getValidationError?: (cell: T) => string | null,
   ) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
 }) {
@@ -253,7 +253,7 @@ function TitleCell(props: {
   onUpdateCell: (
     cell: TitleCellType,
     attrs: TitleCellUpdateAttrsType,
-    validate?: (cell: TitleCellType) => string | null,
+    getValidationError?: (cell: TitleCellType) => string | null,
   ) => Promise<string | null>;
 }) {
   return (
@@ -274,7 +274,7 @@ function MarkdownCell(props: {
     attrs: MarkdownCellUpdateAttrsType,
   ) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
-  validate?: (cell: MarkdownCellType) => string | null;
+  getValidationError?: (cell: MarkdownCellType) => string | null;
 }) {
   const { codeTheme } = useTheme();
   const cell = props.cell;
@@ -388,7 +388,7 @@ function PackageJsonCell(props: {
   onUpdateCell: (
     cell: PackageJsonCellType,
     attrs: PackageJsonCellUpdateAttrsType,
-    validate?: (cell: PackageJsonCellType) => string | null,
+    getValidationError?: (cell: PackageJsonCellType) => string | null,
   ) => Promise<string | null>;
 }) {
   const { cell, channel, session, onUpdateCell } = props;
@@ -409,7 +409,7 @@ function PackageJsonCell(props: {
 
   const npmInstall = useCallback(
     (packages?: Array<string>) => {
-      if (validationErrors(cell)) return;
+      if (getValidationError(cell)) return;
       setShowStdio(true);
       setOpen(true);
       // Here we use the client-only updateCell function. The server will know its running from the 'deps:install'.
@@ -451,7 +451,7 @@ function PackageJsonCell(props: {
     setOpen(state);
   };
 
-  function validationErrors(cell: PackageJsonCellType) {
+  function getValidationError(cell: PackageJsonCellType) {
     try {
       JSON.parse(cell.source);
       return null;
@@ -461,7 +461,7 @@ function PackageJsonCell(props: {
     }
   }
   async function onChangeSource(source: string) {
-    const error = await onUpdateCell(cell, { source }, validationErrors);
+    const error = await onUpdateCell(cell, { source }, getValidationError);
     setError(error);
   }
 

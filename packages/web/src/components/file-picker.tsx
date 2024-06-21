@@ -174,7 +174,7 @@ export function ExportLocationPicker(props: { onSave: (directory: string, path: 
 
     const el = filenameRef.current;
     if (el) {
-      el.setSelectionRange(0, el.value.length - '.srcmd'.length);
+      setTimeout(() => el.setSelectionRange(0, el.value.length - '.srcmd'.length), 5);
     }
   });
 
@@ -185,8 +185,7 @@ export function ExportLocationPicker(props: { onSave: (directory: string, path: 
       <div className="space-y-1.5">
         <Input
           ref={filenameRef}
-          className="mb-2 pointer-events-none"
-          tabIndex={-1}
+          className="mb-2"
           defaultValue={filename}
           onChange={(e) => setFilename(e.currentTarget.value.trimEnd())}
         />

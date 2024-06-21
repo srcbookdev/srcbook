@@ -290,7 +290,7 @@ function MarkdownCell(props: {
       onDoubleClick={() => setStatus('edit')}
       className={cn(
         'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border',
-        status === 'edit' && 'ring-2 ring-ring',
+        status === 'edit' && 'ring-1 ring-ring',
         'transition-colors',
       )}
     >
@@ -446,8 +446,8 @@ function PackageJsonCell(props: {
               ? cn(
                   'border rounded-md group',
                   cell.status === 'running'
-                    ? 'ring-2 ring-run-ring border-run-ring'
-                    : 'focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+                    ? 'ring-1 ring-run-ring border-run-ring'
+                    : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
                 )
               : ''
           }
@@ -588,8 +588,8 @@ function CodeCell(props: {
         className={cn(
           'border rounded-md group',
           cell.status === 'running'
-            ? 'ring-2 ring-run-ring border-run-ring'
-            : 'focus-within:ring-2 focus-within:ring-ring focus-within:border-ring',
+            ? 'ring-1 ring-run-ring border-run-ring'
+            : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
           error ? 'outline-red-500 outline outline-1' : '',
         )}
       >

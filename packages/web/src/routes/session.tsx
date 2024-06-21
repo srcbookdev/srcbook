@@ -238,7 +238,7 @@ function TitleCell(props: {
   onUpdateCell: (cell: TitleCellType, attrs: TitleCellUpdateAttrsType) => Promise<void>;
 }) {
   return (
-    <div id={`cell-${props.cell.id}`} className="my-4">
+    <div id={`cell-${props.cell.id}`} className="mb-4">
       <EditableH1
         text={props.cell.text}
         className="title"

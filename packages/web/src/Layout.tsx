@@ -6,7 +6,7 @@ export default function Layout() {
   return (
     <>
       <div className="flex flex-col">
-        <header className="h-12 min-h-12 max-h-12 w-full flex items-center fixed bg-background z-20">
+        <header className="h-12 min-h-12 max-h-12 w-full flex items-center fixed bg-background z-10">
           <nav className="px-6 w-full">
             <ul className="flex items-center space-x-8">
               <li>
@@ -44,7 +44,7 @@ export default function Layout() {
             </ul>
           </nav>
         </header>
-        <div className="w-full max-w-4xl mx-auto p-12">
+        <div className="w-full max-w-4xl mx-auto p-12 mt-12">
           <Outlet />
         </div>
       </div>

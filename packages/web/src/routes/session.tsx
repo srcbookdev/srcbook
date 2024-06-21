@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { marked } from 'marked';
+import type { Tokens } from 'marked';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { Circle, Play, Trash2, Pencil, ChevronRight } from 'lucide-react';
+import { CircleAlert, Circle, Play, Trash2, Pencil, ChevronRight } from 'lucide-react';
 import {
   CellType,
   CodeCellType,
@@ -39,6 +41,8 @@ import useEffectOnce from '@/components/use-effect-once';
 import { CellStdio } from '@/components/cell-stdio';
 import useTheme from '@/components/use-theme';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+marked.use({ gfm: true });
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -110,14 +114,25 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     return () => channel.off('cell:updated', callback);
   }, [channel, updateCell]);
 
-  async function onUpdateCell<T extends CellType>(cell: T, updates: CellUpdateAttrsType) {
+  async function onUpdateCell<T extends CellType>(
+    cell: T,
+    updates: CellUpdateAttrsType,
+    getValidationError?: (cell: T) => string | null,
+  ) {
+    getValidationError = getValidationError || ((_: T) => null);
     updateCell({ ...cell, ...(updates as Partial<T>) });
+
+    const error = getValidationError({ ...cell, ...(updates as Partial<T>) });
+    if (typeof error === 'string') {
+      return error;
+    }
 
     channel.push('cell:update', {
       sessionId: session.id,
       cellId: cell.id,
       updates,
     });
+    return null;
   }
 
   async function createNewCell(type: 'code' | 'markdown', index: number) {
@@ -195,7 +210,11 @@ function Cell(props: {
   cell: CellType;
   session: SessionType;
   channel: SessionChannel;
-  onUpdateCell: <T extends CellType>(cell: T, attrs: CellUpdateAttrsType) => Promise<void>;
+  onUpdateCell: <T extends CellType>(
+    cell: T,
+    attrs: CellUpdateAttrsType,
+    getValidationError?: (cell: T) => string | null,
+  ) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   switch (props.cell.type) {
@@ -235,7 +254,11 @@ function Cell(props: {
 
 function TitleCell(props: {
   cell: TitleCellType;
-  onUpdateCell: (cell: TitleCellType, attrs: TitleCellUpdateAttrsType) => Promise<void>;
+  onUpdateCell: (
+    cell: TitleCellType,
+    attrs: TitleCellUpdateAttrsType,
+    getValidationError?: (cell: TitleCellType) => string | null,
+  ) => Promise<string | null>;
 }) {
   return (
     <div id={`cell-${props.cell.id}`} className="mb-4">
@@ -250,7 +273,11 @@ function TitleCell(props: {
 
 function MarkdownCell(props: {
   cell: MarkdownCellType;
-  onUpdateCell: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
+  onUpdateCell: (
+    cell: MarkdownCellType,
+    attrs: MarkdownCellUpdateAttrsType,
+    getValidationError?: (cell: MarkdownCellType) => string | null,
+  ) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const { codeTheme } = useTheme();
@@ -258,6 +285,7 @@ function MarkdownCell(props: {
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
   const [text, setText] = useState(cell.text);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'edit') {
@@ -278,10 +306,24 @@ function MarkdownCell(props: {
     ]),
   );
 
-  function onSave() {
-    props.onUpdateCell(cell, { text });
-    setStatus('view');
-    return true;
+  function getValidationError(cell: MarkdownCellType) {
+    const tokens = marked.lexer(cell.text);
+    const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
+    const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
+
+    if (hasH1 || hasH6) {
+      return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
+    }
+    return null;
+  }
+
+  async function onSave() {
+    const error = await props.onUpdateCell(cell, { text }, getValidationError);
+    setError(error);
+    if (error === null) {
+      setStatus('view');
+      return true;
+    }
   }
 
   return (
@@ -289,9 +331,9 @@ function MarkdownCell(props: {
       id={`cell-${props.cell.id}`}
       onDoubleClick={() => setStatus('edit')}
       className={cn(
-        'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border',
-        status === 'edit' && 'ring-1 ring-ring',
-        'transition-colors',
+        'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border transition-all',
+        status === 'edit' && 'ring-1 ring-ring border-ring hover:border-ring',
+        error && 'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30',
       )}
     >
       {status === 'view' ? (
@@ -320,39 +362,47 @@ function MarkdownCell(props: {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col">
-          <div className="p-1 w-full flex items-center justify-between z-10">
-            <h5 className="pl-4 text-sm font-mono font-bold">Markdown</h5>
-            <div className="flex items-center gap-1">
-              <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="border-secondary hover:border-muted"
-                >
-                  <Trash2 size={16} />
+        <>
+          {error && (
+            <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
+              <CircleAlert size={16} />
+              <p className="text-xs">{error}</p>
+            </div>
+          )}
+          <div className="flex flex-col">
+            <div className="p-1 w-full flex items-center justify-between z-10">
+              <h5 className="pl-4 text-sm font-mono font-bold">Markdown</h5>
+              <div className="flex items-center gap-1">
+                <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="border-secondary hover:border-muted"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </DeleteCellWithConfirmation>
+
+                <Button variant="secondary" onClick={() => setStatus('view')}>
+                  Cancel
                 </Button>
-              </DeleteCellWithConfirmation>
 
-              <Button variant="secondary" onClick={() => setStatus('view')}>
-                Cancel
-              </Button>
+                <Button onClick={onSave}>Save</Button>
+              </div>
+            </div>
 
-              <Button onClick={onSave}>Save</Button>
+            <div className="px-3">
+              <CodeMirror
+                theme={codeTheme}
+                indentWithTab={false}
+                value={text}
+                basicSetup={{ lineNumbers: false, foldGutter: false }}
+                extensions={[markdown(), keyMap]}
+                onChange={(source) => setText(source)}
+              />
             </div>
           </div>
-
-          <div className="px-3">
-            <CodeMirror
-              theme={codeTheme}
-              indentWithTab={false}
-              value={text}
-              basicSetup={{ lineNumbers: false, foldGutter: false }}
-              extensions={[markdown(), keyMap]}
-              onChange={(source) => setText(source)}
-            />
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -362,13 +412,18 @@ function PackageJsonCell(props: {
   cell: PackageJsonCellType;
   channel: SessionChannel;
   session: SessionType;
-  onUpdateCell: (cell: PackageJsonCellType, attrs: PackageJsonCellUpdateAttrsType) => Promise<void>;
+  onUpdateCell: (
+    cell: PackageJsonCellType,
+    attrs: PackageJsonCellUpdateAttrsType,
+    getValidationError?: (cell: PackageJsonCellType) => string | null,
+  ) => Promise<string | null>;
 }) {
   const { cell, channel, session, onUpdateCell } = props;
 
   const [open, setOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
   const [showStdio, setShowStdio] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useHotkeys('meta+i', () => {
     if (!installModalOpen) {
@@ -381,6 +436,7 @@ function PackageJsonCell(props: {
 
   const npmInstall = useCallback(
     (packages?: Array<string>) => {
+      if (getValidationError(cell)) return;
       setShowStdio(true);
       setOpen(true);
       // Here we use the client-only updateCell function. The server will know its running from the 'deps:install'.
@@ -422,8 +478,18 @@ function PackageJsonCell(props: {
     setOpen(state);
   };
 
-  function onChangeSource(source: string) {
-    onUpdateCell(cell, { source });
+  function getValidationError(cell: PackageJsonCellType) {
+    try {
+      JSON.parse(cell.source);
+      return null;
+    } catch (e) {
+      const err = e as Error;
+      return err.message;
+    }
+  }
+  async function onChangeSource(source: string) {
+    const error = await onUpdateCell(cell, { source }, getValidationError);
+    setError(error);
   }
 
   function evaluateModEnter() {
@@ -432,7 +498,13 @@ function PackageJsonCell(props: {
   }
 
   return (
-    <div id={`cell-${props.cell.id}`}>
+    <div id={`cell-${props.cell.id}`} className="relative">
+      {error && open && (
+        <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
+          <CircleAlert size={16} />
+          <p className="text-xs">{error}</p>
+        </div>
+      )}
       <InstallPackageModal
         channel={channel}
         session={session}
@@ -444,11 +516,10 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group',
-                  cell.status === 'running'
-                    ? 'ring-1 ring-run-ring border-run-ring'
-                    : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
-                )
+                'border rounded-md group ring-1 ring-ring border-ring',
+                cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                error && 'ring-sb-red-30 border-sb-red-30',
+              )
               : ''
           }
         >
@@ -456,10 +527,11 @@ function PackageJsonCell(props: {
             <CollapsibleTrigger className="flex gap-3" asChild>
               <div>
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   className={cn(
-                    'font-mono font-semibold active:translate-y-0 flex items-center gap-2 pr-1',
+                    'font-mono font-semibold active:translate-y-0 flex items-center gap-2 pr-1 hover:bg-transparent',
                     open ? 'hover:border-transparent' : '',
+                    error && !open && 'border-sb-red-30 ring-1 ring-sb-red-30',
                   )}
                   size="lg"
                 >
@@ -484,7 +556,7 @@ function PackageJsonCell(props: {
                 <Button
                   size="default-with-icon"
                   onClick={() => npmInstall()}
-                  disabled={cell.status !== 'idle'}
+                  disabled={cell.status !== 'idle' || !!error}
                   className="font-mono"
                 >
                   <Play size={16} />
@@ -516,7 +588,7 @@ function CodeCell(props: {
   session: SessionType;
   cell: CodeCellType;
   channel: SessionChannel;
-  onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<void>;
+  onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
@@ -590,7 +662,6 @@ function CodeCell(props: {
           cell.status === 'running'
             ? 'ring-1 ring-run-ring border-run-ring'
             : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
-          error ? 'outline-red-500 outline outline-1' : '',
         )}
       >
         <div className="p-1 flex items-center justify-between gap-2">

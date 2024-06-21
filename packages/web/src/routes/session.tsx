@@ -5,7 +5,7 @@ import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { Circle, Play, Trash2, Pencil, ChevronRight } from 'lucide-react';
+import { CircleAlert, Circle, Play, Trash2, Pencil, ChevronRight } from 'lucide-react';
 import {
   CellType,
   CodeCellType,
@@ -110,14 +110,25 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     return () => channel.off('cell:updated', callback);
   }, [channel, updateCell]);
 
-  async function onUpdateCell<T extends CellType>(cell: T, updates: CellUpdateAttrsType) {
+  async function onUpdateCell<T extends CellType>(
+    cell: T,
+    updates: CellUpdateAttrsType,
+    validate?: (cell: T) => string | null,
+  ) {
+    validate = validate || ((_: T) => null);
     updateCell({ ...cell, ...(updates as Partial<T>) });
+
+    const error = validate({ ...cell, ...(updates as Partial<T>) });
+    if (typeof error === 'string') {
+      return error;
+    }
 
     channel.push('cell:update', {
       sessionId: session.id,
       cellId: cell.id,
       updates,
     });
+    return null;
   }
 
   async function createNewCell(type: 'code' | 'markdown', index: number) {
@@ -195,7 +206,11 @@ function Cell(props: {
   cell: CellType;
   session: SessionType;
   channel: SessionChannel;
-  onUpdateCell: <T extends CellType>(cell: T, attrs: CellUpdateAttrsType) => Promise<void>;
+  onUpdateCell: <T extends CellType>(
+    cell: T,
+    attrs: CellUpdateAttrsType,
+    validate?: (cell: T) => string | null,
+  ) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   switch (props.cell.type) {
@@ -235,7 +250,11 @@ function Cell(props: {
 
 function TitleCell(props: {
   cell: TitleCellType;
-  onUpdateCell: (cell: TitleCellType, attrs: TitleCellUpdateAttrsType) => Promise<void>;
+  onUpdateCell: (
+    cell: TitleCellType,
+    attrs: TitleCellUpdateAttrsType,
+    validate?: (cell: TitleCellType) => string | null,
+  ) => Promise<string | null>;
 }) {
   return (
     <div id={`cell-${props.cell.id}`} className="mb-4">
@@ -250,8 +269,12 @@ function TitleCell(props: {
 
 function MarkdownCell(props: {
   cell: MarkdownCellType;
-  onUpdateCell: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
+  onUpdateCell: (
+    cell: MarkdownCellType,
+    attrs: MarkdownCellUpdateAttrsType,
+  ) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
+  validate?: (cell: MarkdownCellType) => string | null;
 }) {
   const { codeTheme } = useTheme();
   const cell = props.cell;
@@ -290,7 +313,7 @@ function MarkdownCell(props: {
       onDoubleClick={() => setStatus('edit')}
       className={cn(
         'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border',
-        status === 'edit' && 'ring-1 ring-ring',
+        status === 'edit' && 'ring-1 ring-ring border-ring hover:border-ring',
         'transition-colors',
       )}
     >
@@ -362,13 +385,18 @@ function PackageJsonCell(props: {
   cell: PackageJsonCellType;
   channel: SessionChannel;
   session: SessionType;
-  onUpdateCell: (cell: PackageJsonCellType, attrs: PackageJsonCellUpdateAttrsType) => Promise<void>;
+  onUpdateCell: (
+    cell: PackageJsonCellType,
+    attrs: PackageJsonCellUpdateAttrsType,
+    validate?: (cell: PackageJsonCellType) => string | null,
+  ) => Promise<string | null>;
 }) {
   const { cell, channel, session, onUpdateCell } = props;
 
   const [open, setOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
   const [showStdio, setShowStdio] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useHotkeys('meta+i', () => {
     if (!installModalOpen) {
@@ -422,8 +450,18 @@ function PackageJsonCell(props: {
     setOpen(state);
   };
 
-  function onChangeSource(source: string) {
-    onUpdateCell(cell, { source });
+  function validate(cell: PackageJsonCellType) {
+    try {
+      JSON.parse(cell.source);
+      return null;
+    } catch (e) {
+      const err = e as Error;
+      return err.message;
+    }
+  }
+  async function onChangeSource(source: string) {
+    const error = await onUpdateCell(cell, { source }, validate);
+    setError(error);
   }
 
   function evaluateModEnter() {
@@ -432,7 +470,13 @@ function PackageJsonCell(props: {
   }
 
   return (
-    <div id={`cell-${props.cell.id}`}>
+    <div id={`cell-${props.cell.id}`} className="relative">
+      {error && open && (
+        <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-90 bg-sb-red-30 rounded-sm">
+          <CircleAlert size={16} />
+          <p className="text-xs">{error}</p>
+        </div>
+      )}
       <InstallPackageModal
         channel={channel}
         session={session}
@@ -444,10 +488,9 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group',
-                  cell.status === 'running'
-                    ? 'ring-1 ring-run-ring border-run-ring'
-                    : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
+                  'border rounded-md group ring-1 ring-ring border-ring',
+                  cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                  error && 'ring-sb-red-30 border-sb-red-30',
                 )
               : ''
           }
@@ -456,10 +499,11 @@ function PackageJsonCell(props: {
             <CollapsibleTrigger className="flex gap-3" asChild>
               <div>
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   className={cn(
-                    'font-mono font-semibold active:translate-y-0 flex items-center gap-2 pr-1',
+                    'font-mono font-semibold active:translate-y-0 flex items-center gap-2 pr-1 hover:bg-transparent',
                     open ? 'hover:border-transparent' : '',
+                    error && 'border-sb-red-30',
                   )}
                   size="lg"
                 >
@@ -516,7 +560,7 @@ function CodeCell(props: {
   session: SessionType;
   cell: CodeCellType;
   channel: SessionChannel;
-  onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<void>;
+  onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<string | null>;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
@@ -590,7 +634,6 @@ function CodeCell(props: {
           cell.status === 'running'
             ? 'ring-1 ring-run-ring border-run-ring'
             : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
-          error ? 'outline-red-500 outline outline-1' : '',
         )}
       >
         <div className="p-1 flex items-center justify-between gap-2">

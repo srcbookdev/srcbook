@@ -43,6 +43,7 @@ export default function KeyboardShortcutsDialog({
             <div>
               <h5 className="font-semibold pt-4 pb-2">Global</h5>
               <ShortCut keys={['?']} description="show this dialog" />
+              <ShortCut keys={['⌘', 'i']} description="open NPM package install modal" />
               <h5 className="font-semibold pt-6 pb-2">Markdown edit</h5>
               <ShortCut keys={['esc']} description="switch back to preview mode" />
               <ShortCut keys={['⌘', '↵']} description="switch back to preview mode" />

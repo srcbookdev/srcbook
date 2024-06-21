@@ -4,7 +4,6 @@ import { useDebounce } from 'use-debounce';
 import { CellUpdatedPayloadType, PackageJsonCellType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { searchNpmPackages } from '@/lib/server';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
@@ -13,22 +12,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
+
 import type { SessionType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
 import { useCells } from './use-cell';
 
-type PackageMetadata = {
+type NPMPackageType = {
   name: string;
   version: string;
   description?: string;
 };
+
+function getSelected(results: NPMPackageType[], selectedName: string, type: 'next' | 'prev') {
+  const idx = results.findIndex((r) => r.name === selectedName);
+  const selectedIdx = type === 'next' ? idx + 1 : idx - 1;
+
+  const len = results.length;
+
+  if (selectedIdx < 0) {
+    return results[len - 1].name;
+  } else if (selectedIdx >= len) {
+    return results[0].name;
+  } else {
+    return results[selectedIdx].name;
+  }
+}
 
 export default function InstallPackageModal({
   channel,
@@ -43,16 +51,24 @@ export default function InstallPackageModal({
 }) {
   const [mode, setMode] = useState<'search' | 'loading' | 'success' | 'error'>('search');
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<PackageMetadata[]>([]);
+  const [results, setResults] = useState<NPMPackageType[]>([]);
   const [pkg, setPkg] = useState<string>('');
+  const [selectedName, setSelectedName] = useState<string | null>(null);
 
   const { getOutput } = useCells();
 
   const [value] = useDebounce(query, 300);
 
   useEffect(() => {
+    setSelectedName(null);
     searchNpmPackages(value)
-      .then((data) => setResults(data.result))
+      .then((data) => {
+        const results = data.result;
+        setResults(results);
+        if (results.length > 0) {
+          setSelectedName(results[0].name);
+        }
+      })
       .catch((e) => console.error('error:', e));
   }, [value]);
 
@@ -125,44 +141,95 @@ export default function InstallPackageModal({
         {mode === 'search' && (
           <>
             <DialogHeader>
-              <DialogTitle>Add npm package</DialogTitle>
-              <DialogDescription>Search for a package and add to your project.</DialogDescription>
+              <DialogTitle>Install NPM package</DialogTitle>
+              <DialogDescription id="npm-search-modal">
+                Search for packages to add to your Srcbook.
+              </DialogDescription>
             </DialogHeader>
             <Input
               placeholder="Search for a package"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              role="combobox"
+              aria-expanded={results.length > 0}
+              aria-controls="npm-search-results"
+              aria-labelledby="npm-search-modal"
+              onKeyDown={(e) => {
+                if (selectedName === null) {
+                  return;
+                }
+
+                if (e.key === 'Enter') {
+                  addPackage(selectedName);
+                } else if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  setSelectedName(getSelected(results, selectedName, 'next'));
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  setSelectedName(getSelected(results, selectedName, 'prev'));
+                }
+              }}
             />
-            <Command>
-              <CommandList className="h-full overflow-scroll">
-                <CommandEmpty>No results found.</CommandEmpty>
-                <CommandGroup>
-                  {results.map((result) => {
-                    return (
-                      <CommandItem key={result.name} value={result.name} className="rounded-lg">
-                        <div className="flex justify-between w-full items-center gap-6">
-                          <div className="flex flex-col">
-                            <div className="flex gap-1">
-                              <p className="font-bold">{result.name}</p>
-                              <p className="text-sm text-gray-500">{result.version}</p>
-                            </div>
-                            <p className="text-sm text-gray-500 line-clamp-2">
-                              {result.description}
-                            </p>
-                          </div>
-                          <Button variant="secondary" onClick={() => addPackage(result.name)}>
-                            Add
-                          </Button>
-                        </div>
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
+            {results.length > 0 ? (
+              <SearchResultsList
+                results={results}
+                selectedName={selectedName!}
+                setSelectedName={setSelectedName}
+                onSelect={addPackage}
+              />
+            ) : (
+              <NoSearchResults />
+            )}
           </>
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function NoSearchResults() {
+  return <p className="text-tertiary-foreground text-sm text-center">No results found.</p>;
+}
+
+function SearchResultsList(props: {
+  results: NPMPackageType[];
+  selectedName: string;
+  setSelectedName: (name: string) => void;
+  onSelect: (name: string) => void;
+}) {
+  return (
+    <ul
+      id="npm-search-results"
+      role="listbox"
+      aria-label="NPM search results"
+      className="overflow-y-scroll focus:border-yellow-300"
+    >
+      {props.results.map((result) => {
+        const selected = result.name === props.selectedName;
+
+        return (
+          <li
+            key={result.name}
+            role="option"
+            aria-disabled="false"
+            aria-selected={selected}
+            className={cn(
+              'px-1 py-1 rounded-sm cursor-pointer border border-transparent text-sm',
+              selected && 'bg-muted border-border',
+            )}
+            onClick={() => props.onSelect(result.name)}
+            onMouseEnter={() => props.setSelectedName(result.name)}
+          >
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <strong className="truncate">{result.name}</strong>
+              <span className="text-tertiary-foreground">{result.version}</span>
+            </div>
+            <p title={result.description} className="mt-1 text-tertiary-foreground truncate">
+              {result.description}
+            </p>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

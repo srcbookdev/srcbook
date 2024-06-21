@@ -67,13 +67,13 @@ export default function SessionMenu({ session }: Props) {
             <div
               key={cell.id}
               className={cn(
-                'flex items-center py-1 pl-3 gap-2 border-l hover:text-foreground hover:font-medium hover:border-l-foreground cursor-pointer',
-                isRunningCell && 'text-run font-medium',
+                'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer',
+                isRunningCell
+                  ? 'text-run border-l-run font-medium'
+                  : 'hover:border-l-foreground hover:text-foreground',
               )}
             >
-              {cell.type === 'code' && cell.status === 'running' && (
-                <Circle size={14} strokeWidth={3} className="text-run" />
-              )}
+              {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
               <p
                 className="truncate"
                 onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}

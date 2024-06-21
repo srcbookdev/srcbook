@@ -505,13 +505,7 @@ function PackageJsonCell(props: {
               basicSetup={{ lineNumbers: true, foldGutter: false }}
             />
 
-            <CellStdio
-              sessionId={session.id}
-              cell={cell}
-              channel={channel}
-              show={showStdio}
-              setShow={setShowStdio}
-            />
+            <CellStdio cell={cell} show={showStdio} setShow={setShowStdio} />
           </CollapsibleContent>
         </div>
       </Collapsible>
@@ -643,13 +637,7 @@ function CodeCell(props: {
           ]}
           onChange={onChangeSource}
         />
-        <CellStdio
-          sessionId={session.id}
-          cell={cell}
-          channel={channel}
-          show={showStdio}
-          setShow={setShowStdio}
-        />
+        <CellStdio cell={cell} show={showStdio} setShow={setShowStdio} />
       </div>
     </div>
   );

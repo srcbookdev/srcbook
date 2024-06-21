@@ -4,7 +4,6 @@ import {
   CellExecPayloadSchema,
   CellStopPayloadSchema,
   CellUpdatePayloadSchema,
-  CellStdinPayloadSchema,
   CellUpdatedPayloadSchema,
   CellOutputPayloadSchema,
   DepsInstallPayloadSchema,
@@ -16,7 +15,6 @@ import {
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
 export type CellStopPayloadType = z.infer<typeof CellStopPayloadSchema>;
 export type CellUpdatePayloadType = z.infer<typeof CellUpdatePayloadSchema>;
-export type CellStdinPayloadType = z.infer<typeof CellStdinPayloadSchema>;
 export type CellUpdatedPayloadType = z.infer<typeof CellUpdatedPayloadSchema>;
 export type CellOutputPayloadType = z.infer<typeof CellOutputPayloadSchema>;
 

@@ -6,7 +6,6 @@ import {
   CellStopPayloadSchema,
   DepsInstallPayloadSchema,
   DepsValidatePayloadSchema,
-  CellStdinPayloadSchema,
   CellUpdatePayloadSchema,
   CellErrorPayloadSchema,
 } from '@srcbook/shared';
@@ -29,7 +28,6 @@ const OutgoingSessionEvents = {
   'cell:exec': CellExecPayloadSchema,
   'cell:stop': CellStopPayloadSchema,
   'cell:update': CellUpdatePayloadSchema,
-  'cell:stdin': CellStdinPayloadSchema,
   'deps:install': DepsInstallPayloadSchema,
   'deps:validate': DepsValidatePayloadSchema,
 };

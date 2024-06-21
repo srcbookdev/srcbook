@@ -214,7 +214,7 @@ function SearchResultsList(props: {
             aria-disabled="false"
             aria-selected={selected}
             className={cn(
-              'px-1 py-1 rounded-sm cursor-pointer border border-transparent text-sm',
+              'px-2 py-1 rounded-sm cursor-pointer border border-transparent text-sm',
               selected && 'bg-muted border-border',
             )}
             onClick={() => props.onSelect(result.name)}

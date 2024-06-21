@@ -260,8 +260,8 @@ type NpmSearchResult = {
  */
 router.options('/npm/search', cors());
 router.get('/npm/search', cors(), async (req, res) => {
-  const { q } = req.query;
-  const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=10`);
+  const { q, size } = req.query;
+  const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=${size}`);
   if (!response.ok) {
     return res.json({ error: true, result: [] });
   }

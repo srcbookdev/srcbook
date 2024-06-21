@@ -61,7 +61,7 @@ export default function InstallPackageModal({
 
   useEffect(() => {
     setSelectedName(null);
-    searchNpmPackages(value)
+    searchNpmPackages(value, 6) // Modal height works best with max 6 entries
       .then((data) => {
         const results = data.result;
         setResults(results);
@@ -115,7 +115,7 @@ export default function InstallPackageModal({
       <DialogContent
         className={cn(
           'flex flex-col transition-height',
-          mode === 'search' ? 'w-[800px] h-[462px]' : '',
+          mode === 'search' ? 'w-[800px] h-[484px]' : '',
         )}
       >
         {mode === 'error' && (

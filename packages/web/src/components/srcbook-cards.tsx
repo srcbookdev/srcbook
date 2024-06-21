@@ -1,5 +1,7 @@
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
+import { Circle, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 function LongDashedHorizontalLine(props: { className?: string }) {
   return (
@@ -39,16 +41,27 @@ function LongDashedVerticalLine(props: { className?: string }) {
 
 type SrcbookCardPropsType = {
   title: string;
+  running: boolean;
   cellCount: number;
   language: CodeLanguageType;
   onClick: () => void;
+  onDelete: () => void;
 };
 
 export function SrcbookCard(props: SrcbookCardPropsType) {
+  function onDelete(e: React.MouseEvent<HTMLButtonElement>) {
+    e.stopPropagation();
+    props.onDelete();
+  }
+
   return (
     <div
       onClick={props.onClick}
-      className="border relative rounded-sm min-w-52 h-[108px] overflow-clip hover:ring-ring hover:ring-1 cursor-pointer"
+      className={cn(
+        'group border relative rounded-sm min-w-52 h-[108px] overflow-clip hover:ring-1 cursor-pointer',
+        props.running ? 'border-run hover:ring-run' : 'border-border hover:ring-ring',
+        'transition-all',
+      )}
     >
       <LongDashedHorizontalLine className="absolute top-[10px] text-border" />
       <LongDashedHorizontalLine className="absolute bottom-[10px] text-border" />
@@ -58,12 +71,30 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
         <h4 className="font-semibold leading-[18px]">{props.title}</h4>
         <div className="flex items-center justify-between text-tertiary-foreground">
           <div className="text-[13px] flex items-center gap-2">
-            <SrcbookLogo className="text-foreground" width={16} height={18} />
-            <span>
-              {props.cellCount} {props.cellCount === 1 ? 'Cell' : 'Cells'}
-            </span>
+            {props.running ? (
+              <>
+                <Circle size={14} strokeWidth={3} className="text-run" />
+                <span>Running</span>
+              </>
+            ) : (
+              <>
+                <SrcbookLogo className="text-foreground" width={16} height={18} />
+                <span>
+                  {props.cellCount} {props.cellCount === 1 ? 'Cell' : 'Cells'}
+                </span>
+              </>
+            )}
           </div>
-          <code className="font-mono">{props.language === 'javascript' ? 'JS' : 'TS'}</code>
+          <code className="font-mono group-hover:hidden">
+            {props.language === 'javascript' ? 'JS' : 'TS'}
+          </code>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="hidden group-hover:block hover:text-foreground"
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       </div>
     </div>

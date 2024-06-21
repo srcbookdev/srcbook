@@ -10,6 +10,7 @@
     "lint-web": "pnpm --filter web lint",
     "check-types": "pnpm --recursive check-types",
     "check-prettier": "pnpm prettier --check .",
+    "format": "pnpm prettier --write .",
     "generate": "pnpm --filter api generate",
     "migrate": "pnpm --filter api migrate",
     "start": "pnpm --filter srcbook start"

@@ -56,9 +56,7 @@
       "indexes": {
         "secrets_name_unique": {
           "name": "secrets_name_unique",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": true
         }
       },

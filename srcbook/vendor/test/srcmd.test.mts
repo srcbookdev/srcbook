@@ -30,7 +30,7 @@ describe('encoding and decoding srcmd files', () => {
   it('is an error when there is a heading 6 without a corresponding code block', () => {
     const result = decode(
       languagePrefix +
-      '# Heading 1\n\n###### supposed_to_be_a_filename.mjs\n\nBut no code is found.',
+        '# Heading 1\n\n###### supposed_to_be_a_filename.mjs\n\nBut no code is found.',
     ) as DecodeErrorResult;
     expect(result.error).toBe(true);
     expect(result.errors).toEqual([

@@ -1,5 +1,5 @@
 import { PlusIcon } from 'lucide-react';
-import { Form, useLoaderData, useNavigate, redirect, Link } from 'react-router-dom';
+import { Form, useLoaderData, useNavigate, redirect } from 'react-router-dom';
 import { CodeLanguageType, TitleCellType } from '@srcbook/shared';
 import { getConfig, createSession, loadSessions, createSrcbook, importSrcbook } from '@/lib/server';
 import { Input } from '@/components/ui/input';

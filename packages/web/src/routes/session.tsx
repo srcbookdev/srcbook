@@ -118,7 +118,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     updates: CellUpdateAttrsType,
     getValidationError?: (cell: T) => string | null,
   ) {
-    getValidationError = getValidationError || ((_: T) => null);
+    getValidationError = getValidationError || (() => null);
     updateCell({ ...cell, ...(updates as Partial<T>) });
 
     const error = getValidationError({ ...cell, ...(updates as Partial<T>) });

@@ -40,14 +40,12 @@ function Secrets() {
     <div>
       <h1 className="text-2xl my-4">Secrets</h1>
       <p>
-        Secrets are a safe way to share credentials and tokens with notebooks. You can think of
-        these as environment variables, and access them with{' '}
-        <code className="code">process.env.SECRET_NAME</code>
+        Secrets are a safe way utilize API tokens or other private credentials in Srcbooks. These
+        are available in code cells via <code className="code">process.env.SECRET_NAME</code>.
       </p>
-      {secrets && (
-        <div>
+      {Object.keys(secrets).length > 0 && (
+        <>
           <h2 className="text-xl mt-8 pb-4">Current Secrets</h2>
-          {Object.keys(secrets).length === 0 && <p>You have not set any secrets.</p>}
 
           <ul className="flex flex-col gap-2">
             {Object.entries(secrets)
@@ -56,10 +54,11 @@ function Secrets() {
                 <SecretRow name={name} value={value} key={name} />
               ))}
           </ul>
-        </div>
+        </>
       )}
 
       <h2 className="text-xl mt-8 pb-4">Add a new Secret</h2>
+
       <NewSecretForm />
     </div>
   );
@@ -98,14 +97,14 @@ function SecretRow({ name, value }: { name: string; value: string }) {
 
   return (
     <>
-      <li className="grid grid-cols-5 border border-gray-200 rounded-lg p-3">
+      <li className="grid grid-cols-5 border rounded-lg p-3">
         {mode === 'view' ? (
           <>
             <div className="col-span-2 flex gap-3 items-center ">
-              <div className="p-2 border border-gray-200 rounded-full">
-                <KeyRound className="text-gray-500" size={16} />
+              <div className="p-2 border border-tertiary-foreground rounded-full">
+                <KeyRound className="text-tertiary-foreground" size={16} />
               </div>
-              <p className="font-semibold">{name}</p>
+              <code className="font-mono font-semibold text-sm">{name}</code>
             </div>
             <div className="col-span-2">
               <CopyableSecretValue value={value} />
@@ -150,12 +149,14 @@ function SecretRow({ name, value }: { name: string; value: string }) {
               className="col-span-2 max-w-xs"
               type="text"
               value={updatedName}
+              autoComplete="off"
               onChange={(e) => setUpdatedName(e.target.value.toUpperCase())}
             />
             <Input
               className="col-span-2 max-w-xs"
               type="text"
               name="value"
+              autoComplete="off"
               value={updatedValue}
               onChange={(e) => setUpdatedValue(e.target.value)}
             />
@@ -190,28 +191,28 @@ function CopyableSecretValue({ value }: { value: string }) {
     <>
       {state === 'hidden' ? (
         <div className="flex gap-2 items-center">
-          <Button onClick={() => setState('visible')} variant="ghost">
+          <Button onClick={() => setState('visible')} variant="icon" size="icon">
             <Eye size={16} onClick={() => setState('visible')} />
           </Button>
           <p>•••••••••••</p>
-          <Button variant="ghost" onClick={copy}>
+          <Button variant="icon" size="icon" onClick={copy}>
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </Button>
-          {copied && <p className="text-xs text-gray-500">Copied!</p>}
+          {copied && <p className="text-xs text-tertiary-foreground">Copied!</p>}
         </div>
       ) : (
         <div className="flex gap-2 items-center">
-          <Button onClick={() => setState('hidden')} variant="ghost">
+          <Button onClick={() => setState('hidden')} variant="icon" size="icon">
             <EyeOff size={16} />
           </Button>
           <p className="text-sm">
             {value.slice(0, 25)}
             {value.length > 25 ? '...' : ''}
           </p>
-          <Button variant="ghost" onClick={copy}>
+          <Button variant="icon" onClick={copy} size="icon">
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </Button>
-          {copied && <p className="text-xs text-gray-500">Copied!</p>}
+          {copied && <p className="text-xs text-tertiary-foreground">Copied!</p>}
         </div>
       )}
     </>
@@ -231,6 +232,7 @@ function NewSecretForm() {
           name="name"
           value={name}
           pattern="^[A-Z0-9_]+$"
+          autoComplete="off"
           onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
           placeholder="name"
         />
@@ -238,6 +240,7 @@ function NewSecretForm() {
           type="text"
           name="value"
           value={value}
+          autoComplete="off"
           onChange={(e) => setValue(e.currentTarget.value)}
           placeholder="value"
         />
@@ -246,9 +249,6 @@ function NewSecretForm() {
           Add secret
         </Button>
       </Form>
-      <p className="text-xs text-gray-400 pl-4 pt-0.5">
-        only letters, numbers and underscores are allowed
-      </p>
     </>
   );
 }

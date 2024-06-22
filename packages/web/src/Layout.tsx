@@ -1,13 +1,16 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { SrcbookLogo } from './components/logos';
+import useTheme from './components/use-theme';
 
 export default function Layout() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <>
       <div className="flex flex-col">
-        <header className="h-8 min-h-8 max-h-8 w-full flex items-center fixed bg-background z-10 border-b border-border text-sm">
-          <nav className="px-6 w-full">
+        <header className="h-8 min-h-8 max-h-8 w-full flex items-center justify-between fixed bg-background z-10 border-b border-border text-sm">
+          <nav className="px-6 flex-1">
             <ul className="flex items-center space-x-6">
               <li>
                 <NavLink to="/">
@@ -43,6 +46,16 @@ export default function Layout() {
               </li>
             </ul>
           </nav>
+          {process.env.NODE_ENV !== 'production' && (
+            <div className="pr-3">
+              <button
+                onClick={toggleTheme}
+                className="border-none outline-none text-muted-foreground hover:text-foreground font-semibold transition-colors"
+              >
+                {theme === 'light' ? '(DEV) Dark mode' : '(DEV) Light mode'}
+              </button>
+            </div>
+          )}
         </header>
         <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">
           <Outlet />

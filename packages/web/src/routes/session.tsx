@@ -72,7 +72,6 @@ function SessionPage() {
 
 function Session(props: { session: SessionType; channel: SessionChannel }) {
   const { session, channel } = props;
-  const { toggleTheme } = useTheme();
 
   const { cells, setCells, updateCell, removeCell, createCodeCell, createMarkdownCell, setOutput } =
     useCells();
@@ -151,14 +150,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   }
 
   return (
-    <div>
-      <p
-        className="fixed right-3 top-12 text-muted-foreground text-sm hover:cursor-pointer"
-        onClick={toggleTheme}
-      >
-        toggle theme
-      </p>
-
+    <>
       <SessionMenu session={session} />
 
       <div>
@@ -201,7 +193,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
           <div className="flex-grow border-t border-foreground"></div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

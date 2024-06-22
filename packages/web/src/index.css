@@ -60,6 +60,8 @@
     --run: var(--sb-yellow-50);
     --run-foreground: var(--sb-core-100);
     --run-ring: var(--sb-yellow-50);
+    --inline-code: var(--sb-core-20);
+    --inline-code-foreground: var(--foreground);
   }
 
   .dark {
@@ -70,6 +72,8 @@
     --run: var(--sb-yellow-50);
     --run-foreground: var(--sb-core-100);
     --run-ring: var(--sb-yellow-50);
+    --inline-code: var(--sb-core-110);
+    --inline-code-foreground: var(--foreground);
   }
 
   /* shadcn variables light */
@@ -155,6 +159,16 @@
     line-height: 1.75rem;
     font-weight: 700;
   }
+
+  .code {
+    @apply text-sm;
+    @apply rounded-sm;
+    @apply px-1;
+    @apply py-0.5;
+    @apply mx-0.5;
+    @apply bg-inline-code;
+    @apply text-inline-code-foreground;
+  }
 }
 
 @layer base {
@@ -225,22 +239,7 @@
 }
 
 .sb-prose code:not(pre code) {
-  @apply text-sm;
-  @apply rounded-sm;
-  @apply bg-sb-core-20;
-  @apply px-1;
-  @apply py-0.5;
-  @apply mx-0.5;
-}
-
-/* LIGHT */
-.sb-prose code:not(pre code) {
-  @apply bg-sb-core-20;
-}
-
-/* DARK */
-.dark .sb-prose code:not(pre code) {
-  @apply bg-sb-core-110;
+  @apply code;
 }
 
 .sb-prose h1 > code,

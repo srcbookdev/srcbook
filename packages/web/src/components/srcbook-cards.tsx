@@ -225,7 +225,7 @@ export function ImportSrcbookCTA(props: { onClick: () => void }) {
       <div>
         <h5 className="font-semibold leading-[18px]">Open Srcbook</h5>
         <p className="mt-2 leading-none text-[13px] text-tertiary-foreground">
-          import from .srcmd file
+          import from <code className="code text-[12px]">.srcmd</code> file
         </p>
       </div>
       <Upload size={20} />

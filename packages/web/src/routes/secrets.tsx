@@ -42,9 +42,7 @@ function Secrets() {
       <p>
         Secrets are a safe way to share credentials and tokens with notebooks. You can think of
         these as environment variables, and access them with{' '}
-        <code className="px-1 py-0.5 border border-gray-200 rounded-sm">
-          process.env.SECRET_NAME
-        </code>{' '}
+        <code className="code">process.env.SECRET_NAME</code>
       </p>
       {secrets && (
         <div>

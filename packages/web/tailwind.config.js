@@ -82,6 +82,10 @@ module.exports = {
           foreground: 'hsl(var(--run-foreground))',
           ring: 'hsl(var(--run-ring))',
         },
+        'inline-code': {
+          DEFAULT: 'hsl(var(--inline-code))',
+          foreground: 'hsl(var(--inline-code-foreground))',
+        },
         sb: {
           'core-0': 'hsl(var(--sb-core-0))',
           'core-10': 'hsl(var(--sb-core-10))',

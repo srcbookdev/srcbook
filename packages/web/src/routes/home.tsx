@@ -4,7 +4,7 @@ import { getConfig, createSession, loadSessions, createSrcbook, importSrcbook } 
 import type { SessionType } from '@/types';
 import { useState } from 'react';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
-import { CreateSrcbookForm, SrcbookCard } from '@/components/srcbook-cards';
+import { CreateSrcbookForm, ImportSrcbookCTA, SrcbookCard } from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 
 export async function loader() {
@@ -92,12 +92,15 @@ export default function Home() {
       )}
       <div className="mb-16">
         <h4 className="h4 mx-auto my-6">New Srcbook</h4>
-        <CreateSrcbookForm defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
+        <div className="grid grid-cols-2 sm:flex gap-6">
+          <CreateSrcbookForm defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
+          <ImportSrcbookCTA onClick={() => setShowImportSrcbookModal(true)} />
+        </div>
       </div>
       {sessions.length > 0 && (
         <div className="mb-16">
           <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {sessions.map((session) => (
               <SrcbookCard
                 key={session.id}

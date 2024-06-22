@@ -166,7 +166,7 @@ function CreateSrcbookCard(props: {
             props.onEnterKeyDown();
           }
         }}
-        className="bg-transparent border-none outline-none font-semibold leading-[18px] resize-none overflow-clip placeholder-foreground group-hover:placeholder-tertiary-foreground"
+        className="bg-transparent border-none outline-none font-semibold leading-[18px] resize-none overflow-clip placeholder-foreground group-hover:placeholder-tertiary-foreground group-focus-within:placeholder-tertiary-foreground"
       ></textarea>
       <div className="-ml-0.5">
         <PlusIcon size={20} />

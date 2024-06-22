@@ -1,4 +1,4 @@
-import { useNavigate, useLoaderData, useNavigate, redirect } from 'react-router-dom';
+import { useNavigate, useLoaderData } from 'react-router-dom';
 import { CodeLanguageType, TitleCellType } from '@srcbook/shared';
 import { getConfig, createSession, loadSessions, createSrcbook, importSrcbook } from '@/lib/server';
 import type { SessionType } from '@/types';

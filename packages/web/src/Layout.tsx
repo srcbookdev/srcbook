@@ -6,13 +6,13 @@ export default function Layout() {
   return (
     <>
       <div className="flex flex-col">
-        <header className="h-12 min-h-12 max-h-12 w-full flex items-center fixed bg-background z-10">
+        <header className="h-8 min-h-8 max-h-8 w-full flex items-center fixed bg-background z-10 border-b border-border text-sm">
           <nav className="px-6 w-full">
-            <ul className="flex items-center space-x-8">
+            <ul className="flex items-center space-x-6">
               <li>
                 <NavLink to="/">
-                  <h1 className="font-mono font-bold text-lg flex items-center space-x-[10px]">
-                    <SrcbookLogo />
+                  <h1 className="font-mono font-bold flex items-center space-x-[10px]">
+                    <SrcbookLogo width={14} height={14} />
                     <span>Srcbook</span>
                   </h1>
                 </NavLink>
@@ -20,7 +20,7 @@ export default function Layout() {
               <li>
                 <NavLink
                   to="/"
-                  className="text-sm font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
+                  className="font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
                 >
                   Home
                 </NavLink>
@@ -28,7 +28,7 @@ export default function Layout() {
               <li>
                 <NavLink
                   to="/secrets"
-                  className="text-sm font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
+                  className="font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
                 >
                   Secrets
                 </NavLink>
@@ -36,7 +36,7 @@ export default function Layout() {
               <li>
                 <NavLink
                   to="/settings"
-                  className="text-sm font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
+                  className="font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
                 >
                   Settings
                 </NavLink>
@@ -44,7 +44,7 @@ export default function Layout() {
             </ul>
           </nav>
         </header>
-        <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-12">
+        <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">
           <Outlet />
         </div>
       </div>

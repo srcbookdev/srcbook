@@ -54,7 +54,7 @@ export default function SessionMenu({ session }: Props) {
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
   return (
-    <div className="hidden xl:block fixed top-[88px] left-0 bg-background p-6 space-y-8 text-sm">
+    <div className="hidden xl:block fixed top-[72px] left-0 bg-background p-6 space-y-8 text-sm">
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />

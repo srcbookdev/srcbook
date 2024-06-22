@@ -55,10 +55,10 @@ router.post('/srcbooks', cors(), async (req, res) => {
   const { name, language } = req.body;
 
   // TODO: Zod
-  if (typeof name !== 'string' || name.length < 1 || name.length > 32 || name.trim() === '') {
+  if (typeof name !== 'string' || name.length < 1 || name.length > 44 || name.trim() === '') {
     return res.json({
       error: true,
-      result: 'Srcbook is required and cannot be more than 32 characters',
+      result: 'Srcbook is required and cannot be more than 44 characters',
     });
   }
 

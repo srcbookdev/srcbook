@@ -40,12 +40,12 @@ export default function DeleteSrcbookModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Delete "{getTitleForSession(session)}"</DialogTitle>
+          <DialogTitle>Delete "{getTitleForSession(session)}"?</DialogTitle>
           <DialogDescription asChild>
             <div>
-              <p>Deleting this Srcbook is a permanent action.</p>
+              <p className="text-foreground">Deleting a Srcbook cannot be undone.</p>
             </div>
           </DialogDescription>
         </DialogHeader>

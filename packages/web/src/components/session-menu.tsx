@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import type { Tokens } from 'marked';
 import { useState } from 'react';
-import { Upload, Trash2, MessageCircleQuestion, Circle } from 'lucide-react';
+import { Upload, Trash2, MessageCircleQuestion, Circle, List } from 'lucide-react';
 import type { SessionType } from '../types';
 import type { CodeCellType, MarkdownCellType, TitleCellType } from '@srcbook/shared';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
@@ -54,61 +54,66 @@ export default function SessionMenu({ session }: Props) {
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
   return (
-    <div className="hidden xl:block fixed top-[72px] left-0 bg-background p-6 space-y-8 text-sm">
-      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
-      <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
+    <>
+      <div className="fixed top-[110px] left-10">
+        <List size={24} />
+      </div>
+      <div className="hidden xl:block fixed top-[72px] left-0 bg-background p-6 space-y-8 text-sm">
+        <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+        <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
+        <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
 
-      {/** table of contents */}
-      <div className="max-w-48 text-tertiary-foreground">
-        {cells.map((cell) => {
-          const isRunningCell = cell.type === 'code' && cell.status === 'running';
-          return (
-            <div
-              key={cell.id}
-              className={cn(
-                'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer',
-                isRunningCell
-                  ? 'text-run border-l-run font-medium'
-                  : 'hover:border-l-foreground hover:text-foreground',
-              )}
-            >
-              {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
-              <p
-                className="truncate"
-                onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
+        {/** table of contents */}
+        <div className="max-w-48 text-tertiary-foreground">
+          {cells.map((cell) => {
+            const isRunningCell = cell.type === 'code' && cell.status === 'running';
+            return (
+              <div
+                key={cell.id}
+                className={cn(
+                  'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer',
+                  isRunningCell
+                    ? 'text-run border-l-run font-medium'
+                    : 'hover:border-l-foreground hover:text-foreground',
+                )}
               >
-                {tocFromCell(cell)}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-      {/** actions menus */}
-      <div className="space-y-1.5 text-tertiary-foreground">
-        <div
-          onClick={() => setShowSave(true)}
-          className="flex items-center gap-2 hover:text-foreground cursor-pointer"
-        >
-          <Upload size={16} />
-          <p>Export</p>
+                {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
+                <p
+                  className="truncate"
+                  onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
+                >
+                  {tocFromCell(cell)}
+                </p>
+              </div>
+            );
+          })}
         </div>
-        <div
-          onClick={() => setShowDelete(true)}
-          className="flex items-center gap-2 hover:text-foreground cursor-pointer"
-        >
-          <Trash2 size={16} />
-          <p>Delete</p>
-        </div>
+        {/** actions menus */}
+        <div className="space-y-1.5 text-tertiary-foreground">
+          <div
+            onClick={() => setShowSave(true)}
+            className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+          >
+            <Upload size={16} />
+            <p>Export</p>
+          </div>
+          <div
+            onClick={() => setShowDelete(true)}
+            className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+          >
+            <Trash2 size={16} />
+            <p>Delete</p>
+          </div>
 
-        <div
-          onClick={() => setShowShortcuts(true)}
-          className="flex items-center gap-2 hover:text-foreground cursor-pointer"
-        >
-          <MessageCircleQuestion size={16} />
-          <p>Shortcuts</p>
+          <div
+            onClick={() => setShowShortcuts(true)}
+            className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+          >
+            <MessageCircleQuestion size={16} />
+            <p>Shortcuts</p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -153,7 +153,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     <>
       <SessionMenu session={session} />
 
-      <div>
+      {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
+      <div className="px-[72px] xl:pl-[100px]">
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
             {idx > 1 && (

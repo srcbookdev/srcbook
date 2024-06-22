@@ -41,6 +41,21 @@ function LongDashedVerticalLine(props: { className?: string }) {
   );
 }
 
+export function MainCTACard(props: { title: string; description: string; onClick: () => void }) {
+  return (
+    <div
+      className="flex flex-col items-center cursor-pointer border hover:border-foreground transition-colors active:translate-y-0.5"
+      onClick={props.onClick}
+    >
+      <div className="w-full grow h-44 bg-border"></div>
+      <div className="w-full p-4 space-y-2">
+        <h4 className="h4">{props.title}</h4>
+        <p className="text-sm text-tertiary-foreground">{props.description}</p>
+      </div>
+    </div>
+  );
+}
+
 function CardContainer(props: {
   onClick: () => void;
   className?: string;
@@ -81,7 +96,10 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
   return (
     <CardContainer
       onClick={props.onClick}
-      className={props.running ? 'border-run' : 'hover:border-foreground'}
+      className={cn(
+        'active:translate-y-0.5',
+        props.running ? 'border-run' : 'hover:border-foreground',
+      )}
     >
       <h5 className="font-semibold leading-[18px]">{props.title}</h5>
       <div className="flex items-center justify-between text-tertiary-foreground">
@@ -220,7 +238,7 @@ export function ImportSrcbookCTA(props: { onClick: () => void }) {
   return (
     <CardContainer
       onClick={props.onClick}
-      className="w-full sm:w-[214px] sm:max-w-[214px] bg-muted hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground"
+      className="w-full sm:w-[214px] sm:max-w-[214px] bg-muted hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground active:translate-y-0.5"
     >
       <div>
         <h5 className="font-semibold leading-[18px]">Open Srcbook</h5>

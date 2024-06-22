@@ -4,7 +4,12 @@ import { getConfig, createSession, loadSessions, createSrcbook, importSrcbook } 
 import type { SessionType } from '@/types';
 import { useState } from 'react';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
-import { CreateSrcbookForm, ImportSrcbookCTA, SrcbookCard } from '@/components/srcbook-cards';
+import {
+  MainCTACard,
+  SrcbookCard,
+  CreateSrcbookForm,
+  ImportSrcbookCTA,
+} from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 
 export async function loader() {
@@ -75,21 +80,16 @@ export default function Home() {
           <h4 className="h4 mx-auto mb-10">Get started</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {guides.map((guide) => (
-              <div
-                key={guide.id}
-                className="flex flex-col items-center hover:cursor-pointer hover:shadow transition-shadow"
+              <MainCTACard
+                title={guide.title}
+                description={guide.description}
                 onClick={() => openTutorial(guide.name)}
-              >
-                <div className="w-full grow h-44 bg-border"></div>
-                <div className="w-full border p-4 space-y-2">
-                  <h4 className="h4">{guide.title}</h4>
-                  <p className="text-sm text-tertiary-foreground">{guide.description}</p>
-                </div>
-              </div>
+              />
             ))}
           </div>
         </div>
       )}
+
       <div className="mb-16">
         <h4 className="h4 mx-auto my-6">New Srcbook</h4>
         <div className="grid grid-cols-2 sm:flex gap-6">
@@ -97,6 +97,7 @@ export default function Home() {
           <ImportSrcbookCTA onClick={() => setShowImportSrcbookModal(true)} />
         </div>
       </div>
+
       {sessions.length > 0 && (
         <div className="mb-16">
           <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>

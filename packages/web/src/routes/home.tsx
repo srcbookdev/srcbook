@@ -24,7 +24,7 @@ const guides = [
     id: 2,
     name: 'langgraph-web-agent',
     title: 'LangGraph agent',
-    description: 'Learn to write a stateful agent with  emory using langgraph and tavily.',
+    description: 'Learn to write a stateful agent with memory using LangGraph and Tavily.',
   },
   {
     id: 3,

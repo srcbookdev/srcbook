@@ -60,7 +60,6 @@ export function FilePicker(props: {
           className="pointer-events-none"
         />
         <Button
-          className="w-32"
           type="button"
           disabled={selected === null || submitting}
           onClick={createSrcbookFromSrcmdFile}
@@ -90,7 +89,7 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
     <div className="space-y-4 mt-4 w-full">
       <Form method="post" className="flex items-center space-x-2 w-full">
         <Input value={dirname} name="path" readOnly tabIndex={-1} className="pointer-events-none" />
-        <Button className="w-32" type="submit" disabled={selected === null}>
+        <Button type="submit" disabled={selected === null}>
           {props.cta}
         </Button>
       </Form>

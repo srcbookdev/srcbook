@@ -55,8 +55,7 @@ export function ImportSrcbookModal({
           <DialogTitle>Open Srcbook</DialogTitle>
           <DialogDescription asChild>
             <p>
-              Open a Srcbook by importing one from a{' '}
-              <code className="font-semibold text-sm">.srcmd</code> file.
+              Open a Srcbook by importing one from a <code className="code">.srcmd</code> file.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -101,8 +100,8 @@ export function ExportSrcbookModal({
           <DialogTitle>Save to file</DialogTitle>
           <DialogDescription asChild>
             <p>
-              Export this Srcbook to a <code className="font-semibold text-sm">.srcmd</code> file
-              which is shareable and can be imported into any Srcbook application.
+              Export this Srcbook to a <code className="code">.srcmd</code> file which is shareable
+              and can be imported into any Srcbook application.
             </p>
           </DialogDescription>
         </DialogHeader>

@@ -139,11 +139,11 @@ function FsEntryItem({
   let classes: string;
 
   if (selected) {
-    classes = 'cursor-pointer bg-primary text-primary-foreground';
+    classes = 'cursor-pointer bg-muted-foreground';
   } else if (disabled) {
     classes = 'pointer-events-none';
   } else {
-    classes = 'hover:bg-primary hover:text-primary-foreground';
+    classes = 'hover:bg-muted-foreground';
   }
 
   return (

@@ -45,7 +45,7 @@ export function ImportSrcbookModal({
       return;
     }
 
-    return navigate(`/sessions/${result.id}`);
+    return navigate(`/srcbooks/${result.id}`);
   }
 
   return (

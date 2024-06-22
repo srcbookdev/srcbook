@@ -22,7 +22,7 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
       },
       {
-        path: '/sessions/:id',
+        path: '/srcbooks/:id',
         loader: Session.loader,
         element: <Session />,
         errorElement: <ErrorPage />,

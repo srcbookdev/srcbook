@@ -225,11 +225,22 @@
 }
 
 .sb-prose code:not(pre code) {
-  @apply text-base;
+  @apply text-sm;
   @apply rounded-sm;
   @apply bg-sb-core-20;
-  @apply px-1.5;
-  @apply py-1;
+  @apply px-1;
+  @apply py-0.5;
+  @apply mx-0.5;
+}
+
+/* LIGHT */
+.sb-prose code:not(pre code) {
+  @apply bg-sb-core-20;
+}
+
+/* DARK */
+.dark .sb-prose code:not(pre code) {
+  @apply bg-sb-core-110;
 }
 
 .sb-prose h1 > code,

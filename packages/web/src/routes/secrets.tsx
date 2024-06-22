@@ -144,7 +144,6 @@ function SecretRow({ name, value }: { name: string; value: string }) {
           </>
         ) : (
           <>
-            <Input type="hidden" name="editing" value="something" className="hidden" />
             <Input
               className="col-span-2 max-w-xs"
               type="text"
@@ -226,7 +225,6 @@ function NewSecretForm() {
   return (
     <>
       <Form method="post" className="flex items-center gap-4">
-        <Input type="hidden" name="new-form" value="something" className="hidden" />
         <Input
           type="text"
           name="name"

@@ -1,6 +1,6 @@
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
-import { Circle, PlusIcon, Trash2 } from 'lucide-react';
+import { Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRef, useState } from 'react';
 import { Button } from './ui/button';
@@ -132,7 +132,7 @@ function CreateSrcbookCard(props: {
   return (
     <CardContainer
       onClick={() => textareaRef.current?.focus()}
-      className="hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground"
+      className="hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground cursor-text"
     >
       <textarea
         ref={textareaRef}
@@ -171,7 +171,7 @@ export function CreateSrcbookForm(props: {
   }
 
   return (
-    <div className="max-w-[214px] space-y-1.5">
+    <div className="w-full sm:w-[214px] sm:max-w-[214px] space-y-1.5">
       <CreateSrcbookCard value={title} onChange={setTitle} onEnterKeyDown={onSubmit} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
@@ -213,5 +213,22 @@ function LanguageButton(props: {
     >
       {props.value === 'javascript' ? 'JS' : 'TS'}
     </button>
+  );
+}
+
+export function ImportSrcbookCTA(props: { onClick: () => void }) {
+  return (
+    <CardContainer
+      onClick={props.onClick}
+      className="w-full sm:w-[214px] sm:max-w-[214px] bg-muted hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground"
+    >
+      <div>
+        <h5 className="font-semibold leading-[18px]">Open Srcbook</h5>
+        <p className="mt-2 leading-none text-[13px] text-tertiary-foreground">
+          import from .srcmd file
+        </p>
+      </div>
+      <Upload size={20} />
+    </CardContainer>
   );
 }

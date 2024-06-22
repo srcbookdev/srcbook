@@ -7,7 +7,7 @@ import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import { CreateSrcbookForm, SrcbookCard } from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 
-async function loader() {
+export async function loader() {
   const { result: config } = await getConfig();
   const { result: sessions } = await loadSessions();
   return { defaultLanguage: config.defaultLanguage, baseDir: config.baseDir, sessions };
@@ -40,7 +40,7 @@ type HomeLoaderDataType = {
   defaultLanguage: CodeLanguageType;
 };
 
-function Home() {
+export default function Home() {
   const { defaultLanguage, baseDir, sessions } = useLoaderData() as HomeLoaderDataType;
   const navigate = useNavigate();
 
@@ -115,6 +115,3 @@ function Home() {
     </div>
   );
 }
-
-Home.loader = loader;
-export default Home;

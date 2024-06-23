@@ -67,7 +67,6 @@ export default function Home() {
   async function openTutorial(tutorial: string) {
     const { result } = await importSrcbook({ path: `tutorials/${tutorial}.srcmd` });
     const { result: newSession } = await createSession({ path: result.dir });
-
     return navigate(`/srcbooks/${newSession.id}`);
   }
 
@@ -82,6 +81,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {guides.map((guide) => (
               <MainCTACard
+                key={guide.id}
                 title={guide.title}
                 description={guide.description}
                 onClick={() => openTutorial(guide.name)}

@@ -44,7 +44,7 @@ function LongDashedVerticalLine(props: { className?: string }) {
 export function MainCTACard(props: { title: string; description: string; onClick: () => void }) {
   return (
     <div
-      className="flex flex-col items-center cursor-pointer border hover:border-foreground transition-colors active:translate-y-0.5"
+      className="flex flex-col items-center cursor-pointer border hover:border-foreground transition-colors active:translate-y-0.5 rounded-sm"
       onClick={props.onClick}
     >
       <div className="w-full grow h-44 bg-border"></div>

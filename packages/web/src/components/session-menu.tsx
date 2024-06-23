@@ -9,6 +9,11 @@ import type { CodeCellType, MarkdownCellType, TitleCellType } from '@srcbook/sha
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { ExportSrcbookModal } from '@/components/import-export-srcbook-modal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useCells } from './use-cell';
 
 type Props = {
@@ -42,6 +47,7 @@ export default function SessionMenu({ session }: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const { cells: allCells } = useCells();
 
@@ -56,7 +62,17 @@ export default function SessionMenu({ session }: Props) {
   return (
     <>
       <div className="fixed top-[110px] left-10">
-        <List size={24} />
+        <DropdownMenu open={open} onOpenChange={setOpen}>
+          <DropdownMenuTrigger onMouseEnter={() => setOpen(true)} asChild>
+            <div className="p-2 hover:bg-sb-red-30 cursor-pointer z-20">
+              <List size={24} />
+            </div>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent onMouseLeave={() => setOpen(false)} align="end" alignOffset={100}>
+            This is a dropdown menu
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div className="hidden xl:block fixed top-[72px] left-0 bg-background p-6 space-y-8 text-sm">
         <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />

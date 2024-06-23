@@ -700,7 +700,7 @@ function CodeCell(props: {
           value={cell.source}
           theme={codeTheme}
           extensions={[
-            javascript(),
+            javascript({ typescript: true }),
             Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
           ]}
           onChange={onChangeSource}

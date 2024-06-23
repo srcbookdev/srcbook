@@ -38,6 +38,7 @@
     "match-sorter": "^6.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
     "react-hotkeys-hook": "^4.5.0",
     "react-router-dom": "^6.23.0",
     "sonner": "^1.4.41",

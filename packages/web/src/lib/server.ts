@@ -68,7 +68,8 @@ export async function deleteSrcbook(request: { dir: string }) {
 }
 
 interface ImportSrcbookRequestType {
-  path: string;
+  path?: string;
+  text?: string;
 }
 
 interface ImportSrcbookResponseType {

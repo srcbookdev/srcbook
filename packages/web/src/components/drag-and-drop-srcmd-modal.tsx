@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
 import { Upload } from 'lucide-react';
@@ -47,29 +47,32 @@ export function DragAndDropSrcmdModal(props: { children: React.ReactNode }) {
 
   const navigate = useNavigate();
 
-  async function onDrop(files: File[]) {
-    // TODO: Error handling
-    if (files.length !== 1) {
-      return;
-    }
+  const onDrop = useCallback(
+    async (files: File[]) => {
+      // TODO: Error handling
+      if (files.length !== 1) {
+        return;
+      }
 
-    const file = files[0];
+      const file = files[0];
 
-    // TODO: Error handling
-    if (!file.name.endsWith('.srcmd')) {
-      return;
-    }
+      // TODO: Error handling
+      if (!file.name.endsWith('.srcmd')) {
+        return;
+      }
 
-    const text = await file.text();
+      const text = await file.text();
 
-    // TODO: Error handling
-    const { result } = await importSrcbook({ text });
-    const { result: session } = await createSession({ path: result.dir });
+      // TODO: Error handling
+      const { result } = await importSrcbook({ text });
+      const { result: session } = await createSession({ path: result.dir });
 
-    setShowDndModal(false);
+      setShowDndModal(false);
 
-    return navigate(`/srcbooks/${session.id}`);
-  }
+      return navigate(`/srcbooks/${session.id}`);
+    },
+    [navigate],
+  );
 
   const { getRootProps } = useDropzone({
     onDrop,

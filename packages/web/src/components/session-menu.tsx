@@ -10,10 +10,12 @@ import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { ExportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu';
 import { useCells } from './use-cell';
 
 type Props = {
@@ -47,7 +49,6 @@ export default function SessionMenu({ session }: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
-  const [open, setOpen] = useState(false);
 
   const { cells: allCells } = useCells();
 
@@ -59,27 +60,9 @@ export default function SessionMenu({ session }: Props) {
   // This assumes qwerty layout.
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
-  return (
-    <>
-      <div className="fixed top-[110px] left-10">
-        <DropdownMenu open={open} onOpenChange={setOpen}>
-          <DropdownMenuTrigger onMouseEnter={() => setOpen(true)} asChild>
-            <div className="p-2 hover:bg-sb-red-30 cursor-pointer z-20">
-              <List size={24} />
-            </div>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent onMouseLeave={() => setOpen(false)} align="end" alignOffset={100}>
-            This is a dropdown menu
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div className="hidden xl:block fixed top-[72px] left-0 bg-background p-6 space-y-8 text-sm">
-        <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-        <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
-        <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
-
-        {/** table of contents */}
+  const InnerMenu = () => {
+    return (
+      <div className="bg-background space-y-8 text-sm">
         <div className="max-w-48 text-tertiary-foreground">
           {cells.map((cell) => {
             const isRunningCell = cell.type === 'code' && cell.status === 'running';
@@ -129,6 +112,36 @@ export default function SessionMenu({ session }: Props) {
             <p>Shortcuts</p>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
+      <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
+      <div className="fixed xl:hidden top-[100px] left-6 group z-20">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>
+                <div className="p-2">
+                  <List size={24} />
+                </div>
+              </NavigationMenuTrigger>
+
+              <NavigationMenuContent className="">
+                <div className="p-6">
+                  <InnerMenu />
+                </div>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </div>
+      <div className="hidden xl:block fixed top-[72px] left-0 p-6">
+        <InnerMenu />
       </div>
     </>
   );

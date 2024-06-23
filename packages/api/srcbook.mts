@@ -75,14 +75,22 @@ export async function importSrcbookFromSrcmdFile(srcmdPath: string) {
   // When we import tutorials, we don't have absolute paths but rather want to
   // import them from the vendored srcbook application.
   const finalPath = srcmdPath.startsWith('tutorials') ? Path.join(DIST_DIR, srcmdPath) : srcmdPath;
-  const [srcmd, dirname] = await Promise.all([fs.readFile(finalPath, 'utf8'), newSrcbookDir()]);
+  const srcmd = await fs.readFile(finalPath, 'utf8');
+  return importSrcbookFromSrcmdText(srcmd);
+}
 
-  const result = decode(srcmd);
+/**
+ * Creates a srcbook directory from a srcmd text.
+ */
+export async function importSrcbookFromSrcmdText(text: string) {
+  const result = decode(text);
 
   if (result.error) {
     console.error(result.error);
-    throw new Error(`Cannot decode invalid srcmd in ${srcmdPath}`);
+    throw new Error(`Cannot decode invalid srcmd`);
   }
+
+  const dirname = await newSrcbookDir();
 
   await writeToDisk(dirname, result.metadata, result.cells);
 

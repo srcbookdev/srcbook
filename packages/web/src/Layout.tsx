@@ -1,9 +1,9 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { SrcbookLogo } from './components/logos';
 import useTheme from './components/use-theme';
 
-export default function Layout() {
+export default function Layout(props: { children: React.ReactNode }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -57,9 +57,7 @@ export default function Layout() {
             </div>
           )}
         </header>
-        <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">
-          <Outlet />
-        </div>
+        <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">{props.children}</div>
       </div>
       <Toaster position="top-right" />
     </>

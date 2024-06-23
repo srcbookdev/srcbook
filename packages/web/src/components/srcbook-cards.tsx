@@ -1,6 +1,6 @@
+import { Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
-import { Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRef, useState } from 'react';
 import { Button } from './ui/button';
@@ -56,24 +56,28 @@ export function MainCTACard(props: { title: string; description: string; onClick
   );
 }
 
-function CardContainer(props: {
-  onClick: () => void;
-  className?: string;
-  children: React.ReactNode;
+export function CardContainer({
+  className,
+  onClick,
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<'div'> & {
+  onClick?: () => void;
 }) {
   return (
     <div
-      onClick={props.onClick}
+      {...props}
+      onClick={onClick}
       className={cn(
-        'group border relative rounded-sm min-w-52 h-[108px] overflow-clip cursor-pointer transition-colors',
-        props.className,
+        'group border relative rounded-sm h-[108px] overflow-clip cursor-pointer transition-colors text-sm',
+        className,
       )}
     >
       <LongDashedHorizontalLine className="absolute top-[10px] text-border" />
       <LongDashedHorizontalLine className="absolute bottom-[10px] text-border" />
       <LongDashedVerticalLine className="absolute left-[10px] text-border" />
       <LongDashedVerticalLine className="absolute right-[10px] text-border" />
-      <div className="px-5 py-4 h-full flex flex-col justify-between text-sm">{props.children}</div>
+      <div className="px-5 py-4 h-full flex flex-col justify-between">{children}</div>
     </div>
   );
 }
@@ -243,7 +247,7 @@ export function ImportSrcbookCTA(props: { onClick: () => void }) {
       <div>
         <h5 className="font-semibold leading-[18px]">Open Srcbook</h5>
         <p className="mt-2 leading-none text-[13px] text-tertiary-foreground">
-          import from <code className="code text-[12px]">.srcmd</code> file
+          or drag 'n drop <code className="code text-[13px]">.srcmd</code> file
         </p>
       </div>
       <Upload size={20} />

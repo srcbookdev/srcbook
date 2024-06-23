@@ -20,9 +20,10 @@ import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import {
   createSrcbook,
-  importSrcbookFromSrcmdFile,
   removeSrcbook,
   fullSrcbookDir,
+  importSrcbookFromSrcmdFile,
+  importSrcbookFromSrcmdText,
 } from '../srcbook.mjs';
 import { readdir } from '../fs-utils.mjs';
 
@@ -81,18 +82,23 @@ router.delete('/srcbooks/:dir', cors(), async (req, res) => {
   return res.json({ error: false, deleted: true });
 });
 
-// Import a srcbook from a .srcmd file.
+// Import a srcbook from a .srcmd file or srcmd text.
 router.options('/import', cors());
 router.post('/import', cors(), async (req, res) => {
-  const { path } = req.body;
+  const { path, text } = req.body;
 
-  if (Path.extname(path) !== '.srcmd') {
+  if (path && Path.extname(path) !== '.srcmd') {
     return res.json({ error: true, result: 'Importing only works with .srcmd files' });
   }
 
   try {
-    const srcbookDir = await importSrcbookFromSrcmdFile(path);
-    return res.json({ error: false, result: { dir: srcbookDir } });
+    if (typeof path === 'string') {
+      const srcbookDir = await importSrcbookFromSrcmdFile(path);
+      return res.json({ error: false, result: { dir: srcbookDir } });
+    } else {
+      const srcbookDir = await importSrcbookFromSrcmdText(text);
+      return res.json({ error: false, result: { dir: srcbookDir } });
+    }
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

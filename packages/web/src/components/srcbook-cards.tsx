@@ -199,13 +199,13 @@ export function CreateSrcbookForm(props: {
         <div className="flex items-center gap-1.5">
           <LanguageButton
             value="javascript"
-            title="JavaScript Srcbook"
+            title="Use JavaScript for this Srcbook"
             selected={language === 'javascript'}
             onClick={setLanguage}
           />
           <LanguageButton
             value="typescript"
-            title="TypeScript Srcbook"
+            title="Use TypeScript for this Srcbook"
             selected={language === 'typescript'}
             onClick={setLanguage}
           />
@@ -229,7 +229,7 @@ function LanguageButton(props: {
       title={props.title}
       onClick={() => props.onClick(props.value)}
       className={cn(
-        'py-0.5 px-3 font-semibold border-none outline-none ring-0 focus-visible:ring-0',
+        'py-1 px-3 font-semibold border-none outline-none ring-0 focus-visible:ring-0 hover:bg-muted rounded-sm',
         props.selected ? 'text-foreground' : 'text-muted-foreground',
       )}
     >

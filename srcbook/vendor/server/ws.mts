@@ -19,12 +19,10 @@ import type {
   DepsInstallPayloadType,
   DepsValidatePayloadType,
   CellStopPayloadType,
-  CellStdinPayloadType,
   CellUpdatePayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
-  CellStdinPayloadSchema,
   CellUpdatePayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
@@ -184,30 +182,32 @@ async function tsxExec({ session, cell, secrets }: ExecRequestType) {
 }
 
 async function tscExec({ session, cell, secrets }: ExecRequestType) {
-  addRunningProcess(
-    session,
-    cell,
-    tsc({
-      cwd: session.dir,
-      env: secrets,
-      entry: cell.filename,
-      stdout(data) {
-        wss.broadcast(`session:${session.id}`, 'cell:output', {
-          cellId: cell.id,
-          output: { type: 'tsc', data: data.toString('utf8') },
-        });
-      },
-      stderr(data) {
-        wss.broadcast(`session:${session.id}`, 'cell:output', {
-          cellId: cell.id,
-          output: { type: 'tsc', data: data.toString('utf8') },
-        });
-      },
-      onExit() {
-        // TSC is only used to send data over stdout
-      },
-    }),
-  );
+  // Do not `addRunningProcess` here because:
+  //
+  //     1. There is no "Stop running cell" functionality for type checking, only for the running code (processes are tracked so they can be stopped)
+  //     2. `addRunningProcess` will use the same key for tscExec and tsxExec. If the type checking process finishes before a code process,
+  //        it will unregister the process in the processes map, which then causes "stop running cell" to break for that cell.
+  //
+  tsc({
+    cwd: session.dir,
+    env: secrets,
+    entry: cell.filename,
+    stdout(data) {
+      wss.broadcast(`session:${session.id}`, 'cell:output', {
+        cellId: cell.id,
+        output: { type: 'tsc', data: data.toString('utf8') },
+      });
+    },
+    stderr(data) {
+      wss.broadcast(`session:${session.id}`, 'cell:output', {
+        cellId: cell.id,
+        output: { type: 'tsc', data: data.toString('utf8') },
+      });
+    },
+    onExit() {
+      // TSC is only used to send data over stdout
+    },
+  });
 }
 
 async function depsInstall(payload: DepsInstallPayloadType) {
@@ -309,16 +309,11 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
   }
 }
 
-function cellStdin(payload: CellStdinPayloadType) {
-  processes.send(payload.sessionId, payload.cellId, payload.stdin);
-}
-
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
-  .incoming('cell:stdin', CellStdinPayloadSchema, cellStdin)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)

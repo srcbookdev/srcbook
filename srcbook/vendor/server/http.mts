@@ -1,4 +1,6 @@
 import Path from 'node:path';
+import fs from 'node:fs/promises';
+import { SRCBOOKS_DIR } from '../constants.mjs';
 import express, { type Application } from 'express';
 import cors from 'cors';
 import type { MarkdownCellType, CodeCellType } from '@srcbook/shared';
@@ -18,9 +20,10 @@ import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import {
   createSrcbook,
-  importSrcbookFromSrcmdFile,
   removeSrcbook,
   fullSrcbookDir,
+  importSrcbookFromSrcmdFile,
+  importSrcbookFromSrcmdText,
 } from '../srcbook.mjs';
 import { readdir } from '../fs-utils.mjs';
 
@@ -52,6 +55,14 @@ router.options('/srcbooks', cors());
 router.post('/srcbooks', cors(), async (req, res) => {
   const { name, language } = req.body;
 
+  // TODO: Zod
+  if (typeof name !== 'string' || name.length < 1 || name.length > 44 || name.trim() === '') {
+    return res.json({
+      error: true,
+      result: 'Srcbook is required and cannot be more than 44 characters',
+    });
+  }
+
   try {
     const srcbookDir = await createSrcbook(name, { language });
     return res.json({ error: false, result: { name, path: srcbookDir } });
@@ -71,18 +82,23 @@ router.delete('/srcbooks/:dir', cors(), async (req, res) => {
   return res.json({ error: false, deleted: true });
 });
 
-// Import a srcbook from a .srcmd file.
+// Import a srcbook from a .srcmd file or srcmd text.
 router.options('/import', cors());
 router.post('/import', cors(), async (req, res) => {
-  const { path } = req.body;
+  const { path, text } = req.body;
 
-  if (Path.extname(path) !== '.srcmd') {
+  if (path && Path.extname(path) !== '.srcmd') {
     return res.json({ error: true, result: 'Importing only works with .srcmd files' });
   }
 
   try {
-    const srcbookDir = await importSrcbookFromSrcmdFile(path);
-    return res.json({ error: false, result: { dir: srcbookDir } });
+    if (typeof path === 'string') {
+      const srcbookDir = await importSrcbookFromSrcmdFile(path);
+      return res.json({ error: false, result: { dir: srcbookDir } });
+    } else {
+      const srcbookDir = await importSrcbookFromSrcmdText(text);
+      return res.json({ error: false, result: { dir: srcbookDir } });
+    }
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);
@@ -122,7 +138,16 @@ router.get('/sessions/:id', cors(), async (req, res) => {
   const { id } = req.params;
 
   try {
-    const session = await findSession(id);
+    let session = await findSession(id);
+
+    if (!session) {
+      // This might be after a server restart, so we should try
+      // to see if we have a directory for this sessionId.
+      const exists = await fs.stat(Path.join(SRCBOOKS_DIR, id));
+      if (exists) {
+        session = await createSession(Path.join(SRCBOOKS_DIR, id));
+      }
+    }
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (e) {
     const error = e as unknown as Error;
@@ -260,8 +285,8 @@ type NpmSearchResult = {
  */
 router.options('/npm/search', cors());
 router.get('/npm/search', cors(), async (req, res) => {
-  const { q } = req.query;
-  const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=10`);
+  const { q, size } = req.query;
+  const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=${size}`);
   if (!response.ok) {
     return res.json({ error: true, result: [] });
   }

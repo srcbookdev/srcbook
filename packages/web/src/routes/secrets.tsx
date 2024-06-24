@@ -97,12 +97,12 @@ function SecretRow({ name, value }: { name: string; value: string }) {
 
   return (
     <>
-      <li className="grid grid-cols-5 border rounded-lg p-3">
+      <li className="grid grid-cols-5 border rounded-lg p-1">
         {mode === 'view' ? (
           <>
-            <div className="col-span-2 flex gap-3 items-center ">
-              <div className="p-2 border border-tertiary-foreground rounded-full">
-                <KeyRound className="text-tertiary-foreground" size={16} />
+            <div className="col-span-2 flex gap-3 items-center">
+              <div className="p-1.5 border text-tertiary-foreground border-tertiary-foreground rounded-full">
+                <KeyRound size={16} />
               </div>
               <code className="font-mono font-semibold text-sm">{name}</code>
             </div>

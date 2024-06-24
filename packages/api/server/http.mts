@@ -26,6 +26,7 @@ import {
   importSrcbookFromSrcmdText,
 } from '../srcbook.mjs';
 import { readdir } from '../fs-utils.mjs';
+import { EXAMPLE_SRCBOOKS } from '../srcbooks/examples.mjs';
 
 const app: Application = express();
 
@@ -48,6 +49,11 @@ router.post('/disk', cors(), async (req, res) => {
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
+});
+
+router.options('/examples', cors());
+router.get('/examples', cors(), (_, res) => {
+  return res.json({ result: EXAMPLE_SRCBOOKS });
 });
 
 // Create a new srcbook

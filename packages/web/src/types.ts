@@ -28,3 +28,11 @@ export type SessionType = {
   cells: CellType[];
   metadata: SrcbookMetadataType;
 };
+
+export type ExampleSrcbookType = {
+  id: string;
+  path: string;
+  title: string;
+  dirname: string;
+  description: string;
+};

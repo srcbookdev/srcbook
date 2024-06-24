@@ -1,5 +1,5 @@
 import { CellType, CodeCellType, MarkdownCellType, CodeLanguageType } from '@srcbook/shared';
-import { SessionType, FsObjectResultType } from '@/types';
+import { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
 
 const API_BASE_URL = 'http://localhost:2150/api';
 
@@ -363,6 +363,24 @@ export async function searchNpmPackages(query: string, size: number) {
   if (!response.ok) {
     console.error(response);
     return { error: true, result: [] };
+  }
+
+  return response.json();
+}
+
+type SrcbookExamplesResponse = {
+  result: ExampleSrcbookType[];
+};
+
+export async function loadSrcbookExamples(): Promise<SrcbookExamplesResponse> {
+  const response = await fetch(API_BASE_URL + '/examples', {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
   }
 
   return response.json();

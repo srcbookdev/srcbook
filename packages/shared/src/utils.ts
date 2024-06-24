@@ -1,9 +1,9 @@
-import { base58 } from '@scure/base';
+import { base32hexnopad } from '@scure/base';
 import type { CodeLanguageType } from './types/cells.js';
 
 export function randomid(byteSize = 16) {
   const bytes = crypto.getRandomValues(new Uint8Array(byteSize));
-  return base58.encode(bytes);
+  return base32hexnopad.encode(bytes).toLowerCase();
 }
 
 export function validFilename(filename: string) {

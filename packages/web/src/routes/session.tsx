@@ -6,7 +6,15 @@ import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
-import { CircleAlert, Circle, Play, Trash2, Pencil, ChevronRight } from 'lucide-react';
+import {
+  CircleAlert,
+  Circle,
+  Play,
+  Trash2,
+  Pencil,
+  ChevronRight,
+  LoaderCircle,
+} from 'lucide-react';
 import {
   CellType,
   CodeCellType,
@@ -179,19 +187,19 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
             />
           </div>
         ))}
-      </div>
 
-      {/** -- Add some padding at the bottom to make it more breathable + activate the new cell more easily */}
-      <div className="min-h-64 opacity-0 hover:opacity-100 transition-all">
-        <div className="flex items-center gap-2 min-h-10">
-          <div className="flex-grow border-t border-foreground"></div>
-          <Button variant="secondary" onClick={() => createNewCell('code', cells.length)}>
-            Code
-          </Button>
-          <Button variant="secondary" onClick={() => createNewCell('markdown', cells.length)}>
-            Markdown
-          </Button>
-          <div className="flex-grow border-t border-foreground"></div>
+        {/** -- Add some padding at the bottom to make it more breathable + activate the new cell more easily */}
+        <div className="min-h-64 opacity-0 hover:opacity-100 transition-all">
+          <div className="flex items-center gap-2 min-h-10">
+            <div className="flex-grow border-t border-foreground"></div>
+            <Button variant="secondary" onClick={() => createNewCell('code', cells.length)}>
+              Code
+            </Button>
+            <Button variant="secondary" onClick={() => createNewCell('markdown', cells.length)}>
+              Markdown
+            </Button>
+            <div className="flex-grow border-t border-foreground"></div>
+          </div>
         </div>
       </div>
     </>
@@ -514,10 +522,10 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group ring-1 ring-ring border-ring',
-                  cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-                  error && 'ring-sb-red-30 border-sb-red-30',
-                )
+                'border rounded-md group ring-1 ring-ring border-ring',
+                cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                error && 'ring-sb-red-30 border-sb-red-30',
+              )
               : ''
           }
         >
@@ -553,7 +561,8 @@ function PackageJsonCell(props: {
                 </Button>
                 {cell.status === 'running' ? (
                   <Button variant="run" size="default-with-icon" disabled>
-                    <Circle size={16} /> Running
+                    <LoaderCircle size={16} className="animate-spin" />
+                    Installing
                   </Button>
                 ) : (
                   <Button

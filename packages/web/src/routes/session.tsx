@@ -578,7 +578,7 @@ function PackageJsonCell(props: {
               </div>
             )}
           </div>
-          <CollapsibleContent className="py-2">
+          <CollapsibleContent className="pt-2">
             <CodeMirror
               value={cell.source.trim()}
               theme={codeTheme}

@@ -551,15 +551,21 @@ function PackageJsonCell(props: {
                 <Button variant="secondary" onClick={() => setInstallModalOpen(true)}>
                   Install package
                 </Button>
-                <Button
-                  size="default-with-icon"
-                  onClick={() => npmInstall()}
-                  disabled={cell.status !== 'idle' || !!error}
-                  className="font-mono"
-                >
-                  <Play size={16} />
-                  Run
-                </Button>
+                {cell.status === 'running' ? (
+                  <Button variant="run" size="default-with-icon" disabled>
+                    <Circle size={16} /> Running
+                  </Button>
+                ) : (
+                  <Button
+                    size="default-with-icon"
+                    onClick={() => npmInstall()}
+                    disabled={cell.status !== 'idle' || !!error}
+                    className="font-mono"
+                  >
+                    <Play size={16} />
+                    Run
+                  </Button>
+                )}
               </div>
             )}
           </div>

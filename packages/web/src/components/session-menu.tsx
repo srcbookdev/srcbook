@@ -63,7 +63,7 @@ export default function SessionMenu({ session }: Props) {
   const InnerMenu = () => {
     return (
       <div className="bg-background space-y-8 text-sm">
-        <div className="max-w-48 text-tertiary-foreground">
+        <div className="max-w-60 text-tertiary-foreground pr-10">
           {cells.map((cell) => {
             const isRunningCell = cell.type === 'code' && cell.status === 'running';
             return (

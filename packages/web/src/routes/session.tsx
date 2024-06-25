@@ -522,10 +522,10 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                'border rounded-md group ring-1 ring-ring border-ring',
-                cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-                error && 'ring-sb-red-30 border-sb-red-30',
-              )
+                  'border rounded-md group ring-1 ring-ring border-ring',
+                  cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                  error && 'ring-sb-red-30 border-sb-red-30',
+                )
               : ''
           }
         >

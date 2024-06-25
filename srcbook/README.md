@@ -2,7 +2,7 @@
 
 JavaScript and TypeSript notebooks.
 
-This application allows you to create, run and share srcbooks. Srcbooks are JavaScript or TypeScript notebooks that use the node runtime, run locally on your machine, and can be exported to `.srcmd` files, which is valid markdown.
+This application allows you to create, run, and share srcbooks. Srcbooks are JavaScript or TypeScript notebooks that use the node runtime, run locally on your machine, and can be exported to `.srcmd` files, which is valid markdown.
 
 ## Run
 
@@ -15,7 +15,7 @@ npx srcbook
 ### With pnpm
 
 ```
-pnpm dlx scratch-srcbook
+pnpm dlx srcbook
 ```
 
 ### Global install

@@ -8,13 +8,12 @@
  *
  */
 import readline from 'node:readline';
-import fs from 'node:fs/promises';
 import express from 'express';
 import http from 'node:http';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
-import { SRCBOOKS_DIR, wss, app } from './vendor/dist/index.mjs';
+import { wss, app } from './vendor/dist/index.mjs';
 import chalk from 'chalk';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,11 +29,6 @@ function clearScreen() {
 }
 
 clearScreen();
-
-console.log(chalk.bgGreen.black('  Srcbook  '));
-// Create our private ~/.srcbook directory, and its child srcbooks/ directory
-console.log(chalk.dim("Creating srcbook directory if it doesn't exist..."));
-await fs.mkdir(SRCBOOKS_DIR, { recursive: true });
 
 // Serve the static files, compiled from the packages/web/ React app
 console.log(chalk.dim('Serving static files (React app)...'));

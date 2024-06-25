@@ -154,6 +154,7 @@ router.get('/sessions/:id', cors(), async (req, res) => {
         session = await createSession(Path.join(SRCBOOKS_DIR, id));
       }
     }
+    updateSession(session, { openedAt: Date.now() }, false);
     return res.json({ error: false, result: sessionToResponse(session) });
   } catch (e) {
     const error = e as unknown as Error;

@@ -27,6 +27,7 @@ export type SessionType = {
   dir: string;
   cells: CellType[];
   metadata: SrcbookMetadataType;
+  openedAt: number;
 };
 
 export type ExampleSrcbookType = {

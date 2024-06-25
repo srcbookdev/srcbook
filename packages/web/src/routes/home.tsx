@@ -98,17 +98,19 @@ export default function Home() {
         <div className="mb-16">
           <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {srcbooks.map((srcbook) => (
-              <SrcbookCard
-                key={srcbook.id}
-                title={(srcbook.cells[0] as TitleCellType).text}
-                running={srcbook.cells.some((c) => c.type === 'code' && c.status === 'running')}
-                language={srcbook.metadata.language}
-                cellCount={srcbook.cells.length}
-                onClick={() => navigate(`/srcbooks/${srcbook.id}`)}
-                onDelete={() => onDeleteSrcbook(srcbook)}
-              />
-            ))}
+            {srcbooks
+              .sort((a, b) => b.openedAt - a.openedAt)
+              .map((srcbook) => (
+                <SrcbookCard
+                  key={srcbook.id}
+                  title={(srcbook.cells[0] as TitleCellType).text}
+                  running={srcbook.cells.some((c) => c.type === 'code' && c.status === 'running')}
+                  language={srcbook.metadata.language}
+                  cellCount={srcbook.cells.length}
+                  onClick={() => navigate(`/srcbooks/${srcbook.id}`)}
+                  onDelete={() => onDeleteSrcbook(srcbook)}
+                />
+              ))}
           </div>
         </div>
       )}

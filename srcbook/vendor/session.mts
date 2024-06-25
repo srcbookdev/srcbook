@@ -34,7 +34,9 @@ export async function createSession(srcbookDir: string) {
   const existingSession = findSessionByDirname(srcbookDir);
 
   if (existingSession) {
-    return existingSession;
+    const updatedSession = { ...existingSession, openedAt: Date.now() };
+    sessions[existingSession.id] = updatedSession;
+    return updatedSession;
   }
 
   const result = await decodeDir(srcbookDir);
@@ -48,6 +50,7 @@ export async function createSession(srcbookDir: string) {
     dir: srcbookDir,
     cells: result.cells,
     metadata: result.metadata,
+    openedAt: Date.now(),
   };
 
   sessions[session.id] = session;
@@ -64,22 +67,6 @@ export async function deleteSessionByDirname(dirName: string) {
 
 // We make sure to load sessions from the disk in addition to the ones already in memory.
 export async function listSessions(): Promise<Record<string, SessionType>> {
-  const srcbookDirs = await fs.readdir(SRCBOOKS_DIR, { withFileTypes: true });
-  const loadedSessions = srcbookDirs
-    .filter((entry) => entry.isDirectory())
-    .map(async (entry) => {
-      try {
-        const session = await createSession(Path.join(entry.parentPath, entry.name));
-        sessions[session.id] = session;
-        return session;
-      } catch (e) {
-        console.error(
-          `Error loading session from ${entry.name}: ${(e as Error).message}. Skipping...`,
-        );
-      }
-    });
-
-  await Promise.all(loadedSessions);
   return sessions;
 }
 
@@ -269,6 +256,7 @@ export function sessionToResponse(session: SessionType) {
     metadata: session.metadata,
     // Only pass the dir ID to the client, making it easier to use it as an identifier in urls
     dir: Path.basename(session.dir),
+    openedAt: session.openedAt,
   };
 }
 
@@ -293,3 +281,25 @@ export function insertCellAt(session: SessionType, cell: CellType, index: number
 export function removeCell(session: SessionType, id: string) {
   return session.cells.filter((cell) => cell.id !== id);
 }
+
+async function load() {
+  const srcbookDirs = await fs.readdir(SRCBOOKS_DIR, { withFileTypes: true });
+  const loadedSessions = srcbookDirs
+    .filter((entry) => entry.isDirectory())
+    .map(async (entry) => {
+      try {
+        const session = await createSession(Path.join(entry.parentPath, entry.name));
+        sessions[session.id] = session;
+        return session;
+      } catch (e) {
+        console.error(
+          `Error loading session from ${entry.name}: ${(e as Error).message}. Skipping...`,
+        );
+      }
+    });
+
+  await Promise.all(loadedSessions);
+}
+
+// Initialize sessions on boot
+await load();

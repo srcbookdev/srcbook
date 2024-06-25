@@ -8,4 +8,8 @@ export type SessionType = {
   dir: string;
   cells: CellType[];
   metadata: SrcbookMetadataType;
+  /**
+   * Replace this with updatedAt once we store srcbooks in sqlite
+   */
+  openedAt: number;
 };

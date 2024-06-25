@@ -4,7 +4,7 @@
  * here to already have executed.
  */
 
-import fs from 'node:fs/promises';
+import fs from 'node:fs';
 import Path from 'node:path';
 import { DEFAULT_TSCONFIG, DEFAULT_TSCONFIG_PATH, SRCBOOKS_DIR } from './constants.mjs';
 
@@ -16,6 +16,10 @@ import { DEFAULT_TSCONFIG, DEFAULT_TSCONFIG_PATH, SRCBOOKS_DIR } from './constan
 // Make sure the `recursive` options is true to retain this
 // behavior and make sure both get created during initialization
 // or the app will not work properly.
-await fs.mkdir(SRCBOOKS_DIR, { recursive: true });
+fs.mkdirSync(SRCBOOKS_DIR, { recursive: true });
 
-await fs.writeFile(Path.join(DEFAULT_TSCONFIG_PATH), JSON.stringify(DEFAULT_TSCONFIG, null, 2));
+fs.writeFileSync(
+  Path.join(DEFAULT_TSCONFIG_PATH),
+  JSON.stringify(DEFAULT_TSCONFIG, null, 2),
+  'utf8',
+);

@@ -10,7 +10,9 @@ import type {
 import { encode, decode } from './srcmd.mjs';
 import { toFormattedJSON } from './utils.mjs';
 import { randomid } from '@srcbook/shared';
-import { SRCBOOKS_DIR, DIST_DIR } from './constants.mjs';
+import { readdir } from './fs-utils.mjs';
+import { SRCBOOKS_DIR } from './constants.mjs';
+import { EXAMPLE_SRCBOOKS } from './srcbooks/examples.mjs';
 
 export function writeToDisk(srcbookDir: string, metadata: SrcbookMetadataType, cells: CellType[]) {
   const writes = [writeReadmeToDisk(srcbookDir, metadata, cells)];
@@ -68,21 +70,30 @@ export function writeReadmeToDisk(
 
 /**
  * Creates a srcbook directory from a .srcmd file.
- * TODO: First check for a srcbook directory with this filename linked, as described in
- * https://linear.app/axflow/issue/AXF-146/files-and-directories-behavior
  */
 export async function importSrcbookFromSrcmdFile(srcmdPath: string) {
-  // When we import tutorials, we don't have absolute paths but rather want to
-  // import them from the vendored srcbook application.
-  const finalPath = srcmdPath.startsWith('tutorials') ? Path.join(DIST_DIR, srcmdPath) : srcmdPath;
-  const srcmd = await fs.readFile(finalPath, 'utf8');
-  return importSrcbookFromSrcmdText(srcmd);
+  // Check if the user is opening one of the example Srcbooks that comes bundled with the app.
+  const example = EXAMPLE_SRCBOOKS.find((example) => example.path === srcmdPath);
+
+  if (example) {
+    const { exists } = await readdir(example.dirname);
+
+    if (exists) {
+      return example.dirname;
+    } else {
+      const srcmd = await fs.readFile(example.path, 'utf8');
+      return importSrcbookFromSrcmdText(srcmd, example.id);
+    }
+  } else {
+    const srcmd = await fs.readFile(srcmdPath, 'utf8');
+    return importSrcbookFromSrcmdText(srcmd);
+  }
 }
 
 /**
  * Creates a srcbook directory from a srcmd text.
  */
-export async function importSrcbookFromSrcmdText(text: string) {
+export async function importSrcbookFromSrcmdText(text: string, directoryBasename?: string) {
   const result = decode(text);
 
   if (result.error) {
@@ -90,7 +101,7 @@ export async function importSrcbookFromSrcmdText(text: string) {
     throw new Error(`Cannot decode invalid srcmd`);
   }
 
-  const dirname = await newSrcbookDir();
+  const dirname = await createSrcbookDir(directoryBasename);
 
   await writeToDisk(dirname, result.metadata, result.cells);
 
@@ -104,7 +115,7 @@ export async function importSrcbookFromSrcmdText(text: string) {
  * Users are not supposed to be aware or modify private directories.
  */
 export async function createSrcbook(title: string, metadata: SrcbookMetadataType) {
-  const dirname = await newSrcbookDir();
+  const dirname = await createSrcbookDir();
 
   const cells: CellType[] = [
     {
@@ -126,8 +137,8 @@ export async function createSrcbook(title: string, metadata: SrcbookMetadataType
   return dirname;
 }
 
-async function newSrcbookDir() {
-  const dirname = Path.join(SRCBOOKS_DIR, randomid());
+async function createSrcbookDir(basename: string = randomid()) {
+  const dirname = Path.join(SRCBOOKS_DIR, basename);
   await fs.mkdir(dirname, { recursive: true });
   return dirname;
 }

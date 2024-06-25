@@ -31,12 +31,10 @@ First, let's ensure we've setup the right env variables:
 ###### env-check.ts
 
 ```typescript
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('You need to set OPENAI_API_KEY')
-}
-if (!process.env.TAVILY_API_KEY) {
-  throw new Error('You need to set TAVILY_API_KEY')
-}
+import assert from 'node:assert';
+
+assert.ok(process.env.OPENAI_API_KEY, 'You need to set OPENAI_API_KEY');
+assert.ok(process.env.TAVILY_API_KEY, 'You need to set TAVILY_API_KEY');
 ```
 
 ## Define the agent

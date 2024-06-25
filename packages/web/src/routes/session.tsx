@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { marked } from 'marked';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
-import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec, EditorView } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
@@ -403,7 +403,7 @@ function MarkdownCell(props: {
                 indentWithTab={false}
                 value={text}
                 basicSetup={{ lineNumbers: false, foldGutter: false }}
-                extensions={[markdown(), keyMap]}
+                extensions={[markdown(), keyMap, EditorView.lineWrapping]}
                 onChange={(source) => setText(source)}
               />
             </div>
@@ -522,10 +522,10 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                'border rounded-md group ring-1 ring-ring border-ring',
-                cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-                error && 'ring-sb-red-30 border-sb-red-30',
-              )
+                  'border rounded-md group ring-1 ring-ring border-ring',
+                  cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                  error && 'ring-sb-red-30 border-sb-red-30',
+                )
               : ''
           }
         >

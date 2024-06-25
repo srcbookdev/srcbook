@@ -5,9 +5,9 @@
   "bin": "./bin/start",
   "scripts": {
     "start": "NODE_ENV=production ./bin/start",
-    "build": "pnpm run --workspace build",
+    "build": "pnpm run --workspace-root build",
     "depcheck": "depcheck",
-    "prepublishOnly": "pnpm run --workspace build",
+    "prepublishOnly": "pnpm run --workspace-root build",
     "preversion": "pnpm run build",
     "postversion": "git push && git push --tags"
   },

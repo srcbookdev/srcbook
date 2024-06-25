@@ -36,7 +36,7 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
               value="stdout"
               className={cn(
                 !show &&
-                'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
+                  'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
               )}
             >
               stdout
@@ -46,7 +46,7 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
               value="stderr"
               className={cn(
                 !show &&
-                'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
+                  'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
               )}
             >
               {stderr.length > 0 ? (
@@ -63,7 +63,7 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
                 value="problems"
                 className={cn(
                   !show &&
-                  'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
+                    'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
                 )}
               >
                 {tscOutput.length > 0 ? (

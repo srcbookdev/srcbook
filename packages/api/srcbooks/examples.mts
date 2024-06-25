@@ -30,9 +30,9 @@ const LANGGRAPH_AGENT_SRCBOOK = {
 // Duplicate is temporary until we have another example
 const GETTING_STARTED_SRCBOOK_DUPLICATE = {
   id: 'vnovpn5dbrthpdllvoeqahufc4',
-  path: Path.join(DIST_DIR, 'srcbooks', 'examples', 'getting-started-duplicate.srcmd'),
-  title: 'Getting started',
-  description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
+  path: Path.join(DIST_DIR, 'srcbooks', 'examples', 'websockets.srcmd'),
+  title: 'Intro to WebSockets',
+  description: 'Learn to build a simple WebSocket client and server in Node.js.',
   get dirname() {
     return Path.join(SRCBOOKS_DIR, this.id);
   },

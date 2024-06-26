@@ -2,9 +2,10 @@
   "name": "srcbook",
   "version": "0.0.1-alpha.2",
   "type": "module",
+  "main": "./index.mjs",
   "bin": "./bin/start",
   "scripts": {
-    "start": "NODE_ENV=production ./bin/start",
+    "start": "./bin/start",
     "build": "pnpm run --workspace-root build",
     "depcheck": "depcheck",
     "prepublishOnly": "pnpm run --workspace-root build",

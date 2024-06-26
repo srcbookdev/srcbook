@@ -16,7 +16,7 @@ function useEffectDev(effect: EffectCallback) {
 }
 
 function useEffectProd(effect: EffectCallback) {
-  useEffect(effect);
+  useEffect(effect, []);
 }
 
 export default process.env.NODE_ENV === 'production' ? useEffectProd : useEffectDev;

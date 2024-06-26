@@ -11,7 +11,6 @@ node_modules
 dist
 dist-ssr
 *.local
-web_dist
 
 srcbook-api-*.tgz
 
@@ -30,3 +29,9 @@ srcbook-api-*.tgz
 
 packages/api/.env
 packages/api/*.local
+
+srcbook/public/**/*
+!srcbook/public/.gitkeep
+
+srcbook/lib/**/*
+!srcbook/lib/.gitkeep

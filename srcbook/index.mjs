@@ -32,6 +32,8 @@ function clearScreen() {
 
 clearScreen();
 
+console.log(chalk.bgGreen.black('  Srcbook  '));
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

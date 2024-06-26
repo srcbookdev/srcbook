@@ -13,6 +13,7 @@ import './lib/db/index.mjs';
  *  - Serve the React frontend
  *
  */
+import readline from 'node:readline';
 import express from 'express';
 import http from 'node:http';
 import { fileURLToPath } from 'url';
@@ -20,6 +21,16 @@ import path from 'path';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
 import { wss, app } from './lib/index.mjs';
 import chalk from 'chalk';
+
+function clearScreen() {
+  const repeatCount = process.stdout.rows - 2;
+  const blank = repeatCount > 0 ? '\n'.repeat(repeatCount) : '';
+  console.log(blank);
+  readline.cursorTo(process.stdout, 0, 0);
+  readline.clearScreenDown(process.stdout);
+}
+
+clearScreen();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

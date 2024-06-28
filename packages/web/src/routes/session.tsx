@@ -358,7 +358,7 @@ function MarkdownCell(props: {
       id={`cell-${props.cell.id}`}
       onDoubleClick={() => setStatus('edit')}
       className={cn(
-        'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border transition-all',
+        'group/cell relative w-full rounded-md border border-transparent hover:border-border transition-all',
         status === 'edit' && 'ring-1 ring-ring border-ring hover:border-ring',
         error && 'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30',
       )}

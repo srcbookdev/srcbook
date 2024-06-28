@@ -47,7 +47,7 @@ export function MainCTACard(props: { title: string; description: string; onClick
       className="flex flex-col items-center cursor-pointer border hover:border-foreground transition-colors active:translate-y-0.5 rounded-sm"
       onClick={props.onClick}
     >
-      <div className="w-full grow h-44 bg-border"></div>
+      <div className="w-full grow h-44 bg-border rounded-t-[2px]"></div>
       <div className="w-full p-4 space-y-2">
         <h4 className="h4">{props.title}</h4>
         <p className="text-sm text-tertiary-foreground">{props.description}</p>

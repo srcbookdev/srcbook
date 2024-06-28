@@ -173,8 +173,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
                   <div className="flex-grow border-t"></div>
                   <div className="w-2"></div>
                 </div>
-                <div className="absolute -translate-x-full -top-1/2 flex opacity-0 group-hover:opacity-100 h-9 ">
-                  <div className="flex">
+                <div className="absolute -translate-x-full -top-1/2 flex opacity-0 group-hover:opacity-100 h-10">
+                  <div className="flex items-center">
                     <div className="flex items-center border rounded-sm">
                       <Button
                         variant="secondary"
@@ -543,10 +543,10 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group ring-1 ring-ring gborder-ring',
-                  cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-                  error && 'ring-sb-red-30 border-sb-red-30',
-                )
+                'border rounded-md group ring-1 ring-ring gborder-ring',
+                cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                error && 'ring-sb-red-30 border-sb-red-30',
+              )
               : ''
           }
         >

@@ -166,15 +166,36 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
             {idx > 1 && (
-              <div className="flex items-center gap-2 min-h-10 opacity-0 hover:opacity-100 transition-all">
-                <div className="flex-grow border-t border-foreground"></div>
-                <Button variant="secondary" onClick={() => createNewCell('code', idx)}>
-                  Code
-                </Button>
-                <Button variant="secondary" onClick={() => createNewCell('markdown', idx)}>
-                  Markdown
-                </Button>
-                <div className="flex-grow border-t border-foreground"></div>
+              <div className="relative w-full h-5 group">
+                {/** -- Add some padding left and right with invisible divs. Keeps the group hover uninterrupted */}
+                <div className="absolute flex top-1/2 w-full opacity-0 group-hover:opacity-100 transition-all">
+                  <div className="w-2"></div>
+                  <div className="flex-grow border-t"></div>
+                  <div className="w-2"></div>
+                </div>
+                <div className="absolute -translate-x-full -top-1/2 flex opacity-0 group-hover:opacity-100 h-10">
+                  <div className="flex items-center">
+                    <div className="flex items-center border rounded-sm">
+                      <Button
+                        variant="secondary"
+                        className="border-none"
+                        onClick={() => createNewCell('code', idx)}
+                      >
+                        {session.metadata.language === 'javascript' ? 'JS' : 'TS'}
+                      </Button>
+                      <div className="h-full border-l"></div>
+                      <Button
+                        variant="secondary"
+                        className="border-none"
+                        onClick={() => createNewCell('markdown', idx)}
+                      >
+                        MD
+                      </Button>
+                    </div>
+                    {/** Padding that triggers the group hover */}
+                    <div className="w-4"></div>
+                  </div>
+                </div>
               </div>
             )}
             <Cell
@@ -337,7 +358,7 @@ function MarkdownCell(props: {
       id={`cell-${props.cell.id}`}
       onDoubleClick={() => setStatus('edit')}
       className={cn(
-        'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border transition-all',
+        'group/cell relative w-full rounded-md border border-transparent hover:border-border transition-all',
         status === 'edit' && 'ring-1 ring-ring border-ring hover:border-ring',
         error && 'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30',
       )}
@@ -522,10 +543,10 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group ring-1 ring-ring border-ring',
-                  cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-                  error && 'ring-sb-red-30 border-sb-red-30',
-                )
+                'border rounded-md group ring-1 ring-ring gborder-ring',
+                cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+                error && 'ring-sb-red-30 border-sb-red-30',
+              )
               : ''
           }
         >

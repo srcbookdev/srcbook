@@ -59,7 +59,7 @@ export default function Layout(props: { children: React.ReactNode }) {
         </header>
         <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">{props.children}</div>
       </div>
-      <Toaster position="top-right" />
+      <Toaster position="top-right" offset="20px" closeButton />
     </>
   );
 }

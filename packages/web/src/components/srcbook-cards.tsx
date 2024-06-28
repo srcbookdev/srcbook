@@ -47,7 +47,7 @@ export function MainCTACard(props: { title: string; description: string; onClick
       className="flex flex-col items-center cursor-pointer border hover:border-foreground transition-colors active:translate-y-0.5 rounded-sm"
       onClick={props.onClick}
     >
-      <div className="w-full grow h-44 bg-border"></div>
+      <div className="w-full grow h-44 bg-border rounded-t-[2px]"></div>
       <div className="w-full p-4 space-y-2">
         <h4 className="h4">{props.title}</h4>
         <p className="text-sm text-tertiary-foreground">{props.description}</p>
@@ -170,7 +170,7 @@ function CreateSrcbookCard(props: {
             props.onEnterKeyDown();
           }
         }}
-        className="bg-transparent border-none outline-none font-semibold leading-[18px] resize-none overflow-clip placeholder-foreground group-hover:placeholder-tertiary-foreground group-focus-within:placeholder-tertiary-foreground"
+        className="bg-transparent border-none outline-none font-semibold leading-[18px] resize-none overflow-clip placeholder-foreground group-hover:placeholder-muted-foreground group-focus-within:placeholder-muted-foreground"
       ></textarea>
       <div className="-ml-0.5">
         <PlusIcon size={20} />
@@ -229,8 +229,8 @@ function LanguageButton(props: {
       title={props.title}
       onClick={() => props.onClick(props.value)}
       className={cn(
-        'py-1 px-3 font-semibold border-none outline-none ring-0 focus-visible:ring-0 hover:bg-muted rounded-sm',
-        props.selected ? 'text-foreground' : 'text-muted-foreground',
+        'py-1 px-3 font-medium text-sm border-none outline-none ring-0 focus-visible:ring-0 hover:bg-muted rounded-sm',
+        props.selected ? 'text-foreground font-bold' : 'text-tertiary-foreground',
       )}
     >
       {props.value === 'javascript' ? 'JS' : 'TS'}
@@ -242,7 +242,7 @@ export function ImportSrcbookCTA(props: { onClick: () => void }) {
   return (
     <CardContainer
       onClick={props.onClick}
-      className="w-full sm:w-[214px] sm:max-w-[214px] bg-muted hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground active:translate-y-0.5"
+      className="w-full sm:w-[214px] sm:max-w-[214px] bg-muted border-dashed hover:border-solid hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground active:translate-y-0.5"
     >
       <div>
         <h5 className="font-semibold leading-[18px]">Open Srcbook</h5>

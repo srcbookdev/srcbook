@@ -6,7 +6,6 @@ import useTheme from './components/use-theme';
 export default function Layout(props: { children: React.ReactNode }) {
   const { theme, toggleTheme } = useTheme();
 
-  console.log('rendering...');
   return (
     <>
       <div className="flex flex-col">

@@ -15,7 +15,7 @@ export default function Layout(props: { children: React.ReactNode }) {
               <li>
                 <NavLink to="/">
                   <h1 className="font-mono font-bold flex items-center space-x-[10px]">
-                    <SrcbookLogo width={14} height={14} />
+                    <SrcbookLogo size={20} />
                     <span>Srcbook</span>
                   </h1>
                 </NavLink>

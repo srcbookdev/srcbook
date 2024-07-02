@@ -115,7 +115,7 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
             </>
           ) : (
             <>
-              <SrcbookLogo className="text-foreground" width={16} height={18} />
+              <SrcbookLogo className="text-foreground" size={16} />
               <span>
                 {props.cellCount} {props.cellCount === 1 ? 'Cell' : 'Cells'}
               </span>

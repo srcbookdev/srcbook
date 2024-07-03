@@ -166,9 +166,9 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
             {idx > 1 && (
-              <div className="relative h-5 group flex items-center">
-                <div className="w-[calc(100%-4px)] h-[1px] mx-auto bg-border opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="absolute h-10 mt-0.5 -translate-x-full opacity-0 group-hover:opacity-100">
+              <div className="relative h-5 flex items-center opacity-0 hover:opacity-100 transition-opacity">
+                <div className="w-[calc(100%-4px)] h-[1px] mx-auto bg-border"></div>
+                <div className="absolute h-10 mt-0.5 -translate-x-full">
                   <div className="flex mr-4 border rounded-sm bg-background">
                     <Button
                       variant="secondary"

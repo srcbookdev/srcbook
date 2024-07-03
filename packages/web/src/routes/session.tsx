@@ -166,34 +166,24 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
             {idx > 1 && (
-              <div className="relative w-full h-5 group">
-                {/** -- Add some padding left and right with invisible divs. Keeps the group hover uninterrupted */}
-                <div className="absolute flex top-1/2 w-full opacity-0 group-hover:opacity-100 transition-all">
-                  <div className="w-2"></div>
-                  <div className="flex-grow border-t"></div>
-                  <div className="w-2"></div>
-                </div>
-                <div className="absolute -translate-x-full -top-1/2 flex opacity-0 group-hover:opacity-100 h-10">
-                  <div className="flex items-center">
-                    <div className="flex items-center border rounded-sm">
-                      <Button
-                        variant="secondary"
-                        className="border-none"
-                        onClick={() => createNewCell('code', idx)}
-                      >
-                        {session.metadata.language === 'javascript' ? 'JS' : 'TS'}
-                      </Button>
-                      <div className="h-full border-l"></div>
-                      <Button
-                        variant="secondary"
-                        className="border-none"
-                        onClick={() => createNewCell('markdown', idx)}
-                      >
-                        MD
-                      </Button>
-                    </div>
-                    {/** Padding that triggers the group hover */}
-                    <div className="w-4"></div>
+              <div className="relative h-5 flex items-center opacity-0 hover:opacity-100 transition-opacity">
+                <div className="w-[calc(100%-4px)] h-[1px] mx-auto bg-border"></div>
+                <div className="absolute h-10 mt-0.5 -translate-x-full">
+                  <div className="flex mr-4 border rounded-sm bg-background">
+                    <Button
+                      variant="secondary"
+                      className="border-none rounded-r-none"
+                      onClick={() => createNewCell('code', idx)}
+                    >
+                      {session.metadata.language === 'javascript' ? 'JS' : 'TS'}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="border-none rounded-l-none"
+                      onClick={() => createNewCell('markdown', idx)}
+                    >
+                      MD
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -210,16 +200,26 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         ))}
 
         {/** -- Add some padding at the bottom to make it more breathable + activate the new cell more easily */}
-        <div className="min-h-64 opacity-0 hover:opacity-100 transition-all">
-          <div className="flex items-center gap-2 min-h-10">
-            <div className="flex-grow border-t border-foreground"></div>
-            <Button variant="secondary" onClick={() => createNewCell('code', cells.length)}>
-              Code
-            </Button>
-            <Button variant="secondary" onClick={() => createNewCell('markdown', cells.length)}>
-              Markdown
-            </Button>
-            <div className="flex-grow border-t border-foreground"></div>
+        <div className="pt-2 min-h-64 opacity-0 hover:opacity-100 transition-opacity">
+          <div className="flex items-center px-0.5 gap-2">
+            <div className="flex-grow h-[1px] bg-border"></div>
+            <div className="flex border rounded-sm bg-background">
+              <Button
+                variant="secondary"
+                className="border-none rounded-r-none"
+                onClick={() => createNewCell('code', cells.length)}
+              >
+                {session.metadata.language === 'javascript' ? 'JavaScript' : 'TypeScript'}
+              </Button>
+              <Button
+                variant="secondary"
+                className="border-none rounded-l-none"
+                onClick={() => createNewCell('markdown', cells.length)}
+              >
+                Markdown
+              </Button>
+            </div>
+            <div className="flex-grow h-[1px] bg-border"></div>
           </div>
         </div>
       </div>

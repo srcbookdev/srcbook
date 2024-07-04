@@ -68,7 +68,17 @@ function SessionPage() {
     // TODO: Push once we know subscription succeeded
     channel.push('deps:validate', { sessionId: session.id });
 
-    return () => channel.unsubscribe();
+    if (session.metadata.language === 'typescript') {
+      channel.push('tsserver:start', { sessionId: session.id });
+    }
+
+    return () => {
+      channel.unsubscribe();
+
+      if (session.metadata.language === 'typescript') {
+        channel.push('tsserver:stop', { sessionId: session.id });
+      }
+    };
   });
 
   return (

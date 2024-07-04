@@ -1,3 +1,4 @@
+import Path from 'node:path';
 import { ChildProcess } from 'node:child_process';
 import {
   findSession,
@@ -20,6 +21,8 @@ import type {
   DepsValidatePayloadType,
   CellStopPayloadType,
   CellUpdatePayloadType,
+  TsServerStartPayloadType,
+  TsServerStopPayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -31,7 +34,10 @@ import {
   CellUpdatedPayloadSchema,
   CellOutputPayloadSchema,
   DepsValidateResponsePayloadSchema,
+  TsServerStartPayloadSchema,
+  TsServerStopPayloadSchema,
 } from '@srcbook/shared';
+import tsservers from '../tsservers.mjs';
 import WebSocketServer from './ws-client.mjs';
 import { pathToCodeFile } from '../srcbook/path.mjs';
 
@@ -310,6 +316,66 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
   }
 }
 
+async function tsserverStart(payload: TsServerStartPayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  // A tsserver is already running for this srcbook.
+  if (tsservers.has(payload.sessionId)) {
+    return;
+  }
+
+  const tsserver = tsservers.create(payload.sessionId, { cwd: session.dir });
+
+  for (const cell of session.cells) {
+    if (cell.type === 'code') {
+      tsserver.open({
+        file: Path.join(session.dir, cell.filename),
+        fileContent: cell.source,
+      });
+
+      // Do this once on boot. TODO: Move to other means.
+      setTimeout(async () => {
+        const semanticResponse = await tsserver.semanticDiagnosticsSync({
+          file: Path.join(session.dir, cell.filename),
+        });
+
+        (semanticResponse.body || []).forEach((diagnostic) => {
+          if (diagnostic.category !== 'error' && diagnostic.category !== 'warning') {
+            return;
+          }
+
+          let message: string;
+
+          // @ts-ignore
+          if (typeof diagnostic.text === 'string') {
+            // @ts-ignore
+            message = `${cell.filename}(${diagnostic.start.line}, ${diagnostic.start.offset}): ${diagnostic.category} TS${diagnostic.code}: ${diagnostic.text}`;
+          } else {
+            // @ts-ignore
+            message = `${cell.filename}(${diagnostic.startLocation.line}, ${diagnostic.startLocation.offset}): ${diagnostic.category} TS${diagnostic.code}: ${diagnostic.message}`;
+          }
+
+          wss.broadcast(`session:${payload.sessionId}`, 'cell:output', {
+            cellId: cell.id,
+            output: {
+              type: 'tsc',
+              data: message,
+            },
+          });
+        });
+      }, 100);
+    }
+  }
+}
+
+async function tsserverStop(payload: TsServerStopPayloadType) {
+  tsservers.shutdown(payload.sessionId);
+}
+
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
@@ -317,6 +383,8 @@ wss
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
+  .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
+  .incoming('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)

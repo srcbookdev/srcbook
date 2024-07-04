@@ -53,6 +53,20 @@ export const DepsValidateResponsePayloadSchema = z.object({
   packages: z.array(z.string()).optional(),
 });
 
+export const TsServerStartPayloadSchema = z.object({
+  sessionId: z.string(),
+});
+
+export const TsServerStopPayloadSchema = z.object({
+  sessionId: z.string(),
+});
+
+export const TsServerPayloadSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+  data: z.any(),
+});
+
 // A _message_ over websockets
 export const WebSocketMessageSchema = z.tuple([
   z.string(), // The _topic_, eg: "sessions:123"

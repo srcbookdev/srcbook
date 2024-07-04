@@ -8,6 +8,8 @@ import {
   DepsValidatePayloadSchema,
   CellUpdatePayloadSchema,
   CellErrorPayloadSchema,
+  TsServerStartPayloadSchema,
+  TsServerStopPayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -30,6 +32,8 @@ const OutgoingSessionEvents = {
   'cell:update': CellUpdatePayloadSchema,
   'deps:install': DepsInstallPayloadSchema,
   'deps:validate': DepsValidatePayloadSchema,
+  'tsserver:start': TsServerStartPayloadSchema,
+  'tsserver:stop': TsServerStopPayloadSchema,
 };
 
 export class SessionChannel extends Channel<

@@ -4,6 +4,10 @@ Srcbooks are interactive notebooks for JavaScript & TypeScript. They allow you t
 
 Srcbooks export to a `.srcmd` format, a superset of markdown.
 
+## Requirements
+
+Srcbook requires node v22+. We highly recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions.
+
 ## Install
 
 You can install the `srcbook` application from `npm`:

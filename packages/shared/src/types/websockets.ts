@@ -12,7 +12,6 @@ import {
   CellErrorPayloadSchema,
   TsServerStartPayloadSchema,
   TsServerStopPayloadSchema,
-  TsServerPayloadSchema,
 } from '../schemas/websockets.js';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -29,4 +28,3 @@ export type CellErrorPayloadType = z.infer<typeof CellErrorPayloadSchema>;
 
 export type TsServerStartPayloadType = z.infer<typeof TsServerStartPayloadSchema>;
 export type TsServerStopPayloadType = z.infer<typeof TsServerStopPayloadSchema>;
-export type TsServerPayloadType = z.infer<typeof TsServerPayloadSchema>;

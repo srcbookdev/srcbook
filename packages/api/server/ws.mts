@@ -10,7 +10,7 @@ import {
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
 import type { SessionType } from '../types.mjs';
-import { node, npmInstall, tsc, tsx } from '../exec.mjs';
+import { node, npmInstall, tsx } from '../exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from '../deps.mjs';
 import processes from '../processes.mjs';
 import type {
@@ -108,11 +108,8 @@ async function cellExec(payload: CellExecPayloadType) {
       jsExec({ session, cell, secrets });
       break;
     case 'typescript':
-      tscExec({ session, cell, secrets });
       tsxExec({ session, cell, secrets });
       break;
-    default:
-      console.error(`Unsupported language '${cell.language}' for cell ${cell.id}`);
   }
 }
 
@@ -188,35 +185,6 @@ async function tsxExec({ session, cell, secrets }: ExecRequestType) {
       },
     }),
   );
-}
-
-async function tscExec({ session, cell, secrets }: ExecRequestType) {
-  // Do not `addRunningProcess` here because:
-  //
-  //     1. There is no "Stop running cell" functionality for type checking, only for the running code (processes are tracked so they can be stopped)
-  //     2. `addRunningProcess` will use the same key for tscExec and tsxExec. If the type checking process finishes before a code process,
-  //        it will unregister the process in the processes map, which then causes "stop running cell" to break for that cell.
-  //
-  tsc({
-    cwd: session.dir,
-    env: secrets,
-    entry: pathToCodeFile(session.dir, cell.filename),
-    stdout(data) {
-      wss.broadcast(`session:${session.id}`, 'cell:output', {
-        cellId: cell.id,
-        output: { type: 'tsc', data: data.toString('utf8') },
-      });
-    },
-    stderr(data) {
-      wss.broadcast(`session:${session.id}`, 'cell:output', {
-        cellId: cell.id,
-        output: { type: 'tsc', data: data.toString('utf8') },
-      });
-    },
-    onExit() {
-      // TSC is only used to send data over stdout
-    },
-  });
 }
 
 async function depsInstall(payload: DepsInstallPayloadType) {

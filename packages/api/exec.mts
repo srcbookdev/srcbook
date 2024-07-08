@@ -76,31 +76,6 @@ export function node(options: NodeRequestType) {
   });
 }
 
-export function tsc(options: NodeRequestType) {
-  const { cwd, env, entry, stdout, stderr, onExit } = options;
-
-  return spawnCall({
-    command: Path.join(cwd, 'node_modules', '.bin', 'tsc'),
-    cwd,
-    args: [
-      entry,
-      '--noEmit',
-      '--target',
-      'es2022',
-      '--module',
-      'nodenext',
-      '--moduleResolution',
-      'nodenext',
-      '--resolveJsonModule',
-      '--allowImportingTsExtensions',
-    ],
-    stdout,
-    stderr,
-    onExit,
-    env: { ...process.env, ...env },
-  });
-}
-
 /**
  * Execute a TypeScript file using tsx.
  *

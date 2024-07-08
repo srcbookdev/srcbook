@@ -38,8 +38,10 @@ import {
   TsServerStopPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
+import { TsServer } from '../tsserver/tsserver.mjs';
 import WebSocketServer from './ws-client.mjs';
 import { pathToCodeFile } from '../srcbook/path.mjs';
+import { formatDiagnostic } from '../tsserver/utils.mjs';
 
 const wss = new WebSocketServer();
 
@@ -313,6 +315,65 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
     wss.broadcast(`session:${session.id}`, 'cell:updated', {
       cell: findCell(session, payload.cellId),
     });
+
+    return;
+  }
+
+  if (
+    session.metadata.language === 'typescript' &&
+    result.cell.type === 'code' &&
+    tsservers.has(session.id)
+  ) {
+    const cell = result.cell;
+    const tsserver = tsservers.get(session.id);
+
+    const file = Path.join(session.dir, cell.filename);
+
+    // To update a file in tsserver, close and reopen it. I assume performance of
+    // this implementation is worse than calculating diffs and using `change` command
+    // (although maybe not since this is not actually reading or writing to disk).
+    // However, that requires calculating diffs which is more complex and may also
+    // have performance implications, so sticking with the simple approach for now.
+    //
+    // TODO: In either case, we should be aggressively debouncing these updates.
+    //
+    tsserver.close({ file });
+    tsserver.open({ file, fileContent: cell.source });
+
+    sendTypeScriptDiagnostics(tsserver, session, cell);
+  }
+}
+
+/**
+ * Send semantic diagnostics for a TypeScript cell to the client.
+ */
+async function sendTypeScriptDiagnostics(
+  tsserver: TsServer,
+  session: SessionType,
+  cell: CodeCellType,
+) {
+  const response = await tsserver.semanticDiagnosticsSync({
+    file: Path.join(session.dir, cell.filename),
+  });
+
+  const diagnostics = response.body || [];
+
+  for (const diagnostic of diagnostics) {
+    wss.broadcast(`session:${session.id}`, 'cell:output', {
+      cellId: cell.id,
+      output: {
+        type: 'tsc',
+        data: formatDiagnostic(diagnostic),
+      },
+    });
+  }
+}
+
+function sendAllTypeScriptDiagnostics(tsserver: TsServer, session: SessionType) {
+  for (const cell of session.cells) {
+    if (cell.type === 'code') {
+      sendTypeScriptDiagnostics(tsserver, session, cell);
+    }
   }
 }
 
@@ -323,53 +384,25 @@ async function tsserverStart(payload: TsServerStartPayloadType) {
     throw new Error(`No session exists for session '${payload.sessionId}'`);
   }
 
-  // A tsserver is already running for this srcbook.
-  if (tsservers.has(payload.sessionId)) {
-    return;
+  if (session.metadata.language !== 'typescript') {
+    throw new Error(`tsserver can only be used with TypeScript Srcbooks.`);
   }
 
-  const tsserver = tsservers.create(payload.sessionId, { cwd: session.dir });
+  if (!tsservers.has(session.id)) {
+    const tsserver = tsservers.create(session.id, { cwd: session.dir });
 
-  for (const cell of session.cells) {
-    if (cell.type === 'code') {
-      tsserver.open({
-        file: Path.join(session.dir, cell.filename),
-        fileContent: cell.source,
-      });
-
-      // Do this once on boot. TODO: Move to other means.
-      setTimeout(async () => {
-        const semanticResponse = await tsserver.semanticDiagnosticsSync({
+    // Open all code cells in tsserver
+    for (const cell of session.cells) {
+      if (cell.type === 'code') {
+        tsserver.open({
           file: Path.join(session.dir, cell.filename),
+          fileContent: cell.source,
         });
-
-        (semanticResponse.body || []).forEach((diagnostic) => {
-          if (diagnostic.category !== 'error' && diagnostic.category !== 'warning') {
-            return;
-          }
-
-          let message: string;
-
-          // @ts-ignore
-          if (typeof diagnostic.text === 'string') {
-            // @ts-ignore
-            message = `${cell.filename}(${diagnostic.start.line}, ${diagnostic.start.offset}): ${diagnostic.category} TS${diagnostic.code}: ${diagnostic.text}`;
-          } else {
-            // @ts-ignore
-            message = `${cell.filename}(${diagnostic.startLocation.line}, ${diagnostic.startLocation.offset}): ${diagnostic.category} TS${diagnostic.code}: ${diagnostic.message}`;
-          }
-
-          wss.broadcast(`session:${payload.sessionId}`, 'cell:output', {
-            cellId: cell.id,
-            output: {
-              type: 'tsc',
-              data: message,
-            },
-          });
-        });
-      }, 100);
+      }
     }
   }
+
+  sendAllTypeScriptDiagnostics(tsservers.get(session.id), session);
 }
 
 async function tsserverStop(payload: TsServerStopPayloadType) {

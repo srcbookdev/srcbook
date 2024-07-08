@@ -105,15 +105,15 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
   );
 }
 
-function formatOutput(output: OutputType[]) {
-  return output.map(({ data }) => data).join('');
+function formatOutput(output: OutputType[], sep = '') {
+  return output.map(({ data }) => data).join(sep);
 }
 
 function Stdout({ stdout }: { stdout: StdoutOutputType[] }) {
   return (
-    <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap">
+    <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap text-[13px]">
       {stdout.length === 0 ? (
-        <div className="italic text-center text-muted-foreground text-sm">No output</div>
+        <div className="italic text-center text-muted-foreground">No output</div>
       ) : (
         formatOutput(stdout)
       )}
@@ -125,14 +125,12 @@ function Stderr({ stderr }: { stderr: StderrOutputType[] }) {
   return (
     <div
       className={cn(
-        'p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap',
+        'p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap text-[13px]',
         stderr.length > 0 && 'text-sb-red-30',
       )}
     >
       {stderr.length === 0 ? (
-        <div className="italic text-center text-muted-foreground text-sm">
-          No errors or warnings
-        </div>
+        <div className="italic text-center text-muted-foreground">No errors or warnings</div>
       ) : (
         formatOutput(stderr)
       )}
@@ -142,11 +140,11 @@ function Stderr({ stderr }: { stderr: StderrOutputType[] }) {
 
 function TscOutput({ tsc }: { tsc: TscOutputType[] }) {
   return (
-    <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap">
+    <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap text-[13px]">
       {tsc.length === 0 ? (
         <div className="italic text-center text-muted-foreground">No problems</div>
       ) : (
-        formatOutput(tsc)
+        formatOutput(tsc, '\n')
       )}
     </div>
   );

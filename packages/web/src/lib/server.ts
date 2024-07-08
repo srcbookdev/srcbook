@@ -94,6 +94,26 @@ export async function importSrcbook(
   return response.json();
 }
 
+type GenerateSrcbookRequestType = { query: string };
+type GenerateSrcbookResponseType = { error: boolean; result: { dir: string } };
+
+export async function generateSrcbook(
+  request: GenerateSrcbookRequestType,
+): Promise<GenerateSrcbookResponseType> {
+  const response = await fetch(API_BASE_URL + '/generate', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
 interface CreateSessionRequestType {
   path: string;
 }

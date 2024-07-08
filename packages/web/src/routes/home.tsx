@@ -6,17 +6,20 @@ import {
   loadSessions,
   createSrcbook,
   importSrcbook,
+  generateSrcbook,
   loadSrcbookExamples,
 } from '@/lib/server';
 import type { ExampleSrcbookType, SessionType } from '@/types';
 import { useState } from 'react';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
+import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
 import {
   MainCTACard,
   SrcbookCard,
   CreateSrcbookForm,
   ImportSrcbookCTA,
 } from '@/components/srcbook-cards';
+import { Button } from '@/components/ui/button';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 
 export async function loader() {
@@ -41,6 +44,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
+  const [showGenSrcbookModal, setShowGenSrcbookModal] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [srcbookToDelete, setSrcbookToDelete] = useState<SessionType | undefined>(undefined);
 
@@ -61,12 +65,24 @@ export default function Home() {
     return navigate(`/srcbooks/${srcbook.id}`);
   }
 
+  async function onGenerateSrcbook(query: string) {
+    // TODO error handling. This is DEFINITELY not 100%
+    const { result } = await generateSrcbook({ query });
+    const { result: srcbook } = await createSession({ path: result.dir });
+    return navigate(`/srcbooks/${srcbook.id}`);
+  }
+
   return (
     <div className="divide-y divide-border">
       <DeleteSrcbookModal
         open={showDelete}
         onOpenChange={setShowDelete}
         session={srcbookToDelete}
+      />
+      <GenerateSrcbookModal
+        open={showGenSrcbookModal}
+        setOpen={setShowGenSrcbookModal}
+        onGenerate={onGenerateSrcbook}
       />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
@@ -91,6 +107,7 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:flex gap-6">
           <CreateSrcbookForm defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
           <ImportSrcbookCTA onClick={() => setShowImportSrcbookModal(true)} />
+          <Button onClick={() => setShowGenSrcbookModal(true)}>Generate Srcbook with AI</Button>
         </div>
       </div>
 

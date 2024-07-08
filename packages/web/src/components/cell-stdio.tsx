@@ -77,10 +77,14 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
             )}
           </TabsList>
           <div className="flex items-center gap-6">
-            <button className=" hover:text-secondary-hover" onClick={() => clearOutput(cell.id)}>
+            <button
+              className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
+              disabled={activeTab === 'problems'}
+              onClick={() => clearOutput(cell.id)}
+            >
               <Ban size={16} />
             </button>
-            <button className=" hover:text-secondary-hover" onClick={() => setShow(!show)}>
+            <button className="hover:text-secondary-hover" onClick={() => setShow(!show)}>
               {show ? <PanelBottomOpen size={20} /> : <PanelBottomClose size={20} />}
             </button>
           </div>

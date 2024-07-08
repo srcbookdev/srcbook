@@ -640,9 +640,10 @@ function CodeCell(props: {
   const [showStdio, setShowStdio] = useState(false);
 
   const { codeTheme } = useTheme();
-  const { updateCell, clearOutput } = useCells();
+  const { updateCell, clearOutput, clearProblems } = useCells();
 
   function onChangeSource(source: string) {
+    clearProblems(cell.id);
     onUpdateCell(cell, { source });
   }
 

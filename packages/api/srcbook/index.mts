@@ -106,7 +106,7 @@ export async function importSrcbookFromSrcmdText(text: string, directoryBasename
     throw new Error(`Cannot decode invalid srcmd`);
   }
 
-  const dirname = await createSrcbookDir(directoryBasename);
+  const dirname = await createSrcbookDir(result.metadata.language, directoryBasename);
 
   await writeToDisk(dirname, result.metadata, result.cells);
 
@@ -120,7 +120,7 @@ export async function importSrcbookFromSrcmdText(text: string, directoryBasename
  * Users are not supposed to be aware or modify private directories.
  */
 export async function createSrcbook(title: string, metadata: SrcbookMetadataType) {
-  const dirname = await createSrcbookDir();
+  const dirname = await createSrcbookDir(metadata.language);
 
   const cells: CellType[] = [
     {
@@ -142,11 +142,23 @@ export async function createSrcbook(title: string, metadata: SrcbookMetadataType
   return dirname;
 }
 
-async function createSrcbookDir(basename: string = randomid()) {
-  const dirname = Path.join(SRCBOOKS_DIR, basename);
-  await fs.mkdir(dirname);
-  await fs.mkdir(Path.join(dirname, 'src'));
-  return dirname;
+async function createSrcbookDir(language: CodeLanguageType, basename: string = randomid()) {
+  const srcbookDirectoryPath = Path.join(SRCBOOKS_DIR, basename);
+
+  // Create the srcbook directory
+  await fs.mkdir(srcbookDirectoryPath);
+
+  // Create the src directory for user code
+  const srcPath = Path.join(srcbookDirectoryPath, 'src');
+  await fs.mkdir(srcPath);
+
+  // Create the tsconfig.json file for typescript projects
+  if (language === 'typescript') {
+    const tsconfigPath = Path.join(srcbookDirectoryPath, 'tsconfig.json');
+    await fs.writeFile(tsconfigPath, toFormattedJSON(buildTsconfigJson()), { encoding: 'utf8' });
+  }
+
+  return srcbookDirectoryPath;
 }
 
 function buildPackageJson(language: CodeLanguageType) {
@@ -168,6 +180,21 @@ function buildTSPackageJson() {
       typescript: 'latest',
       '@types/node': 'latest',
     },
+  };
+}
+
+function buildTsconfigJson() {
+  return {
+    compilerOptions: {
+      module: 'nodenext',
+      moduleResolution: 'nodenext',
+      target: 'es2022',
+      resolveJsonModule: true,
+      noEmit: true,
+      allowImportingTsExtensions: true,
+    },
+    include: ['src/**/*'],
+    exclude: ['node_modules'],
   };
 }
 

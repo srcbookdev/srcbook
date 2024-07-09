@@ -55,8 +55,8 @@ export async function createSrcbook(
   return response.json();
 }
 
-export async function deleteSrcbook(request: { dir: string }) {
-  const response = await fetch(API_BASE_URL + '/srcbooks/' + request.dir, {
+export async function deleteSrcbook(request: { id: string }) {
+  const response = await fetch(API_BASE_URL + '/srcbooks/' + request.id, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json' },
   });

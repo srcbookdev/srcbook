@@ -33,6 +33,7 @@ import {
   DepsValidateResponsePayloadSchema,
 } from '@srcbook/shared';
 import WebSocketServer from './ws-client.mjs';
+import { pathToCodeFile } from '../srcbook/path.mjs';
 
 const wss = new WebSocketServer();
 
@@ -120,7 +121,7 @@ async function jsExec({ session, cell, secrets }: ExecRequestType) {
     node({
       cwd: session.dir,
       env: secrets,
-      entry: cell.filename,
+      entry: pathToCodeFile(session.dir, cell.filename),
       stdout(data) {
         wss.broadcast(`session:${session.id}`, 'cell:output', {
           cellId: cell.id,
@@ -154,7 +155,7 @@ async function tsxExec({ session, cell, secrets }: ExecRequestType) {
     tsx({
       cwd: session.dir,
       env: secrets,
-      entry: cell.filename,
+      entry: pathToCodeFile(session.dir, cell.filename),
       stdout(data) {
         wss.broadcast(`session:${session.id}`, 'cell:output', {
           cellId: cell.id,
@@ -191,7 +192,7 @@ async function tscExec({ session, cell, secrets }: ExecRequestType) {
   tsc({
     cwd: session.dir,
     env: secrets,
-    entry: cell.filename,
+    entry: pathToCodeFile(session.dir, cell.filename),
     stdout(data) {
       wss.broadcast(`session:${session.id}`, 'cell:output', {
         cellId: cell.id,

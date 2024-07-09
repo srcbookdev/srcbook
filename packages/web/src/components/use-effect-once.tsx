@@ -16,6 +16,7 @@ function useEffectDev(effect: EffectCallback) {
 }
 
 function useEffectProd(effect: EffectCallback) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(effect, []);
 }
 

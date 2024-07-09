@@ -1,7 +1,5 @@
 import Path from 'node:path';
 import { spawn } from 'node:child_process';
-import { DEFAULT_TSCONFIG_PATH, DEFAULT_TSCONFIG } from './constants.mjs';
-import { tsConfigToArgs } from './utils.mjs';
 
 export type BaseExecRequestType = {
   cwd: string;
@@ -84,7 +82,18 @@ export function tsc(options: NodeRequestType) {
   return spawnCall({
     command: Path.join(cwd, 'node_modules', '.bin', 'tsc'),
     cwd,
-    args: [entry, ...tsConfigToArgs(DEFAULT_TSCONFIG)],
+    args: [
+      entry,
+      '--noEmit',
+      '--target',
+      'es2022',
+      '--module',
+      'nodenext',
+      '--moduleResolution',
+      'nodenext',
+      '--resolveJsonModule',
+      '--allowImportingTsExtensions',
+    ],
     stdout,
     stderr,
     onExit,
@@ -115,7 +124,7 @@ export function tsx(options: NodeRequestType) {
   return spawnCall({
     command: Path.join(cwd, 'node_modules', '.bin', 'tsx'),
     cwd,
-    args: ['--tsconfig', DEFAULT_TSCONFIG_PATH, entry],
+    args: [entry],
     stdout,
     stderr,
     onExit,

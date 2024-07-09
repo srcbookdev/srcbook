@@ -5,8 +5,7 @@
  */
 
 import fs from 'node:fs';
-import Path from 'node:path';
-import { DEFAULT_TSCONFIG, DEFAULT_TSCONFIG_PATH, SRCBOOKS_DIR } from './constants.mjs';
+import { SRCBOOKS_DIR } from './constants.mjs';
 
 // This single mkdir is creating:
 //
@@ -17,9 +16,3 @@ import { DEFAULT_TSCONFIG, DEFAULT_TSCONFIG_PATH, SRCBOOKS_DIR } from './constan
 // behavior and make sure both get created during initialization
 // or the app will not work properly.
 fs.mkdirSync(SRCBOOKS_DIR, { recursive: true });
-
-fs.writeFileSync(
-  Path.join(DEFAULT_TSCONFIG_PATH),
-  JSON.stringify(DEFAULT_TSCONFIG, null, 2),
-  'utf8',
-);

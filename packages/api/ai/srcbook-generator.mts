@@ -1,6 +1,8 @@
 import { generateText } from 'ai';
 import { readFileSync } from 'node:fs';
+import Path from 'node:path';
 import { createOpenAI } from '@ai-sdk/openai';
+import { PROMPTS_DIR } from '../constants.mjs';
 
 const openai = createOpenAI({
   compatibility: 'strict', // strict mode, enable when using the OpenAI API
@@ -8,7 +10,7 @@ const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const SYSTEM_PROMPT = readFileSync('prompts/srcbook-generator.txt', 'utf-8');
+const SYSTEM_PROMPT = readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
 /*
  * Given a user request, which is free form text describing their intent,
  * generate a srcbook using LLMs.

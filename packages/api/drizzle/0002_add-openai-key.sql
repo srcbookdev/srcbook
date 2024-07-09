@@ -1,0 +1,1 @@
+ALTER TABLE `config` ADD `openai_api_key` text;

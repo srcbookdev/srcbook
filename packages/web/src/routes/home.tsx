@@ -67,7 +67,14 @@ export default function Home() {
 
   async function onGenerateSrcbook(query: string) {
     // TODO error handling. This is DEFINITELY not 100%
-    const { result } = await generateSrcbook({ query });
+    const { result, error } = await generateSrcbook({ query });
+    if (error) {
+      if (result.includes('OpenAI API key is not set')) {
+        alert('Please set the OpenAI API key in the settings');
+        setShowGenSrcbookModal(false);
+      }
+      return;
+    }
     const { result: srcbook } = await createSession({ path: result.dir });
     return navigate(`/srcbooks/${srcbook.id}`);
   }

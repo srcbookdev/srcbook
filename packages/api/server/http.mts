@@ -120,12 +120,12 @@ router.post('/generate', cors(), async (req, res) => {
 
   try {
     const result = await generateSrcbook(query);
-    console.log('Generated a srcbook, finish_reason:', result.text);
     const srcbookDir = await importSrcbookFromSrcmdText(result.text);
     return res.json({ error: false, result: { dir: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);
+    console.log('what now?');
     return res.json({ error: true, result: error.stack });
   }
 });

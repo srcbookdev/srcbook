@@ -19,7 +19,7 @@ export default function GenerateSrcbookModal({
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onGenerate: (query: string) => void;
+  onGenerate: async (query: string) => Promise<void>;
 }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -37,8 +37,13 @@ export default function GenerateSrcbookModal({
     }
   };
 
+  const onOpenChange = (open: boolean) => {
+    setStatus('idle');
+    setQuery('');
+    setOpen(open);
+  };
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn('flex flex-col transition-height w-[800px]')}>
         <DialogHeader>
           <DialogTitle>{statusToTitle(status)}</DialogTitle>
@@ -60,7 +65,8 @@ export default function GenerateSrcbookModal({
               size="sm"
               onClick={async () => {
                 setStatus('loading');
-                return onGenerate(query);
+                await onGenerate(query);
+                return;
               }}
             >
               <Sparkles size={16} />

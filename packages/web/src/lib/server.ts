@@ -95,7 +95,9 @@ export async function importSrcbook(
 }
 
 type GenerateSrcbookRequestType = { query: string };
-type GenerateSrcbookResponseType = { error: boolean; result: { dir: string } };
+type GenerateSrcbookResponseType =
+  | { error: false; result: { dir: string } }
+  | { error: true; result: string };
 
 export async function generateSrcbook(
   request: GenerateSrcbookRequestType,

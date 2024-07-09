@@ -26,7 +26,7 @@ import {
   importSrcbookFromSrcmdText,
 } from '../srcbook.mjs';
 import { readdir } from '../fs-utils.mjs';
-import { EXAMPLE_SRCBOOKS } from '../srcbooks/examples.mjs';
+import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 
 const app: Application = express();
 

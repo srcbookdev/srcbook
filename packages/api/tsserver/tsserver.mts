@@ -29,7 +29,7 @@ export class TsServer {
 
     if (!resolve) {
       console.warn(
-        `Received a response for command '${response.command}' and request_seq '${response.request_seq}' but no resolver was found. Did you forget to register a resolver?`,
+        `Received a response for command '${response.command}' and request_seq '${response.request_seq}' but no resolver was found. This may be a bug in the code.`,
       );
 
       return;
@@ -86,6 +86,20 @@ export class TsServer {
       seq: this.seq,
       type: 'request',
       command: 'close',
+      arguments: args,
+    });
+  }
+
+  /**
+   * Get info about the project.
+   *
+   * This can be useful during development to inspect the tsserver integration.
+   */
+  projectInfo(args: tsserver.protocol.ProjectInfoRequestArgs) {
+    return this.sendWithResponsePromise<tsserver.protocol.ProjectInfoResponse>({
+      seq: this.seq,
+      type: 'request',
+      command: 'projectInfo',
       arguments: args,
     });
   }

@@ -9,7 +9,7 @@ import { DIST_DIR, SRCBOOKS_DIR } from '../constants.mjs';
 
 const GETTING_STARTED_SRCBOOK = {
   id: '30v2av4eee17m59dg2c29758to',
-  path: Path.join(DIST_DIR, 'srcbooks', 'examples', 'getting-started.srcmd'),
+  path: Path.join(DIST_DIR, 'srcbook', 'examples', 'getting-started.srcmd'),
   title: 'Getting started',
   description: 'Quick tutorial to explore the basic concepts in Srcbooks.',
   get dirname() {
@@ -19,7 +19,7 @@ const GETTING_STARTED_SRCBOOK = {
 
 const LANGGRAPH_AGENT_SRCBOOK = {
   id: 'i72jjpkqepmg5olneffvk7hgto',
-  path: Path.join(DIST_DIR, 'srcbooks', 'examples', 'langgraph-web-agent.srcmd'),
+  path: Path.join(DIST_DIR, 'srcbook', 'examples', 'langgraph-web-agent.srcmd'),
   title: 'LangGraph agent',
   description: 'Learn to write a stateful agent with memory using LangGraph and Tavily.',
   get dirname() {
@@ -27,10 +27,9 @@ const LANGGRAPH_AGENT_SRCBOOK = {
   },
 };
 
-// Duplicate is temporary until we have another example
-const GETTING_STARTED_SRCBOOK_DUPLICATE = {
+const INTRO_TO_WEBSOCKETS_SRCBOOK = {
   id: 'vnovpn5dbrthpdllvoeqahufc4',
-  path: Path.join(DIST_DIR, 'srcbooks', 'examples', 'websockets.srcmd'),
+  path: Path.join(DIST_DIR, 'srcbook', 'examples', 'websockets.srcmd'),
   title: 'Intro to WebSockets',
   description: 'Learn to build a simple WebSocket client and server in Node.js.',
   get dirname() {
@@ -41,5 +40,5 @@ const GETTING_STARTED_SRCBOOK_DUPLICATE = {
 export const EXAMPLE_SRCBOOKS = [
   GETTING_STARTED_SRCBOOK,
   LANGGRAPH_AGENT_SRCBOOK,
-  GETTING_STARTED_SRCBOOK_DUPLICATE,
+  INTRO_TO_WEBSOCKETS_SRCBOOK,
 ];

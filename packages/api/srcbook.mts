@@ -12,7 +12,7 @@ import { toFormattedJSON } from './utils.mjs';
 import { randomid } from '@srcbook/shared';
 import { readdir } from './fs-utils.mjs';
 import { SRCBOOKS_DIR } from './constants.mjs';
-import { EXAMPLE_SRCBOOKS } from './srcbooks/examples.mjs';
+import { EXAMPLE_SRCBOOKS } from './srcbook/examples.mjs';
 
 export function writeToDisk(srcbookDir: string, metadata: SrcbookMetadataType, cells: CellType[]) {
   const writes = [writeReadmeToDisk(srcbookDir, metadata, cells)];

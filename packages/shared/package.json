@@ -4,6 +4,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
+    "prebuild": "rm -rf ./dist",
     "build": "tsc",
     "check-types": "tsc",
     "prepublishOnly": "npm run build"

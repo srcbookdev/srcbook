@@ -21,12 +21,12 @@ import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '..
 import {
   createSrcbook,
   removeSrcbook,
-  fullSrcbookDir,
   importSrcbookFromSrcmdFile,
   importSrcbookFromSrcmdText,
-} from '../srcbook.mjs';
+} from '../srcbook/index.mjs';
 import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
+import { pathToSrcbook } from '../srcbook/path.mjs';
 
 const app: Application = express();
 
@@ -79,12 +79,12 @@ router.post('/srcbooks', cors(), async (req, res) => {
   }
 });
 
-router.options('/srcbooks/:dir', cors());
-router.delete('/srcbooks/:dir', cors(), async (req, res) => {
-  const { dir } = req.params;
-  const fullDir = fullSrcbookDir(dir);
-  await removeSrcbook(fullDir);
-  await deleteSessionByDirname(fullDir);
+router.options('/srcbooks/:id', cors());
+router.delete('/srcbooks/:id', cors(), async (req, res) => {
+  const { id } = req.params;
+  const srcbookDir = pathToSrcbook(id);
+  await removeSrcbook(srcbookDir);
+  await deleteSessionByDirname(srcbookDir);
   return res.json({ error: false, deleted: true });
 });
 

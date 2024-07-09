@@ -55,9 +55,9 @@ export function spawnCall(options: SpawnCallRequestType) {
  * Example:
  *
  *     node({
- *       cwd: '/Users/ben/.srcbook/foo',
+ *       cwd: '/Users/ben/.srcbook/30v2av4eee17m59dg2c29758to',
  *       env: {FOO_ENV_VAR: 'foooooooo'},
- *       entry: 'foo.js',
+ *       entry: '/Users/ben/.srcbook/30v2av4eee17m59dg2c29758to/src/foo.js',
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
@@ -67,12 +67,10 @@ export function spawnCall(options: SpawnCallRequestType) {
 export function node(options: NodeRequestType) {
   const { cwd, env, entry, stdout, stderr, onExit } = options;
 
-  const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
-
   return spawnCall({
     command: 'node',
     cwd,
-    args: [filepath],
+    args: [entry],
     stdout,
     stderr,
     onExit,
@@ -83,12 +81,10 @@ export function node(options: NodeRequestType) {
 export function tsc(options: NodeRequestType) {
   const { cwd, env, entry, stdout, stderr, onExit } = options;
 
-  const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
-
   return spawnCall({
     command: Path.join(cwd, 'node_modules', '.bin', 'tsc'),
     cwd,
-    args: [filepath, ...tsConfigToArgs(DEFAULT_TSCONFIG)],
+    args: [entry, ...tsConfigToArgs(DEFAULT_TSCONFIG)],
     stdout,
     stderr,
     onExit,
@@ -102,9 +98,9 @@ export function tsc(options: NodeRequestType) {
  * Example:
  *
  *     tsx({
- *       cwd: '/Users/ben/.srcbook/foo',
+ *       cwd: '/Users/ben/.srcbook/30v2av4eee17m59dg2c29758to',
  *       env: {FOO_ENV_VAR: 'foooooooo'},
- *       entry: 'foo.ts',
+ *       entry: '/Users/ben/.srcbook/30v2av4eee17m59dg2c29758to/src/foo.ts',
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
@@ -114,15 +110,12 @@ export function tsc(options: NodeRequestType) {
 export function tsx(options: NodeRequestType) {
   const { cwd, env, entry, stdout, stderr, onExit } = options;
 
-  const filepath = Path.isAbsolute(entry) ? entry : Path.join(cwd, entry);
-
   // We are making an assumption about `tsx` being the tool of choice
   // for running TypeScript, as well as where it's located on the file system.
-
   return spawnCall({
     command: Path.join(cwd, 'node_modules', '.bin', 'tsx'),
     cwd,
-    args: ['--tsconfig', DEFAULT_TSCONFIG_PATH, filepath],
+    args: ['--tsconfig', DEFAULT_TSCONFIG_PATH, entry],
     stdout,
     stderr,
     onExit,

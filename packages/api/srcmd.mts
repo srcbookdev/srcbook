@@ -1,5 +1,4 @@
 import { marked } from 'marked';
-import Path from 'path';
 import fs from 'node:fs/promises';
 import { SrcbookMetadataSchema, type SrcbookMetadataType, randomid } from '@srcbook/shared';
 import type { Tokens, Token, TokensList } from 'marked';
@@ -11,6 +10,7 @@ import type {
   TitleCellType,
 } from '@srcbook/shared';
 import { languageFromFilename } from '@srcbook/shared';
+import { pathToCodeFile, pathToPackageJson, pathToReadme } from './srcbook/path.mjs';
 
 marked.use({ gfm: true });
 
@@ -59,7 +59,10 @@ export function encodePackageJsonCell(cell: PackageJsonCellType, options: { inli
 export function encodeCodeCell(cell: CodeCellType, options: { inline: boolean }) {
   const source = options.inline
     ? [`###### ${cell.filename}\n`, `\`\`\`${cell.language}`, cell.source, '```']
-    : [`###### ${cell.filename}\n`, `[${cell.filename}](./${cell.filename})`];
+    : [
+        `###### ${cell.filename}\n`,
+        `[${cell.filename}](./src/${cell.filename}})`, // note we don't use Path.join here because this is for the markdown file.
+      ];
 
   return source.join('\n');
 }
@@ -121,7 +124,7 @@ export function decode(contents: string): DecodeResult {
  */
 export async function decodeDir(dir: string): Promise<DecodeResult> {
   try {
-    const readmePath = Path.join(dir, 'README.md');
+    const readmePath = pathToReadme(dir);
     const readmeContents = await fs.readFile(readmePath, 'utf-8');
     // Decode the README.md file into cells.
     // The code blocks and the package.json will only contain the filename at this point,
@@ -138,7 +141,11 @@ export async function decodeDir(dir: string): Promise<DecodeResult> {
     // Let's replace all the code cells with the actual file contents for each one
     for (const cell of cells) {
       if (cell.type === 'code' || cell.type === 'package.json') {
-        const filePath = Path.join(dir, cell.filename);
+        const filePath =
+          cell.type === 'package.json'
+            ? pathToPackageJson(dir)
+            : pathToCodeFile(dir, cell.filename);
+
         pendingFileReads.push(
           fs.readFile(filePath, 'utf-8').then((source) => {
             cell.source = source;

@@ -7,21 +7,29 @@ import type {
   PackageJsonCellType,
   SrcbookMetadataType,
 } from '@srcbook/shared';
-import { encode, decode } from './srcmd.mjs';
-import { toFormattedJSON } from './utils.mjs';
 import { randomid } from '@srcbook/shared';
-import { readdir } from './fs-utils.mjs';
-import { SRCBOOKS_DIR } from './constants.mjs';
-import { EXAMPLE_SRCBOOKS } from './srcbook/examples.mjs';
+import { encode, decode } from '../srcmd.mjs';
+import { toFormattedJSON } from '../utils.mjs';
+import { readdir } from '../fs-utils.mjs';
+import { SRCBOOKS_DIR } from '../constants.mjs';
+import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
+import { pathToCodeFile, pathToPackageJson, pathToReadme } from './path.mjs';
+
+function writeCellOnlyToDisk(srcbookDir: string, cell: PackageJsonCellType | CodeCellType) {
+  const path =
+    cell.type === 'package.json'
+      ? pathToPackageJson(srcbookDir)
+      : pathToCodeFile(srcbookDir, cell.filename);
+
+  return fs.writeFile(path, cell.source, { encoding: 'utf8' });
+}
 
 export function writeToDisk(srcbookDir: string, metadata: SrcbookMetadataType, cells: CellType[]) {
   const writes = [writeReadmeToDisk(srcbookDir, metadata, cells)];
 
   for (const cell of cells) {
     if (cell.type === 'package.json' || cell.type === 'code') {
-      writes.push(
-        fs.writeFile(Path.join(srcbookDir, cell.filename), cell.source, { encoding: 'utf8' }),
-      );
+      writes.push(writeCellOnlyToDisk(srcbookDir, cell));
     }
   }
 
@@ -34,9 +42,10 @@ export function writeCellToDisk(
   cells: CellType[],
   cell: PackageJsonCellType | CodeCellType,
 ) {
+  // Readme must also be updated
   return Promise.all([
     writeReadmeToDisk(srcbookDir, metadata, cells),
-    fs.writeFile(Path.join(srcbookDir, cell.filename), cell.source, { encoding: 'utf8' }),
+    writeCellOnlyToDisk(srcbookDir, cell),
   ]);
 }
 
@@ -49,8 +58,8 @@ export function moveCodeCellOnDisk(
 ) {
   return Promise.all([
     writeReadmeToDisk(srcbookDir, metadata, cells),
-    fs.unlink(Path.join(srcbookDir, oldFilename)),
-    fs.writeFile(Path.join(srcbookDir, cell.filename), cell.source, { encoding: 'utf8' }),
+    fs.unlink(pathToCodeFile(srcbookDir, oldFilename)),
+    fs.writeFile(pathToCodeFile(srcbookDir, cell.filename), cell.source, { encoding: 'utf8' }),
   ]);
 }
 
@@ -59,13 +68,9 @@ export function writeReadmeToDisk(
   metadata: SrcbookMetadataType,
   cells: CellType[],
 ) {
-  return fs.writeFile(
-    Path.join(srcbookDir, 'README.md'),
-    encode(cells, metadata, { inline: false }),
-    {
-      encoding: 'utf8',
-    },
-  );
+  return fs.writeFile(pathToReadme(srcbookDir), encode(cells, metadata, { inline: false }), {
+    encoding: 'utf8',
+  });
 }
 
 /**
@@ -139,7 +144,8 @@ export async function createSrcbook(title: string, metadata: SrcbookMetadataType
 
 async function createSrcbookDir(basename: string = randomid()) {
   const dirname = Path.join(SRCBOOKS_DIR, basename);
-  await fs.mkdir(dirname, { recursive: true });
+  await fs.mkdir(dirname);
+  await fs.mkdir(Path.join(dirname, 'src'));
   return dirname;
 }
 
@@ -163,10 +169,6 @@ function buildTSPackageJson() {
       '@types/node': 'latest',
     },
   };
-}
-
-export function fullSrcbookDir(dirId: string) {
-  return Path.join(SRCBOOKS_DIR, dirId);
 }
 
 export async function removeSrcbook(srcbookDir: string) {

@@ -4,13 +4,16 @@ import type { server as tsserver } from 'typescript';
 
 export class TsServer {
   private _seq: number = 0;
+  private buffered: Buffer = Buffer.from('');
   private readonly process: ChildProcess;
   private readonly resolvers: Record<number, (value: any) => void> = {};
 
   constructor(process: ChildProcess) {
     this.process = process;
-    this.process.stdout?.on('data', (buffer) => {
-      for (const message of parseTsServerMessages(buffer)) {
+    this.process.stdout?.on('data', (chunk) => {
+      const { messages, buffered } = parseTsServerMessages(chunk, this.buffered);
+      this.buffered = buffered;
+      for (const message of messages) {
         if (message.type === 'response') {
           this.handleResponse(message);
         } else if (message.type === 'event') {

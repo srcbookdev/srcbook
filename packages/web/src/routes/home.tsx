@@ -16,10 +16,10 @@ import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
 import {
   MainCTACard,
   SrcbookCard,
-  CreateSrcbookForm,
+  GenerateSrcbookButton,
+  CreateSrcbookButton,
   ImportSrcbookCTA,
 } from '@/components/srcbook-cards';
-import { Button } from '@/components/ui/button';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 
 export async function loader() {
@@ -29,7 +29,13 @@ export async function loader() {
     loadSrcbookExamples(),
   ]);
 
-  return { defaultLanguage: config.defaultLanguage, baseDir: config.baseDir, srcbooks, examples };
+  return {
+    defaultLanguage: config.defaultLanguage,
+    baseDir: config.baseDir,
+    srcbooks,
+    examples,
+    hasOpenAiKey: !!config.openAiApiKey,
+  };
 }
 
 type HomeLoaderDataType = {
@@ -37,10 +43,12 @@ type HomeLoaderDataType = {
   srcbooks: SessionType[];
   examples: ExampleSrcbookType[];
   defaultLanguage: CodeLanguageType;
+  hasOpenAiKey: boolean;
 };
 
 export default function Home() {
-  const { defaultLanguage, baseDir, srcbooks, examples } = useLoaderData() as HomeLoaderDataType;
+  const { defaultLanguage, baseDir, srcbooks, examples, hasOpenAiKey } =
+    useLoaderData() as HomeLoaderDataType;
   const navigate = useNavigate();
 
   const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
@@ -53,8 +61,8 @@ export default function Home() {
     setShowDelete(true);
   }
 
-  async function onCreateSrcbook(title: string, language: CodeLanguageType) {
-    const { result } = await createSrcbook({ path: baseDir, name: title, language: language });
+  async function onCreateSrcbook(language: CodeLanguageType) {
+    const { result } = await createSrcbook({ path: baseDir, name: 'Untitled', language: language });
     const { result: srcbook } = await createSession({ path: result.path });
     return navigate(`/srcbooks/${srcbook.id}`);
   }
@@ -68,12 +76,8 @@ export default function Home() {
   async function onGenerateSrcbook(query: string) {
     // TODO error handling. This is DEFINITELY not 100%
     const { result, error } = await generateSrcbook({ query });
-    if (error) {
-      if (result.includes('OpenAI API key is not set')) {
-        alert('Please set the OpenAI API key in the settings');
-        setShowGenSrcbookModal(false);
-      }
-      return;
+    if (error === true) {
+      return result;
     }
     const { result: srcbook } = await createSession({ path: result.dir });
     return navigate(`/srcbooks/${srcbook.id}`);
@@ -90,12 +94,13 @@ export default function Home() {
         open={showGenSrcbookModal}
         setOpen={setShowGenSrcbookModal}
         onGenerate={onGenerateSrcbook}
+        hasOpenAiKey={hasOpenAiKey}
       />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
       {examples.length > 0 && (
         <div className="mb-11">
-          <h4 className="h4 mx-auto mb-10">Get started</h4>
+          <h4 className="h4 mx-auto mb-6">Library</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {examples.map((example) => (
               <MainCTACard
@@ -112,9 +117,9 @@ export default function Home() {
       <div className="mb-16">
         <h4 className="h4 mx-auto my-6">New Srcbook</h4>
         <div className="grid grid-cols-2 sm:flex gap-6">
-          <CreateSrcbookForm defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
+          <CreateSrcbookButton defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
+          <GenerateSrcbookButton onClick={() => setShowGenSrcbookModal(true)} />
           <ImportSrcbookCTA onClick={() => setShowImportSrcbookModal(true)} />
-          <Button onClick={() => setShowGenSrcbookModal(true)}>Generate Srcbook with AI</Button>
         </div>
       </div>
 

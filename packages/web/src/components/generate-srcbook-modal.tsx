@@ -1,83 +1,99 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-type Status = 'idle' | 'loading' | 'success' | 'error';
+type Status = 'idle' | 'loading';
+
+const EXAMPLES = [
+  'Cover the basics of using Prisma, the popular TypeScript database ORM, with example code',
+  'Create an AI agent that browses the web and answers questions using langchain',
+  'Implement breadth-first-search and depth-first-search using TypeScript',
+];
+
 export default function GenerateSrcbookModal({
   open,
   setOpen,
   onGenerate,
+  hasOpenAiKey,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onGenerate: async (query: string) => Promise<void>;
+  onGenerate: (query: string) => Promise<void | string>;
+  hasOpenAiKey: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<Status>('idle');
+  const [error, setError] = useState('');
 
-  const statusToTitle = (status: Status) => {
-    switch (status) {
-      case 'loading':
-        return 'Generating...';
-      case 'success':
-        return 'Generated!';
-      case 'error':
-        return 'Error!';
-      default:
-        return 'Generate';
+  const navigate = useNavigate();
+
+  const generate = async () => {
+    setStatus('loading');
+    const result = await onGenerate(query);
+    if (result) {
+      console.error(result);
+      setError(result);
+      setStatus('idle');
     }
   };
 
-  const onOpenChange = (open: boolean) => {
-    setStatus('idle');
-    setQuery('');
-    setOpen(open);
-  };
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className={cn('flex flex-col transition-height w-[800px]')}>
         <DialogHeader>
-          <DialogTitle>{statusToTitle(status)}</DialogTitle>
-          <DialogDescription id="npm-search-modal">
-            Create a new srcbook using AI. Simply describe what you want.
-          </DialogDescription>
+          <DialogTitle>Generate with AI</DialogTitle>
         </DialogHeader>
-        {status === 'idle' && (
-          <div className="relative">
-            <Input
-              className="h-10 focus-visible:ring-2"
-              placeholder="Write a prompt..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <Button
-              className="absolute right-1 top-1 px-3 py-4 border-none "
-              disabled={query.length === 0}
-              size="sm"
-              onClick={async () => {
-                setStatus('loading');
-                await onGenerate(query);
-                return;
-              }}
-            >
-              <Sparkles size={16} />
-            </Button>
-          </div>
-        )}
-        {status === 'loading' && (
-          <div className="flex w-full h-full items-center justify-center gap-3">
-            <Loader2 className="animate-spin" />
-          </div>
-        )}
+        <div className="flex flex-col gap-3">
+          <Textarea
+            placeholder="Write a prompt to create a Srcbook..."
+            className="focus-visible:ring-2"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <Button
+            className="w-fit self-end flex items-center gap-2"
+            disabled={!query}
+            onClick={generate}
+          >
+            {status === 'loading' ? (
+              <>
+                <Loader2 size={20} className="animate-spin" /> <p>Generating</p>
+              </>
+            ) : (
+              <p>Generate</p>
+            )}
+          </Button>
+          {error.length > 0 && (
+            <div className="bg-sb-red-30 text-sb-red-80 rounded-sm text-sm px-3 py-2">
+              Something went wrong, please try again.
+            </div>
+          )}
+          {!hasOpenAiKey && (
+            <div className="flex w-full items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm p-1">
+              <p className="px-3">API key required</p>
+              <button
+                className="border border-sb-yellow-70 rounded-sm px-2 py-1 hover:border-sb-yellow-80"
+                onClick={() => navigate('/settings')}
+              >
+                Settings
+              </button>
+            </div>
+          )}
+          <div className="w-full border-t"></div>
+          <p className="font-bold">Examples</p>
+          {EXAMPLES.map((example) => (
+            <div className="flex w-full items-center gap-2" key={JSON.stringify(example)}>
+              <p className="text-sm">{example}</p>
+              <Button variant="secondary" className="h-full" onClick={() => setQuery(example)}>
+                <Sparkles size={20} />
+              </Button>
+            </div>
+          ))}
+        </div>
       </DialogContent>
     </Dialog>
   );

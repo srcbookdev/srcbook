@@ -15,6 +15,7 @@ export interface FsObjectResultType {
 export type SettingsType = {
   baseDir: string;
   defaultLanguage: CodeLanguageType;
+  openAiKey?: string;
 };
 
 export type StdoutOutputType = { type: 'stdout'; data: string };

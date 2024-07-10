@@ -1,9 +1,9 @@
-import { Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
+import { Sparkles, Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
 import { cn } from '@/lib/utils';
-import { useRef, useState } from 'react';
-import { Button } from './ui/button';
+import { useState } from 'react';
 
 function LongDashedHorizontalLine(props: { className?: string }) {
   return (
@@ -143,120 +143,82 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
   );
 }
 
-export const MAX_SRCBOOK_TITLE_LENGTH = 44;
-
-export function isValidSrcbookTitle(title: string) {
-  const trimmed = title.trim();
-  return trimmed.length > 0 && trimmed.length < MAX_SRCBOOK_TITLE_LENGTH;
-}
-
-function CreateSrcbookCard(props: {
-  value: string;
-  onChange: (value: string) => void;
-  onEnterKeyDown: () => void;
-}) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+export function GenerateSrcbookButton(props: { onClick: () => void }) {
   return (
-    <CardContainer
-      onClick={() => textareaRef.current?.focus()}
-      className="hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground cursor-text"
+    <button
+      onClick={props.onClick}
+      className="w-full sm:w-[216px] sm:max-w-[216px] h-[96px] space-y-1.5 bg-background border rounded-sm p-3 hover:border-ring"
     >
-      <textarea
-        ref={textareaRef}
-        rows={2}
-        autoComplete="off"
-        maxLength={MAX_SRCBOOK_TITLE_LENGTH}
-        placeholder="New Srcbook"
-        value={props.value}
-        onChange={(e) => props.onChange(e.currentTarget.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            props.onEnterKeyDown();
-          }
-        }}
-        className="bg-transparent border-none outline-none font-semibold leading-[18px] resize-none overflow-clip placeholder-foreground group-hover:placeholder-muted-foreground group-focus-within:placeholder-muted-foreground"
-      ></textarea>
-      <div className="-ml-0.5">
-        <PlusIcon size={20} />
+      <div className="flex flex-col h-full items-start justify-between">
+        <Sparkles size={20} />
+        <h5 className="font-medium leading-[18px]">Generate Srcbook</h5>
       </div>
-    </CardContainer>
+    </button>
   );
 }
-
-export function CreateSrcbookForm(props: {
+export function CreateSrcbookButton(props: {
   defaultLanguage: CodeLanguageType;
-  onSubmit: (title: string, language: CodeLanguageType) => void;
+  onSubmit: (language: CodeLanguageType) => void;
 }) {
-  const [title, setTitle] = useState('');
   const [language, setLanguage] = useState(props.defaultLanguage);
 
-  function onSubmit() {
-    if (isValidSrcbookTitle(title)) {
-      props.onSubmit(title, language);
-    }
-  }
-
   return (
-    <div className="w-full sm:w-[214px] sm:max-w-[214px] space-y-1.5">
-      <CreateSrcbookCard value={title} onChange={setTitle} onEnterKeyDown={onSubmit} />
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <LanguageButton
-            value="javascript"
-            title="Use JavaScript for this Srcbook"
-            selected={language === 'javascript'}
-            onClick={setLanguage}
-          />
-          <LanguageButton
-            value="typescript"
-            title="Use TypeScript for this Srcbook"
-            selected={language === 'typescript'}
-            onClick={setLanguage}
-          />
+    <div className="space-y-0.5">
+      <button
+        onClick={() => {
+          props.onSubmit(language);
+        }}
+        className="w-full sm:w-[216px] sm:max-w-[216px] h-[96px] space-y-1.5 bg-background border rounded-sm p-3 hover:border-ring"
+      >
+        <div className="flex flex-col h-full items-start justify-between">
+          <PlusIcon size={20} />
+          <h5 className="font-medium leading-[18px]">Create Srcbook</h5>
         </div>
-        <Button disabled={!isValidSrcbookTitle(title)} onClick={onSubmit}>
-          Create
+      </button>
+
+      <div className="flex border rounded-sm bg-background w-fit">
+        <Button
+          title="Use JavaScript for this Srcbook"
+          variant="secondary"
+          className={cn(
+            'border-none rounded-r-none active:translate-y-0 text-muted-foreground bg-muted w-10',
+            language === 'javascript' && 'text-foreground font-bold',
+          )}
+          onClick={() => setLanguage('javascript')}
+        >
+          JS
+        </Button>
+        <Button
+          title="Use TypeScript for this Srcbook"
+          variant="secondary"
+          className={cn(
+            'border-none rounded-l-none active:translate-y-0 text-muted-foreground bg-muted w-10',
+            language === 'typescript' && 'text-foreground font-bold',
+          )}
+          onClick={() => setLanguage('typescript')}
+        >
+          TS
         </Button>
       </div>
     </div>
   );
 }
 
-function LanguageButton(props: {
-  value: CodeLanguageType;
-  title: string;
-  selected: boolean;
-  onClick: (language: CodeLanguageType) => void;
-}) {
-  return (
-    <button
-      title={props.title}
-      onClick={() => props.onClick(props.value)}
-      className={cn(
-        'py-1 px-3 font-medium text-sm border-none outline-none ring-0 focus-visible:ring-0 hover:bg-muted rounded-sm',
-        props.selected ? 'text-foreground font-bold' : 'text-tertiary-foreground',
-      )}
-    >
-      {props.value === 'javascript' ? 'JS' : 'TS'}
-    </button>
-  );
-}
-
 export function ImportSrcbookCTA(props: { onClick: () => void }) {
   return (
-    <CardContainer
+    <button
+      className="w-full sm:w-[216px] sm:max-w-[216px] h-[96px] p-3 rounded-sm border border-dashed hover:border-solid hover:border-ring focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground active:translate-y-0.5"
       onClick={props.onClick}
-      className="w-full sm:w-[214px] sm:max-w-[214px] bg-muted border-dashed hover:border-solid hover:border-foreground focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground active:translate-y-0.5"
     >
-      <div>
-        <h5 className="font-semibold leading-[18px]">Open Srcbook</h5>
-        <p className="mt-2 leading-none text-[13px] text-tertiary-foreground">
-          or drag 'n drop <code className="code text-[13px]">.srcmd</code> file
-        </p>
+      <div className="flex flex-col h-full items-start justify-between">
+        <Upload size={20} />
+        <div className="flex flex-col items-start gap-0.5">
+          <h5 className="font-medium leading-[18px]">Open Srcbook</h5>
+          <p className="leading-none text-[13px] text-tertiary-foreground">
+            or drag'n drop <span className="font-medium">.srcmd</span> file
+          </p>
+        </div>
       </div>
-      <Upload size={20} />
-    </CardContainer>
+    </button>
   );
 }

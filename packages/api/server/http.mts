@@ -125,7 +125,6 @@ router.post('/generate', cors(), async (req, res) => {
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);
-    console.log('what now?');
     return res.json({ error: true, result: error.stack });
   }
 });

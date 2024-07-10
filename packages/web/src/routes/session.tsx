@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { marked } from 'marked';
 import Markdown from 'marked-react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
-import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec, EditorView } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
@@ -174,15 +174,26 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         {cells.map((cell, idx) => (
           <div key={`wrapper-${cell.id}`}>
             {idx > 1 && (
-              <div className="flex items-center gap-2 min-h-10 opacity-0 hover:opacity-100 transition-all">
-                <div className="flex-grow border-t border-foreground"></div>
-                <Button variant="secondary" onClick={() => createNewCell('code', idx)}>
-                  Code
-                </Button>
-                <Button variant="secondary" onClick={() => createNewCell('markdown', idx)}>
-                  Markdown
-                </Button>
-                <div className="flex-grow border-t border-foreground"></div>
+              <div className="relative h-5 flex items-center opacity-0 hover:opacity-100 transition-opacity">
+                <div className="w-[calc(100%-4px)] h-[1px] mx-auto bg-border"></div>
+                <div className="absolute h-10 mt-0.5 -translate-x-full">
+                  <div className="flex mr-4 border rounded-sm bg-background">
+                    <Button
+                      variant="secondary"
+                      className="border-none rounded-r-none"
+                      onClick={() => createNewCell('code', idx)}
+                    >
+                      {session.metadata.language === 'javascript' ? 'JS' : 'TS'}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="border-none rounded-l-none"
+                      onClick={() => createNewCell('markdown', idx)}
+                    >
+                      MD
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
             <Cell
@@ -197,16 +208,26 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         ))}
 
         {/** -- Add some padding at the bottom to make it more breathable + activate the new cell more easily */}
-        <div className="min-h-64 opacity-0 hover:opacity-100 transition-all">
-          <div className="flex items-center gap-2 min-h-10">
-            <div className="flex-grow border-t border-foreground"></div>
-            <Button variant="secondary" onClick={() => createNewCell('code', cells.length)}>
-              Code
-            </Button>
-            <Button variant="secondary" onClick={() => createNewCell('markdown', cells.length)}>
-              Markdown
-            </Button>
-            <div className="flex-grow border-t border-foreground"></div>
+        <div className="pt-2 min-h-64 opacity-0 hover:opacity-100 transition-opacity">
+          <div className="flex items-center px-0.5 gap-2">
+            <div className="flex-grow h-[1px] bg-border"></div>
+            <div className="flex border rounded-sm bg-background">
+              <Button
+                variant="secondary"
+                className="border-none rounded-r-none"
+                onClick={() => createNewCell('code', cells.length)}
+              >
+                {session.metadata.language === 'javascript' ? 'JavaScript' : 'TypeScript'}
+              </Button>
+              <Button
+                variant="secondary"
+                className="border-none rounded-l-none"
+                onClick={() => createNewCell('markdown', cells.length)}
+              >
+                Markdown
+              </Button>
+            </div>
+            <div className="flex-grow h-[1px] bg-border"></div>
           </div>
         </div>
       </div>
@@ -345,7 +366,7 @@ function MarkdownCell(props: {
       id={`cell-${props.cell.id}`}
       onDoubleClick={() => setStatus('edit')}
       className={cn(
-        'group/cell relative w-full pb-3 rounded-md border border-transparent hover:border-border transition-all',
+        'group/cell relative w-full rounded-md border border-transparent hover:border-border transition-all',
         status === 'edit' && 'ring-1 ring-ring border-ring hover:border-ring',
         error && 'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30',
       )}
@@ -411,7 +432,7 @@ function MarkdownCell(props: {
                 indentWithTab={false}
                 value={text}
                 basicSetup={{ lineNumbers: false, foldGutter: false }}
-                extensions={[markdown(), keyMap]}
+                extensions={[markdown(), keyMap, EditorView.lineWrapping]}
                 onChange={(source) => setText(source)}
               />
             </div>
@@ -530,7 +551,7 @@ function PackageJsonCell(props: {
           className={
             open
               ? cn(
-                  'border rounded-md group ring-1 ring-ring border-ring',
+                  'border rounded-md group ring-1 ring-ring gborder-ring',
                   cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
                   error && 'ring-sb-red-30 border-sb-red-30',
                 )

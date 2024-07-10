@@ -74,9 +74,9 @@ export default function GenerateSrcbookModal({
           )}
           {!hasOpenAiKey && (
             <div className="flex w-full items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm p-1">
-              <p className="px-3">API key required</p>
+              <p className="px-2">API key required</p>
               <button
-                className="border border-sb-yellow-70 rounded-sm px-2 py-1 hover:border-sb-yellow-80"
+                className="border border-sb-yellow-70 rounded-sm px-2 py-1 hover:border-sb-yellow-80 animate-all"
                 onClick={() => navigate('/settings')}
               >
                 Settings

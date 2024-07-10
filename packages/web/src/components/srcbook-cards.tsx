@@ -143,19 +143,30 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
   );
 }
 
-export function GenerateSrcbookButton(props: { onClick: () => void }) {
+function BigButton(props: { onClick: () => void; className?: string; children: React.ReactNode }) {
   return (
     <button
       onClick={props.onClick}
-      className="w-full sm:w-[216px] sm:max-w-[216px] h-[96px] space-y-1.5 bg-background border rounded-sm p-3 hover:border-ring transition-all"
+      className={cn(
+        'w-full sm:w-[216px] sm:max-w-[216px] h-[96px] space-y-1.5 bg-background border rounded-sm p-3 hover:border-ring transition-all',
+        props.className,
+      )}
     >
+      {props.children}
+    </button>
+  );
+}
+export function GenerateSrcbookButton(props: { onClick: () => void }) {
+  return (
+    <BigButton onClick={props.onClick}>
       <div className="flex flex-col h-full items-start justify-between">
         <Sparkles size={20} />
         <h5 className="font-medium leading-[18px]">Generate Srcbook</h5>
       </div>
-    </button>
+    </BigButton>
   );
 }
+
 export function CreateSrcbookButton(props: {
   defaultLanguage: CodeLanguageType;
   onSubmit: (language: CodeLanguageType) => void;
@@ -164,17 +175,12 @@ export function CreateSrcbookButton(props: {
 
   return (
     <div className="space-y-0.5">
-      <button
-        onClick={() => {
-          props.onSubmit(language);
-        }}
-        className="w-full sm:w-[216px] sm:max-w-[216px] h-[96px] space-y-1.5 bg-background border rounded-sm p-3 hover:border-ring transition-all"
-      >
+      <BigButton onClick={() => props.onSubmit(language)}>
         <div className="flex flex-col h-full items-start justify-between">
           <PlusIcon size={20} />
           <h5 className="font-medium leading-[18px]">Create Srcbook</h5>
         </div>
-      </button>
+      </BigButton>
 
       <div className="flex border rounded-sm bg-background w-fit">
         <Button
@@ -204,11 +210,11 @@ export function CreateSrcbookButton(props: {
   );
 }
 
-export function ImportSrcbookCTA(props: { onClick: () => void }) {
+export function ImportSrcbookButton(props: { onClick: () => void }) {
   return (
-    <button
-      className="w-full sm:w-[216px] sm:max-w-[216px] h-[96px] p-3 rounded-sm border border-dashed hover:border-solid hover:border-ring focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground active:translate-y-0.5 transition-all"
+    <BigButton
       onClick={props.onClick}
+      className="border-dashed hover:border-solid focus-within:border-foreground"
     >
       <div className="flex flex-col h-full items-start justify-between">
         <Upload size={20} />
@@ -219,6 +225,6 @@ export function ImportSrcbookCTA(props: { onClick: () => void }) {
           </p>
         </div>
       </div>
-    </button>
+    </BigButton>
   );
 }

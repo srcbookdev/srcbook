@@ -18,7 +18,7 @@ import {
   SrcbookCard,
   GenerateSrcbookButton,
   CreateSrcbookButton,
-  ImportSrcbookCTA,
+  ImportSrcbookButton,
 } from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 
@@ -73,12 +73,19 @@ export default function Home() {
     return navigate(`/srcbooks/${srcbook.id}`);
   }
 
+  // Some errors will be handled by the API handler and return with
+  // {error: true, result: {message: string}}}
+  // Some example errors that we expect are:
+  //  - the generated text from the LLM didn't not parse correctly into Srcbook format
+  //  - the API key is invalid
+  //  - rate limits or out-of-credits issues
   async function onGenerateSrcbook(query: string) {
-    // TODO error handling. This is DEFINITELY not 100%
     const { result, error } = await generateSrcbook({ query });
     if (error === true) {
       return result;
     }
+
+    // We know at this point that we have a valid Srcbook from the LLM
     const { result: srcbook } = await createSession({ path: result.dir });
     return navigate(`/srcbooks/${srcbook.id}`);
   }
@@ -119,7 +126,7 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:flex gap-6">
           <CreateSrcbookButton defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
           <GenerateSrcbookButton onClick={() => setShowGenSrcbookModal(true)} />
-          <ImportSrcbookCTA onClick={() => setShowImportSrcbookModal(true)} />
+          <ImportSrcbookButton onClick={() => setShowImportSrcbookModal(true)} />
         </div>
       </div>
 

@@ -6,8 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-type Status = 'idle' | 'loading';
-
 const EXAMPLES = [
   'Cover the basics of using Prisma, the popular TypeScript database ORM, with example code',
   'Create an AI agent that browses the web and answers questions using langchain',
@@ -26,7 +24,7 @@ export default function GenerateSrcbookModal({
   hasOpenAiKey: boolean;
 }) {
   const [query, setQuery] = useState('');
-  const [status, setStatus] = useState<Status>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading'>('idle');
   const [error, setError] = useState('');
 
   const navigate = useNavigate();

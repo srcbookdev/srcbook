@@ -49,6 +49,7 @@ export default function GenerateSrcbookModal({
           <Textarea
             placeholder="Write a prompt to create a Srcbook..."
             className="focus-visible:ring-2"
+            rows={4}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

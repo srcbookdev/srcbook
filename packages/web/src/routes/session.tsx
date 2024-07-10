@@ -31,7 +31,7 @@ import {
   MarkdownCellUpdateAttrsType,
   CellErrorPayloadType,
 } from '@srcbook/shared';
-import { loadSession, createCell, deleteCell } from '@/lib/server';
+import { loadSession, createCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import { SessionType } from '@/types';
 import SessionMenu from '@/components/session-menu';
@@ -102,12 +102,10 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     // Optimistically delete cell
     removeCell(cell);
 
-    const response = await deleteCell({ sessionId: session.id, cellId: cell.id });
-    if ('error' in response) {
-      // Undo optimistic cell deletion
-      setCells(cells);
-      console.error('Failed to delete cell', response);
-    }
+    channel.push('cell:delete', {
+      sessionId: session.id,
+      cellId: cell.id,
+    });
   }
 
   useEffect(() => {

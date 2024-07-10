@@ -6,6 +6,7 @@ import {
   updateSession,
   readPackageJsonContentsFromDisk,
   updateCell,
+  removeCell,
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
 import type { SessionType } from '../types.mjs';
@@ -22,6 +23,7 @@ import type {
   CellUpdatePayloadType,
   TsServerStartPayloadType,
   TsServerStopPayloadType,
+  CellDeletePayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -35,12 +37,14 @@ import {
   DepsValidateResponsePayloadSchema,
   TsServerStartPayloadSchema,
   TsServerStopPayloadSchema,
+  CellDeletePayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
 import WebSocketServer from './ws-client.mjs';
 import { pathToCodeFile } from '../srcbook/path.mjs';
 import { formatDiagnostic } from '../tsserver/utils.mjs';
+import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
 
 const wss = new WebSocketServer();
 
@@ -311,6 +315,41 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
   }
 }
 
+async function cellDelete(payload: CellDeletePayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  const cell = findCell(session, payload.cellId);
+
+  if (!cell) {
+    throw new Error(
+      `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+    );
+  }
+
+  if (cell.type !== 'markdown' && cell.type !== 'code') {
+    throw new Error(`Cannot delete cell of type '${cell.type}'`);
+  }
+
+  const updatedCells = removeCell(session, cell.id);
+
+  const updatedSession = await updateSession(session, { cells: updatedCells });
+
+  if (cell.type === 'code') {
+    removeCodeCellFromDisk(updatedSession.dir, cell.filename);
+
+    if (updatedSession.metadata.language === 'typescript' && tsservers.has(updatedSession.id)) {
+      const file = pathToCodeFile(updatedSession.dir, cell.filename);
+      const tsserver = tsservers.get(updatedSession.id);
+      tsserver.close({ file });
+      sendAllTypeScriptDiagnostics(tsserver, updatedSession);
+    }
+  }
+}
+
 /**
  * Send semantic diagnostics for a TypeScript cell to the client.
  */
@@ -381,6 +420,7 @@ wss
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
+  .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)

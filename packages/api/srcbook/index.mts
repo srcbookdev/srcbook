@@ -198,6 +198,10 @@ function buildTsconfigJson() {
   };
 }
 
-export async function removeSrcbook(srcbookDir: string) {
-  await fs.rm(srcbookDir, { recursive: true });
+export function removeSrcbook(srcbookDir: string) {
+  fs.rm(srcbookDir, { recursive: true });
+}
+
+export function removeCodeCellFromDisk(srcbookDir: string, filename: string) {
+  return fs.rm(pathToCodeFile(srcbookDir, filename));
 }

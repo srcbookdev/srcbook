@@ -16,7 +16,7 @@ With some **bold** text and some _italic_ text.
 
 ###### foo.mjs
 
-[foo.mjs](./foo.mjs)
+[foo.mjs](./src/foo.mjs)
 
 ```json
 { "simple": "codeblock" }

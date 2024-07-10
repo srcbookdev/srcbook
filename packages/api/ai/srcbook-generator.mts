@@ -6,6 +6,7 @@ import { PROMPTS_DIR } from '../constants.mjs';
 import { getConfig } from '../config.mjs';
 
 const SYSTEM_PROMPT = readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
+const MODEL = 'gpt-4o';
 
 type NoToolsGenerateTextResult = GenerateTextResult<{}>;
 /*
@@ -24,13 +25,12 @@ export async function generateSrcbook(query: string): Promise<NoToolsGenerateTex
   }
 
   const openai = createOpenAI({
-    compatibility: 'strict', // strict mode, enable when using the OpenAI API
-    // TODO get this from settings. Fallback to free model if unavailable
+    compatibility: 'strict', // strict mode, enabled when using the OpenAI API
     apiKey: config.openAiApiKey,
   });
 
   const result = await generateText({
-    model: openai('gpt-4o'),
+    model: openai(MODEL),
     system: SYSTEM_PROMPT,
     prompt: query,
   });

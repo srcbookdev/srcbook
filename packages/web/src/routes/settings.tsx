@@ -1,4 +1,5 @@
-import { disk, getConfig, updateConfig } from '@/lib//server';
+import { useState } from 'react';
+import { disk, getConfig, updateConfig } from '@/lib/server';
 import { type CodeLanguageType } from '@srcbook/shared';
 import type { SettingsType, FsObjectResultType } from '@/types';
 import { useLoaderData } from 'react-router-dom';
@@ -10,13 +11,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import useTheme from '@/components/use-theme';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 
 async function loader() {
   const [{ result: config }, { result: diskResult }] = await Promise.all([getConfig(), disk({})]);
 
-  return { defaultLanguage: config.defaultLanguage, baseDir: config.baseDir, ...diskResult };
+  return {
+    defaultLanguage: config.defaultLanguage,
+    baseDir: config.baseDir,
+    openaiKey: config.openaiKey,
+    ...diskResult,
+  };
 }
 
 async function action({ request }: { request: Request }) {
@@ -27,11 +35,21 @@ async function action({ request }: { request: Request }) {
 }
 
 function Settings() {
-  const { entries, baseDir, defaultLanguage } = useLoaderData() as SettingsType &
-    FsObjectResultType;
+  const {
+    openaiKey: configOpenaiKey,
+    entries,
+    baseDir,
+    defaultLanguage,
+  } = useLoaderData() as SettingsType & FsObjectResultType;
+
+  const [openaiKey, setOpenaiKey] = useState(configOpenaiKey);
 
   const updateDefaultLanguage = async (value: CodeLanguageType) => {
     await updateConfig({ defaultLanguage: value });
+  };
+
+  const updateOpenaiKey = async () => {
+    await updateConfig({ openaiKey });
   };
 
   const { theme, toggleTheme } = useTheme();
@@ -70,6 +88,35 @@ function Settings() {
               <SelectItem value="javascript">javascript</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div>
+          <h2 className="text-xl pb-2">OpenAI API key</h2>
+          <div className="flex flex-col gap-1">
+            <label className="opacity-70">
+              Enter your openAI API key to use AI features of Srcbook. Get one{' '}
+              <a
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                className="underline font-medium"
+              >
+                here
+              </a>
+              .
+            </label>
+            <div className="flex gap-2">
+              <Input
+                name="openaiKey"
+                placeholder="API key"
+                type="password"
+                value={openaiKey}
+                onChange={(e) => setOpenaiKey(e.target.value)}
+              />
+              <Button className="px-5" onClick={updateOpenaiKey}>
+                Save
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

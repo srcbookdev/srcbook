@@ -16,6 +16,7 @@ import {
   listSessions,
   insertCellAt,
 } from '../session.mjs';
+import { generateSrcbook } from '../ai/srcbook-generator.mjs';
 import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import {
@@ -105,6 +106,22 @@ router.post('/import', cors(), async (req, res) => {
       const srcbookDir = await importSrcbookFromSrcmdText(text);
       return res.json({ error: false, result: { dir: srcbookDir } });
     }
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+// Generate a srcbook using AI from a simple string query
+router.options('/generate', cors());
+router.post('/generate', cors(), async (req, res) => {
+  const { query } = req.body;
+
+  try {
+    const result = await generateSrcbook(query);
+    const srcbookDir = await importSrcbookFromSrcmdText(result.text);
+    return res.json({ error: false, result: { dir: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

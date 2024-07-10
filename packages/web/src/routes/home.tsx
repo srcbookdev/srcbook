@@ -6,16 +6,19 @@ import {
   loadSessions,
   createSrcbook,
   importSrcbook,
+  generateSrcbook,
   loadSrcbookExamples,
 } from '@/lib/server';
 import type { ExampleSrcbookType, SessionType } from '@/types';
 import { useState } from 'react';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
+import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
 import {
   MainCTACard,
   SrcbookCard,
-  CreateSrcbookForm,
-  ImportSrcbookCTA,
+  GenerateSrcbookButton,
+  CreateSrcbookButton,
+  ImportSrcbookButton,
 } from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 
@@ -26,7 +29,13 @@ export async function loader() {
     loadSrcbookExamples(),
   ]);
 
-  return { defaultLanguage: config.defaultLanguage, baseDir: config.baseDir, srcbooks, examples };
+  return {
+    defaultLanguage: config.defaultLanguage,
+    baseDir: config.baseDir,
+    srcbooks,
+    examples,
+    hasOpenAiKey: !!config.openaiKey,
+  };
 }
 
 type HomeLoaderDataType = {
@@ -34,13 +43,16 @@ type HomeLoaderDataType = {
   srcbooks: SessionType[];
   examples: ExampleSrcbookType[];
   defaultLanguage: CodeLanguageType;
+  hasOpenAiKey: boolean;
 };
 
 export default function Home() {
-  const { defaultLanguage, baseDir, srcbooks, examples } = useLoaderData() as HomeLoaderDataType;
+  const { defaultLanguage, baseDir, srcbooks, examples, hasOpenAiKey } =
+    useLoaderData() as HomeLoaderDataType;
   const navigate = useNavigate();
 
   const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
+  const [showGenSrcbookModal, setShowGenSrcbookModal] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [srcbookToDelete, setSrcbookToDelete] = useState<SessionType | undefined>(undefined);
 
@@ -49,14 +61,31 @@ export default function Home() {
     setShowDelete(true);
   }
 
-  async function onCreateSrcbook(title: string, language: CodeLanguageType) {
-    const { result } = await createSrcbook({ path: baseDir, name: title, language: language });
+  async function onCreateSrcbook(language: CodeLanguageType) {
+    const { result } = await createSrcbook({ path: baseDir, name: 'Untitled', language: language });
     const { result: srcbook } = await createSession({ path: result.path });
     return navigate(`/srcbooks/${srcbook.id}`);
   }
 
   async function openExampleSrcbook(example: ExampleSrcbookType) {
     const { result } = await importSrcbook({ path: example.path });
+    const { result: srcbook } = await createSession({ path: result.dir });
+    return navigate(`/srcbooks/${srcbook.id}`);
+  }
+
+  // Some errors will be handled by the API handler and return with
+  // {error: true, result: {message: string}}}
+  // Some example errors that we expect are:
+  //  - the generated text from the LLM didn't not parse correctly into Srcbook format
+  //  - the API key is invalid
+  //  - rate limits or out-of-credits issues
+  async function onGenerateSrcbook(query: string) {
+    const { result, error } = await generateSrcbook({ query });
+    if (error === true) {
+      return result;
+    }
+
+    // We know at this point that we have a valid Srcbook from the LLM
     const { result: srcbook } = await createSession({ path: result.dir });
     return navigate(`/srcbooks/${srcbook.id}`);
   }
@@ -68,11 +97,17 @@ export default function Home() {
         onOpenChange={setShowDelete}
         session={srcbookToDelete}
       />
+      <GenerateSrcbookModal
+        open={showGenSrcbookModal}
+        setOpen={setShowGenSrcbookModal}
+        onGenerate={onGenerateSrcbook}
+        hasOpenaiKey={hasOpenAiKey}
+      />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
       {examples.length > 0 && (
         <div className="mb-11">
-          <h4 className="h4 mx-auto mb-10">Get started</h4>
+          <h4 className="h4 mx-auto mb-6">Library</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {examples.map((example) => (
               <MainCTACard
@@ -89,8 +124,9 @@ export default function Home() {
       <div className="mb-16">
         <h4 className="h4 mx-auto my-6">New Srcbook</h4>
         <div className="grid grid-cols-2 sm:flex gap-6">
-          <CreateSrcbookForm defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
-          <ImportSrcbookCTA onClick={() => setShowImportSrcbookModal(true)} />
+          <CreateSrcbookButton defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
+          <GenerateSrcbookButton onClick={() => setShowGenSrcbookModal(true)} />
+          <ImportSrcbookButton onClick={() => setShowImportSrcbookModal(true)} />
         </div>
       </div>
 

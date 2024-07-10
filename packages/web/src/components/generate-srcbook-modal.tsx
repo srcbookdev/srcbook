@@ -16,12 +16,12 @@ export default function GenerateSrcbookModal({
   open,
   setOpen,
   onGenerate,
-  hasOpenAiKey,
+  hasOpenaiKey,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   onGenerate: (query: string) => Promise<void | string>;
-  hasOpenAiKey: boolean;
+  hasOpenaiKey: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
@@ -70,7 +70,7 @@ export default function GenerateSrcbookModal({
               Something went wrong, please try again.
             </div>
           )}
-          {!hasOpenAiKey && (
+          {!hasOpenaiKey && (
             <div className="flex w-full items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm p-1">
               <p className="px-2">API key required</p>
               <button

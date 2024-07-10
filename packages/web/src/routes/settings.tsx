@@ -22,7 +22,7 @@ async function loader() {
   return {
     defaultLanguage: config.defaultLanguage,
     baseDir: config.baseDir,
-    openAiKey: config.openAiApiKey,
+    openaiKey: config.openaiKey,
     ...diskResult,
   };
 }
@@ -36,20 +36,20 @@ async function action({ request }: { request: Request }) {
 
 function Settings() {
   const {
-    openAiKey: configOpenaiKey,
+    openaiKey: configOpenaiKey,
     entries,
     baseDir,
     defaultLanguage,
   } = useLoaderData() as SettingsType & FsObjectResultType;
 
-  const [openAiKey, setOpenAiKey] = useState(configOpenaiKey);
+  const [openaiKey, setOpenaiKey] = useState(configOpenaiKey);
 
   const updateDefaultLanguage = async (value: CodeLanguageType) => {
     await updateConfig({ defaultLanguage: value });
   };
 
-  const updateOpenAiApiKey = async () => {
-    await updateConfig({ openAiApiKey: openAiKey });
+  const updateOpenaiKey = async () => {
+    await updateConfig({ openaiKey });
   };
 
   const { theme, toggleTheme } = useTheme();
@@ -106,13 +106,13 @@ function Settings() {
             </label>
             <div className="flex gap-2">
               <Input
-                name="openAiApiKey"
+                name="openaiKey"
                 placeholder="API key"
                 type="password"
-                value={openAiKey}
-                onChange={(e) => setOpenAiKey(e.target.value)}
+                value={openaiKey}
+                onChange={(e) => setOpenaiKey(e.target.value)}
               />
-              <Button className="px-5" onClick={updateOpenAiApiKey}>
+              <Button className="px-5" onClick={updateOpenaiKey}>
                 Save
               </Button>
             </div>

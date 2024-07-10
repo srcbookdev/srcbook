@@ -264,7 +264,7 @@ export async function deleteCell(request: DeleteCellRequestType): Promise<Delete
 interface EditConfigRequestType {
   baseDir?: string;
   defaultLanguage?: 'typescript' | 'javascript';
-  openAiApiKey?: string;
+  openaiKey?: string;
 }
 
 export async function getConfig() {

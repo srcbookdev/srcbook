@@ -34,7 +34,7 @@ export async function loader() {
     baseDir: config.baseDir,
     srcbooks,
     examples,
-    hasOpenAiKey: !!config.openAiApiKey,
+    hasOpenAiKey: !!config.openaiKey,
   };
 }
 
@@ -101,7 +101,7 @@ export default function Home() {
         open={showGenSrcbookModal}
         setOpen={setShowGenSrcbookModal}
         onGenerate={onGenerateSrcbook}
-        hasOpenAiKey={hasOpenAiKey}
+        hasOpenaiKey={hasOpenAiKey}
       />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 

@@ -20,13 +20,13 @@ type NoToolsGenerateTextResult = GenerateTextResult<{}>;
  */
 export async function generateSrcbook(query: string): Promise<NoToolsGenerateTextResult> {
   const config = await getConfig();
-  if (!config.openAiApiKey) {
+  if (!config.openaiKey) {
     throw new Error('OpenAI API key is not set');
   }
 
   const openai = createOpenAI({
     compatibility: 'strict', // strict mode, enabled when using the OpenAI API
-    apiKey: config.openAiApiKey,
+    apiKey: config.openaiKey,
   });
 
   const result = await generateText({

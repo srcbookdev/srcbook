@@ -75,6 +75,7 @@ interface CellsContextType {
   getOutput: (id: string, type?: 'stdout' | 'stderr' | 'tsc') => Array<OutputType>;
   setOutput: (id: string, output: OutputType | OutputType[]) => void;
   clearOutput: (id: string) => void;
+  clearProblems: (id: string) => void;
 }
 
 const CellsContext = createContext<CellsContextType | undefined>(undefined);
@@ -171,7 +172,25 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
 
   const clearOutput = useCallback(
     (id: string) => {
-      stableSetOutput({ ...outputRef.current, [id]: [] });
+      const output = outputRef.current[id] || [];
+
+      // For now, we do NOT remove typescript 'problems' if user clears output.
+      // TODO: TypeScript errors should be handled differently than output streams.
+      const newOutput = output.filter((o) => o.type === 'tsc');
+
+      stableSetOutput({ ...outputRef.current, [id]: newOutput });
+    },
+    [stableSetOutput],
+  );
+
+  const clearProblems = useCallback(
+    (id: string) => {
+      const output = outputRef.current[id] || [];
+
+      // TODO: TypeScript errors should be handled differently than output streams.
+      const newOutput = output.filter((o) => o.type !== 'tsc');
+
+      stableSetOutput({ ...outputRef.current, [id]: newOutput });
     },
     [stableSetOutput],
   );
@@ -190,6 +209,7 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
         getOutput,
         setOutput,
         clearOutput,
+        clearProblems,
       }}
     >
       {children}

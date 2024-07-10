@@ -227,39 +227,6 @@ export async function createCell(request: CreateCellRequestType): Promise<Create
   return response.json();
 }
 
-interface DeleteCellRequestType {
-  sessionId: string;
-  cellId: string;
-}
-
-type DeleteResponseType = {
-  error: boolean;
-  message: string;
-};
-
-type SuccessDeleteResponseType = {
-  result: CellType[];
-};
-
-type DeleteCellResponseType = DeleteResponseType | SuccessDeleteResponseType;
-
-export async function deleteCell(request: DeleteCellRequestType): Promise<DeleteCellResponseType> {
-  const response = await fetch(
-    API_BASE_URL + '/sessions/' + request.sessionId + '/cells/' + request.cellId,
-    {
-      method: 'DELETE',
-      headers: { 'content-type': 'application/json' },
-    },
-  );
-
-  if (!response.ok) {
-    console.error(response);
-    throw new Error('Request failed');
-  }
-
-  return response.json();
-}
-
 // Config settings
 interface EditConfigRequestType {
   baseDir?: string;

@@ -17,6 +17,11 @@ export const CellUpdatePayloadSchema = z.object({
   updates: CellUpdateAttrsSchema,
 });
 
+export const CellDeletePayloadSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+});
+
 export const CellErrorPayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
@@ -51,6 +56,14 @@ export const DepsValidatePayloadSchema = z.object({
 
 export const DepsValidateResponsePayloadSchema = z.object({
   packages: z.array(z.string()).optional(),
+});
+
+export const TsServerStartPayloadSchema = z.object({
+  sessionId: z.string(),
+});
+
+export const TsServerStopPayloadSchema = z.object({
+  sessionId: z.string(),
 });
 
 // A _message_ over websockets

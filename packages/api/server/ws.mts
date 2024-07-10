@@ -6,10 +6,11 @@ import {
   updateSession,
   readPackageJsonContentsFromDisk,
   updateCell,
+  removeCell,
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
 import type { SessionType } from '../types.mjs';
-import { node, npmInstall, tsc, tsx } from '../exec.mjs';
+import { node, npmInstall, tsx } from '../exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from '../deps.mjs';
 import processes from '../processes.mjs';
 import type {
@@ -20,6 +21,9 @@ import type {
   DepsValidatePayloadType,
   CellStopPayloadType,
   CellUpdatePayloadType,
+  TsServerStartPayloadType,
+  TsServerStopPayloadType,
+  CellDeletePayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -31,9 +35,16 @@ import {
   CellUpdatedPayloadSchema,
   CellOutputPayloadSchema,
   DepsValidateResponsePayloadSchema,
+  TsServerStartPayloadSchema,
+  TsServerStopPayloadSchema,
+  CellDeletePayloadSchema,
 } from '@srcbook/shared';
+import tsservers from '../tsservers.mjs';
+import { TsServer } from '../tsserver/tsserver.mjs';
 import WebSocketServer from './ws-client.mjs';
 import { pathToCodeFile } from '../srcbook/path.mjs';
+import { formatDiagnostic } from '../tsserver/utils.mjs';
+import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
 
 const wss = new WebSocketServer();
 
@@ -100,11 +111,8 @@ async function cellExec(payload: CellExecPayloadType) {
       jsExec({ session, cell, secrets });
       break;
     case 'typescript':
-      tscExec({ session, cell, secrets });
       tsxExec({ session, cell, secrets });
       break;
-    default:
-      console.error(`Unsupported language '${cell.language}' for cell ${cell.id}`);
   }
 }
 
@@ -180,35 +188,6 @@ async function tsxExec({ session, cell, secrets }: ExecRequestType) {
       },
     }),
   );
-}
-
-async function tscExec({ session, cell, secrets }: ExecRequestType) {
-  // Do not `addRunningProcess` here because:
-  //
-  //     1. There is no "Stop running cell" functionality for type checking, only for the running code (processes are tracked so they can be stopped)
-  //     2. `addRunningProcess` will use the same key for tscExec and tsxExec. If the type checking process finishes before a code process,
-  //        it will unregister the process in the processes map, which then causes "stop running cell" to break for that cell.
-  //
-  tsc({
-    cwd: session.dir,
-    env: secrets,
-    entry: pathToCodeFile(session.dir, cell.filename),
-    stdout(data) {
-      wss.broadcast(`session:${session.id}`, 'cell:output', {
-        cellId: cell.id,
-        output: { type: 'tsc', data: data.toString('utf8') },
-      });
-    },
-    stderr(data) {
-      wss.broadcast(`session:${session.id}`, 'cell:output', {
-        cellId: cell.id,
-        output: { type: 'tsc', data: data.toString('utf8') },
-      });
-    },
-    onExit() {
-      // TSC is only used to send data over stdout
-    },
-  });
 }
 
 async function depsInstall(payload: DepsInstallPayloadType) {
@@ -307,7 +286,133 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
     wss.broadcast(`session:${session.id}`, 'cell:updated', {
       cell: findCell(session, payload.cellId),
     });
+
+    return;
   }
+
+  if (
+    session.metadata.language === 'typescript' &&
+    result.cell.type === 'code' &&
+    tsservers.has(session.id)
+  ) {
+    const cell = result.cell;
+    const tsserver = tsservers.get(session.id);
+
+    const file = pathToCodeFile(session.dir, cell.filename);
+
+    // To update a file in tsserver, close and reopen it. I assume performance of
+    // this implementation is worse than calculating diffs and using `change` command
+    // (although maybe not since this is not actually reading or writing to disk).
+    // However, that requires calculating diffs which is more complex and may also
+    // have performance implications, so sticking with the simple approach for now.
+    //
+    // TODO: In either case, we should be aggressively debouncing these updates.
+    //
+    tsserver.close({ file });
+    tsserver.open({ file, fileContent: cell.source });
+
+    sendTypeScriptDiagnostics(tsserver, session, cell);
+  }
+}
+
+async function cellDelete(payload: CellDeletePayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  const cell = findCell(session, payload.cellId);
+
+  if (!cell) {
+    throw new Error(
+      `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+    );
+  }
+
+  if (cell.type !== 'markdown' && cell.type !== 'code') {
+    throw new Error(`Cannot delete cell of type '${cell.type}'`);
+  }
+
+  const updatedCells = removeCell(session, cell.id);
+
+  const updatedSession = await updateSession(session, { cells: updatedCells });
+
+  if (cell.type === 'code') {
+    removeCodeCellFromDisk(updatedSession.dir, cell.filename);
+
+    if (updatedSession.metadata.language === 'typescript' && tsservers.has(updatedSession.id)) {
+      const file = pathToCodeFile(updatedSession.dir, cell.filename);
+      const tsserver = tsservers.get(updatedSession.id);
+      tsserver.close({ file });
+      sendAllTypeScriptDiagnostics(tsserver, updatedSession);
+    }
+  }
+}
+
+/**
+ * Send semantic diagnostics for a TypeScript cell to the client.
+ */
+async function sendTypeScriptDiagnostics(
+  tsserver: TsServer,
+  session: SessionType,
+  cell: CodeCellType,
+) {
+  const response = await tsserver.semanticDiagnosticsSync({
+    file: pathToCodeFile(session.dir, cell.filename),
+  });
+
+  const diagnostics = response.body || [];
+
+  for (const diagnostic of diagnostics) {
+    wss.broadcast(`session:${session.id}`, 'cell:output', {
+      cellId: cell.id,
+      output: {
+        type: 'tsc',
+        data: formatDiagnostic(diagnostic),
+      },
+    });
+  }
+}
+
+function sendAllTypeScriptDiagnostics(tsserver: TsServer, session: SessionType) {
+  for (const cell of session.cells) {
+    if (cell.type === 'code') {
+      sendTypeScriptDiagnostics(tsserver, session, cell);
+    }
+  }
+}
+
+async function tsserverStart(payload: TsServerStartPayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  if (session.metadata.language !== 'typescript') {
+    throw new Error(`tsserver can only be used with TypeScript Srcbooks.`);
+  }
+
+  if (!tsservers.has(session.id)) {
+    const tsserver = tsservers.create(session.id, { cwd: session.dir });
+
+    // Open all code cells in tsserver
+    for (const cell of session.cells) {
+      if (cell.type === 'code') {
+        tsserver.open({
+          file: pathToCodeFile(session.dir, cell.filename),
+          fileContent: cell.source,
+        });
+      }
+    }
+  }
+
+  sendAllTypeScriptDiagnostics(tsservers.get(session.id), session);
+}
+
+async function tsserverStop(payload: TsServerStopPayloadType) {
+  tsservers.shutdown(payload.sessionId);
 }
 
 wss
@@ -315,8 +420,11 @@ wss
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
+  .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
+  .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
+  .incoming('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)

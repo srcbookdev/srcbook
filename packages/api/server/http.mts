@@ -9,8 +9,6 @@ import {
   findSession,
   deleteSessionByDirname,
   exportSrcmdFile,
-  findCell,
-  removeCell,
   updateSession,
   sessionToResponse,
   listSessions,
@@ -218,27 +216,6 @@ router.post('/sessions/:id/cells', cors(), async (req, res) => {
   const updatedCells = insertCellAt(session, cell, index);
   updateSession(session, { cells: updatedCells });
   return res.json({ error: false, result: cell });
-});
-
-router.options('/sessions/:id/cells/:cellId', cors());
-
-router.delete('/sessions/:id/cells/:cellId', cors(), async (req, res) => {
-  const { id, cellId } = req.params;
-  const session = await findSession(id);
-  const cell = findCell(session, cellId);
-
-  if (!cell) {
-    return res.status(404).json({ error: true, message: 'Cell not found' });
-  }
-
-  if (cell.type === 'title') {
-    res.status(400).json({ error: true, message: 'Cannot delete title cell' });
-  }
-
-  const updatedCells = removeCell(session, cellId);
-  updateSession(session, { cells: updatedCells });
-
-  return res.json({ result: updatedCells });
 });
 
 router.options('/settings', cors());

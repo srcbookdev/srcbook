@@ -31,7 +31,7 @@ import {
   MarkdownCellUpdateAttrsType,
   CellErrorPayloadType,
 } from '@srcbook/shared';
-import { loadSession, createCell, deleteCell } from '@/lib/server';
+import { loadSession, createCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
 import { SessionType } from '@/types';
 import SessionMenu from '@/components/session-menu';
@@ -68,7 +68,17 @@ function SessionPage() {
     // TODO: Push once we know subscription succeeded
     channel.push('deps:validate', { sessionId: session.id });
 
-    return () => channel.unsubscribe();
+    if (session.metadata.language === 'typescript') {
+      channel.push('tsserver:start', { sessionId: session.id });
+    }
+
+    return () => {
+      channel.unsubscribe();
+
+      if (session.metadata.language === 'typescript') {
+        channel.push('tsserver:stop', { sessionId: session.id });
+      }
+    };
   });
 
   return (
@@ -92,12 +102,10 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     // Optimistically delete cell
     removeCell(cell);
 
-    const response = await deleteCell({ sessionId: session.id, cellId: cell.id });
-    if ('error' in response) {
-      // Undo optimistic cell deletion
-      setCells(cells);
-      console.error('Failed to delete cell', response);
-    }
+    channel.push('cell:delete', {
+      sessionId: session.id,
+      cellId: cell.id,
+    });
   }
 
   useEffect(() => {
@@ -630,9 +638,10 @@ function CodeCell(props: {
   const [showStdio, setShowStdio] = useState(false);
 
   const { codeTheme } = useTheme();
-  const { updateCell, clearOutput } = useCells();
+  const { updateCell, clearOutput, clearProblems } = useCells();
 
   function onChangeSource(source: string) {
+    clearProblems(cell.id);
     onUpdateCell(cell, { source });
   }
 

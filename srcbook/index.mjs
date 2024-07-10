@@ -19,7 +19,7 @@ import http from 'node:http';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
-import { wss, app } from './lib/index.mjs';
+import { wss, app, posthog } from './lib/index.mjs';
 import chalk from 'chalk';
 
 function clearScreen() {
@@ -56,6 +56,15 @@ app.get('*', (_req, res) => res.sendFile(INDEX_HTML));
 console.log(chalk.green('Initialization complete.'));
 
 const port = process.env.PORT || 2150;
+
+posthog.capture({ event: 'user started Srcbook application' });
+
 server.listen(port, () => {
   console.log(`Running at http://localhost:${port}`);
+});
+
+process.on('SIGINT', async function () {
+  await posthog.shutdown();
+  server.close();
+  process.exit();
 });

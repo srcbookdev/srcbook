@@ -1,14 +1,15 @@
 import { PostHog } from 'posthog-node';
 import { getConfig } from './config.mjs';
+import { IS_PRODUCTION } from './constants.mjs';
 
 type QueuedEvent = {
-  distinctId: string;
   event: string;
   properties?: Record<string, any>;
 };
 
 class PostHogClient {
   private static instance: PostHogClient | null = null;
+  private distinctId: string | null = null;
   private client: PostHog | null = null;
   private isEnabled: boolean = false;
   private isInitialized: boolean = false;
@@ -29,6 +30,7 @@ class PostHogClient {
   private async initialize(): Promise<void> {
     const config = await getConfig();
     this.isEnabled = config.enabledAnalytics;
+    this.distinctId = config.distinctId;
 
     if (this.isEnabled) {
       this.client = new PostHog(
@@ -51,15 +53,15 @@ class PostHogClient {
     while (this.eventQueue.length > 0) {
       const event = this.eventQueue.shift();
       if (event) {
-        this.client.capture(event);
+        this.client.capture({ ...event, distinctId: this.distinctId as string });
       }
     }
   }
 
   public capture(event: QueuedEvent): void {
-    if (this.isInitialized) {
+    if (this.isInitialized && IS_PRODUCTION) {
       if (this.isEnabled && this.client) {
-        this.client.capture(event);
+        this.client.capture({ ...event, distinctId: this.distinctId as string });
       }
     } else {
       this.eventQueue.push(event);

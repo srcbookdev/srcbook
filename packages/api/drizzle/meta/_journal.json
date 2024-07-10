@@ -26,8 +26,8 @@
     {
       "idx": 3,
       "version": "6",
-      "when": 1720651509632,
-      "tag": "0003_enable_analytics",
+      "when": 1720654487367,
+      "tag": "0003_posthog_analytics",
       "breakpoints": true
     }
   ]

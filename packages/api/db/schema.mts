@@ -1,4 +1,5 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { randomid } from '@srcbook/shared';
 
 export const configs = sqliteTable('config', {
   // Directory where .srcmd files will be stored and searched by default.
@@ -8,6 +9,8 @@ export const configs = sqliteTable('config', {
   // Default on for behavioral analytics.
   // Allows us to improve Srcbook, we don't collect any PII.
   enabledAnalytics: integer('enabled_analytics', { mode: 'boolean' }).notNull().default(true),
+  // Stable ID for posthog
+  distinctId: text('distinct_id').notNull().default(randomid()),
 });
 
 export type Config = typeof configs.$inferSelect;

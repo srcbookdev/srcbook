@@ -1,1 +1,2 @@
 pnpm*.yaml
+packages/api/drizzle/*

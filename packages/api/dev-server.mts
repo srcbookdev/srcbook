@@ -19,7 +19,6 @@ server.listen(port, () => {
 });
 
 process.on('SIGINT', async function () {
-  console.log('Shutting down gracefully...');
   await posthog.shutdown();
   server.close();
   process.exit();

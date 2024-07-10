@@ -1,4 +1,3 @@
-import Path from 'node:path';
 import { ChildProcess } from 'node:child_process';
 import {
   findSession,
@@ -295,7 +294,7 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
     const cell = result.cell;
     const tsserver = tsservers.get(session.id);
 
-    const file = Path.join(session.dir, cell.filename);
+    const file = pathToCodeFile(session.dir, cell.filename);
 
     // To update a file in tsserver, close and reopen it. I assume performance of
     // this implementation is worse than calculating diffs and using `change` command
@@ -321,7 +320,7 @@ async function sendTypeScriptDiagnostics(
   cell: CodeCellType,
 ) {
   const response = await tsserver.semanticDiagnosticsSync({
-    file: Path.join(session.dir, cell.filename),
+    file: pathToCodeFile(session.dir, cell.filename),
   });
 
   const diagnostics = response.body || [];
@@ -363,7 +362,7 @@ async function tsserverStart(payload: TsServerStartPayloadType) {
     for (const cell of session.cells) {
       if (cell.type === 'code') {
         tsserver.open({
-          file: Path.join(session.dir, cell.filename),
+          file: pathToCodeFile(session.dir, cell.filename),
           fileContent: cell.source,
         });
       }

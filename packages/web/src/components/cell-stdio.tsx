@@ -26,7 +26,7 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div
           className={cn(
-            'px-3 flex items-center justify-between bg-muted text-tertiary-foreground rounded-md',
+            'px-3 flex items-center justify-between bg-muted text-tertiary-foreground rounded-b-mid',
             show && 'border-b rounded-none',
           )}
         >

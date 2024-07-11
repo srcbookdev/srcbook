@@ -329,6 +329,7 @@
 
 .cm-editor .cm-gutters .cm-gutterElement {
   @apply px-1.5;
+  padding-top: 1px;
   font-size: 12px;
 }
 

@@ -248,7 +248,10 @@
 .sb-prose h4 > code,
 .sb-prose h5 > code {
   @apply font-mono;
-  font-size: inherit;
+  /* No way to avoid !important given specificity priority and the fact that we don't generate the HTML */
+  font-size: 80% !important;
+  @apply px-1.5 !important;
+  @apply font-normal;
 }
 
 .sb-prose h1 {

@@ -1,4 +1,5 @@
 import Path from 'node:path';
+import { posthog } from '../posthog-client.mjs';
 import fs from 'node:fs/promises';
 import { SRCBOOKS_DIR } from '../constants.mjs';
 import express, { type Application } from 'express';
@@ -82,7 +83,8 @@ router.options('/srcbooks/:id', cors());
 router.delete('/srcbooks/:id', cors(), async (req, res) => {
   const { id } = req.params;
   const srcbookDir = pathToSrcbook(id);
-  await removeSrcbook(srcbookDir);
+  removeSrcbook(srcbookDir);
+  posthog.capture({ event: 'user deleted srcbook' });
   await deleteSessionByDirname(srcbookDir);
   return res.json({ error: false, deleted: true });
 });
@@ -117,6 +119,7 @@ router.post('/generate', cors(), async (req, res) => {
   const { query } = req.body;
 
   try {
+    posthog.capture({ event: 'user generated srcbook with AI', properties: { query } });
     const result = await generateSrcbook(query);
     const srcbookDir = await importSrcbookFromSrcmdText(result.text);
     return res.json({ error: false, result: { dir: srcbookDir } });
@@ -132,6 +135,7 @@ router.options('/sessions', cors());
 router.post('/sessions', cors(), async (req, res) => {
   const { path } = req.body;
 
+  posthog.capture({ event: 'user opened srcbook' });
   const dir = await readdir(path);
 
   if (!dir.exists) {
@@ -185,6 +189,8 @@ router.post('/sessions/:id/export', cors(), async (req, res) => {
 
   const path = Path.join(directory, filename);
 
+  posthog.capture({ event: 'user exported srcbook' });
+
   try {
     await exportSrcmdFile(session, path);
     return res.json({ error: false, result: filename });
@@ -228,6 +234,10 @@ router.get('/settings', cors(), async (_req, res) => {
 router.post('/settings', cors(), async (req, res) => {
   try {
     const updated = await updateConfig(req.body);
+    posthog.capture({
+      event: 'user updated settings',
+      properties: { setting_changed: Object.keys(req.body) },
+    });
     return res.json({ result: updated });
   } catch (e) {
     const error = e as unknown as Error;
@@ -246,6 +256,7 @@ router.get('/secrets', cors(), async (_req, res) => {
 // Create a new secret
 router.post('/secrets', cors(), async (req, res) => {
   const { name, value } = req.body;
+  posthog.capture({ event: 'user created secret' });
   const updated = await addSecret(name, value);
   return res.json({ result: updated });
 });

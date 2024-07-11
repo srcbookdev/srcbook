@@ -1,3 +1,7 @@
 #!/usr/bin/env node
 
-import '../index.mjs';
+process.env.NODE_ENV = 'production';
+
+(async () => {
+  await import('../index.mjs');
+})();

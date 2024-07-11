@@ -9,7 +9,7 @@
     "dev": "vite-node dev-server.mts",
     "test": "vitest",
     "prebuild": "rm -rf ./dist",
-    "build": "tsc && cp -R ./drizzle ./dist/drizzle && cp -R ./srcbook/examples ./dist/srcbook/examples",
+    "build": "tsc && cp -R ./drizzle ./dist/drizzle && cp -R ./srcbook/examples ./dist/srcbook/examples && cp -R ./prompts ./dist/prompts",
     "check-types": "tsc",
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",
@@ -29,6 +29,7 @@
     "drizzle-orm": "^0.31.2",
     "express": "^4.19.2",
     "marked": "^12.0.2",
+    "posthog-node": "^4.0.1",
     "typescript": "^5.4.5",
     "ws": "^8.17.0",
     "zod": "^3.23.8"

@@ -16,6 +16,7 @@ export type SettingsType = {
   baseDir: string;
   defaultLanguage: CodeLanguageType;
   openaiKey?: string;
+  enabledAnalytics: boolean;
 };
 
 export type StdoutOutputType = { type: 'stdout'; data: string };

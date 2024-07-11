@@ -1,0 +1,2 @@
+ALTER TABLE `config` ADD `enabled_analytics` integer DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE `config` ADD `srcbook_installation_id` text DEFAULT '18n70ookj0p2ht8c3aqfu2qjgo' NOT NULL;

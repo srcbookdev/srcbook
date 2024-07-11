@@ -13,3 +13,4 @@ export const SRCBOOK_DIR = path.join(HOME_DIR, '.srcbook');
 export const SRCBOOKS_DIR = path.join(SRCBOOK_DIR, 'srcbooks');
 export const DIST_DIR = _dirname;
 export const PROMPTS_DIR = path.join(DIST_DIR, 'prompts');
+export const IS_PRODUCTION = process.env.NODE_ENV === 'production';

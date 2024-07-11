@@ -4,6 +4,7 @@ import {
   CodeCellType,
   CodeLanguageType,
   MarkdownCellType,
+  TsServerDiagnosticType,
   getDefaultExtensionForLanguage,
 } from '@srcbook/shared';
 import { OutputType } from '@/types';
@@ -58,6 +59,7 @@ function buildMarkdownCell(attrs: Partial<MarkdownCellType> = {}): MarkdownCellT
 }
 
 type OutputStateType = Record<string, OutputType[]>;
+type TsServerStateType = Record<string, TsServerDiagnosticType[]>;
 
 interface CellsContextType {
   cells: CellType[];
@@ -71,11 +73,12 @@ interface CellsContextType {
     attrs?: Partial<CodeCellType>,
   ) => CodeCellType;
   createMarkdownCell: (idx: number, attrs?: Partial<MarkdownCellType>) => MarkdownCellType;
-  hasOutput: (id: string, type?: 'stdout' | 'stderr' | 'tsc') => boolean;
-  getOutput: (id: string, type?: 'stdout' | 'stderr' | 'tsc') => Array<OutputType>;
+  hasOutput: (id: string, type?: 'stdout' | 'stderr') => boolean;
+  getOutput: (id: string, type?: 'stdout' | 'stderr') => Array<OutputType>;
   setOutput: (id: string, output: OutputType | OutputType[]) => void;
-  clearOutput: (id: string) => void;
-  clearProblems: (id: string) => void;
+  clearOutput: (id: string, type?: 'stdout' | 'stderr') => void;
+  getTsServerDiagnostics: (id: string) => TsServerDiagnosticType[];
+  setTsServerDiagnostics: (id: string, diagnostics: TsServerDiagnosticType[]) => void;
 }
 
 const CellsContext = createContext<CellsContextType | undefined>(undefined);
@@ -89,6 +92,9 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
 
   // Use ref to help avoid stale state bugs in closures.
   const outputRef = useRef<OutputStateType>({});
+
+  // Use ref to help avoid stale state bugs in closures.
+  const tsServerDiagnosticsRef = useRef<TsServerStateType>({});
 
   // Because we use refs for our state, we need a way to trigger
   // component re-renders when the ref state changes.
@@ -104,6 +110,11 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
 
   const stableSetOutput = useCallback((output: OutputStateType) => {
     outputRef.current = output;
+    forceComponentRerender();
+  }, []);
+
+  const stableSetTsServerDiagnostics = useCallback((diagnostics: TsServerStateType) => {
+    tsServerDiagnosticsRef.current = diagnostics;
     forceComponentRerender();
   }, []);
 
@@ -148,13 +159,13 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
     [insertCellAt],
   );
 
-  const hasOutput = useCallback((id: string, type?: 'stdout' | 'stderr' | 'tsc') => {
+  const hasOutput = useCallback((id: string, type?: 'stdout' | 'stderr') => {
     const output = outputRef.current[id] || [];
     const length = type ? output.filter((o) => o.type === type).length : output.length;
     return length > 0;
   }, []);
 
-  const getOutput = useCallback((id: string, type?: 'stdout' | 'stderr' | 'tsc') => {
+  const getOutput = useCallback((id: string, type?: 'stdout' | 'stderr') => {
     const output = outputRef.current[id] || [];
     return type ? output.filter((o) => o.type === type) : output;
   }, []);
@@ -171,28 +182,23 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
   );
 
   const clearOutput = useCallback(
-    (id: string) => {
+    (id: string, type?: 'stdout' | 'stderr') => {
       const output = outputRef.current[id] || [];
-
-      // For now, we do NOT remove typescript 'problems' if user clears output.
-      // TODO: TypeScript errors should be handled differently than output streams.
-      const newOutput = output.filter((o) => o.type === 'tsc');
-
-      stableSetOutput({ ...outputRef.current, [id]: newOutput });
+      const updated = type !== undefined ? output.filter((o) => o.type !== type) : [];
+      stableSetOutput({ ...outputRef.current, [id]: updated });
     },
     [stableSetOutput],
   );
 
-  const clearProblems = useCallback(
-    (id: string) => {
-      const output = outputRef.current[id] || [];
+  const getTsServerDiagnostics = useCallback((id: string) => {
+    return tsServerDiagnosticsRef.current[id] || [];
+  }, []);
 
-      // TODO: TypeScript errors should be handled differently than output streams.
-      const newOutput = output.filter((o) => o.type !== 'tsc');
-
-      stableSetOutput({ ...outputRef.current, [id]: newOutput });
+  const setTsServerDiagnostics = useCallback(
+    (id: string, diagnostics: TsServerDiagnosticType[]) => {
+      stableSetTsServerDiagnostics({ ...tsServerDiagnosticsRef.current, [id]: diagnostics });
     },
-    [stableSetOutput],
+    [stableSetTsServerDiagnostics],
   );
 
   return (
@@ -209,7 +215,8 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
         getOutput,
         setOutput,
         clearOutput,
-        clearProblems,
+        getTsServerDiagnostics,
+        setTsServerDiagnostics,
       }}
     >
       {children}

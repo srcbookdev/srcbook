@@ -1,5 +1,6 @@
 import z from 'zod';
 import { CellSchema, CellUpdateAttrsSchema } from './cells.js';
+import { TsServerDiagnosticSchema } from './tsserver.js';
 
 export const CellExecPayloadSchema = z.object({
   sessionId: z.string(),
@@ -40,7 +41,7 @@ export const CellUpdatedPayloadSchema = z.object({
 export const CellOutputPayloadSchema = z.object({
   cellId: z.string(),
   output: z.object({
-    type: z.enum(['stdout', 'stderr', 'tsc']),
+    type: z.enum(['stdout', 'stderr']),
     data: z.string(),
   }),
 });
@@ -64,6 +65,11 @@ export const TsServerStartPayloadSchema = z.object({
 
 export const TsServerStopPayloadSchema = z.object({
   sessionId: z.string(),
+});
+
+export const TsServerCellDiagnosticsPayloadSchema = z.object({
+  cellId: z.string(),
+  diagnostics: z.array(TsServerDiagnosticSchema),
 });
 
 // A _message_ over websockets

@@ -30,6 +30,7 @@ import {
   PackageJsonCellUpdateAttrsType,
   MarkdownCellUpdateAttrsType,
   CellErrorPayloadType,
+  TsServerCellDiagnosticsPayloadType,
 } from '@srcbook/shared';
 import { loadSession, createCell } from '@/lib/server';
 import { cn } from '@/lib/utils';
@@ -45,7 +46,7 @@ import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { toast } from 'sonner';
 import useEffectOnce from '@/components/use-effect-once';
-import { CellStdio } from '@/components/cell-stdio';
+import { CellOutput } from '@/components/cell-output';
 import useTheme from '@/components/use-theme';
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -91,8 +92,16 @@ function SessionPage() {
 function Session(props: { session: SessionType; channel: SessionChannel }) {
   const { session, channel } = props;
 
-  const { cells, setCells, updateCell, removeCell, createCodeCell, createMarkdownCell, setOutput } =
-    useCells();
+  const {
+    cells,
+    setCells,
+    updateCell,
+    removeCell,
+    createCodeCell,
+    createMarkdownCell,
+    setOutput,
+    setTsServerDiagnostics,
+  } = useCells();
 
   async function onDeleteCell(cell: CellType) {
     if (cell.type === 'title') {
@@ -117,6 +126,16 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
     return () => channel.off('cell:output', callback);
   }, [channel, setOutput]);
+
+  useEffect(() => {
+    const callback = (payload: TsServerCellDiagnosticsPayloadType) => {
+      setTsServerDiagnostics(payload.cellId, payload.diagnostics);
+    };
+
+    channel.on('tsserver:cell:diagnostics', callback);
+
+    return () => channel.off('tsserver:cell:diagnostics', callback);
+  }, [channel, setTsServerDiagnostics]);
 
   useEffect(() => {
     const callback = (payload: CellUpdatedPayloadType) => {
@@ -619,7 +638,7 @@ function PackageJsonCell(props: {
               basicSetup={{ lineNumbers: true, foldGutter: false }}
             />
 
-            <CellStdio cell={cell} show={showStdio} setShow={setShowStdio} />
+            <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
           </CollapsibleContent>
         </div>
       </Collapsible>
@@ -638,10 +657,9 @@ function CodeCell(props: {
   const [showStdio, setShowStdio] = useState(false);
 
   const { codeTheme } = useTheme();
-  const { updateCell, clearOutput, clearProblems } = useCells();
+  const { updateCell, clearOutput } = useCells();
 
   function onChangeSource(source: string) {
-    clearProblems(cell.id);
     onUpdateCell(cell, { source });
   }
 
@@ -751,7 +769,7 @@ function CodeCell(props: {
           ]}
           onChange={onChangeSource}
         />
-        <CellStdio cell={cell} show={showStdio} setShow={setShowStdio} />
+        <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
       </div>
     </div>
   );

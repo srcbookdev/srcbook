@@ -17,6 +17,9 @@ import { SessionChannel } from '@/clients/websocket';
 import { useCells } from '@/components/use-cell';
 import { CellOutput } from '@/components/cell-output';
 import useTheme from '@/components/use-theme';
+import { useDebouncedCallback } from 'use-debounce';
+
+const DEBOUNCE_DELAY = 500;
 
 export default function CodeCell(props: {
   session: SessionType;
@@ -29,17 +32,7 @@ export default function CodeCell(props: {
   const [error, setError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
 
-  const { codeTheme } = useTheme();
   const { updateCell, clearOutput } = useCells();
-
-  function onChangeSource(source: string) {
-    onUpdateCell(cell, { source });
-  }
-
-  function evaluateModEnter() {
-    runCell();
-    return true;
-  }
 
   useEffect(() => {
     function callback(payload: CellErrorPayloadType) {
@@ -72,16 +65,21 @@ export default function CodeCell(props: {
     if (cell.status === 'running') {
       return false;
     }
+
     setShowStdio(true);
 
     // Update client side only. The server will know it's running from the 'cell:exec' event.
     updateCell({ ...cell, status: 'running' });
     clearOutput(cell.id);
 
-    channel.push('cell:exec', {
-      sessionId: session.id,
-      cellId: cell.id,
-    });
+    // Add artificial delay to allow debounced updates to propagate
+    // TODO: Handle this in a more robust way
+    setTimeout(() => {
+      channel.push('cell:exec', {
+        sessionId: session.id,
+        cellId: cell.id,
+      });
+    }, DEBOUNCE_DELAY + 10);
   }
 
   function stopCell() {
@@ -133,18 +131,45 @@ export default function CodeCell(props: {
             )}
           </div>
         </div>
-        <CodeMirror
-          value={cell.source}
-          theme={codeTheme}
-          extensions={[
-            javascript({ typescript: true }),
-            Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
-          ]}
-          onChange={onChangeSource}
-        />
+        <CodeEditor cell={cell} runCell={runCell} onUpdateCell={onUpdateCell} />
         <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
       </div>
     </div>
+  );
+}
+
+function CodeEditor({
+  cell,
+  runCell,
+  onUpdateCell,
+}: {
+  cell: CodeCellType;
+  runCell: () => void;
+  onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<string | null>;
+}) {
+  const { codeTheme } = useTheme();
+  const { updateCell: updateCellClientSideOnly } = useCells();
+
+  const onUpdateCellDebounced = useDebouncedCallback(onUpdateCell, DEBOUNCE_DELAY);
+
+  function evaluateModEnter() {
+    runCell();
+    return true;
+  }
+
+  return (
+    <CodeMirror
+      value={cell.source}
+      theme={codeTheme}
+      extensions={[
+        javascript({ typescript: true }),
+        Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+      ]}
+      onChange={(source) => {
+        updateCellClientSideOnly({ ...cell, source });
+        onUpdateCellDebounced(cell, { source });
+      }}
+    />
   );
 }
 

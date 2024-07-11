@@ -23,6 +23,7 @@ async function loader() {
     defaultLanguage: config.defaultLanguage,
     baseDir: config.baseDir,
     openaiKey: config.openaiKey,
+    enabledAnalytics: config.enabledAnalytics,
     ...diskResult,
   };
 }
@@ -40,9 +41,11 @@ function Settings() {
     entries,
     baseDir,
     defaultLanguage,
+    enabledAnalytics: configEnabledAnalytics,
   } = useLoaderData() as SettingsType & FsObjectResultType;
 
   const [openaiKey, setOpenaiKey] = useState(configOpenaiKey);
+  const [enabledAnalytics, setEnabledAnalytics] = useState(configEnabledAnalytics);
 
   const updateDefaultLanguage = async (value: CodeLanguageType) => {
     await updateConfig({ defaultLanguage: value });
@@ -116,6 +119,24 @@ function Settings() {
                 Save
               </Button>
             </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-xl pb-2">Analytics tracking</h2>
+          <label className="opacity-70 block pb-2">
+            We track behavior analytics to improve the Srcbook product. We track no personal
+            information.
+          </label>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={enabledAnalytics}
+              onCheckedChange={() => {
+                setEnabledAnalytics(!enabledAnalytics);
+                updateConfig({ enabledAnalytics: !enabledAnalytics });
+              }}
+            />
+            <label>{enabledAnalytics ? 'enabled' : 'disabled'}</label>
           </div>
         </div>
       </div>

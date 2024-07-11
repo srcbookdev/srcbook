@@ -232,6 +232,7 @@ interface EditConfigRequestType {
   baseDir?: string;
   defaultLanguage?: 'typescript' | 'javascript';
   openaiKey?: string;
+  enabledAnalytics?: boolean;
 }
 
 export async function getConfig() {

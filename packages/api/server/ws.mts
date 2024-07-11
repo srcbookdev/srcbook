@@ -38,12 +38,13 @@ import {
   TsServerStartPayloadSchema,
   TsServerStopPayloadSchema,
   CellDeletePayloadSchema,
+  TsServerCellDiagnosticsPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
 import WebSocketServer from './ws-client.mjs';
 import { pathToCodeFile } from '../srcbook/path.mjs';
-import { formatDiagnostic } from '../tsserver/utils.mjs';
+import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
 
 const wss = new WebSocketServer();
@@ -362,17 +363,19 @@ async function sendTypeScriptDiagnostics(
     file: pathToCodeFile(session.dir, cell.filename),
   });
 
-  const diagnostics = response.body || [];
-
-  for (const diagnostic of diagnostics) {
-    wss.broadcast(`session:${session.id}`, 'cell:output', {
-      cellId: cell.id,
-      output: {
-        type: 'tsc',
-        data: formatDiagnostic(diagnostic),
-      },
-    });
+  if (!response.success) {
+    console.warn(`Failed to get diagnostics for cell ${cell.id}: ${response.message}`);
+    return;
   }
+
+  // The client will always reset diagnostics when the server sends them.
+  // Therefore, it is important to send diagnostics even when the list is
+  // empty because the client will not clear stale diagnostics otherwise.
+  const diagnostics = response.body || [];
+  wss.broadcast(`session:${session.id}`, 'tsserver:cell:diagnostics', {
+    cellId: cell.id,
+    diagnostics: diagnostics.map(normalizeDiagnostic),
+  });
 }
 
 function sendAllTypeScriptDiagnostics(tsserver: TsServer, session: SessionType) {
@@ -428,6 +431,7 @@ wss
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
-  .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema);
+  .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
+  .outgoing('tsserver:cell:diagnostics', TsServerCellDiagnosticsPayloadSchema);
 
 export default wss;

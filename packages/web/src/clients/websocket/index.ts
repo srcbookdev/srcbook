@@ -11,6 +11,7 @@ import {
   TsServerStartPayloadSchema,
   TsServerStopPayloadSchema,
   CellDeletePayloadSchema,
+  TsServerCellDiagnosticsPayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -25,6 +26,7 @@ const IncomingSessionEvents = {
   'cell:error': CellErrorPayloadSchema,
   'cell:updated': CellUpdatedPayloadSchema,
   'deps:validate:response': DepsValidateResponsePayloadSchema,
+  'tsserver:cell:diagnostics': TsServerCellDiagnosticsPayloadSchema,
 };
 
 const OutgoingSessionEvents = {

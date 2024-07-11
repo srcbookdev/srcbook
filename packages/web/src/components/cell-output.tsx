@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Ban, PanelBottomClose, PanelBottomOpen } from 'lucide-react';
-import { CodeCellType, PackageJsonCellType } from '@srcbook/shared';
+import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
 import { useCells } from '@/components/use-cell';
-import { OutputType, StdoutOutputType, StderrOutputType, TscOutputType } from '@/types';
+import { OutputType, StdoutOutputType, StderrOutputType } from '@/types';
 
 type PropsType = {
   cell: CodeCellType | PackageJsonCellType;
@@ -12,21 +12,24 @@ type PropsType = {
   setShow: (show: boolean) => void;
 };
 
-export function CellStdio({ cell, show, setShow }: PropsType) {
-  const { getOutput, clearOutput } = useCells();
+export function CellOutput({ cell, show, setShow }: PropsType) {
+  const { getOutput, clearOutput, getTsServerDiagnostics } = useCells();
 
-  const [activeTab, setActiveTab] = useState('stdout');
+  const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems'>('stdout');
 
   const stdout = getOutput(cell.id, 'stdout') as StdoutOutputType[];
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
-  const tscOutput = getOutput(cell.id, 'tsc') as TscOutputType[];
+  const diagnostics = getTsServerDiagnostics(cell.id);
 
   return (
     <div className="border-t font-mono text-sm">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as 'stdout' | 'stderr' | 'problems')}
+      >
         <div
           className={cn(
-            'px-3 flex items-center justify-between bg-muted text-tertiary-foreground rounded-b-mid',
+            'px-3 flex items-center justify-between bg-muted text-tertiary-foreground rounded-md',
             show && 'border-b rounded-none',
           )}
         >
@@ -66,9 +69,9 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
                     'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
                 )}
               >
-                {tscOutput.length > 0 ? (
+                {diagnostics.length > 0 ? (
                   <>
-                    problems <span className="text-sb-red-30">({tscOutput.length})</span>
+                    problems <span className="text-sb-red-30">({diagnostics.length})</span>
                   </>
                 ) : (
                   'problems'
@@ -80,7 +83,7 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
             <button
               className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
               disabled={activeTab === 'problems'}
-              onClick={() => clearOutput(cell.id)}
+              onClick={() => clearOutput(cell.id, activeTab === 'problems' ? undefined : activeTab)}
             >
               <Ban size={16} />
             </button>
@@ -99,7 +102,7 @@ export function CellStdio({ cell, show, setShow }: PropsType) {
             </TabsContent>
             {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsContent value="problems" className="mt-0">
-                <TscOutput tsc={tscOutput} />
+                <TsServerDiagnostics diagnostics={diagnostics} />
               </TabsContent>
             )}
           </>
@@ -142,13 +145,17 @@ function Stderr({ stderr }: { stderr: StderrOutputType[] }) {
   );
 }
 
-function TscOutput({ tsc }: { tsc: TscOutputType[] }) {
+function formatDiagnostic(diag: TsServerDiagnosticType) {
+  return `[Ln ${diag.start.line}, Col ${diag.start.offset}] ${diag.category} ts(${diag.code}): ${diag.text}`;
+}
+
+function TsServerDiagnostics({ diagnostics }: { diagnostics: TsServerDiagnosticType[] }) {
   return (
     <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap text-[13px]">
-      {tsc.length === 0 ? (
+      {diagnostics.length === 0 ? (
         <div className="italic text-center text-muted-foreground">No problems</div>
       ) : (
-        formatOutput(tsc, '\n')
+        diagnostics.map(formatDiagnostic).join('\n')
       )}
     </div>
   );

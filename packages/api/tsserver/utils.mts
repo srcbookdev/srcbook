@@ -1,5 +1,5 @@
 import type { server as tsserver } from 'typescript';
-import type { DiagnosticType } from './types.mjs';
+import type { TsServerDiagnosticType } from '@srcbook/shared';
 
 /**
  * Parse messages from a chunk of data sent by tsserver.
@@ -55,28 +55,9 @@ export function parseTsServerMessages(chunk: Buffer, buffered: Buffer) {
   return { messages, buffered: Buffer.from('') };
 }
 
-/**
- * Format a diagnostic message for user-facing output.
- *
- * Note: Filename is not included at the moment because these are intended to be rendered
- * under the cell of the file so context is already provided.
- *
- * TODO: This should be a responsibility of the client, not the server.
- *
- * Example:
- *
- *     [Ln 1, Col 7] error ts(2322): Type 'string' is not assignable to type 'number'.
- */
-export function formatDiagnostic(
-  diagnostic: tsserver.protocol.Diagnostic | tsserver.protocol.DiagnosticWithLinePosition,
-) {
-  const diag = normalizeDiagnostic(diagnostic);
-  return `[Ln ${diag.start.line}, Col ${diag.start.offset}] ${diag.category} ts(${diag.code}): ${diag.text}`;
-}
-
 export function normalizeDiagnostic(
   diagnostic: tsserver.protocol.Diagnostic | tsserver.protocol.DiagnosticWithLinePosition,
-): DiagnosticType {
+): TsServerDiagnosticType {
   if (isDiagnosticWithLinePosition(diagnostic)) {
     return {
       code: diagnostic.code,

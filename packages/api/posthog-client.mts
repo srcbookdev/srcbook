@@ -8,27 +8,12 @@ type QueuedEvent = {
 };
 
 class PostHogClient {
-  private static instance: PostHogClient | null = null;
-  private distinctId: string | null = null;
+  private distinctId: string;
   private client: PostHog | null = null;
   private isEnabled: boolean = false;
-  private isInitialized: boolean = false;
-  private initializationPromise: Promise<void> | null = null;
   private eventQueue: QueuedEvent[] = [];
 
-  private constructor() {
-    this.initializationPromise = this.initialize();
-  }
-
-  public static getInstance(): PostHogClient {
-    if (!PostHogClient.instance) {
-      PostHogClient.instance = new PostHogClient();
-    }
-    return PostHogClient.instance;
-  }
-
-  private async initialize(): Promise<void> {
-    const config = await getConfig();
+  constructor(config: { enabledAnalytics: boolean; distinctId: string }) {
     this.isEnabled = config.enabledAnalytics;
     this.distinctId = config.distinctId;
 
@@ -40,11 +25,10 @@ class PostHogClient {
       );
     }
 
-    this.isInitialized = true;
     this.flushQueue();
   }
 
-  private async flushQueue(): Promise<void> {
+  private flushQueue(): void {
     if (!this.isEnabled || !this.client) {
       this.eventQueue = []; // Clear the queue if analytics are disabled
       return;
@@ -53,15 +37,15 @@ class PostHogClient {
     while (this.eventQueue.length > 0) {
       const event = this.eventQueue.shift();
       if (event) {
-        this.client.capture({ ...event, distinctId: this.distinctId as string });
+        this.client.capture({ ...event, distinctId: this.distinctId });
       }
     }
   }
 
   public capture(event: QueuedEvent): void {
-    if (this.isInitialized && IS_PRODUCTION) {
-      if (this.isEnabled && this.client) {
-        this.client.capture({ ...event, distinctId: this.distinctId as string });
+    if (this.isEnabled && IS_PRODUCTION) {
+      if (this.client) {
+        this.client.capture({ ...event, distinctId: this.distinctId });
       }
     } else {
       this.eventQueue.push(event);
@@ -69,12 +53,12 @@ class PostHogClient {
   }
 
   public async shutdown(): Promise<void> {
-    await this.initializationPromise; // Ensure initialization is complete
-    await this.flushQueue();
+    this.flushQueue();
     if (this.client) {
       await this.client.shutdown();
     }
   }
 }
 
-export const posthog = PostHogClient.getInstance();
+const config = await getConfig();
+export const posthog = new PostHogClient(config);

@@ -42,7 +42,7 @@ pnpm dlx srcbook
 
 ## Analytics and tracking
 
-In order to improve Srcbook, we collect some behavior analytics. We don't collect anything personal or identifiable, our goals are simply to improve the application (the code is open-source so you don't have to trust us, you can verify!)
+In order to improve Srcbook, we collect some behavioral analytics. We don't collect anything personal or identifiable, our goals are simply to improve the application. The code is open source so you don't have to trust us, you can verify! You can find more information in our [privacy policy](./PRIVACY-POLICY.md).
 
 If you want to disable tracking, you can do so in the settings page of the application.
 

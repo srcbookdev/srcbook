@@ -125,8 +125,8 @@ function Settings() {
         <div>
           <h2 className="text-xl pb-2">Analytics tracking</h2>
           <label className="opacity-70 block pb-2">
-            We track behavior analytics to improve the Srcbook product. We track no personal
-            information.
+            We track behavioral analytics to improve Srcbook. We do not track any personally
+            identifiable information (PII).
           </label>
           <div className="flex items-center gap-2">
             <Switch

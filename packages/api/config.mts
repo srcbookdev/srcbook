@@ -11,7 +11,7 @@ async function init() {
     const defaultConfig = {
       baseDir: HOME_DIR,
       defaultLanguage: 'typescript',
-      distinctId: randomid(),
+      installId: randomid(),
     };
     console.log();
     console.log('Initializing application with the following configuration:\n');

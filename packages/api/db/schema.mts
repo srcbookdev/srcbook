@@ -10,7 +10,7 @@ export const configs = sqliteTable('config', {
   // Allows us to improve Srcbook, we don't collect any PII.
   enabledAnalytics: integer('enabled_analytics', { mode: 'boolean' }).notNull().default(true),
   // Stable ID for posthog
-  distinctId: text('distinct_id').notNull().default(randomid()),
+  installId: text('srcbook_installation_id').notNull().default(randomid()),
 });
 
 export type Config = typeof configs.$inferSelect;

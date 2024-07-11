@@ -2,4 +2,6 @@
 
 process.env.NODE_ENV = 'production';
 
-import '../index.mjs';
+(async () => {
+  await import('../index.mjs');
+})();

@@ -8,14 +8,14 @@ type QueuedEvent = {
 };
 
 class PostHogClient {
-  private distinctId: string;
+  private installId: string;
   private client: PostHog | null = null;
   private isEnabled: boolean = false;
   private eventQueue: QueuedEvent[] = [];
 
-  constructor(config: { enabledAnalytics: boolean; distinctId: string }) {
+  constructor(config: { enabledAnalytics: boolean; installId: string }) {
     this.isEnabled = config.enabledAnalytics;
-    this.distinctId = config.distinctId;
+    this.installId = config.installId;
 
     if (this.isEnabled) {
       this.client = new PostHog(
@@ -37,7 +37,7 @@ class PostHogClient {
     while (this.eventQueue.length > 0) {
       const event = this.eventQueue.shift();
       if (event) {
-        this.client.capture({ ...event, distinctId: this.distinctId });
+        this.client.capture({ ...event, distinctId: this.installId });
       }
     }
   }
@@ -45,7 +45,7 @@ class PostHogClient {
   public capture(event: QueuedEvent): void {
     if (this.isEnabled && IS_PRODUCTION) {
       if (this.client) {
-        this.client.capture({ ...event, distinctId: this.distinctId });
+        this.client.capture({ ...event, distinctId: this.installId });
       }
     } else {
       this.eventQueue.push(event);

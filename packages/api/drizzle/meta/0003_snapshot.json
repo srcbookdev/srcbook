@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "1ac068b4-b95e-45ee-95d3-6f389cd064de",
+  "id": "59446000-b2a1-442d-8cd1-560a6a8fa7bf",
   "prevId": "fee9ddc3-ef67-45f3-a415-34fbb0b7779e",
   "tables": {
     "config": {
@@ -37,13 +37,13 @@
           "autoincrement": false,
           "default": true
         },
-        "distinct_id": {
-          "name": "distinct_id",
+        "srcbook_installation_id": {
+          "name": "srcbook_installation_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'s0llcp0p79kcmf7hajobdg3lhc'"
+          "default": "'18n70ookj0p2ht8c3aqfu2qjgo'"
         }
       },
       "indexes": {},

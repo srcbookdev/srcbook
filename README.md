@@ -40,6 +40,12 @@ npx srcbook
 pnpm dlx srcbook
 ```
 
+## Analytics and tracking
+
+In order to improve Srcbook, we collect some behavior analytics. We don't collect anything personal or identifiable, our goals are simply to improve the application (the code is open-source so you don't have to trust us, you can verify!)
+
+If you want to disable tracking, you can do so in the settings page of the application.
+
 ## Development
 
 For development instructions, see [CONTRIBUTING.md](./CONTRIBUTING.md).

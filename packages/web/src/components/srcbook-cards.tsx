@@ -111,7 +111,7 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
         props.running ? 'border-run' : 'hover:border-foreground',
       )}
     >
-      <h5 className="font-semibold leading-[18px]">{props.title}</h5>
+      <h5 className="font-semibold leading-[18px] line-clamp-3">{props.title}</h5>
       <div className="flex items-center justify-between text-tertiary-foreground">
         <div className="text-[13px] flex items-center gap-2">
           {props.running ? (

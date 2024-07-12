@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,17 @@ export default function GenerateSrcbookModal({
 
   const navigate = useNavigate();
 
+  useHotkeys(
+    'mod+enter',
+    () => {
+      if (!open) return;
+      generate();
+    },
+    { enableOnFormTags: ['textarea'] },
+  );
+
   const generate = async () => {
+    if (!query) return;
     setStatus('loading');
     const result = await onGenerate(query);
     if (result) {

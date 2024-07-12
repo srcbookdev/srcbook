@@ -166,7 +166,7 @@
     @apply px-1;
     @apply py-0.5;
     @apply mx-0.5;
-    @apply bg-inline-code;
+    @apply bg-muted;
     @apply text-inline-code-foreground;
   }
 }
@@ -230,8 +230,8 @@
 
 .sb-prose pre {
   @apply overflow-x-auto;
-  @apply bg-primary;
-  @apply text-primary-foreground;
+  @apply bg-muted;
+  @apply text-foreground;
   @apply text-base;
   @apply p-4;
   @apply rounded-sm;

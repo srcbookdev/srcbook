@@ -52,13 +52,8 @@ export default function CodeCell(props: {
     return () => channel.off('cell:error', callback);
   }, [cell.id, channel]);
 
-  async function updateFilename(filename: string) {
-    setError(null);
-    channel.push('cell:update', {
-      cellId: cell.id,
-      sessionId: session.id,
-      updates: { filename },
-    });
+  function updateFilename(filename: string) {
+    onUpdateCell(cell, { filename });
   }
 
   function runCell() {
@@ -102,7 +97,7 @@ export default function CodeCell(props: {
               filename={cell.filename}
               onUpdate={updateFilename}
               onChange={() => setError(null)}
-              className="group-hover:border-input"
+              className="font-mono font-semibold text-xs border-transparent hover:border-input transition-colors group-hover:border-input"
             />
             {error && <div className="text-red-600 text-sm">{error}</div>}
           </div>
@@ -176,50 +171,48 @@ function CodeEditor({
 function FilenameInput(props: {
   filename: string;
   className: string;
-  onUpdate: (filename: string) => Promise<void>;
+  onUpdate: (filename: string) => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
-  const filename = props.filename;
   const onUpdate = props.onUpdate;
   const onChange = props.onChange;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const [filename, setFilename] = useState(props.filename);
+
+  useEffect(() => {
+    if (filename !== props.filename) {
+      setFilename(props.filename);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.filename]);
+
+  function submit() {
+    if (props.filename !== filename) {
+      onUpdate(filename);
+    }
+  }
+
+  function blurOnEnter(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      inputRef.current?.blur();
+    }
+  }
+
   return (
     <Input
-      onFocus={(e) => {
-        const input = e.target;
-        const value = input.value;
-        const dotIndex = value.lastIndexOf('.');
-        if (dotIndex !== -1) {
-          input.setSelectionRange(0, dotIndex);
-        } else {
-          input.select(); // In case there's no dot, select the whole value
-        }
-      }}
-      ref={inputRef}
-      onChange={onChange}
       required
-      defaultValue={filename}
-      onBlur={() => {
-        if (!inputRef.current) {
-          return;
-        }
-
-        const updatedFilename = inputRef.current.value;
-        if (updatedFilename !== filename) {
-          onUpdate(updatedFilename);
-        }
+      ref={inputRef}
+      value={filename}
+      onBlur={submit}
+      onKeyDown={blurOnEnter}
+      onChange={(e) => {
+        setFilename(e.target.value);
+        onChange(e);
       }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && inputRef.current) {
-          inputRef.current.blur();
-        }
-      }}
-      className={cn(
-        'font-mono font-semibold text-xs border-transparent hover:border-input transition-colors',
-        props.className,
-      )}
+      className={props.className}
     />
   );
 }

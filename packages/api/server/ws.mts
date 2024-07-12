@@ -266,20 +266,20 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
     throw new Error(`No session exists for session '${payload.sessionId}'`);
   }
 
-  const cell = findCell(session, payload.cellId);
+  const cellBeforeUpdate = findCell(session, payload.cellId);
 
-  if (!cell) {
+  if (!cellBeforeUpdate) {
     throw new Error(
       `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
     );
   }
 
-  const result = await updateCell(session, cell, payload.updates);
+  const result = await updateCell(session, cellBeforeUpdate, payload.updates);
 
   if (!result.success) {
     wss.broadcast(`session:${session.id}`, 'cell:error', {
       sessionId: session.id,
-      cellId: cell.id,
+      cellId: payload.cellId,
       errors: result.errors,
     });
 
@@ -293,26 +293,31 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
 
   if (
     session.metadata.language === 'typescript' &&
-    result.cell.type === 'code' &&
+    cellBeforeUpdate.type === 'code' &&
     tsservers.has(session.id)
   ) {
-    const cell = result.cell;
+    const cellAfterUpdate = result.cell as CodeCellType;
     const tsserver = tsservers.get(session.id);
 
-    const file = pathToCodeFile(session.dir, cell.filename);
+    // These are usually the same. However, if the user renamed the cell, we need to
+    // ensure that we close the old file in tsserver and open the new one.
+    const oldFilePath = pathToCodeFile(session.dir, cellBeforeUpdate.filename);
+    const newFilePath = pathToCodeFile(session.dir, cellAfterUpdate.filename);
 
     // To update a file in tsserver, close and reopen it. I assume performance of
     // this implementation is worse than calculating diffs and using `change` command
     // (although maybe not since this is not actually reading or writing to disk).
     // However, that requires calculating diffs which is more complex and may also
     // have performance implications, so sticking with the simple approach for now.
-    //
-    // TODO: In either case, we should be aggressively debouncing these updates.
-    //
-    tsserver.close({ file });
-    tsserver.open({ file, fileContent: cell.source });
+    tsserver.close({ file: oldFilePath });
+    tsserver.open({ file: newFilePath, fileContent: cellAfterUpdate.source });
 
-    sendTypeScriptDiagnostics(tsserver, session, cell);
+    // Send all diagnostics so that other cells that import this updated cell
+    // are informed about any updates (changes to exports, file renames).
+    //
+    // TODO: Can we be smarter and only do this for cells that import
+    // this cell, rather than all cells?
+    sendAllTypeScriptDiagnostics(tsserver, session);
   }
 }
 

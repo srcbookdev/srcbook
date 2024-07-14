@@ -20,3 +20,7 @@ export function pathToTsconfigJson(baseDir: string) {
 export function pathToCodeFile(baseDir: string, filename: string) {
   return Path.join(baseDir, 'src', filename);
 }
+
+export function filenameFromPath(filePath: string) {
+  return Path.basename(filePath);
+}

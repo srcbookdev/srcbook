@@ -18,6 +18,12 @@ export const CellUpdatePayloadSchema = z.object({
   updates: CellUpdateAttrsSchema,
 });
 
+export const CellRenamePayloadSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+  filename: z.string(),
+});
+
 export const CellDeletePayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),

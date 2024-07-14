@@ -7,6 +7,7 @@ import {
   readPackageJsonContentsFromDisk,
   updateCell,
   removeCell,
+  updateCodeCellFilename,
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
 import type { SessionType } from '../types.mjs';
@@ -24,20 +25,23 @@ import type {
   TsServerStartPayloadType,
   TsServerStopPayloadType,
   CellDeletePayloadType,
+  CellRenamePayloadType,
+  CellErrorType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
   CellUpdatePayloadSchema,
+  CellUpdatedPayloadSchema,
+  CellRenamePayloadSchema,
+  CellDeletePayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
   DepsInstallPayloadSchema,
   DepsValidatePayloadSchema,
-  CellUpdatedPayloadSchema,
   CellOutputPayloadSchema,
   DepsValidateResponsePayloadSchema,
   TsServerStartPayloadSchema,
   TsServerStopPayloadSchema,
-  CellDeletePayloadSchema,
   TsServerCellDiagnosticsPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
@@ -259,6 +263,37 @@ async function cellStop(payload: CellStopPayloadType) {
   }
 }
 
+function sendCellUpdateError(session: SessionType, cellId: string, errors: CellErrorType[]) {
+  wss.broadcast(`session:${session.id}`, 'cell:error', {
+    sessionId: session.id,
+    cellId: cellId,
+    errors: errors,
+  });
+
+  // Revert the client's optimistic updates with most recent server cell state
+  wss.broadcast(`session:${session.id}`, 'cell:updated', {
+    cell: findCell(session, cellId),
+  });
+}
+
+function reopenFileInTsServer(
+  tsserver: TsServer,
+  session: SessionType,
+  file: { closeFilename: string; openFilename: string; source: string },
+) {
+  // These two are usually the same unless a file is being renamed.
+  const closeFilePath = pathToCodeFile(session.dir, file.closeFilename);
+  const openFilePath = pathToCodeFile(session.dir, file.openFilename);
+
+  // To update a file in tsserver, close and reopen it. I assume performance of
+  // this implementation is worse than calculating diffs and using `change` command
+  // (although maybe not since this is not actually reading or writing to disk).
+  // However, that requires calculating diffs which is more complex and may also
+  // have performance implications, so sticking with the simple approach for now.
+  tsserver.close({ file: closeFilePath });
+  tsserver.open({ file: openFilePath, fileContent: file.source });
+}
+
 async function cellUpdate(payload: CellUpdatePayloadType) {
   const session = await findSession(payload.sessionId);
 
@@ -277,18 +312,55 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
   const result = await updateCell(session, cellBeforeUpdate, payload.updates);
 
   if (!result.success) {
-    wss.broadcast(`session:${session.id}`, 'cell:error', {
-      sessionId: session.id,
-      cellId: payload.cellId,
-      errors: result.errors,
+    return sendCellUpdateError(session, payload.cellId, result.errors);
+  }
+
+  const cell = result.cell as CodeCellType;
+
+  if (
+    session.metadata.language === 'typescript' &&
+    cell.type === 'code' &&
+    tsservers.has(session.id)
+  ) {
+    const tsserver = tsservers.get(session.id);
+
+    // This isn't intended for renaming, so the filenames
+    // and their resulting paths are expected to be the same
+    reopenFileInTsServer(tsserver, session, {
+      openFilename: cell.filename,
+      closeFilename: cell.filename,
+      source: cell.source,
     });
 
-    // Revert the client's optimistic updates with most recent server cell state
-    wss.broadcast(`session:${session.id}`, 'cell:updated', {
-      cell: findCell(session, payload.cellId),
-    });
+    requestAllDiagnostics(tsserver, session);
+  }
+}
 
-    return;
+async function cellRename(payload: CellRenamePayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  const cellBeforeUpdate = findCell(session, payload.cellId);
+
+  if (!cellBeforeUpdate) {
+    throw new Error(
+      `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+    );
+  }
+
+  if (cellBeforeUpdate.type !== 'code') {
+    throw new Error(
+      `Cannot rename cell of type '${cellBeforeUpdate.type}'. Only code cells can be renamed.`,
+    );
+  }
+
+  const result = await updateCodeCellFilename(session, cellBeforeUpdate, payload.filename);
+
+  if (!result.success) {
+    return sendCellUpdateError(session, payload.cellId, result.errors);
   }
 
   if (
@@ -299,40 +371,31 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
     const cellAfterUpdate = result.cell as CodeCellType;
     const tsserver = tsservers.get(session.id);
 
-    // These are usually the same. However, if the user renamed the cell, we need to
-    // ensure that we close the old file in tsserver and open the new one.
-    const oldFilePath = pathToCodeFile(session.dir, cellBeforeUpdate.filename);
-    const newFilePath = pathToCodeFile(session.dir, cellAfterUpdate.filename);
+    // This function is specifically for renaming code cells. Thus,
+    // the filenames before and after the update should be different.
+    reopenFileInTsServer(tsserver, session, {
+      closeFilename: cellBeforeUpdate.filename,
+      openFilename: cellAfterUpdate.filename,
+      source: cellAfterUpdate.source,
+    });
 
-    // To update a file in tsserver, close and reopen it. I assume performance of
-    // this implementation is worse than calculating diffs and using `change` command
-    // (although maybe not since this is not actually reading or writing to disk).
-    // However, that requires calculating diffs which is more complex and may also
-    // have performance implications, so sticking with the simple approach for now.
-    tsserver.close({ file: oldFilePath });
-    tsserver.open({ file: newFilePath, fileContent: cellAfterUpdate.source });
-
-    // TODO: Given the amount of differences here and elsewhere when renaming cells,
-    // it's probably worth it at this point to make those separate websocket events.
-    if (oldFilePath !== newFilePath) {
-      // Tsserver can get into a bad state if we don't reload the project after renaming a file.
-      // This consistently happens under the following condition:
-      //
-      // 1. Rename a `a.ts` that is imported by `b.ts` to `c.ts`
-      // 2. Semantic diagnostics report an error in `b.ts` that `a.ts` doesn't exist
-      // 3. Great, all works so far.
-      // 4. Rename `c.ts` back to `a.ts`.
-      // 5. Semantic diagnostics still report an error in `b.ts` that `a.ts` doesn't exist.
-      // 6. This is wrong, `a.ts` does exist.
-      //
-      // If we reload the project, this issue resolves itself.
-      //
-      // NOTE: reloading the project sends diagnostic events without calling `geterr`.
-      // However, it seems to take a while for the diagnostics to be sent, so we still
-      // request it below.
-      //
-      tsserver.reloadProjects();
-    }
+    // Tsserver can get into a bad state if we don't reload the project after renaming a file.
+    // This consistently happens under the following condition:
+    //
+    // 1. Rename a `a.ts` that is imported by `b.ts` to `c.ts`
+    // 2. Semantic diagnostics report an error in `b.ts` that `a.ts` doesn't exist
+    // 3. Great, all works so far.
+    // 4. Rename `c.ts` back to `a.ts`.
+    // 5. Semantic diagnostics still report an error in `b.ts` that `a.ts` doesn't exist.
+    // 6. This is wrong, `a.ts` does exist.
+    //
+    // If we reload the project, this issue resolves itself.
+    //
+    // NOTE: reloading the project sends diagnostic events without calling `geterr`.
+    // However, it seems to take a while for the diagnostics to be sent, so we still
+    // request it below.
+    //
+    tsserver.reloadProjects();
 
     requestAllDiagnostics(tsserver, session);
   }
@@ -450,6 +513,7 @@ wss
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
+  .incoming('cell:rename', CellRenamePayloadSchema, cellRename)
   .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)

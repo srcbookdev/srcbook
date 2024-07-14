@@ -43,7 +43,7 @@ import {
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
 import WebSocketServer from './ws-client.mjs';
-import { pathToCodeFile } from '../srcbook/path.mjs';
+import { filenameFromPath, pathToCodeFile } from '../srcbook/path.mjs';
 import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
 
@@ -312,12 +312,29 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
     tsserver.close({ file: oldFilePath });
     tsserver.open({ file: newFilePath, fileContent: cellAfterUpdate.source });
 
-    // Send all diagnostics so that other cells that import this updated cell
-    // are informed about any updates (changes to exports, file renames).
-    //
-    // TODO: Can we be smarter and only do this for cells that import
-    // this cell, rather than all cells?
-    sendAllTypeScriptDiagnostics(tsserver, session);
+    // TODO: Given the amount of differences here and elsewhere when renaming cells,
+    // it's probably worth it at this point to make those separate websocket events.
+    if (oldFilePath !== newFilePath) {
+      // Tsserver can get into a bad state if we don't reload the project after renaming a file.
+      // This consistently happens under the following condition:
+      //
+      // 1. Rename a `a.ts` that is imported by `b.ts` to `c.ts`
+      // 2. Semantic diagnostics report an error in `b.ts` that `a.ts` doesn't exist
+      // 3. Great, all works so far.
+      // 4. Rename `c.ts` back to `a.ts`.
+      // 5. Semantic diagnostics still report an error in `b.ts` that `a.ts` doesn't exist.
+      // 6. This is wrong, `a.ts` does exist.
+      //
+      // If we reload the project, this issue resolves itself.
+      //
+      // NOTE: reloading the project sends diagnostic events without calling `geterr`.
+      // However, it seems to take a while for the diagnostics to be sent, so we still
+      // request it below.
+      //
+      tsserver.reloadProjects();
+    }
+
+    requestAllDiagnostics(tsserver, session);
   }
 }
 
@@ -351,44 +368,60 @@ async function cellDelete(payload: CellDeletePayloadType) {
       const file = pathToCodeFile(updatedSession.dir, cell.filename);
       const tsserver = tsservers.get(updatedSession.id);
       tsserver.close({ file });
-      sendAllTypeScriptDiagnostics(tsserver, updatedSession);
+      requestAllDiagnostics(tsserver, updatedSession);
     }
   }
 }
 
 /**
- * Send semantic diagnostics for a TypeScript cell to the client.
+ * Request async diagnostics for all files in the project.
  */
-async function sendTypeScriptDiagnostics(
-  tsserver: TsServer,
-  session: SessionType,
-  cell: CodeCellType,
-) {
-  const response = await tsserver.semanticDiagnosticsSync({
-    file: pathToCodeFile(session.dir, cell.filename),
-  });
-
-  if (!response.success) {
-    console.warn(`Failed to get diagnostics for cell ${cell.id}: ${response.message}`);
-    return;
-  }
-
-  // The client will always reset diagnostics when the server sends them.
-  // Therefore, it is important to send diagnostics even when the list is
-  // empty because the client will not clear stale diagnostics otherwise.
-  const diagnostics = response.body || [];
-  wss.broadcast(`session:${session.id}`, 'tsserver:cell:diagnostics', {
-    cellId: cell.id,
-    diagnostics: diagnostics.map(normalizeDiagnostic),
-  });
+function requestAllDiagnostics(tsserver: TsServer, session: SessionType, delay = 0) {
+  const codeCells = session.cells.filter((cell) => cell.type === 'code') as CodeCellType[];
+  const files = codeCells.map((cell) => pathToCodeFile(session.dir, cell.filename));
+  tsserver.geterr({ files, delay });
 }
 
-function sendAllTypeScriptDiagnostics(tsserver: TsServer, session: SessionType) {
+function createTsServer(session: SessionType) {
+  const tsserver = tsservers.create(session.id, { cwd: session.dir });
+
+  const sessionId = session.id;
+
+  tsserver.onSemanticDiag(async (event) => {
+    const eventBody = event.body;
+
+    // Get most recent session state
+    const session = await findSession(sessionId);
+
+    if (!eventBody || !session) {
+      return;
+    }
+
+    const filename = filenameFromPath(eventBody.file);
+    const cells = session.cells.filter((cell) => cell.type === 'code') as CodeCellType[];
+    const cell = cells.find((c) => c.filename === filename);
+
+    if (!cell) {
+      return;
+    }
+
+    wss.broadcast(`session:${session.id}`, 'tsserver:cell:diagnostics', {
+      cellId: cell.id,
+      diagnostics: eventBody.diagnostics.map(normalizeDiagnostic),
+    });
+  });
+
+  // Open all code cells in tsserver
   for (const cell of session.cells) {
     if (cell.type === 'code') {
-      sendTypeScriptDiagnostics(tsserver, session, cell);
+      tsserver.open({
+        file: pathToCodeFile(session.dir, cell.filename),
+        fileContent: cell.source,
+      });
     }
   }
+
+  return tsserver;
 }
 
 async function tsserverStart(payload: TsServerStartPayloadType) {
@@ -402,21 +435,10 @@ async function tsserverStart(payload: TsServerStartPayloadType) {
     throw new Error(`tsserver can only be used with TypeScript Srcbooks.`);
   }
 
-  if (!tsservers.has(session.id)) {
-    const tsserver = tsservers.create(session.id, { cwd: session.dir });
-
-    // Open all code cells in tsserver
-    for (const cell of session.cells) {
-      if (cell.type === 'code') {
-        tsserver.open({
-          file: pathToCodeFile(session.dir, cell.filename),
-          fileContent: cell.source,
-        });
-      }
-    }
-  }
-
-  sendAllTypeScriptDiagnostics(tsservers.get(session.id), session);
+  requestAllDiagnostics(
+    tsservers.has(session.id) ? tsservers.get(session.id) : createTsServer(session),
+    session,
+  );
 }
 
 async function tsserverStop(payload: TsServerStopPayloadType) {

@@ -12,6 +12,7 @@ import {
   TsServerStopPayloadSchema,
   CellDeletePayloadSchema,
   TsServerCellDiagnosticsPayloadSchema,
+  CellRenamePayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -33,6 +34,7 @@ const OutgoingSessionEvents = {
   'cell:exec': CellExecPayloadSchema,
   'cell:stop': CellStopPayloadSchema,
   'cell:update': CellUpdatePayloadSchema,
+  'cell:rename': CellRenamePayloadSchema,
   'cell:delete': CellDeletePayloadSchema,
   'deps:install': DepsInstallPayloadSchema,
   'deps:validate': DepsValidatePayloadSchema,

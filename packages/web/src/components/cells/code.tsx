@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Circle, Play, Trash2 } from 'lucide-react';
+import { Circle, Info, Play, Trash2 } from 'lucide-react';
 import {
   CellType,
   CodeCellType,
@@ -29,10 +29,15 @@ export default function CodeCell(props: {
   onDeleteCell: (cell: CellType) => void;
 }) {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
-  const [error, setError] = useState<string | null>(null);
+  const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
 
   const { updateCell, clearOutput } = useCells();
+
+  function setFilenameError(error: string | null) {
+    _setFilenameError(error);
+    setTimeout(() => _setFilenameError(null), 3000);
+  }
 
   useEffect(() => {
     function callback(payload: CellErrorPayloadType) {
@@ -43,7 +48,7 @@ export default function CodeCell(props: {
       const filenameError = payload.errors.find((e) => e.attribute === 'filename');
 
       if (filenameError) {
-        setError(filenameError.message);
+        setFilenameError(filenameError.message);
       }
     }
 
@@ -53,7 +58,12 @@ export default function CodeCell(props: {
   }, [cell.id, channel]);
 
   function updateFilename(filename: string) {
-    onUpdateCell(cell, { filename });
+    updateCell({ ...cell, filename });
+    channel.push('cell:rename', {
+      sessionId: session.id,
+      cellId: cell.id,
+      filename,
+    });
   }
 
   function runCell() {
@@ -92,14 +102,24 @@ export default function CodeCell(props: {
         )}
       >
         <div className="p-1 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 w-[200px]">
+          <div className="flex items-center gap-1">
             <FilenameInput
               filename={cell.filename}
               onUpdate={updateFilename}
-              onChange={() => setError(null)}
-              className="font-mono font-semibold text-xs border-transparent hover:border-input transition-colors group-hover:border-input"
+              onChange={() => setFilenameError(null)}
+              className={cn(
+                'w-[200px] font-mono font-semibold text-xs transition-colors',
+                filenameError
+                  ? 'border-error'
+                  : 'border-transparent hover:border-input group-hover:border-input ',
+              )}
             />
-            {error && <div className="text-red-600 text-sm">{error}</div>}
+            {filenameError && (
+              <div className="bg-error text-error-foreground flex items-center rounded-sm border border-transparent px-[10px] py-2 text-sm leading-none font-medium">
+                <Info size={14} className="mr-1.5" />
+                Invalid filename
+              </div>
+            )}
           </div>
           <div
             className={cn(

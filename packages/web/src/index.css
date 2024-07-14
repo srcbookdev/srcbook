@@ -62,6 +62,8 @@
     --run-ring: var(--sb-yellow-50);
     --inline-code: var(--sb-core-20);
     --inline-code-foreground: var(--foreground);
+    --error: var(--sb-red-30);
+    --error-foreground: var(--sb-red-80);
   }
 
   .dark {
@@ -74,6 +76,8 @@
     --run-ring: var(--sb-yellow-50);
     --inline-code: var(--sb-core-110);
     --inline-code-foreground: var(--foreground);
+    --error: var(--sb-red-30);
+    --error-foreground: var(--sb-red-80);
   }
 
   /* shadcn variables light */

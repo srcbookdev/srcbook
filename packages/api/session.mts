@@ -28,6 +28,7 @@ import {
 } from './srcbook/index.mjs';
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';
+import { pathToCodeFile } from './srcbook/path.mjs';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -174,27 +175,46 @@ async function updateCodeCell(
   updates: any,
 ): Promise<UpdateResultType> {
   const attrs = CodeCellUpdateAttrsSchema.parse(updates);
+  return updateCellWithRollback(session, cell, { ...attrs }, async (session, updatedCell) => {
+    try {
+      await writeCellToDisk(
+        session.dir,
+        session.metadata,
+        session.cells,
+        updatedCell as CodeCellType,
+      );
+    } catch (e) {
+      console.error(e);
+      return [{ message: 'An error occurred persisting files to disk' }];
+    }
+  });
+}
 
-  // This shouldn't happen but it will cause the code below to fail
-  // when it shouldn't, so here we check if a mistake was made, log it,
-  // and ignore this attribute.
-  if (attrs.filename === cell.filename) {
+/**
+ * Use this to rename a code cell's filename.
+ */
+export async function updateCodeCellFilename(
+  session: SessionType,
+  cell: CodeCellType,
+  filename: string,
+): Promise<UpdateResultType> {
+  if (filename === cell.filename) {
     console.warn(
       `Attempted to update a cell's filename to its existing filename '${cell.filename}'. This is likely a bug in the code.`,
     );
-    delete attrs.filename;
+    return { success: true, cell };
   }
 
-  if (attrs.filename && !validFilename(attrs.filename)) {
+  if (!validFilename(filename)) {
     return {
       success: false,
-      errors: [{ message: `${attrs.filename} is not a valid filename`, attribute: 'filename' }],
+      errors: [{ message: `${filename} is not a valid filename`, attribute: 'filename' }],
     };
   }
 
   const language = session.metadata.language;
 
-  if (attrs.filename && language !== languageFromFilename(attrs.filename)) {
+  if (language !== languageFromFilename(filename)) {
     return {
       success: false,
       errors: [
@@ -206,34 +226,22 @@ async function updateCodeCell(
     };
   }
 
-  if (attrs.filename && (await fileExists(Path.join(session.dir, attrs.filename)))) {
+  if (await fileExists(pathToCodeFile(session.dir, filename))) {
     return {
       success: false,
-      errors: [
-        { message: `A file named '${attrs.filename}' already exists`, attribute: 'filename' },
-      ],
+      errors: [{ message: `A file named '${filename}' already exists`, attribute: 'filename' }],
     };
   }
 
-  const isChangingFilename = !!attrs.filename;
-
-  return updateCellWithRollback(session, cell, { ...attrs }, async (session, updatedCell) => {
+  return updateCellWithRollback(session, cell, { filename }, async (session, updatedCell) => {
     try {
-      const writes = isChangingFilename
-        ? moveCodeCellOnDisk(
-            session.dir,
-            session.metadata,
-            session.cells,
-            updatedCell as CodeCellType,
-            cell.filename,
-          )
-        : writeCellToDisk(
-            session.dir,
-            session.metadata,
-            session.cells,
-            updatedCell as CodeCellType,
-          );
-      await writes;
+      await moveCodeCellOnDisk(
+        session.dir,
+        session.metadata,
+        session.cells,
+        updatedCell as CodeCellType,
+        cell.filename,
+      );
     } catch (e) {
       console.error(e);
       return [{ message: 'An error occurred persisting files to disk' }];

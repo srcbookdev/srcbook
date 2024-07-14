@@ -120,9 +120,9 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     getValidationError?: (cell: T) => string | null,
   ) {
     getValidationError = getValidationError || (() => null);
-    updateCell({ ...cell, ...(updates as Partial<T>) });
+    updateCell({ ...cell, ...updates });
 
-    const error = getValidationError({ ...cell, ...(updates as Partial<T>) });
+    const error = getValidationError({ ...cell, ...updates });
     if (typeof error === 'string') {
       return error;
     }

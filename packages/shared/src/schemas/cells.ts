@@ -56,9 +56,10 @@ export const PackageJsonCellUpdateAttrsSchema = z.object({
   source: z.string(),
 });
 
+// filename not allowed here because renaming
+// a file has a separate websocket message.
 export const CodeCellUpdateAttrsSchema = z.object({
-  source: z.string().optional(),
-  filename: z.string().optional(),
+  source: z.string(),
 });
 
 export const CellUpdateAttrsSchema = z.union([

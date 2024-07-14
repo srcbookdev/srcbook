@@ -68,7 +68,7 @@ export function normalizeDiagnostic(
     };
   } else {
     return {
-      // From what I can tell, code should always be present depsite the type.
+      // From what I can tell, code should always be present despite the type.
       // If it's not, we use 1000 as the 'unknown' error code, which is not a
       // code defined in diagnosticMessages.json in TypeScript's source.
       code: diagnostic.code || 1000,

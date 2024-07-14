@@ -1,4 +1,4 @@
-import { CellType, CodeCellType, MarkdownCellType, CodeLanguageType } from '@srcbook/shared';
+import { CodeLanguageType } from '@srcbook/shared';
 import { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
 
 const API_BASE_URL = 'http://localhost:2150/api';
@@ -191,32 +191,6 @@ export async function exportSrcmdFile(sessionId: string, request: ExportSrcmdFil
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    console.error(response);
-    throw new Error('Request failed');
-  }
-
-  return response.json();
-}
-
-interface CreateCellRequestType {
-  sessionId: string;
-  cell: CodeCellType | MarkdownCellType;
-  index?: number;
-}
-
-interface CreateCellResponseType {
-  error: boolean;
-  result: CellType;
-}
-
-export async function createCell(request: CreateCellRequestType): Promise<CreateCellResponseType> {
-  const response = await fetch(API_BASE_URL + '/sessions/' + request.sessionId + '/cells', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ cell: request.cell, index: request.index }),
   });
 
   if (!response.ok) {

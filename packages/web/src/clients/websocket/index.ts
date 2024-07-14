@@ -1,5 +1,6 @@
 import {
   CellOutputPayloadSchema,
+  CellCreatePayloadSchema,
   CellUpdatedPayloadSchema,
   DepsValidateResponsePayloadSchema,
   CellExecPayloadSchema,
@@ -33,6 +34,7 @@ const IncomingSessionEvents = {
 const OutgoingSessionEvents = {
   'cell:exec': CellExecPayloadSchema,
   'cell:stop': CellStopPayloadSchema,
+  'cell:create': CellCreatePayloadSchema,
   'cell:update': CellUpdatePayloadSchema,
   'cell:rename': CellRenamePayloadSchema,
   'cell:delete': CellDeletePayloadSchema,

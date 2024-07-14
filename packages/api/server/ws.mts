@@ -8,6 +8,7 @@ import {
   updateCell,
   removeCell,
   updateCodeCellFilename,
+  addCell,
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
 import type { SessionType } from '../types.mjs';
@@ -27,6 +28,7 @@ import type {
   CellDeletePayloadType,
   CellRenamePayloadType,
   CellErrorType,
+  CellCreatePayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -43,6 +45,7 @@ import {
   TsServerStartPayloadSchema,
   TsServerStopPayloadSchema,
   TsServerCellDiagnosticsPayloadSchema,
+  CellCreatePayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -260,6 +263,34 @@ async function cellStop(payload: CellStopPayloadType) {
     console.error(
       `Attempted to kill process for session ${session.id} and cell ${cell.id} but it didn't die`,
     );
+  }
+}
+
+async function cellCreate(payload: CellCreatePayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  const { index, cell } = payload;
+
+  // TODO: handle potential errors
+  await addCell(session, cell, index);
+
+  if (
+    session.metadata.language === 'typescript' &&
+    cell.type === 'code' &&
+    tsservers.has(session.id)
+  ) {
+    const tsserver = tsservers.get(session.id);
+
+    tsserver.open({
+      file: pathToCodeFile(session.dir, cell.filename),
+      fileContent: cell.source,
+    });
+
+    requestAllDiagnostics(tsserver, session);
   }
 }
 
@@ -512,6 +543,7 @@ wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
   .incoming('cell:stop', CellStopPayloadSchema, cellStop)
+  .incoming('cell:create', CellCreatePayloadSchema, cellCreate)
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
   .incoming('cell:rename', CellRenamePayloadSchema, cellRename)
   .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)

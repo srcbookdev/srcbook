@@ -300,18 +300,6 @@ export async function deleteSecret(request: DeleteSecretRequestType) {
   return response.json();
 }
 
-export async function getNodeVersion() {
-  const response = await fetch(API_BASE_URL + '/node_version', {
-    headers: { 'content-type': 'application/json' },
-  });
-
-  if (!response.ok) {
-    console.error(response);
-    throw new Error('Request failed');
-  }
-  return response.json();
-}
-
 // NPM package search, has to happen on the server given CORS restrictions
 export async function searchNpmPackages(query: string, size: number) {
   if (query === '') {

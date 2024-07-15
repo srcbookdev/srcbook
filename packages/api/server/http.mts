@@ -252,11 +252,6 @@ router.delete('/secrets/:name', cors(), async (req, res) => {
   return res.json({ result: updated });
 });
 
-router.options('/node_version', cors());
-router.get('/node_version', cors(), async (_req, res) => {
-  return res.json({ result: process.version });
-});
-
 type NpmSearchResult = {
   package: {
     name: string;

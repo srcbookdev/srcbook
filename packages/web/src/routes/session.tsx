@@ -192,6 +192,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
             {cell.type === 'markdown' && (
               <MarkdownCell cell={cell} onUpdateCell={onUpdateCell} onDeleteCell={onDeleteCell} />
             )}
+
+            {cell.type === 'placeholder' && <div>placeholder</div>}
           </div>
         ))}
 

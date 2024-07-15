@@ -29,11 +29,17 @@ export const CodeCellSchema = z.object({
   status: z.enum(['idle', 'running']),
 });
 
+export const PlaceholderCellSchema = z.object({
+  id: z.string(),
+  type: z.literal('placeholder'),
+});
+
 export const CellSchema = z.union([
   TitleCellSchema,
   MarkdownCellSchema,
   PackageJsonCellSchema,
   CodeCellSchema,
+  PlaceholderCellSchema,
 ]);
 
 export const SrcbookMetadataSchema = z.object({

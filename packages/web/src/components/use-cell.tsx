@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, ReactNode, useRef, useReducer }
 import {
   CellType,
   CodeCellType,
+  PlaceholderCellType,
   CodeLanguageType,
   MarkdownCellType,
   TsServerDiagnosticType,
@@ -73,6 +74,7 @@ interface CellsContextType {
     attrs?: Partial<CodeCellType>,
   ) => CodeCellType;
   createMarkdownCell: (idx: number, attrs?: Partial<MarkdownCellType>) => MarkdownCellType;
+  createPlaceholderCell: (idx: number) => PlaceholderCellType;
   hasOutput: (id: string, type?: 'stdout' | 'stderr') => boolean;
   getOutput: (id: string, type?: 'stdout' | 'stderr') => Array<OutputType>;
   setOutput: (id: string, output: OutputType | OutputType[]) => void;

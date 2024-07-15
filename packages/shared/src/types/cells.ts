@@ -6,6 +6,7 @@ import {
   MarkdownCellSchema,
   PackageJsonCellSchema,
   CodeCellSchema,
+  PlaceholderCellSchema,
   TitleCellUpdateAttrsSchema,
   MarkdownCellUpdateAttrsSchema,
   PackageJsonCellUpdateAttrsSchema,
@@ -19,6 +20,7 @@ export type MarkdownCellType = z.infer<typeof MarkdownCellSchema>;
 export type PackageJsonCellType = z.infer<typeof PackageJsonCellSchema>;
 export type CodeCellType = z.infer<typeof CodeCellSchema>;
 export type CellType = z.infer<typeof CellSchema>;
+export type PlaceholderCellType = z.infer<typeof PlaceholderCellSchema>;
 
 export type TitleCellUpdateAttrsType = z.infer<typeof TitleCellUpdateAttrsSchema>;
 export type MarkdownCellUpdateAttrsType = z.infer<typeof MarkdownCellUpdateAttrsSchema>;

@@ -59,6 +59,13 @@ function buildMarkdownCell(attrs: Partial<MarkdownCellType> = {}): MarkdownCellT
   };
 }
 
+function buildPlaceholderCell(): PlaceholderCellType {
+  return {
+    id: randomid(),
+    type: 'placeholder',
+  };
+}
+
 type OutputStateType = Record<string, OutputType[]>;
 type TsServerStateType = Record<string, TsServerDiagnosticType[]>;
 
@@ -161,6 +168,15 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
     [insertCellAt],
   );
 
+  const createPlaceholderCell = useCallback(
+    (idx: number) => {
+      const cell = buildPlaceholderCell();
+      insertCellAt(cell, idx);
+      return cell;
+    },
+    [insertCellAt],
+  );
+
   const hasOutput = useCallback((id: string, type?: 'stdout' | 'stderr') => {
     const output = outputRef.current[id] || [];
     const length = type ? output.filter((o) => o.type === type).length : output.length;
@@ -213,6 +229,7 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
         insertCellAt,
         createCodeCell,
         createMarkdownCell,
+        createPlaceholderCell,
         hasOutput,
         getOutput,
         setOutput,

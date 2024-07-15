@@ -189,5 +189,3 @@ console.log(`Is string: ${B}`); // Output: Is string: No
 
  Write the best possible code you can, as if you were an expert TypeScript engineer. Focus on being elegant, concise, clear. Keep things simple and explicit.
 ===== END FINAL INSTRUCTIONS ===
-
-

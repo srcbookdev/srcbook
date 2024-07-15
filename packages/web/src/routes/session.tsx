@@ -7,6 +7,7 @@ import {
   CellUpdateAttrsType,
   TsServerCellDiagnosticsPayloadType,
   CodeLanguageType,
+  PlaceholderCellType,
   MarkdownCellType,
   CodeCellType,
   TitleCellType,
@@ -71,6 +72,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     removeCell,
     createCodeCell,
     createMarkdownCell,
+    createPlaceholderCell,
     setOutput,
     setTsServerDiagnostics,
   } = useCells();
@@ -140,12 +142,20 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     return null;
   }
 
-  async function createNewCell(type: 'code' | 'markdown', index: number) {
+  async function createNewCell(type: 'code' | 'markdown' | 'placeholder', index: number) {
     // Create on client
-    const cell =
-      type === 'code'
-        ? createCodeCell(index, session.metadata.language)
-        : createMarkdownCell(index);
+    let cell;
+    switch (type) {
+      case 'code':
+        cell = createCodeCell(index, session.metadata.language);
+        break;
+      case 'markdown':
+        cell = createMarkdownCell(index);
+        break;
+      case 'placeholder':
+        cell = createPlaceholderCell(index);
+        break;
+    }
 
     // Push to server
     // TODO: Handle potential errors (eg, rollback optimistic client creation if there are errors)
@@ -154,7 +164,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
   // TOOD: We need to stop treating titles and package.json as cells.
   const [titleCell, packageJsonCell, ...remainingCells] = allCells;
-  const cells = remainingCells as (MarkdownCellType | CodeCellType)[];
+  const cells = remainingCells as (MarkdownCellType | CodeCellType | PlaceholderCellType)[];
 
   return (
     <>
@@ -177,6 +187,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
               language={session.metadata.language}
               createCodeCell={() => createNewCell('code', idx + 2)}
               createMarkdownCell={() => createNewCell('markdown', idx + 2)}
+              createPlaceholderCell={() => createNewCell('placeholder', allCells.length)}
             />
 
             {cell.type === 'code' && (
@@ -202,6 +213,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
           language={session.metadata.language}
           createCodeCell={() => createNewCell('code', allCells.length)}
           createMarkdownCell={() => createNewCell('markdown', allCells.length)}
+          createPlaceholderCell={() => createNewCell('placeholder', allCells.length)}
           className={cn('h-14', cells.length === 0 && 'opacity-100')}
         />
       </div>
@@ -212,6 +224,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 function InsertCellDivider(props: {
   createCodeCell: () => void;
   createMarkdownCell: () => void;
+  createPlaceholderCell: () => void;
   language: CodeLanguageType;
   className?: string;
 }) {
@@ -241,6 +254,13 @@ function InsertCellDivider(props: {
             onClick={props.createMarkdownCell}
           >
             Markdown
+          </Button>
+          <Button
+            variant="secondary"
+            className="border-none rounded-md rounded-l-none"
+            onClick={props.createPlaceholderCell}
+          >
+            Create with AI
           </Button>
         </div>
       </div>

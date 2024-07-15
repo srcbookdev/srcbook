@@ -161,7 +161,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
       <SessionMenu session={session} />
 
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
-      <div className="px-[72px] xl:pl-[100px]">
+      <div className="px-[72px] xl:pl-[100px] pb-28">
         <TitleCell cell={titleCell as TitleCellType} onUpdateCell={onUpdateCell} />
 
         <PackageJsonCell

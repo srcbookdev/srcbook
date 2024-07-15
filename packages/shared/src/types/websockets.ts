@@ -3,6 +3,7 @@ import z from 'zod';
 import {
   CellExecPayloadSchema,
   CellStopPayloadSchema,
+  CellCreatePayloadSchema,
   CellUpdatePayloadSchema,
   CellUpdatedPayloadSchema,
   CellRenamePayloadSchema,
@@ -19,6 +20,7 @@ import {
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
 export type CellStopPayloadType = z.infer<typeof CellStopPayloadSchema>;
+export type CellCreatePayloadType = z.infer<typeof CellCreatePayloadSchema>;
 export type CellUpdatePayloadType = z.infer<typeof CellUpdatePayloadSchema>;
 export type CellUpdatedPayloadType = z.infer<typeof CellUpdatedPayloadSchema>;
 export type CellRenamePayloadType = z.infer<typeof CellRenamePayloadSchema>;

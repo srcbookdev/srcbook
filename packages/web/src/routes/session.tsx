@@ -6,8 +6,13 @@ import {
   CellUpdatedPayloadType,
   CellUpdateAttrsType,
   TsServerCellDiagnosticsPayloadType,
+  CodeLanguageType,
+  MarkdownCellType,
+  CodeCellType,
+  TitleCellType,
+  PackageJsonCellType,
 } from '@srcbook/shared';
-import { loadSession, createCell } from '@/lib/server';
+import { loadSession } from '@/lib/server';
 import { SessionType } from '@/types';
 import TitleCell from '@/components/cells/title';
 import MarkdownCell from '@/components/cells/markdown';
@@ -18,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import useEffectOnce from '@/components/use-effect-once';
+import { cn } from '@/lib/utils';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const { result: session } = await loadSession({ id: params.id! });
@@ -60,8 +66,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   const { session, channel } = props;
 
   const {
-    cells,
-    setCells,
+    cells: allCells,
     updateCell,
     removeCell,
     createCodeCell,
@@ -142,14 +147,14 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         ? createCodeCell(index, session.metadata.language)
         : createMarkdownCell(index);
 
-    const response = await createCell({ sessionId: session.id, cell, index });
-
-    if (response.error) {
-      // Undo client cell creation
-      setCells(cells);
-      console.error('Failed to update cell', response);
-    }
+    // Push to server
+    // TODO: Handle potential errors (eg, rollback optimistic client creation if there are errors)
+    channel.push('cell:create', { sessionId: session.id, index, cell });
   }
+
+  // TOOD: We need to stop treating titles and package.json as cells.
+  const [titleCell, packageJsonCell, ...remainingCells] = allCells;
+  const cells = remainingCells as (MarkdownCellType | CodeCellType)[];
 
   return (
     <>
@@ -157,114 +162,88 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
       <div className="px-[72px] xl:pl-[100px]">
+        <TitleCell cell={titleCell as TitleCellType} onUpdateCell={onUpdateCell} />
+
+        <PackageJsonCell
+          session={session}
+          channel={channel}
+          cell={packageJsonCell as PackageJsonCellType}
+          onUpdateCell={onUpdateCell}
+        />
+
         {cells.map((cell, idx) => (
-          <div key={`wrapper-${cell.id}`}>
-            {idx > 1 && (
-              <div className="relative h-5 flex items-center opacity-0 hover:opacity-100 transition-opacity">
-                <div className="w-[calc(100%-4px)] h-[1px] mx-auto bg-border"></div>
-                <div className="absolute h-10 mt-0.5 -translate-x-full">
-                  <div className="flex mr-4 border rounded-sm bg-background">
-                    <Button
-                      variant="secondary"
-                      className="border-none rounded-r-none"
-                      onClick={() => createNewCell('code', idx)}
-                    >
-                      {session.metadata.language === 'javascript' ? 'JS' : 'TS'}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className="border-none rounded-l-none"
-                      onClick={() => createNewCell('markdown', idx)}
-                    >
-                      MD
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-            <Cell
-              key={cell.id}
-              cell={cell}
-              session={session}
-              channel={channel}
-              onUpdateCell={onUpdateCell}
-              onDeleteCell={onDeleteCell}
+          <div key={cell.id}>
+            <InsertCellDivider
+              language={session.metadata.language}
+              createCodeCell={() => createNewCell('code', idx + 2)}
+              createMarkdownCell={() => createNewCell('markdown', idx + 2)}
             />
+
+            {cell.type === 'code' && (
+              <CodeCell
+                cell={cell}
+                session={session}
+                channel={channel}
+                onUpdateCell={onUpdateCell}
+                onDeleteCell={onDeleteCell}
+              />
+            )}
+
+            {cell.type === 'markdown' && (
+              <MarkdownCell cell={cell} onUpdateCell={onUpdateCell} onDeleteCell={onDeleteCell} />
+            )}
           </div>
         ))}
 
-        {/** -- Add some padding at the bottom to make it more breathable + activate the new cell more easily */}
-        <div className="pt-2 min-h-64 opacity-0 hover:opacity-100 transition-opacity">
-          <div className="flex items-center px-0.5 gap-2">
-            <div className="flex-grow h-[1px] bg-border"></div>
-            <div className="flex border rounded-sm bg-background">
-              <Button
-                variant="secondary"
-                className="border-none rounded-r-none"
-                onClick={() => createNewCell('code', cells.length)}
-              >
-                {session.metadata.language === 'javascript' ? 'JavaScript' : 'TypeScript'}
-              </Button>
-              <Button
-                variant="secondary"
-                className="border-none rounded-l-none"
-                onClick={() => createNewCell('markdown', cells.length)}
-              >
-                Markdown
-              </Button>
-            </div>
-            <div className="flex-grow h-[1px] bg-border"></div>
-          </div>
-        </div>
+        {/* There is always an insert cell divider after the last cell */}
+        <InsertCellDivider
+          language={session.metadata.language}
+          createCodeCell={() => createNewCell('code', allCells.length)}
+          createMarkdownCell={() => createNewCell('markdown', allCells.length)}
+          className={cn('h-14', cells.length === 0 && 'opacity-100')}
+        />
       </div>
     </>
   );
 }
 
-function Cell(props: {
-  cell: CellType;
-  session: SessionType;
-  channel: SessionChannel;
-  onUpdateCell: <T extends CellType>(
-    cell: T,
-    attrs: CellUpdateAttrsType,
-    getValidationError?: (cell: T) => string | null,
-  ) => Promise<string | null>;
-  onDeleteCell: (cell: CellType) => void;
+function InsertCellDivider(props: {
+  createCodeCell: () => void;
+  createMarkdownCell: () => void;
+  language: CodeLanguageType;
+  className?: string;
 }) {
-  switch (props.cell.type) {
-    case 'title':
-      return <TitleCell cell={props.cell} onUpdateCell={props.onUpdateCell} />;
-    case 'code':
-      return (
-        <CodeCell
-          session={props.session}
-          cell={props.cell}
-          channel={props.channel}
-          onUpdateCell={props.onUpdateCell}
-          onDeleteCell={props.onDeleteCell}
-        />
-      );
-    case 'markdown':
-      return (
-        <MarkdownCell
-          cell={props.cell}
-          onUpdateCell={props.onUpdateCell}
-          onDeleteCell={props.onDeleteCell}
-        />
-      );
-    case 'package.json':
-      return (
-        <PackageJsonCell
-          session={props.session}
-          channel={props.channel}
-          cell={props.cell}
-          onUpdateCell={props.onUpdateCell}
-        />
-      );
-    default:
-      throw new Error('Unrecognized cell type');
-  }
+  return (
+    <div
+      className={cn(
+        'h-5 relative z-10 opacity-0 hover:opacity-100 transition-opacity',
+        props.className,
+      )}
+    >
+      <div className="h-full px-3 flex flex-col justify-center">
+        <div className="w-full h-[1px] bg-border"></div>
+      </div>
+
+      <div className="absolute top-0 w-full h-full flex items-center justify-center">
+        <div className="flex mr-4 border rounded-md bg-background shadow">
+          <Button
+            variant="secondary"
+            className="border-none rounded-md rounded-r-none"
+            onClick={props.createCodeCell}
+          >
+            {props.language === 'javascript' ? 'JavaScript' : 'TypeScript'}
+          </Button>
+          <Button
+            variant="secondary"
+            className="border-none rounded-md rounded-l-none"
+            onClick={props.createMarkdownCell}
+          >
+            Markdown
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 SessionPage.loader = loader;

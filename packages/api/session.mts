@@ -76,6 +76,23 @@ export async function listSessions(): Promise<Record<string, SessionType>> {
   return sessions;
 }
 
+export async function addCell(
+  session: SessionType,
+  cell: MarkdownCellType | CodeCellType,
+  index: number,
+) {
+  const cells = insertCellAt(session, cell, index);
+
+  session.cells = cells;
+
+  switch (cell.type) {
+    case 'markdown':
+      return writeReadmeToDisk(session.dir, session.metadata, session.cells);
+    case 'code':
+      return writeCellToDisk(session.dir, session.metadata, session.cells, cell);
+  }
+}
+
 export async function updateSession(
   session: SessionType,
   updates: Partial<SessionType>,

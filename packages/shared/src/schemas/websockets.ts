@@ -1,5 +1,5 @@
 import z from 'zod';
-import { CellSchema, CellUpdateAttrsSchema } from './cells.js';
+import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells.js';
 import { TsServerDiagnosticSchema } from './tsserver.js';
 
 export const CellExecPayloadSchema = z.object({
@@ -10,6 +10,12 @@ export const CellExecPayloadSchema = z.object({
 export const CellStopPayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
+});
+
+export const CellCreatePayloadSchema = z.object({
+  sessionId: z.string(),
+  index: z.number(),
+  cell: z.union([MarkdownCellSchema, CodeCellSchema]),
 });
 
 export const CellUpdatePayloadSchema = z.object({

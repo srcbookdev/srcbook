@@ -4,7 +4,6 @@ import fs from 'node:fs/promises';
 import { SRCBOOKS_DIR } from '../constants.mjs';
 import express, { type Application } from 'express';
 import cors from 'cors';
-import type { MarkdownCellType, CodeCellType } from '@srcbook/shared';
 import {
   createSession,
   findSession,
@@ -13,7 +12,6 @@ import {
   updateSession,
   sessionToResponse,
   listSessions,
-  insertCellAt,
 } from '../session.mjs';
 import { generateSrcbook } from '../ai/srcbook-generator.mjs';
 import { disk } from '../utils.mjs';
@@ -199,29 +197,6 @@ router.post('/sessions/:id/export', cors(), async (req, res) => {
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
-});
-
-router.options('/sessions/:id/cells', cors());
-// Create a new cell. If no index is provided, append to the end, otherwise insert at the index
-router.post('/sessions/:id/cells', cors(), async (req, res) => {
-  const { id } = req.params;
-  const { cell, index } = req.body as { cell: CodeCellType | MarkdownCellType; index: number };
-
-  if (cell.type !== 'code' && cell.type !== 'markdown') {
-    return res
-      .status(400)
-      .json({ error: true, message: 'Cell must be either a code cell or markdown cell' });
-  }
-
-  // First 2 cells are reserved (title and package.json)
-  if (typeof index !== 'number' || index < 2) {
-    return res.status(400).json({ error: true, message: 'Index is required' });
-  }
-
-  const session = await findSession(id);
-  const updatedCells = insertCellAt(session, cell, index);
-  updateSession(session, { cells: updatedCells });
-  return res.json({ error: false, result: cell });
 });
 
 router.options('/settings', cors());

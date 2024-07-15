@@ -39,6 +39,11 @@ export class TsServers {
     }
 
     // This is using the TypeScript dependency in the user's Srcbook.
+    //
+    // Note: If a user creates a typescript Srcbook, when it is first
+    // created, the dependencies are not installed and thus this will
+    // shut down immediately. Make sure that we handle this case after
+    // package.json has finished installing its deps.
     const child = spawn('npx', ['tsserver'], {
       cwd: options.cwd,
     });
@@ -55,14 +60,13 @@ export class TsServers {
   }
 
   shutdown(id: string) {
-    const server = this.get(id);
-
-    if (!server) {
-      throw new Error(`tsserver for ${id} does not exist.`);
+    if (!this.has(id)) {
+      console.warn(`tsserver for ${id} does not exist. Skipping shutdown.`);
+      return;
     }
 
     // The server is removed from this.servers in the
     // process exit handler which covers all exit cases.
-    return server.shutdown();
+    return this.get(id).shutdown();
   }
 }

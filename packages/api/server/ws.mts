@@ -237,8 +237,30 @@ async function depsInstall(payload: DepsInstallPayloadType) {
           source: updatedJsonSource,
           status: 'idle',
         };
-        updateSession(session, { cells: replaceCell(session, updatedCell) }, false);
-        wss.broadcast(`session:${session.id}`, 'cell:updated', { cell: updatedCell });
+
+        const updatedSession = await updateSession(
+          session,
+          { cells: replaceCell(session, updatedCell) },
+          false,
+        );
+
+        wss.broadcast(`session:${updatedSession.id}`, 'cell:updated', { cell: updatedCell });
+
+        if (updatedSession.metadata.language === 'typescript') {
+          const mustCreateTsServer = !tsservers.has(updatedSession.id);
+
+          // Make sure to handle the following case here:
+          //
+          // 1. User creates a new typescript Srcbook
+          // 3. There is no tsserver running because it relies on the typescript package in the Srcbook's node modules, which are not yet installed.
+          // 4. Now that we just installed the dependencies, we need to create a new tsserver instance.
+          const tsserver = mustCreateTsServer
+            ? createTsServer(updatedSession)
+            : tsservers.get(updatedSession.id);
+
+          // Update all code cell diagnostics now that we have new packages available.
+          requestAllDiagnostics(tsserver, updatedSession);
+        }
       },
     }),
   );

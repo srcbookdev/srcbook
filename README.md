@@ -12,6 +12,10 @@ To learn more, try out the interactive tutorial which is itself a Srcbook by cli
 
 ![the getting started srcbook](./assets/getting-started-srcbook.png)
 
+## Note
+
+Srcbook is currently in alpha which means there may be breaking changes until it's out of alpha.
+
 ## Requirements
 
 Srcbook requires node v22+. We highly recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions.

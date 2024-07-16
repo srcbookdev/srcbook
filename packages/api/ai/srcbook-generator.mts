@@ -15,12 +15,7 @@ const makeGenerateSrcbookSystemPrompt = () => {
 };
 
 const makeGenerateCellSystemPrompt = (language: CodeLanguageType) => {
-  switch (language) {
-    case 'javascript':
-      throw new Error('Not implemented');
-    case 'typescript':
-      return readFileSync(Path.join(PROMPTS_DIR, 'cell-generator-typescript.txt'), 'utf-8');
-  }
+  return readFileSync(Path.join(PROMPTS_DIR, `cell-generator-${language}.txt`), 'utf-8');
 };
 
 const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, query: string) => {

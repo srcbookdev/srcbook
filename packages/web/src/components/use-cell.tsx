@@ -7,9 +7,11 @@ import {
   TsServerDiagnosticType,
   getDefaultExtensionForLanguage,
 } from '@srcbook/shared';
-import { OutputType } from '@/types';
+import { GenerateAICodeCellType, OutputType } from '@/types';
 
 import { randomid } from '@srcbook/shared';
+
+type ClientCellType = CellType | GenerateAICodeCellType;
 
 /**
  * Utility function to generate a unique filename for a code cell,
@@ -30,8 +32,16 @@ function generateUniqueFilename(existingFilenames: string[], language: CodeLangu
   return filename;
 }
 
+function buildGenerateAiCodeCell(language: CodeLanguageType): GenerateAICodeCellType {
+  return {
+    id: randomid(),
+    type: 'generate-ai-code',
+    language,
+  };
+}
+
 function buildCodeCell(
-  cells: CellType[],
+  cells: ClientCellType[],
   language: CodeLanguageType,
   attrs: Partial<CodeCellType> = {},
 ): CodeCellType {
@@ -62,17 +72,18 @@ type OutputStateType = Record<string, OutputType[]>;
 type TsServerStateType = Record<string, TsServerDiagnosticType[]>;
 
 interface CellsContextType {
-  cells: CellType[];
-  setCells: (cells: CellType[]) => void;
-  updateCell: (cell: CellType) => void;
-  removeCell: (cell: CellType) => void;
-  insertCellAt: (cell: CellType, idx: number) => void;
+  cells: ClientCellType[];
+  setCells: (cells: ClientCellType[]) => void;
+  updateCell: (cell: ClientCellType) => void;
+  removeCell: (cell: ClientCellType) => void;
+  insertCellAt: (cell: ClientCellType, idx: number) => void;
   createCodeCell: (
     idx: number,
     language: CodeLanguageType,
     attrs?: Partial<CodeCellType>,
   ) => CodeCellType;
   createMarkdownCell: (idx: number, attrs?: Partial<MarkdownCellType>) => MarkdownCellType;
+  createGenerateAiCodeCell: (idx: number, language: CodeLanguageType) => GenerateAICodeCellType;
   hasOutput: (id: string, type?: 'stdout' | 'stderr') => boolean;
   getOutput: (id: string, type?: 'stdout' | 'stderr') => Array<OutputType>;
   setOutput: (id: string, output: OutputType | OutputType[]) => void;
@@ -83,12 +94,12 @@ interface CellsContextType {
 
 const CellsContext = createContext<CellsContextType | undefined>(undefined);
 
-export const CellsProvider: React.FC<{ initialCells: CellType[]; children: ReactNode }> = ({
+export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children: ReactNode }> = ({
   initialCells,
   children,
 }) => {
   // Use ref to help avoid stale state bugs in closures.
-  const cellsRef = useRef<CellType[]>(initialCells);
+  const cellsRef = useRef<ClientCellType[]>(initialCells);
 
   // Use ref to help avoid stale state bugs in closures.
   const outputRef = useRef<OutputStateType>({});
@@ -103,7 +114,7 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
   //
   const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
 
-  const stableSetCells = useCallback((cells: CellType[]) => {
+  const stableSetCells = useCallback((cells: ClientCellType[]) => {
     cellsRef.current = cells;
     forceComponentRerender();
   }, []);
@@ -119,21 +130,21 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
   }, []);
 
   const updateCell = useCallback(
-    (cell: CellType) => {
+    (cell: ClientCellType) => {
       stableSetCells(cellsRef.current.map((c) => (c.id === cell.id ? cell : c)));
     },
     [stableSetCells],
   );
 
   const removeCell = useCallback(
-    (cell: CellType) => {
+    (cell: ClientCellType) => {
       stableSetCells(cellsRef.current.filter((c) => c.id !== cell.id));
     },
     [stableSetCells],
   );
 
   const insertCellAt = useCallback(
-    (cell: CellType, idx: number) => {
+    (cell: ClientCellType, idx: number) => {
       const copy = [...cellsRef.current];
       copy.splice(idx, 0, cell);
       stableSetCells(copy);
@@ -144,6 +155,15 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
   const createCodeCell = useCallback(
     (idx: number, language: CodeLanguageType, attrs?: Partial<CodeCellType>) => {
       const cell = buildCodeCell(cellsRef.current, language, attrs);
+      insertCellAt(cell, idx);
+      return cell;
+    },
+    [insertCellAt],
+  );
+
+  const createGenerateAiCodeCell = useCallback(
+    (idx: number, language: CodeLanguageType) => {
+      const cell = buildGenerateAiCodeCell(language);
       insertCellAt(cell, idx);
       return cell;
     },
@@ -211,6 +231,7 @@ export const CellsProvider: React.FC<{ initialCells: CellType[]; children: React
         insertCellAt,
         createCodeCell,
         createMarkdownCell,
+        createGenerateAiCodeCell,
         hasOutput,
         getOutput,
         setOutput,

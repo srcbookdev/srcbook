@@ -1,4 +1,4 @@
-import { CodeLanguageType } from '@srcbook/shared';
+import { CodeLanguageType, type CodeCellType } from '@srcbook/shared';
 import { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
 
 const API_BASE_URL = 'http://localhost:2150/api';
@@ -103,6 +103,28 @@ export async function generateSrcbook(
   request: GenerateSrcbookRequestType,
 ): Promise<GenerateSrcbookResponseType> {
   const response = await fetch(API_BASE_URL + '/generate', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
+type GenerateCellRequestType = { insertIdx: number; query: string };
+type GenerateCellResponseType =
+  | { error: true; result: string }
+  | { error: false; result: CodeCellType };
+export async function generateCell(
+  sessionId: string,
+  request: GenerateCellRequestType,
+): Promise<GenerateCellResponseType> {
+  const response = await fetch(API_BASE_URL + '/sessions/' + sessionId + '/generate_cell', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),

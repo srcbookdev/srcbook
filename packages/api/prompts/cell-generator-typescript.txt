@@ -171,9 +171,11 @@ Breadth-First Search (BFS) is a fundamental algorithm for graph traversal. It is
 
 ===== FINAL INSTRUCTIONS =====
 The user's Srcbook will be passed to you, surrounded with "==== BEGIN SRCBOOK ====" and "==== END SRCBOOK ====".  The location of the cell you're providing code for will be marked with  "==== INTRODUCE CELL HERE ====", inserted at the place where they are requesting a new code cell. 
-Your job is to write the file name, and the TypeScript code for this cell following instructions. ONLY RETURN THESE THINGS, NO PREAMBULE, NO SUFFIX, ONLY THE FILENAME AND CODE.
+Finally, the user's request will be passed to you between "==== USER REQUEST ====" and "==== END USER REQUEST ====".
+Your job is to write the file name, and the TypeScript code for this cell according to the Srcbook spec. 
+ONLY RETURN THESE THINGS, NO PREAMBULE, NO SUFFIX, ONLY THE FILENAME AND CODE.
 
-For example you return _only_ what is within the <example> tags below:
+An example return value for you follows, you would return _only_ what is within the <example> tags:
 <example>
 ###### conditional-types.ts
 ```typescript

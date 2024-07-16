@@ -38,3 +38,9 @@ export type ExampleSrcbookType = {
   dirname: string;
   description: string;
 };
+
+export type GenerateAICodeCellType = {
+  id: string;
+  type: 'generate-ai-code';
+  language: CodeLanguageType;
+};

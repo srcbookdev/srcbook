@@ -13,7 +13,7 @@ import {
   PackageJsonCellType,
 } from '@srcbook/shared';
 import { loadSession } from '@/lib/server';
-import { SessionType, type GenerateAICodeCellType } from '@/types';
+import { SessionType, type GenerateAICellType } from '@/types';
 import TitleCell from '@/components/cells/title';
 import MarkdownCell from '@/components/cells/markdown';
 import GenerateAiCell from '@/components/cells/generate-ai';
@@ -72,12 +72,12 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     removeCell,
     createCodeCell,
     createMarkdownCell,
-    createGenerateAiCodeCell,
+    createGenerateAiCell,
     setOutput,
     setTsServerDiagnostics,
   } = useCells();
 
-  async function onDeleteCell(cell: CellType | GenerateAICodeCellType) {
+  async function onDeleteCell(cell: CellType | GenerateAICellType) {
     if (cell.type === 'title') {
       throw new Error('Cannot delete title cell');
     }
@@ -142,7 +142,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     return null;
   }
 
-  async function createNewCell(type: 'code' | 'markdown' | 'code-generate-ai', index: number) {
+  async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
     // Create on client first.
     // Then, push to server for code cells or markdown cells, but _not_ AI generation which is client side only
     // TODO: question this ^
@@ -157,8 +157,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
         cell = createMarkdownCell(index);
         channel.push('cell:create', { sessionId: session.id, index, cell });
         break;
-      case 'code-generate-ai':
-        cell = createGenerateAiCodeCell(index, session.metadata.language);
+      case 'generate-ai':
+        cell = createGenerateAiCell(index);
         break;
     }
   }
@@ -178,7 +178,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
 
   // TOOD: We need to stop treating titles and package.json as cells.
   const [titleCell, packageJsonCell, ...remainingCells] = allCells;
-  const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICodeCellType)[];
+  const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
 
   return (
     <>
@@ -201,7 +201,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
               language={session.metadata.language}
               createCodeCell={() => createNewCell('code', idx + 2)}
               createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-              createGenerateAiCodeCell={() => createNewCell('code-generate-ai', idx + 2)}
+              createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
             />
 
             {cell.type === 'code' && (
@@ -218,7 +218,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
               <MarkdownCell cell={cell} onUpdateCell={onUpdateCell} onDeleteCell={onDeleteCell} />
             )}
 
-            {cell.type === 'generate-ai-code' && (
+            {cell.type === 'generate-ai' && (
               <GenerateAiCell
                 cell={cell}
                 session={session}
@@ -234,7 +234,7 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
           language={session.metadata.language}
           createCodeCell={() => createNewCell('code', allCells.length)}
           createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-          createGenerateAiCodeCell={() => createNewCell('code-generate-ai', allCells.length)}
+          createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
           className={cn('h-14', cells.length === 0 && 'opacity-100')}
         />
       </div>

@@ -7,11 +7,11 @@ import {
   TsServerDiagnosticType,
   getDefaultExtensionForLanguage,
 } from '@srcbook/shared';
-import { GenerateAICodeCellType, OutputType } from '@/types';
+import { GenerateAICellType, OutputType } from '@/types';
 
 import { randomid } from '@srcbook/shared';
 
-type ClientCellType = CellType | GenerateAICodeCellType;
+type ClientCellType = CellType | GenerateAICellType;
 
 /**
  * Utility function to generate a unique filename for a code cell,
@@ -32,11 +32,10 @@ function generateUniqueFilename(existingFilenames: string[], language: CodeLangu
   return filename;
 }
 
-function buildGenerateAiCodeCell(language: CodeLanguageType): GenerateAICodeCellType {
+function buildGenerateAiCell(): GenerateAICellType {
   return {
     id: randomid(),
-    type: 'generate-ai-code',
-    language,
+    type: 'generate-ai',
   };
 }
 
@@ -83,7 +82,7 @@ interface CellsContextType {
     attrs?: Partial<CodeCellType>,
   ) => CodeCellType;
   createMarkdownCell: (idx: number, attrs?: Partial<MarkdownCellType>) => MarkdownCellType;
-  createGenerateAiCodeCell: (idx: number, language: CodeLanguageType) => GenerateAICodeCellType;
+  createGenerateAiCell: (idx: number) => GenerateAICellType;
   hasOutput: (id: string, type?: 'stdout' | 'stderr') => boolean;
   getOutput: (id: string, type?: 'stdout' | 'stderr') => Array<OutputType>;
   setOutput: (id: string, output: OutputType | OutputType[]) => void;
@@ -161,9 +160,9 @@ export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children:
     [insertCellAt],
   );
 
-  const createGenerateAiCodeCell = useCallback(
-    (idx: number, language: CodeLanguageType) => {
-      const cell = buildGenerateAiCodeCell(language);
+  const createGenerateAiCell = useCallback(
+    (idx: number) => {
+      const cell = buildGenerateAiCell();
       insertCellAt(cell, idx);
       return cell;
     },
@@ -231,7 +230,7 @@ export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children:
         insertCellAt,
         createCodeCell,
         createMarkdownCell,
-        createGenerateAiCodeCell,
+        createGenerateAiCell,
         hasOutput,
         getOutput,
         setOutput,

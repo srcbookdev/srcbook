@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { type CodeCellType, type MarkdownCellType } from '@srcbook/shared';
 import { generateCell } from '@/lib/server';
 import { CircleAlert, Trash2, Sparkles } from 'lucide-react';
-import { GenerateAICodeCellType, SessionType } from '@/types';
+import { GenerateAICellType, SessionType } from '@/types';
 import { useCells } from '@/components/use-cell';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 
 export default function GenerateAiCell(props: {
-  cell: GenerateAICodeCellType;
+  cell: GenerateAICellType;
   insertIdx: number;
   session: SessionType;
   onSuccess: (idx: number, cell: CodeCellType | MarkdownCellType) => void;

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { type CodeCellType, type MarkdownCellType } from '@srcbook/shared';
 import { generateCell } from '@/lib/server';
 import { CircleAlert, Trash2, Sparkles } from 'lucide-react';
@@ -19,6 +20,15 @@ export default function GenerateAiCell(props: {
   const { removeCell } = useCells();
   const [prompt, setPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  useHotkeys(
+    'mod+enter',
+    () => {
+      if (!prompt) return;
+      generate();
+    },
+    { enableOnFormTags: ['textarea'] },
+  );
 
   const generate = async () => {
     setError(null);

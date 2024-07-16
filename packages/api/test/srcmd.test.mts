@@ -1,48 +1,47 @@
 import Path from 'path';
 import { getRelativeFileContents } from './utils.mjs';
 import { decode, encode, decodeDir } from '../srcmd.mjs';
-import type { DecodeErrorResult, DecodeSuccessResult } from '../srcmd.mjs';
+import type { DecodeErrorResult, DecodeSuccessResult } from '../srcmd/types.mjs';
 
 describe('encoding and decoding srcmd files', () => {
   let srcmd: string;
   const languagePrefix = '<!-- srcbook:{"language": "javascript"} -->\n\n';
 
   beforeAll(async () => {
-    srcmd = await getRelativeFileContents('srcmd_files/notebook.srcmd');
+    srcmd = await getRelativeFileContents('srcmd_files/srcbook.srcmd');
   });
 
   it('is an error when there is no title', () => {
     const result = decode(
-      languagePrefix + '## Heading 2\n\nFollowed by a paragraph',
+      languagePrefix +
+        '## Heading 2\n\n<details>\n  <summary>package.json</summary>\n\n```json\n{}\n```\n</details>\n\nFollowed by a paragraph',
     ) as DecodeErrorResult;
     expect(result.error).toBe(true);
     expect(result.errors).toEqual(['Document must contain exactly one h1 heading']);
+  });
+
+  it('is an error when there is no package.json', () => {
+    const result = decode(
+      languagePrefix + '# Title\n\nFollowed by a paragraph',
+    ) as DecodeErrorResult;
+    expect(result.error).toBe(true);
+    expect(result.errors).toEqual(['Document must contain exactly one package.json']);
   });
 
   it('is an error when there are multiple titles', () => {
     const result = decode(
-      languagePrefix + '# Heading 1\n\nFollowed by a paragraph\n\n# Followed by another heading 1',
+      languagePrefix +
+        '# Heading 1\n\n<details>\n  <summary>package.json</summary>\n\n```json\n{}\n```\n</details>\n\nFollowed by a paragraph\n\n# Followed by another heading 1',
     ) as DecodeErrorResult;
     expect(result.error).toBe(true);
     expect(result.errors).toEqual(['Document must contain exactly one h1 heading']);
-  });
-
-  it('is an error when there is a heading 6 without a corresponding code block', () => {
-    const result = decode(
-      languagePrefix +
-        '# Heading 1\n\n###### supposed_to_be_a_filename.mjs\n\nBut no code is found.',
-    ) as DecodeErrorResult;
-    expect(result.error).toBe(true);
-    expect(result.errors).toEqual([
-      "h6 is reserved for code cells, but no code block followed '###### supposed_to_be_a_filename.mjs'",
-    ]);
   });
 
   it('can decode a well-formed file', () => {
     const result = decode(srcmd) as DecodeSuccessResult;
     expect(result.error).toBe(false);
     expect(result.cells).toEqual([
-      { id: expect.any(String), type: 'title', text: 'Notebook title' },
+      { id: expect.any(String), type: 'title', text: 'Srcbook title' },
       {
         id: expect.any(String),
         type: 'package.json',
@@ -53,7 +52,7 @@ describe('encoding and decoding srcmd files', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: `\n\nOpening paragraph here.\n\n## Section h2\n\nAnother paragraph.\n\nFollowed by:\n\n1. An\n2. Ordered\n3. List\n\n`,
+        text: `Opening paragraph here.\n\n## Section h2\n\nAnother paragraph.\n\nFollowed by:\n\n1. An\n2. Ordered\n3. List`,
       },
       {
         id: expect.any(String),
@@ -66,7 +65,7 @@ describe('encoding and decoding srcmd files', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: '\n\n## Another section\n\nDescription goes here. `inline code` works.\n\n```javascript\n// This will render as markdown, not a code cell.\nfoo() + bar()\n```\n\n',
+        text: '## Another section\n\nDescription goes here. `inline code` works.\n\n```javascript\n// This will render as markdown, not a code cell.\nfoo() + bar()\n```',
       },
       {
         id: expect.any(String),
@@ -79,7 +78,7 @@ describe('encoding and decoding srcmd files', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: '\n\nParagraph here.\n',
+        text: 'Paragraph here.',
       },
     ]);
   });
@@ -93,11 +92,11 @@ describe('encoding and decoding srcmd files', () => {
 
 describe('it can decode from directories', () => {
   it('can decode a simple directory with README, package, and one file', async () => {
-    const dirPath = Path.resolve(__dirname, 'srcmd_files/mock_notebook_dir/');
+    const dirPath = Path.resolve(__dirname, 'srcmd_files/srcbook_dir/');
     const result = (await decodeDir(dirPath)) as DecodeSuccessResult;
     expect(result.error).toBe(false);
     expect(result.cells).toEqual([
-      { id: expect.any(String), type: 'title', text: 'Notebook' },
+      { id: expect.any(String), type: 'title', text: 'Srcbook' },
       {
         id: expect.any(String),
         type: 'package.json',
@@ -108,7 +107,7 @@ describe('it can decode from directories', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: '\n\nWith some words right behind it.\n\n## Markdown cell\n\nWith some **bold** text and some _italic_ text.\n\n> And a quote, why the f\\*\\*\\* not!\n\n',
+        text: 'With some words right behind it.\n\n## Markdown cell\n\nWith some **bold** text and some _italic_ text.\n\n> And a quote, why the f\\*\\*\\* not!',
       },
       {
         id: expect.any(String),
@@ -121,7 +120,7 @@ describe('it can decode from directories', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: '\n\n```json\n{ "simple": "codeblock" }\n```\n',
+        text: '```json\n{ "simple": "codeblock" }\n```',
       },
     ]);
   });

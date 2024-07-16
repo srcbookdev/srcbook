@@ -1,14 +1,16 @@
 <!-- srcbook:{"language":"javascript"} -->
 
-# Notebook title
+# Srcbook title
 
-###### package.json
+<details>
+  <summary>package.json</summary>
 
 ```json
 {
   "dependencies": {}
 }
 ```
+</details>
 
 Opening paragraph here.
 
@@ -22,12 +24,14 @@ Followed by:
 2. Ordered
 3. List
 
-###### index.mjs
+<details open>
+  <summary>index.mjs</summary>
 
 ```javascript
 // A code snippet here.
 export function add(a, b) { return a + b }
 ```
+</details>
 
 ## Another section
 
@@ -38,12 +42,14 @@ Description goes here. `inline code` works.
 foo() + bar()
 ```
 
-###### foo.mjs
+<details open>
+  <summary>foo.mjs</summary>
 
 ```javascript
 import {add} from './index.mjs';
 const res = add(2, 3);
 console.log(res);
 ```
+</details>
 
 Paragraph here.

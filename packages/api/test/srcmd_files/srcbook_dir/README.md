@@ -1,10 +1,13 @@
 <!-- srcbook:{"language":"javascript"} -->
 
-# Notebook
+# Srcbook
 
-###### package.json
+<details>
+  <summary>package.json</summary>
 
 [package.json](./package.json)
+
+</details>
 
 With some words right behind it.
 
@@ -14,9 +17,12 @@ With some **bold** text and some _italic_ text.
 
 > And a quote, why the f\*\*\* not!
 
-###### foo.mjs
+<details>
+  <summary>foo.mjs</summary>
 
 [foo.mjs](./src/foo.mjs)
+
+</details>
 
 ```json
 { "simple": "codeblock" }

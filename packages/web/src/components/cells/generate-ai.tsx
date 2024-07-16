@@ -15,15 +15,19 @@ export default function GenerateAiCell(props: {
   onSuccess: (idx: number, cell: CodeCellType | MarkdownCellType) => void;
 }) {
   const { cell, insertIdx, session, onSuccess } = props;
+  const [state, setState] = useState<'idle' | 'loading'>('idle');
   const { removeCell } = useCells();
   const [prompt, setPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const generate = async () => {
+    setError(null);
+    setState('loading');
     const { result, error } = await generateCell(session.id, {
       query: prompt,
       insertIdx: insertIdx,
     });
+    setState('idle');
     if (error) {
       setError(result);
     } else {
@@ -38,8 +42,12 @@ export default function GenerateAiCell(props: {
     <div
       id={`cell-${cell.id}`}
       className={cn(
-        'group/cell relative w-full rounded-md border border-transparent border-border transition-all focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
-        error && 'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30',
+        'group/cell relative w-full rounded-md border border-border transition-all',
+        state === 'loading'
+          ? 'ring-1 ring-run-ring border-run-ring'
+          : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
+        error &&
+          'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30 focus-within:border-sb-red-30 focus-within:ring-sb-red-30',
       )}
     >
       {error && (
@@ -64,11 +72,12 @@ export default function GenerateAiCell(props: {
           </div>
 
           <div>
-            <Button variant="secondary" size="icon" className="border-secondary hover:border-muted">
-              <Sparkles size={16} />
-            </Button>
-            <Button disabled={!prompt} onClick={generate}>
-              Generate
+            <Button
+              disabled={!prompt}
+              onClick={generate}
+              variant={state === 'idle' ? 'default' : 'run'}
+            >
+              {state === 'idle' ? 'Generate' : 'Generating'}
             </Button>
           </div>
         </div>

@@ -25,10 +25,10 @@ export function encode(
   const cellsWithPlaceholder: CellsWithPlaceholders =
     options.insertCellIdx !== undefined
       ? [
-        ...cells.slice(0, options.insertCellIdx),
-        { type: 'placeholder' },
-        ...cells.slice(options.insertCellIdx),
-      ]
+          ...cells.slice(0, options.insertCellIdx),
+          { type: 'placeholder' },
+          ...cells.slice(options.insertCellIdx),
+        ]
       : cells;
 
   const encodedCells = cellsWithPlaceholder.map((cell) => {
@@ -74,9 +74,9 @@ export function encodeCodeCell(cell: CodeCellType, options: { inline: boolean })
   const source = options.inline
     ? [`###### ${cell.filename}\n`, `\`\`\`${cell.language}`, cell.source, '```']
     : [
-      `###### ${cell.filename}\n`,
-      `[${cell.filename}](./src/${cell.filename}})`, // note we don't use Path.join here because this is for the markdown file.
-    ];
+        `###### ${cell.filename}\n`,
+        `[${cell.filename}](./src/${cell.filename}})`, // note we don't use Path.join here because this is for the markdown file.
+      ];
 
   return source.join('\n');
 }
@@ -469,20 +469,20 @@ function convertCode(token: Tokens.Code, filename: string): CodeCellType {
 function convertLinkedCode(token: Tokens.Link): CodeCellType | PackageJsonCellType {
   return token.text === 'package.json'
     ? {
-      id: randomid(),
-      type: 'package.json',
-      source: '',
-      filename: 'package.json',
-      status: 'idle',
-    }
+        id: randomid(),
+        type: 'package.json',
+        source: '',
+        filename: 'package.json',
+        status: 'idle',
+      }
     : {
-      id: randomid(),
-      type: 'code',
-      source: '',
-      language: languageFromFilename(token.text),
-      filename: token.text,
-      status: 'idle',
-    };
+        id: randomid(),
+        type: 'code',
+        source: '',
+        language: languageFromFilename(token.text),
+        filename: token.text,
+        status: 'idle',
+      };
 }
 
 function convertMarkdown(tokens: Token[]): MarkdownCellType {

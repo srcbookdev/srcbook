@@ -32,9 +32,6 @@ export default function GenerateAiCell(props: {
       onSuccess(insertIdx, result);
       removeCell(cell);
     }
-
-    console.log('Generate error', error);
-    console.log('Generate result', result);
   };
 
   return (

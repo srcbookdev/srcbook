@@ -143,9 +143,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
   }
 
   async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
-    // Create on client first.
-    // Then, push to server for code cells or markdown cells, but _not_ AI generation which is client side only
-    // TODO: question this ^
+    // First, create the cell on client.
+    // Then, push state to server, _only_ for code or markdown cells. AI generation is a client side only cell.
     // TODO: Handle potential errors (eg, rollback optimistic client creation if there are errors)
     let cell;
     switch (type) {

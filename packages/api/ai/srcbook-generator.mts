@@ -33,7 +33,7 @@ const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, que
 ${inlineSrcbookWithPlaceholder}
 ==== END SRCBOOK ====
 
-==== USER REQUEST ====
+==== BEGIN USER REQUEST ====
 ${query}
 ==== END USER REQUEST ====`;
   return prompt;

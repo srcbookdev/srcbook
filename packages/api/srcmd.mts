@@ -1,59 +1,47 @@
 import { marked } from 'marked';
 import fs from 'node:fs/promises';
-import { SrcbookMetadataSchema, type SrcbookMetadataType, randomid } from '@srcbook/shared';
+import { randomid } from '@srcbook/shared';
 import type { Tokens, Token, TokensList } from 'marked';
-import type {
-  CellType,
-  CodeCellType,
-  MarkdownCellType,
-  PackageJsonCellType,
-  TitleCellType,
-} from '@srcbook/shared';
+import type { CellType, CodeCellType, JsonType, MarkdownCellType } from '@srcbook/shared';
 import { languageFromFilename } from '@srcbook/shared';
 import { pathToCodeFile, pathToPackageJson, pathToReadme } from './srcbook/path.mjs';
+import type { SessionType } from './types.mjs';
 
 marked.use({ gfm: true });
 
-export function encode(
-  cells: CellType[],
-  metadata: SrcbookMetadataType,
-  options: { inline: boolean },
-) {
-  const encodedCells = cells.map((cell) => {
-    switch (cell.type) {
-      case 'title':
-        return encodeTitleCell(cell);
-      case 'markdown':
-        return encodeMarkdownCell(cell);
-      case 'package.json':
-        return encodePackageJsonCell(cell, options);
-      case 'code':
-        return encodeCodeCell(cell, options);
-    }
+export function encode(session: SessionType, options: { inline: boolean }) {
+  const encodedCells = session.cells.map((cell) => {
+    return cell.type === 'markdown' ? encodeMarkdownCell(cell) : encodeCodeCell(cell, options);
   });
 
-  const encoded = [`<!-- srcbook:${JSON.stringify(metadata)} -->`]
-    .concat(encodedCells)
-    .join('\n\n');
+  const encoded = [
+    `<!-- srcbook:${JSON.stringify({ language: session.language })} -->`,
+    `# ${session.title}`,
+    encodeCollapsibleJsonFile('package.json', session['package.json'], options),
+  ];
+
+  if (session.language === 'typescript') {
+    encoded.push(encodeCollapsibleJsonFile('package.json', session['package.json'], options));
+  }
 
   // End every file with exactly one newline.
-  return encoded.trimEnd() + '\n';
+  return encoded.concat(encodedCells).join('\n\n').trimEnd() + '\n';
 }
 
-export function encodeTitleCell(cell: TitleCellType) {
-  return `# ${cell.text}`;
+function encodeCollapsibleJsonFile(
+  file: string,
+  language: string,
+  source: string,
+  options: { inline: boolean },
+) {
+  const fileContents = options.inline
+    ? `\`\`\`${language}\n${source}\n\`\`\``
+    : `[${file}](./${file})`;
+  return `<details>\n  <summary>${file}</summary>\n\n${fileContents}\n</details>`;
 }
 
 export function encodeMarkdownCell(cell: MarkdownCellType) {
   return cell.text.trim();
-}
-
-export function encodePackageJsonCell(cell: PackageJsonCellType, options: { inline: boolean }) {
-  const source = options.inline
-    ? ['###### package.json\n', '```json', cell.source.trim(), '```']
-    : ['###### package.json\n', '[package.json](./package.json)'];
-
-  return source.join('\n');
 }
 
 export function encodeCodeCell(cell: CodeCellType, options: { inline: boolean }) {

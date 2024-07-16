@@ -1,4 +1,4 @@
-import { CellType, SrcbookMetadataType, CodeLanguageType } from '@srcbook/shared';
+import { CellType, CodeLanguageType, JsonType } from '@srcbook/shared';
 
 export interface FsObjectType {
   path: string;
@@ -23,11 +23,15 @@ export type StdoutOutputType = { type: 'stdout'; data: string };
 export type StderrOutputType = { type: 'stderr'; data: string };
 export type OutputType = StdoutOutputType | StderrOutputType;
 
+// TODO: Move to shared and share with API
 export type SessionType = {
   id: string;
   dir: string;
+  title: string;
   cells: CellType[];
-  metadata: SrcbookMetadataType;
+  language: CodeLanguageType;
+  'package.json': Record<string, JsonType>;
+  'tsconfig.json': Record<string, JsonType>;
   openedAt: number;
 };
 

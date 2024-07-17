@@ -1,14 +1,14 @@
 import Path from 'path';
 import { getRelativeFileContents } from './utils.mjs';
 import { decode, encode, decodeDir } from '../srcmd.mjs';
-import type { DecodeErrorResult, DecodeSuccessResult } from '../srcmd.mjs';
+import type { DecodeErrorResult, DecodeSuccessResult } from '../srcmd/types.mjs';
 
 describe('encoding and decoding srcmd files', () => {
   let srcmd: string;
   const languagePrefix = '<!-- srcbook:{"language": "javascript"} -->\n\n';
 
   beforeAll(async () => {
-    srcmd = await getRelativeFileContents('srcmd_files/notebook.srcmd');
+    srcmd = await getRelativeFileContents('srcmd_files/srcbook.srcmd');
   });
 
   it('is an error when there is no title', () => {
@@ -42,7 +42,7 @@ describe('encoding and decoding srcmd files', () => {
     const result = decode(srcmd) as DecodeSuccessResult;
     expect(result.error).toBe(false);
     expect(result.cells).toEqual([
-      { id: expect.any(String), type: 'title', text: 'Notebook title' },
+      { id: expect.any(String), type: 'title', text: 'Srcbook title' },
       {
         id: expect.any(String),
         type: 'package.json',
@@ -53,7 +53,7 @@ describe('encoding and decoding srcmd files', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: `\n\nOpening paragraph here.\n\n## Section h2\n\nAnother paragraph.\n\nFollowed by:\n\n1. An\n2. Ordered\n3. List\n\n`,
+        text: `Opening paragraph here.\n\n## Section h2\n\nAnother paragraph.\n\nFollowed by:\n\n1. An\n2. Ordered\n3. List`,
       },
       {
         id: expect.any(String),
@@ -66,7 +66,7 @@ describe('encoding and decoding srcmd files', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: '\n\n## Another section\n\nDescription goes here. `inline code` works.\n\n```javascript\n// This will render as markdown, not a code cell.\nfoo() + bar()\n```\n\n',
+        text: '## Another section\n\nDescription goes here. `inline code` works.\n\n```javascript\n// This will render as markdown, not a code cell.\nfoo() + bar()\n```',
       },
       {
         id: expect.any(String),
@@ -79,7 +79,7 @@ describe('encoding and decoding srcmd files', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: '\n\nParagraph here.\n',
+        text: 'Paragraph here.',
       },
     ]);
   });
@@ -93,11 +93,11 @@ describe('encoding and decoding srcmd files', () => {
 
 describe('it can decode from directories', () => {
   it('can decode a simple directory with README, package, and one file', async () => {
-    const dirPath = Path.resolve(__dirname, 'srcmd_files/mock_notebook_dir/');
+    const dirPath = Path.resolve(__dirname, 'srcmd_files/mock_srcbook/');
     const result = (await decodeDir(dirPath)) as DecodeSuccessResult;
     expect(result.error).toBe(false);
     expect(result.cells).toEqual([
-      { id: expect.any(String), type: 'title', text: 'Notebook' },
+      { id: expect.any(String), type: 'title', text: 'Srcbook' },
       {
         id: expect.any(String),
         type: 'package.json',
@@ -108,7 +108,7 @@ describe('it can decode from directories', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: '\n\nWith some words right behind it.\n\n## Markdown cell\n\nWith some **bold** text and some _italic_ text.\n\n> And a quote, why the f\\*\\*\\* not!\n\n',
+        text: 'With some words right behind it.\n\n## Markdown cell\n\nWith some **bold** text and some _italic_ text.\n\n> And a quote, why not!',
       },
       {
         id: expect.any(String),
@@ -121,7 +121,7 @@ describe('it can decode from directories', () => {
       {
         id: expect.any(String),
         type: 'markdown',
-        text: '\n\n```json\n{ "simple": "codeblock" }\n```\n',
+        text: '```json\n{ "simple": "codeblock" }\n```',
       },
     ]);
   });

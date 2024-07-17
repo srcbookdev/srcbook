@@ -29,11 +29,26 @@ export const CodeCellSchema = z.object({
   status: z.enum(['idle', 'running']),
 });
 
+// Placeholder cells are used when instructing AI where to insert generated cell(s).
+export const PlaceholderCellSchema = z.object({
+  id: z.string(),
+  type: z.literal('placeholder'),
+  text: z.string(),
+});
+
 export const CellSchema = z.union([
   TitleCellSchema,
   MarkdownCellSchema,
   PackageJsonCellSchema,
   CodeCellSchema,
+]);
+
+export const CellWithPlaceholderSchema = z.union([
+  TitleCellSchema,
+  MarkdownCellSchema,
+  PackageJsonCellSchema,
+  CodeCellSchema,
+  PlaceholderCellSchema,
 ]);
 
 export const SrcbookMetadataSchema = z.object({

@@ -1,11 +1,13 @@
 import z from 'zod';
 
 import {
-  CellSchema,
   TitleCellSchema,
   MarkdownCellSchema,
   PackageJsonCellSchema,
   CodeCellSchema,
+  PlaceholderCellSchema,
+  CellSchema,
+  CellWithPlaceholderSchema,
   TitleCellUpdateAttrsSchema,
   MarkdownCellUpdateAttrsSchema,
   PackageJsonCellUpdateAttrsSchema,
@@ -18,7 +20,10 @@ export type TitleCellType = z.infer<typeof TitleCellSchema>;
 export type MarkdownCellType = z.infer<typeof MarkdownCellSchema>;
 export type PackageJsonCellType = z.infer<typeof PackageJsonCellSchema>;
 export type CodeCellType = z.infer<typeof CodeCellSchema>;
+export type PlaceholderCellType = z.infer<typeof PlaceholderCellSchema>;
+
 export type CellType = z.infer<typeof CellSchema>;
+export type CellWithPlaceholderType = z.infer<typeof CellWithPlaceholderSchema>;
 
 export type TitleCellUpdateAttrsType = z.infer<typeof TitleCellUpdateAttrsSchema>;
 export type MarkdownCellUpdateAttrsType = z.infer<typeof MarkdownCellUpdateAttrsSchema>;

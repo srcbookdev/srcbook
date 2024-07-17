@@ -1,4 +1,3 @@
-import { marked } from 'marked';
 import type {
   CodeCellType,
   MarkdownCellType,
@@ -8,8 +7,6 @@ import type {
   CellWithPlaceholderType,
   PlaceholderCellType,
 } from '@srcbook/shared';
-
-marked.use({ gfm: true });
 
 export function encode(
   allCells: CellWithPlaceholderType[],

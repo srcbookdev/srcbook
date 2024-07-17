@@ -13,7 +13,7 @@ import {
   sessionToResponse,
   listSessions,
 } from '../session.mjs';
-import { generateSrcbook } from '../ai/srcbook-generator.mjs';
+import { generateCell, generateSrcbook } from '../ai/srcbook-generator.mjs';
 import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import {
@@ -121,6 +121,25 @@ router.post('/generate', cors(), async (req, res) => {
     const result = await generateSrcbook(query);
     const srcbookDir = await importSrcbookFromSrcmdText(result.text);
     return res.json({ error: false, result: { dir: srcbookDir } });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+// Generate a cell using AI from a query string
+router.options('/sessions/:id/generate_cell', cors());
+router.post('/sessions/:id/generate_cell', cors(), async (req, res) => {
+  // @TODO: zod
+  const { insertIdx, query } = req.body;
+
+  try {
+    posthog.capture({ event: 'user generated cell with AI', properties: { query } });
+    const session = await findSession(req.params.id);
+    const { error, errors, cell } = await generateCell(query, session, insertIdx);
+    const result = error ? errors : cell;
+    return res.json({ error, result });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

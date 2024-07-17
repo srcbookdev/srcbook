@@ -38,3 +38,8 @@ export type ExampleSrcbookType = {
   dirname: string;
   description: string;
 };
+
+export type GenerateAICellType = {
+  id: string;
+  type: 'generate-ai';
+};

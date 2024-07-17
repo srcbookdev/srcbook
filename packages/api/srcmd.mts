@@ -17,9 +17,21 @@ marked.use({ gfm: true });
 export function encode(
   cells: CellType[],
   metadata: SrcbookMetadataType,
-  options: { inline: boolean },
+  options: { inline: boolean; insertCellIdx?: number },
 ) {
-  const encodedCells = cells.map((cell) => {
+  type CellsWithPlaceholders = (CellType | { type: 'placeholder' })[];
+  // if insertCellIdx is provided, we insert a placeholder cell at that index
+  // TODO: rebase and cleanup. Should only work if inline is true
+  const cellsWithPlaceholder: CellsWithPlaceholders =
+    options.insertCellIdx !== undefined
+      ? [
+          ...cells.slice(0, options.insertCellIdx),
+          { type: 'placeholder' },
+          ...cells.slice(options.insertCellIdx),
+        ]
+      : cells;
+
+  const encodedCells = cellsWithPlaceholder.map((cell) => {
     switch (cell.type) {
       case 'title':
         return encodeTitleCell(cell);
@@ -29,6 +41,8 @@ export function encode(
         return encodePackageJsonCell(cell, options);
       case 'code':
         return encodeCodeCell(cell, options);
+      case 'placeholder':
+        return '==== INTRODUCE CELL HERE ====';
     }
   });
 
@@ -110,6 +124,18 @@ export function decode(contents: string): DecodeResult {
   return errors.length > 0
     ? { error: true, errors: errors }
     : { error: false, metadata, cells: convertToCells(groups) };
+}
+
+export type DecodeCellsPartialResult =
+  | { error: true; errors: string[] }
+  | { error: false; cells: CellType[] };
+export function decodePartial(contents: string): DecodeCellsPartialResult {
+  const tokens = marked.lexer(contents);
+  const groups = groupTokens(tokens);
+  const errors = validateTokenGroupsPartial(groups);
+  return errors.length > 0
+    ? { error: true, errors }
+    : { error: false, cells: convertToCells(groups) };
 }
 
 /**
@@ -313,6 +339,30 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
   if (!hasAtMostOnePackageJson) {
     errors.push('Document must contain at most one package.json');
   }
+
+  let i = 0;
+  const len = grouped.length;
+
+  while (i < len) {
+    const group = grouped[i];
+
+    if (group.type === 'filename') {
+      if (!['code', 'code:linked'].includes(grouped[i + 1].type)) {
+        const raw = group.token.raw.trimEnd();
+        errors.push(`h6 is reserved for code cells, but no code block followed '${raw}'`);
+      } else {
+        i += 1;
+      }
+    }
+
+    i += 1;
+  }
+
+  return errors;
+}
+
+function validateTokenGroupsPartial(grouped: GroupedTokensType[]) {
+  const errors: string[] = [];
 
   let i = 0;
   const len = grouped.length;

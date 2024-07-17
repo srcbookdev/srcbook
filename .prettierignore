@@ -1,2 +1,3 @@
 pnpm*.yaml
 packages/api/drizzle/*
+**/*.src.md

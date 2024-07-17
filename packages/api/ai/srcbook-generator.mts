@@ -1,11 +1,16 @@
 import { generateText, GenerateTextResult } from 'ai';
-import { type CodeLanguageType, type CellType } from '@srcbook/shared';
+import {
+  type CodeLanguageType,
+  type CellType,
+  randomid,
+  type CellWithPlaceholderType,
+} from '@srcbook/shared';
 import { type SessionType } from '../types.mjs';
 import { readFileSync } from 'node:fs';
 import Path from 'node:path';
 import { createOpenAI } from '@ai-sdk/openai';
 import { PROMPTS_DIR } from '../constants.mjs';
-import { encode, decodePartial } from '../srcmd.mjs';
+import { encode, decodeCells } from '../srcmd.mjs';
 import { getConfig } from '../config.mjs';
 
 const OPENAI_MODEL = 'gpt-4o';
@@ -19,9 +24,17 @@ const makeGenerateCellSystemPrompt = (language: CodeLanguageType) => {
 };
 
 const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, query: string) => {
-  const inlineSrcbookWithPlaceholder = encode(session.cells, session.metadata, {
+  // Make sure we copy cells so we don't mutate the session
+  const cellsWithPlaceholder: CellWithPlaceholderType[] = [...session.cells];
+
+  cellsWithPlaceholder.splice(insertIdx, 0, {
+    id: randomid(),
+    type: 'placeholder',
+    text: '==== INTRODUCE CELL HERE ====',
+  });
+
+  const inlineSrcbookWithPlaceholder = encode(cellsWithPlaceholder, session.metadata, {
     inline: true,
-    insertCellIdx: insertIdx,
   });
 
   const prompt = `==== BEGIN SRCBOOK ====
@@ -107,7 +120,7 @@ export async function generateCell(
 
   // TODO figure out logging here. It's incredibly valuable to see the data going to and from the LLM
   // for debugging, but there are considerations around privacy and log size to think about.
-  const decodeResult = decodePartial(text);
+  const decodeResult = decodeCells(text);
 
   if (decodeResult.error) {
     return { error: true, errors: decodeResult.errors };

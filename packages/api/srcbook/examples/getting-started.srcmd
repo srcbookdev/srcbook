@@ -2,8 +2,7 @@
 
 # Getting started
 
-<details>
-  <summary>package.json</summary>
+###### package.json
 
 ```json
 {
@@ -13,7 +12,6 @@
   }
 }
 ```
-</details>
 
 ## What are Srcbooks?
 
@@ -26,15 +24,13 @@ A Srcbook is composed of **cells**. Currently, there are 4 types of cells:
  3. **markdown cell**: what you're reading is a markdown cell. It allows you to easily express ideas with rich markup, rather than code comments, an idea called [literate programming](https://en.wikipedia.org/wiki/Literate_programming).
  4. **code cell**: think of these as JS or TS files. You can run them or export objects to be used in other cells.
 
-<details open>
-  <summary>simple-code.js</summary>
+###### simple-code.js
 
 ```javascript
 // This is a trivial code cell. You can run me by
 // clicking 'Run' or using the shortcut `cmd` + `enter`.
 console.log("Hello, Srcbook!")
 ```
-</details>
 
 ## Dependencies
 
@@ -42,44 +38,37 @@ You can add any external node.js-compatible dependency from [npm](https://www.np
 
 You'll need to make sure you install dependencies, which you can do by running the `package.json` cell above.
 
-<details open>
-  <summary>generate-random-word.js</summary>
+###### generate-random-word.js
 
 ```javascript
 import {generate} from 'random-words';
 
 console.log(generate())
 ```
-</details>
 
 ## Importing other cells
 
 Behind the scenes, cells are files of JavaScript or TypeScript code. They are ECMAScript 6 modules. Therefore you can export variables from one file and import them in another.
 
-<details open>
-  <summary>star-wars.js</summary>
+###### star-wars.js
 
 ```javascript
 export const func = (name) => `I am your father, ${name}`
 ```
-</details>
 
-<details open>
-  <summary>logger.js</summary>
+###### logger.js
 
 ```javascript
 import {func} from './star-wars.js';
 
 console.log(func("Luke"));
 ```
-</details>
 
 ## Using secrets
 
 For security purposes, you should avoid pasting secrets directly into Srcbooks. The mechanism you should leverage is [secrets](/secrets). These are stored securely and are accessed at runtime as environment variables.
 
 Secrets can then be imported in Srcbooks using `process.env.SECRET_NAME`:
-
 ```
 const API_KEY = process.env.SECRET_API_KEY;
 const token = auth(API_KEY);

@@ -2,8 +2,7 @@
 
 # LangGraph web agent
 
-<details>
-  <summary>package.json</summary>
+###### package.json
 
 ```json
 {
@@ -20,7 +19,6 @@
   }
 }
 ```
-</details>
 
 ## LangGraph tutorial
 
@@ -30,8 +28,7 @@ We're going to build an agent that can search the web using the [Tavily Search A
 
 First, let's ensure we've setup the right env variables:
 
-<details open>
-  <summary>env-check.ts</summary>
+###### env-check.ts
 
 ```typescript
 import assert from 'node:assert';
@@ -39,14 +36,12 @@ import assert from 'node:assert';
 assert.ok(process.env.OPENAI_API_KEY, 'You need to set OPENAI_API_KEY');
 assert.ok(process.env.TAVILY_API_KEY, 'You need to set TAVILY_API_KEY');
 ```
-</details>
 
 ## Define the agent
 
 Now, let's define the Agent with LangGraph.js
 
-<details open>
-  <summary>agent.ts</summary>
+###### agent.ts
 
 ```typescript
 import { HumanMessage } from "@langchain/core/messages";
@@ -117,13 +112,12 @@ export const memory = SqliteSaver.fromConnString(DB_NAME);
 // This compiles it into a LangChain Runnable.
 // Note that we're (optionally) passing the memory when compiling the graph
 export const app = workflow.compile({ checkpointer: memory });
+
 ```
-</details>
 
 Now that we've built our app, let's invoke it to first get the weather in SF:
 
-<details open>
-  <summary>sf-weather.ts</summary>
+###### sf-weather.ts
 
 ```typescript
 import {app} from './agent.ts';
@@ -140,14 +134,12 @@ const finalState = await app.invoke(
 
 console.log(finalState.messages[finalState.messages.length - 1].content)
 ```
-</details>
 
 Now when we pass the same `thread_id`, in this case `"42"`, the conversation context is retained via the saved state that we've set in a local sqliteDB (i.e. stored list of messages).
 
 Also, in this next example, we demonstrate streaming output.
 
-<details open>
-  <summary>ny-weather.ts</summary>
+###### ny-weather.ts
 
 ```typescript
 import {app} from './agent.ts';
@@ -160,19 +152,17 @@ const nextState = await app.invoke(
 
 console.log(nextState.messages[nextState.messages.length - 1].content);
 ```
-</details>
 
 ## Clear memory
 
 The memory was saved in the sqlite db `./langGraph.db`. If you want to clear it, run the following cell
 
-<details open>
-  <summary>clear.ts</summary>
+###### clear.ts
 
 ```typescript
 import {DB_NAME} from './agent.ts';
 import fs from 'node:fs';
+// I can't find good documentation on the memory module, so let's apply the nuclear method
 
 fs.rmSync(DB_NAME);
 ```
-</details>

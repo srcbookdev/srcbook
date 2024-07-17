@@ -109,7 +109,7 @@ export async function updateSession(
 
 export async function exportSrcmdFile(session: SessionType, destinationPath: string) {
   if (await fileExists(destinationPath)) {
-    throw new Error(`Cannot export .srcmd file: ${destinationPath} already exists`);
+    throw new Error(`Cannot export .src.md file: ${destinationPath} already exists`);
   }
 
   return fs.writeFile(destinationPath, encode(session.cells, session.metadata, { inline: true }));

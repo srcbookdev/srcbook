@@ -2,7 +2,7 @@ import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { randomid } from '@srcbook/shared';
 
 export const configs = sqliteTable('config', {
-  // Directory where .srcmd files will be stored and searched by default.
+  // Directory where .src.md files will be stored and searched by default.
   baseDir: text('base_dir').notNull(),
   defaultLanguage: text('default_language').notNull().default('typescript'),
   openaiKey: text('openai_api_key'),

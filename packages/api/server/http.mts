@@ -25,6 +25,7 @@ import {
 import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 import { pathToSrcbook } from '../srcbook/path.mjs';
+import { isSrcmdPath } from '../srcmd/paths.mjs';
 
 const app: Application = express();
 
@@ -40,7 +41,7 @@ router.post('/disk', cors(), async (req, res) => {
   try {
     const config = await getConfig();
     dirname = dirname || config.baseDir;
-    const entries = await disk(dirname, '.srcmd');
+    const entries = await disk(dirname, '.src.md');
     return res.json({ error: false, result: { dirname, entries } });
   } catch (e) {
     const error = e as unknown as Error;
@@ -87,13 +88,13 @@ router.delete('/srcbooks/:id', cors(), async (req, res) => {
   return res.json({ error: false, deleted: true });
 });
 
-// Import a srcbook from a .srcmd file or srcmd text.
+// Import a srcbook from a .src.md file or srcmd text.
 router.options('/import', cors());
 router.post('/import', cors(), async (req, res) => {
   const { path, text } = req.body;
 
-  if (path && Path.extname(path) !== '.srcmd') {
-    return res.json({ error: true, result: 'Importing only works with .srcmd files' });
+  if (typeof path === 'string' && !isSrcmdPath(path)) {
+    return res.json({ error: true, result: 'Importing only works with .src.md files' });
   }
 
   try {

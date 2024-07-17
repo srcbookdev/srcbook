@@ -6,7 +6,7 @@ Srcbook runs locally on your machine and is fully open-source under the Apache2 
 
 Under the hood, Srcbook creates folders on your local machine and provides a web interface (also running locally) as a programming environment.
 
-Srcbooks export to a `.srcmd` format, a superset of markdown. You can easily export Srcbooks into this format from the application, as well as import them. Given that they are a form of markdown, they are very git-friendly.
+Srcbooks export to markdown using the `.src.md` extension. These files can easily be shared, versioned, and rendered in any environment that supports Markdown, like your editor or GitHub UI.
 
 To learn more, try out the interactive tutorial which is itself a Srcbook by clicking "Getting Started" when launching the application.
 

@@ -2,7 +2,7 @@
 
 You are tasked with generating a srcbook about a topic, which will be requested by the user.
 
-A srcbook is a TypeScript or JavaScript notebook following a markdown-compatible format called .srcmd. It's an interactive and rich way of programming that follows the literate programming idea.
+A srcbook is a TypeScript or JavaScript notebook following a markdown-compatible format called .src.md. It's an interactive and rich way of programming that follows the literate programming idea.
 
 
 Srcbooks are either in javascript, or typescript, and their markdown always starts with an html comment specifying the language, for example for javascript:
@@ -152,11 +152,11 @@ const token = auth(API_KEY);
 
 ## Exporting and sharing Srcbooks
 
-Srcbooks are meant to be collaborative. They export to a friendly `.srcmd` format, which is valid markdown and can be opened in any text editor.
+Srcbooks are meant to be collaborative. They export to a friendly `.src.md` format, which is valid markdown and can be opened in any text editor.
 
 You can export Srcbooks by clicking the `Export` link in the top level menu on the left.
 
-You can also import `.srcmd` files directly in this application if you want to run, modify, or re-export them.
+You can also import `.src.md` files directly in this application if you want to run, modify, or re-export them.
 
 ### Example 2: LangGraph web agent
 <!-- srcbook:{"language":"typescript"} -->

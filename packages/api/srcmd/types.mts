@@ -11,8 +11,8 @@ export type DecodeSuccessResult = {
   metadata: SrcbookMetadataType;
 };
 
-// This represents the result of decoding a complete .srcmd file.
+// This represents the result of decoding a complete .src.md file.
 export type DecodeResult = DecodeErrorResult | DecodeSuccessResult;
 
-// This represents the result of decoding a subset of content from a .srcmd file.
+// This represents the result of decoding a subset of content from a .src.md file.
 export type DecodeCellsResult = DecodeErrorResult | Omit<DecodeSuccessResult, 'metadata'>;

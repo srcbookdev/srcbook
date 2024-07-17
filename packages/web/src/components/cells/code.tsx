@@ -114,17 +114,17 @@ export default function CodeCell(props: {
                   : 'border-transparent hover:border-input group-hover:border-input ',
               )}
             />
-            <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-              <Button className="hidden group-hover:flex" variant="icon" size="icon" tabIndex={1}>
-                <Trash2 size={16} />
-              </Button>
-            </DeleteCellWithConfirmation>
             {filenameError && (
               <div className="bg-error text-error-foreground flex items-center rounded-sm border border-transparent px-[10px] py-2 text-sm leading-none font-medium">
                 <Info size={14} className="mr-1.5" />
                 Invalid filename
               </div>
             )}
+            <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
+              <Button className="hidden group-hover:flex" variant="icon" size="icon" tabIndex={1}>
+                <Trash2 size={16} />
+              </Button>
+            </DeleteCellWithConfirmation>
           </div>
           <div
             className={cn(

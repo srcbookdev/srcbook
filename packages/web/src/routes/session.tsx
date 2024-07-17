@@ -12,8 +12,8 @@ import {
   TitleCellType,
   PackageJsonCellType,
 } from '@srcbook/shared';
-import { loadSession } from '@/lib/server';
-import { SessionType, type GenerateAICellType } from '@/types';
+import { loadSession, getConfig } from '@/lib/server';
+import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
 import TitleCell from '@/components/cells/title';
 import MarkdownCell from '@/components/cells/markdown';
 import GenerateAiCell from '@/components/cells/generate-ai';
@@ -27,12 +27,16 @@ import useEffectOnce from '@/components/use-effect-once';
 import { cn } from '@/lib/utils';
 
 async function loader({ params }: LoaderFunctionArgs) {
-  const { result: session } = await loadSession({ id: params.id! });
-  return { session };
+  const [{ result: config }, { result: session }] = await Promise.all([
+    getConfig(),
+    loadSession({ id: params.id! }),
+  ]);
+
+  return { config, session };
 }
 
 function SessionPage() {
-  const { session } = useLoaderData() as { session: SessionType };
+  const { session, config } = useLoaderData() as { session: SessionType; config: SettingsType };
 
   const channelRef = useRef(SessionChannel.create(session.id));
   const channel = channelRef.current;
@@ -58,12 +62,12 @@ function SessionPage() {
 
   return (
     <CellsProvider initialCells={session.cells}>
-      <Session session={session} channel={channelRef.current} />
+      <Session session={session} channel={channelRef.current} config={config} />
     </CellsProvider>
   );
 }
 
-function Session(props: { session: SessionType; channel: SessionChannel }) {
+function Session(props: { session: SessionType; channel: SessionChannel; config: SettingsType }) {
   const { session, channel } = props;
 
   const {
@@ -162,17 +166,21 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
     }
   }
 
-  async function insertGeneratedCell(idx: number, cell: CodeCellType | MarkdownCellType) {
-    let newCell;
-    switch (cell.type) {
-      case 'code':
-        newCell = createCodeCell(idx, session.metadata.language, cell);
-        break;
-      case 'markdown':
-        newCell = createMarkdownCell(idx, cell);
-        break;
+  async function insertGeneratedCells(idx: number, cells: Array<CodeCellType | MarkdownCellType>) {
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      const insertIdx = idx + i;
+      let newCell;
+      switch (cell.type) {
+        case 'code':
+          newCell = createCodeCell(insertIdx, session.metadata.language, cell);
+          break;
+        case 'markdown':
+          newCell = createMarkdownCell(insertIdx, cell);
+          break;
+      }
+      channel.push('cell:create', { sessionId: session.id, index: insertIdx, cell: newCell });
     }
-    channel.push('cell:create', { sessionId: session.id, index: idx, cell: newCell });
   }
 
   // TOOD: We need to stop treating titles and package.json as cells.
@@ -222,7 +230,8 @@ function Session(props: { session: SessionType; channel: SessionChannel }) {
                 cell={cell}
                 session={session}
                 insertIdx={idx + 2}
-                onSuccess={insertGeneratedCell}
+                onSuccess={insertGeneratedCells}
+                hasOpenaiKey={!!props.config.openaiKey}
               />
             )}
           </div>
@@ -280,7 +289,7 @@ function InsertCellDivider(props: {
             className="border-none rounded-md rounded-l-none"
             onClick={props.createGenerateAiCodeCell}
           >
-            Create with AI
+            Generate with AI
           </Button>
         </div>
       </div>

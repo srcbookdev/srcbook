@@ -42,6 +42,7 @@
     "react-dropzone": "^14.2.3",
     "react-hotkeys-hook": "^4.5.0",
     "react-router-dom": "^6.23.0",
+    "react-textarea-autosize": "^8.5.3",
     "sonner": "^1.4.41",
     "sort-by": "^1.2.0",
     "tailwind-merge": "^2.3.0",

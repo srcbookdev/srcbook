@@ -29,6 +29,7 @@ import type {
   CellRenamePayloadType,
   CellErrorType,
   CellCreatePayloadType,
+  CellAiGeneratePayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -38,6 +39,8 @@ import {
   CellDeletePayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
+  CellAiGeneratePayloadSchema,
+  CellAiGeneratedPayloadSchema,
   DepsInstallPayloadSchema,
   DepsValidatePayloadSchema,
   CellOutputPayloadSchema,
@@ -347,6 +350,15 @@ function reopenFileInTsServer(
   tsserver.open({ file: openFilePath, fileContent: file.source });
 }
 
+async function cellGenerate(payload: CellAiGeneratePayloadType) {
+  console.log('cellGenerate', payload);
+  const session = await findSession(payload.sessionId);
+
+  wss.broadcast(`session:${session.id}`, 'ai:generated', {
+    cellId: payload.cellId,
+    output: payload.prompt,
+  });
+}
 async function cellUpdate(payload: CellUpdatePayloadType) {
   const session = await findSession(payload.sessionId);
 
@@ -569,6 +581,7 @@ wss
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
   .incoming('cell:rename', CellRenamePayloadSchema, cellRename)
   .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)
+  .incoming('ai:generate', CellAiGeneratePayloadSchema, cellGenerate)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
@@ -576,6 +589,7 @@ wss
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
+  .outgoing('ai:generated', CellAiGeneratedPayloadSchema)
   .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
   .outgoing('tsserver:cell:diagnostics', TsServerCellDiagnosticsPayloadSchema);
 

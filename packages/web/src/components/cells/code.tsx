@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Circle, Info, Play, Trash2 } from 'lucide-react';
+import { Circle, Info, Play, Trash2, Sparkles, X } from 'lucide-react';
+import TextareaAutosize from 'react-textarea-autosize';
 import {
   CellType,
   CodeCellType,
   CodeCellUpdateAttrsType,
   CellErrorPayloadType,
+  CellAiGeneratedPayloadType,
 } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { SessionType } from '@/types';
@@ -31,6 +34,18 @@ export default function CodeCell(props: {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
+  const [promptMode, setShowAiPrompt] = useState(false);
+  const [prompt, setPrompt] = useState('');
+
+  useHotkeys(
+    'mod+enter',
+    () => {
+      if (!prompt) return;
+      if (!promptMode) return;
+      generate();
+    },
+    { enableOnFormTags: ['textarea'] },
+  );
 
   const { updateCell, clearOutput } = useCells();
 
@@ -65,6 +80,24 @@ export default function CodeCell(props: {
       filename,
     });
   }
+
+  useEffect(() => {
+    function callback(payload: CellAiGeneratedPayloadType) {
+      if (payload.cellId !== cell.id) return;
+      console.log('received output', payload.output);
+    }
+    channel.on('ai:generated', callback);
+    return () => channel.off('ai:generated', callback);
+  }, [cell.id, channel]);
+
+  const generate = () => {
+    channel.push('ai:generate', {
+      sessionId: session.id,
+      cellId: cell.id,
+      prompt,
+    });
+    console.log('Asking the ai:', prompt);
+  };
 
   function runCell() {
     if (cell.status === 'running') {
@@ -102,13 +135,13 @@ export default function CodeCell(props: {
         )}
       >
         <div className="p-1 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
+          <div className={cn('flex items-center gap-1', promptMode && 'opacity-50')}>
             <FilenameInput
               filename={cell.filename}
               onUpdate={updateFilename}
               onChange={() => setFilenameError(null)}
               className={cn(
-                'w-[200px] font-mono font-semibold text-xs transition-colors',
+                'w-[200px] font-mono font-semibold text-xs transition-colors px-2',
                 filenameError
                   ? 'border-error'
                   : 'border-transparent hover:border-input group-hover:border-input ',
@@ -133,20 +166,51 @@ export default function CodeCell(props: {
               cell.status === 'running' ? 'opacity-100' : '',
             )}
           >
-            {cell.status === 'running' && (
-              <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
-                <Circle size={16} /> Stop
+            <Button
+              variant="icon"
+              size="icon"
+              onClick={() => setShowAiPrompt(!promptMode)}
+              tabIndex={1}
+            >
+              {promptMode ? <X size={16} /> : <Sparkles size={16} />}
+            </Button>
+            {promptMode ? (
+              <Button variant="default" onClick={generate} tabIndex={1}>
+                Generate
               </Button>
-            )}
-            {cell.status === 'idle' && (
-              <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
-                <Play size={16} />
-                Run
-              </Button>
+            ) : (
+              <>
+                {cell.status === 'running' && (
+                  <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
+                    <Circle size={16} /> Stop
+                  </Button>
+                )}
+                {cell.status === 'idle' && (
+                  <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
+                    <Play size={16} />
+                    Run
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
-        <CodeEditor cell={cell} runCell={runCell} onUpdateCell={onUpdateCell} />
+        {promptMode && (
+          <div className="flex items-start">
+            <Sparkles size={16} className="m-2.5" />
+            <TextareaAutosize
+              className="flex min-h-[60px] w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
+              autoFocus
+              placeholder="Ask the AI to edit this cell..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+            />
+          </div>
+        )}
+
+        <div className={cn(promptMode && 'opacity-50')}>
+          <CodeEditor cell={cell} runCell={runCell} onUpdateCell={onUpdateCell} />
+        </div>
         <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
       </div>
     </div>

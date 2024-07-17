@@ -24,6 +24,12 @@ export const CellUpdatePayloadSchema = z.object({
   updates: CellUpdateAttrsSchema,
 });
 
+export const CellAiGeneratePayloadSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+  prompt: z.string(),
+});
+
 export const CellRenamePayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
@@ -48,6 +54,11 @@ export const CellErrorPayloadSchema = z.object({
 
 export const CellUpdatedPayloadSchema = z.object({
   cell: CellSchema,
+});
+
+export const CellAiGeneratedPayloadSchema = z.object({
+  cellId: z.string(),
+  output: z.string(),
 });
 
 export const CellOutputPayloadSchema = z.object({

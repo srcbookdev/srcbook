@@ -8,6 +8,8 @@ import {
   CellUpdatedPayloadSchema,
   CellRenamePayloadSchema,
   CellDeletePayloadSchema,
+  CellAiGeneratePayloadSchema,
+  CellAiGeneratedPayloadSchema,
   CellOutputPayloadSchema,
   DepsInstallPayloadSchema,
   DepsValidateResponsePayloadSchema,
@@ -26,6 +28,8 @@ export type CellUpdatedPayloadType = z.infer<typeof CellUpdatedPayloadSchema>;
 export type CellRenamePayloadType = z.infer<typeof CellRenamePayloadSchema>;
 export type CellDeletePayloadType = z.infer<typeof CellDeletePayloadSchema>;
 export type CellOutputPayloadType = z.infer<typeof CellOutputPayloadSchema>;
+export type CellAiGeneratePayloadType = z.infer<typeof CellAiGeneratePayloadSchema>;
+export type CellAiGeneratedPayloadType = z.infer<typeof CellAiGeneratedPayloadSchema>;
 
 export type DepsInstallPayloadType = z.infer<typeof DepsInstallPayloadSchema>;
 export type DepsValidateResponsePayloadType = z.infer<typeof DepsValidateResponsePayloadSchema>;

@@ -2,8 +2,7 @@
 
 # Intro to WebSockets
 
-<details>
-  <summary>package.json</summary>
+###### package.json
 
 ```json
 {
@@ -13,7 +12,6 @@
   }
 }
 ```
-</details>
 
 This Srcbook is a fun demonstration of building a simple WebSocket client and server in Node.js using the [ws library](https://github.com/websockets/ws). We'll explore the basic concepts of communicating over WebSockets and showcase Srcbook's ability to host long-running processes.
 
@@ -33,8 +31,7 @@ One of the most popular libraries for WebSockets in Node.js is the [ws library](
 
 Below we implement a simple WebSocket _server_ using `ws`.
 
-<details open>
-  <summary>simple-server.js</summary>
+###### simple-server.js
 
 ```javascript
 import { WebSocketServer } from 'ws';
@@ -49,14 +46,12 @@ wss.on('connection', (socket) => {
   console.log("New client connected")
 });
 ```
-</details>
 
 This simple server does nothing more than wait for incoming connections and log the messages it receives.
 
 Next, we need a _client_ to connect and send messages to it. Note the client is running in a Node.js process, not in the browser. Backends communicate over WebSockets too!
 
-<details open>
-  <summary>simple-client.js</summary>
+###### simple-client.js
 
 ```javascript
 import WebSocket from 'ws';
@@ -68,8 +63,8 @@ ws.on('open', () => {
   ws.send('Hello from simple-client.js');
   ws.close();
 });
+
 ```
-</details>
 
 Our simple client establishes a connection with the server, sends one message, and closes the connection. To run this example, first run the server and then run the client. Output is logged under the simple-server.js cell above.
 
@@ -77,8 +72,7 @@ Our simple client establishes a connection with the server, sends one message, a
 
 The example above is not terribly interesting. WebSockets become more useful when the server tracks open connections and sends messages to the client.
 
-<details open>
-  <summary>stateful-server.js</summary>
+###### stateful-server.js
 
 ```javascript
 import { WebSocketServer } from 'ws';
@@ -138,10 +132,8 @@ wss.on('connection', (socket) => {
   });
 });
 ```
-</details>
 
-<details open>
-  <summary>client.js</summary>
+###### client.js
 
 ```javascript
 import WebSocket from 'ws';
@@ -183,7 +175,6 @@ client2.close();
 
 console.log("Shutting down");
 ```
-</details>
 
 ## Explanation
 

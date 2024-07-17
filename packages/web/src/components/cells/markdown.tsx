@@ -84,9 +84,16 @@ export default function MarkdownCell(props: {
       )}
     >
       {status === 'view' ? (
-        <div>
-          <div className="p-1 w-full h-11 hidden group-hover/cell:flex items-center justify-between z-10">
-            <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
+        <div className="flex flex-col">
+          <div className="p-1 w-full hidden group-hover/cell:flex items-center justify-between z-10">
+            <div className="flex items-center gap-2">
+              <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
+              <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+                <Button variant="secondary" size="icon" className="border-transparent">
+                  <Trash2 size={16} />
+                </Button>
+              </DeleteCellWithConfirmation>
+            </div>
             <div className="flex items-center gap-1">
               <Button
                 variant="secondary"
@@ -96,15 +103,9 @@ export default function MarkdownCell(props: {
               >
                 <Pencil size={16} />
               </Button>
-
-              <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-                <Button variant="secondary" size="icon" className="border-transparent">
-                  <Trash2 size={16} />
-                </Button>
-              </DeleteCellWithConfirmation>
             </div>
           </div>
-          <div className="sb-prose px-3 pt-11 group-hover/cell:pt-0">
+          <div className="sb-prose px-3 pt-10 group-hover/cell:pt-0">
             <Markdown>{cell.text}</Markdown>
           </div>
         </div>
@@ -118,18 +119,15 @@ export default function MarkdownCell(props: {
           )}
           <div className="flex flex-col">
             <div className="p-1 w-full flex items-center justify-between z-10">
-              <h5 className="pl-4 text-sm font-mono font-bold">Markdown</h5>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
+                <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
                 <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="border-secondary hover:border-muted"
-                  >
+                  <Button variant="secondary" size="icon" className="border-transparent">
                     <Trash2 size={16} />
                   </Button>
                 </DeleteCellWithConfirmation>
-
+              </div>
+              <div className="flex items-center gap-1">
                 <Button variant="secondary" onClick={() => setStatus('view')}>
                   Cancel
                 </Button>

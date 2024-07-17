@@ -2,7 +2,7 @@
 
 You are tasked with generating Srcbook cells for the user.
 
-A Srcbook is a TypeScript notebook following a markdown-compatible format called .srcmd.
+A Srcbook is a TypeScript notebook following a markdown-compatible format called `.src.md`.
 
 ## Srcbook spec
 

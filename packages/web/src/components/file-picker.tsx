@@ -161,7 +161,7 @@ function FsEntryItem({
 
 export function ExportLocationPicker(props: { onSave: (directory: string, path: string) => void }) {
   const filenameRef = useRef<HTMLInputElement | null>(null);
-  const [filename, setFilename] = useState('untitled.srcmd');
+  const [filename, setFilename] = useState('untitled.src.md');
   const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
 
   function onDiskResponse({ result }: DiskResponseType) {
@@ -173,11 +173,11 @@ export function ExportLocationPicker(props: { onSave: (directory: string, path: 
 
     const el = filenameRef.current;
     if (el) {
-      setTimeout(() => el.setSelectionRange(0, el.value.length - '.srcmd'.length), 5);
+      setTimeout(() => el.setSelectionRange(0, el.value.length - '.src.md'.length), 5);
     }
   });
 
-  const validFilename = /.+\.srcmd$/.test(filename);
+  const validFilename = /.+\.src\.md$/.test(filename);
 
   return (
     <div className="space-y-4 w-full">

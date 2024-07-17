@@ -33,7 +33,7 @@ function Modal(props: { open: boolean }) {
           <div className="flex-1 flex flex-col items-center justify-center gap-2">
             <strong className="text-lg font-semibold leading-tight">Open Srcbook</strong>
             <p className="text-tertiary-foreground">
-              Drop <code className="code">.srcmd</code> file to open
+              Drop <code className="code">.src.md</code> file to open
             </p>
           </div>
         </div>
@@ -57,7 +57,7 @@ export function DragAndDropSrcmdModal(props: { children: React.ReactNode }) {
       const file = files[0];
 
       // TODO: Error handling
-      if (!file.name.endsWith('.srcmd')) {
+      if (!file.name.endsWith('.src.md')) {
         return;
       }
 

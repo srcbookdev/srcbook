@@ -18,7 +18,7 @@ export async function disk(dirname: string, ext: string) {
 
   const entries = results
     .filter((entry) => {
-      return entry.isDirectory() || Path.extname(entry.name) === ext;
+      return entry.isDirectory() || entry.name.endsWith(ext);
     })
     .map((entry) => {
       return {

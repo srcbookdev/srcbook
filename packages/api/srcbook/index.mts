@@ -74,7 +74,7 @@ export function writeReadmeToDisk(
 }
 
 /**
- * Creates a srcbook directory from a .srcmd file.
+ * Creates a srcbook directory from a .src.md file.
  */
 export async function importSrcbookFromSrcmdFile(srcmdPath: string) {
   // Check if the user is opening one of the example Srcbooks that comes bundled with the app.
@@ -96,7 +96,7 @@ export async function importSrcbookFromSrcmdFile(srcmdPath: string) {
 }
 
 /**
- * Creates a srcbook directory from a srcmd text.
+ * Creates a srcbook directory from srcmd text.
  */
 export async function importSrcbookFromSrcmdText(text: string, directoryBasename?: string) {
   const result = decode(text);

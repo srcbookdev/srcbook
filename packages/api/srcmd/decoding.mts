@@ -11,7 +11,7 @@ import type {
 import type { DecodeCellsResult, DecodeResult } from './types.mjs';
 
 /**
- * This is used to decode a complete .srcmd file.
+ * This is used to decode a complete .src.md file.
  */
 export function decode(contents: string): DecodeResult {
   // First, decode the markdown text into tokens.
@@ -46,10 +46,10 @@ export function decode(contents: string): DecodeResult {
 }
 
 /**
- * This is used to decode a subset of a .srcmd file.
+ * This is used to decode a subset of a .src.md file.
  *
  * For example, we generate a subset of a Srcbook (1 or more cells) using AI.
- * When that happens, we do not have the entire .srcmd contents, so we need
+ * When that happens, we do not have the entire .src.md contents, so we need
  * to ignore some aspects of it, like parsing the metadata.
  */
 export function decodeCells(contents: string): DecodeCellsResult {

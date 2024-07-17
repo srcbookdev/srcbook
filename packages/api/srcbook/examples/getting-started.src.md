@@ -76,8 +76,8 @@ const token = auth(API_KEY);
 
 ## Exporting and sharing Srcbooks
 
-Srcbooks are meant to be collaborative. They export to a friendly `.srcmd` format, which is valid markdown and can be opened in any text editor.
+Srcbooks are meant to be collaborative. They export to a Markdown file with the `.src.md` extension, which can be rendered in any editor or UI that supports Markdown.
 
 You can export Srcbooks by clicking the `Export` link in the top level menu on the left.
 
-You can also import `.srcmd` files directly in this application if you want to run, modify, or re-export them.
+You can also import `.src.md` files directly in this application if you want to run, modify, or re-export them.

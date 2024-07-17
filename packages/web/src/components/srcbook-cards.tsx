@@ -148,7 +148,7 @@ function BigButton(props: { onClick: () => void; className?: string; children: R
     <button
       onClick={props.onClick}
       className={cn(
-        'w-full sm:w-[216px] sm:max-w-[216px] h-[96px] space-y-1.5 bg-background border rounded-sm p-3 hover:border-ring transition-all',
+        'w-full sm:w-[216px] sm:max-w-[216px] h-24 p-3 bg-background border rounded-sm hover:border-ring transition-all',
         props.className,
       )}
     >
@@ -174,7 +174,7 @@ export function CreateSrcbookButton(props: {
   const [language, setLanguage] = useState(props.defaultLanguage);
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-1">
       <BigButton onClick={() => props.onSubmit(language)}>
         <div className="flex flex-col h-full items-start justify-between">
           <PlusIcon size={20} />
@@ -218,10 +218,10 @@ export function ImportSrcbookButton(props: { onClick: () => void }) {
     >
       <div className="flex flex-col h-full items-start justify-between">
         <Upload size={20} />
-        <div className="flex flex-col items-start gap-0.5">
-          <h5 className="font-medium leading-[18px]">Open Srcbook</h5>
+        <div className="flex flex-col items-start gap-1">
+          <h5 className="font-medium leading-none">Open Srcbook</h5>
           <p className="leading-none text-[13px] text-tertiary-foreground">
-            or drag'n drop <span className="font-medium">.srcmd</span> file
+            or drag 'n drop <span className="font-medium">.src.md</span> file
           </p>
         </div>
       </div>

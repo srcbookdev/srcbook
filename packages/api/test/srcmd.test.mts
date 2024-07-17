@@ -8,7 +8,7 @@ describe('encoding and decoding srcmd files', () => {
   const languagePrefix = '<!-- srcbook:{"language": "javascript"} -->\n\n';
 
   beforeAll(async () => {
-    srcmd = await getRelativeFileContents('srcmd_files/srcbook.srcmd');
+    srcmd = await getRelativeFileContents('srcmd_files/srcbook.src.md');
   });
 
   it('is an error when there is no title', () => {

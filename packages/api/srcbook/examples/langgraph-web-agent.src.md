@@ -44,13 +44,13 @@ Now, let's define the Agent with LangGraph.js
 ###### agent.ts
 
 ```typescript
-import { HumanMessage } from "@langchain/core/messages";
-import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
-import { ChatOpenAI } from "@langchain/openai";
-import { END, START, StateGraph, StateGraphArgs } from "@langchain/langgraph";
-import { SqliteSaver } from "@langchain/langgraph/checkpoint/sqlite"
+import { HumanMessage } from '@langchain/core/messages';
+import { TavilySearchResults } from '@langchain/community/tools/tavily_search';
+import { ChatOpenAI } from '@langchain/openai';
+import { END, START, StateGraph, StateGraphArgs } from '@langchain/langgraph';
+import { SqliteSaver } from '@langchain/langgraph/checkpoint/sqlite';
 // import { MemorySaver } from "@langchain/langgraph";
-import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { ToolNode } from '@langchain/langgraph/prebuilt';
 
 // Define the state interface
 interface AgentState {
@@ -58,10 +58,10 @@ interface AgentState {
 }
 
 // We'll use a local sqlite DB for memory
-export const DB_NAME = 'langgraph_memory.db'
+export const DB_NAME = 'langgraph_memory.db';
 
 // Define the graph state
-const graphState: StateGraphArgs<AgentState>["channels"] = {
+const graphState: StateGraphArgs<AgentState>['channels'] = {
   messages: {
     value: (x: HumanMessage[], y: HumanMessage[]) => x.concat(y),
     default: () => [],
@@ -75,13 +75,13 @@ const toolNode = new ToolNode<AgentState>(tools);
 const model = new ChatOpenAI({ model: 'gpt-4o', temperature: 0 }).bindTools(tools);
 
 // Define the function that determines whether to continue or not
-function shouldContinue(state: AgentState): "tools" | typeof END {
+function shouldContinue(state: AgentState): 'tools' | typeof END {
   const messages = state.messages;
   const lastMessage = messages[messages.length - 1];
 
   // If the LLM makes a tool call, then we route to the "tools" node
   if (lastMessage.additional_kwargs.tool_calls) {
-    return "tools";
+    return 'tools';
   }
   // Otherwise, we stop (reply to the user)
   return END;
@@ -98,11 +98,11 @@ async function callModel(state: AgentState) {
 
 // Define a new graph
 const workflow = new StateGraph<AgentState>({ channels: graphState })
-  .addNode("agent", callModel)
-  .addNode("tools", toolNode)
-  .addEdge(START, "agent")
-  .addConditionalEdges("agent", shouldContinue)
-  .addEdge("tools", "agent");
+  .addNode('agent', callModel)
+  .addNode('tools', toolNode)
+  .addEdge(START, 'agent')
+  .addConditionalEdges('agent', shouldContinue)
+  .addEdge('tools', 'agent');
 
 // Initialize memory to persist state between graph runs
 export const memory = SqliteSaver.fromConnString(DB_NAME);
@@ -112,7 +112,6 @@ export const memory = SqliteSaver.fromConnString(DB_NAME);
 // This compiles it into a LangChain Runnable.
 // Note that we're (optionally) passing the memory when compiling the graph
 export const app = workflow.compile({ checkpointer: memory });
-
 ```
 
 Now that we've built our app, let's invoke it to first get the weather in SF:
@@ -120,19 +119,19 @@ Now that we've built our app, let's invoke it to first get the weather in SF:
 ###### sf-weather.ts
 
 ```typescript
-import {app} from './agent.ts';
-import { HumanMessage } from "@langchain/core/messages";
+import { app } from './agent.ts';
+import { HumanMessage } from '@langchain/core/messages';
 
 // Reference a thread
-const thread = { configurable: { thread_id: "42" }};
+const thread = { configurable: { thread_id: '42' } };
 
 // Use the Runnable
 const finalState = await app.invoke(
-  { messages: [new HumanMessage("what is the weather in sf")] },
-  thread
+  { messages: [new HumanMessage('what is the weather in sf')] },
+  thread,
 );
 
-console.log(finalState.messages[finalState.messages.length - 1].content)
+console.log(finalState.messages[finalState.messages.length - 1].content);
 ```
 
 Now when we pass the same `thread_id`, in this case `"42"`, the conversation context is retained via the saved state that we've set in a local sqliteDB (i.e. stored list of messages).
@@ -142,12 +141,12 @@ Also, in this next example, we demonstrate streaming output.
 ###### ny-weather.ts
 
 ```typescript
-import {app} from './agent.ts';
+import { app } from './agent.ts';
 import { HumanMessage } from '@langchain/core/messages';
 
 const nextState = await app.invoke(
-  { messages: [new HumanMessage("what about ny")] },
-  { configurable: { thread_id: "42"} }
+  { messages: [new HumanMessage('what about ny')] },
+  { configurable: { thread_id: '42' } },
 );
 
 console.log(nextState.messages[nextState.messages.length - 1].content);
@@ -160,7 +159,7 @@ The memory was saved in the sqlite db `./langGraph.db`. If you want to clear it,
 ###### clear.ts
 
 ```typescript
-import {DB_NAME} from './agent.ts';
+import { DB_NAME } from './agent.ts';
 import fs from 'node:fs';
 // I can't find good documentation on the memory module, so let's apply the nuclear method
 

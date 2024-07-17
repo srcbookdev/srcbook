@@ -80,7 +80,7 @@ export async function generateSrcbook(query: string): Promise<NoToolsGenerateTex
 type GenerateCellResult = {
   error: boolean;
   errors?: string[];
-  cell?: CellType;
+  cells?: CellType[];
 };
 export async function generateCell(
   query: string,
@@ -112,11 +112,6 @@ export async function generateCell(
   if (decodeResult.error) {
     return { error: true, errors: decodeResult.errors };
   } else {
-    const cells = decodeResult.cells;
-    if (cells.length !== 1) {
-      return { error: true, errors: ['Multiple cells generated. Expected only one.'] };
-    } else {
-      return { error: false, cell: decodeResult.cells[0] };
-    }
+    return { error: false, cells: decodeResult.cells };
   }
 }

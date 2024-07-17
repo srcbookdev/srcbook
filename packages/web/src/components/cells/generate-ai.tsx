@@ -1,26 +1,28 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { type CodeCellType, type MarkdownCellType } from '@srcbook/shared';
-import { generateCell } from '@/lib/server';
+import { generateCells } from '@/lib/server';
 import { CircleAlert, Trash2, Sparkles } from 'lucide-react';
 import { GenerateAICellType, SessionType } from '@/types';
 import { useCells } from '@/components/use-cell';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 
 export default function GenerateAiCell(props: {
   cell: GenerateAICellType;
   insertIdx: number;
   session: SessionType;
-  onSuccess: (idx: number, cell: CodeCellType | MarkdownCellType) => void;
+  onSuccess: (idx: number, cells: Array<CodeCellType | MarkdownCellType>) => void;
+  hasOpenaiKey: boolean;
 }) {
-  const { cell, insertIdx, session, onSuccess } = props;
+  const { cell, insertIdx, session, onSuccess, hasOpenaiKey } = props;
   const [state, setState] = useState<'idle' | 'loading'>('idle');
   const { removeCell } = useCells();
   const [prompt, setPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const navigate = useNavigate();
   useHotkeys(
     'mod+enter',
     () => {
@@ -33,7 +35,7 @@ export default function GenerateAiCell(props: {
   const generate = async () => {
     setError(null);
     setState('loading');
-    const { result, error } = await generateCell(session.id, {
+    const { result, error } = await generateCells(session.id, {
       query: prompt,
       insertIdx: insertIdx,
     });
@@ -60,30 +62,23 @@ export default function GenerateAiCell(props: {
           'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30 focus-within:border-sb-red-30 focus-within:ring-sb-red-30',
       )}
     >
-      {error && (
-        <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
-          <CircleAlert size={16} />
-          <p className="text-xs">{error}</p>
-        </div>
-      )}
       <div className="flex flex-col">
         <div className="p-1 w-full flex items-center justify-between z-10">
           <div className="flex items-center gap-2">
             <h5 className="pl-4 text-sm font-mono font-bold">Generate with AI</h5>
-            <DeleteCellWithConfirmation onDeleteCell={() => removeCell(cell)}>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="border-secondary hover:border-muted"
-              >
-                <Trash2 size={16} />
-              </Button>
-            </DeleteCellWithConfirmation>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="border-secondary hover:border-muted"
+              onClick={() => removeCell(cell)}
+            >
+              <Trash2 size={16} />
+            </Button>
           </div>
 
           <div>
             <Button
-              disabled={!prompt}
+              disabled={!prompt || !hasOpenaiKey}
               onClick={generate}
               variant={state === 'idle' ? 'default' : 'run'}
             >
@@ -92,7 +87,7 @@ export default function GenerateAiCell(props: {
           </div>
         </div>
 
-        <div className="flex items-start">
+        <div className={cn('flex items-start', error && 'border-b')}>
           <Sparkles size={16} className="m-2.5" />
 
           <textarea
@@ -100,9 +95,28 @@ export default function GenerateAiCell(props: {
             autoFocus
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Write a prompt..."
-            className="flex min-h-[60px] w-full rounded-sm px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none pl-0"
+            className="flex min-h-[80px] bg-transparent w-full rounded-sm px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none pl-0"
           />
         </div>
+
+        {error && (
+          <div className="flex items-center gap-2 m-2 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm justify-center">
+            <CircleAlert size={16} />
+            <p className="text-xs line-clamp-1 ">{error}</p>
+          </div>
+        )}
+
+        {!hasOpenaiKey && (
+          <div className="flex items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm p-1 m-3">
+            <p className="px-2">API key required</p>
+            <button
+              className="border border-sb-yellow-70 rounded-sm px-2 py-1 hover:border-sb-yellow-80 animate-all"
+              onClick={() => navigate('/settings')}
+            >
+              Settings
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

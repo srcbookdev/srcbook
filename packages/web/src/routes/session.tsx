@@ -167,17 +167,19 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   }
 
   async function insertGeneratedCells(idx: number, cells: Array<CodeCellType | MarkdownCellType>) {
-    for (const cell of cells) {
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      const insertIdx = idx + i;
       let newCell;
       switch (cell.type) {
         case 'code':
-          newCell = createCodeCell(idx, session.metadata.language, cell);
+          newCell = createCodeCell(insertIdx, session.metadata.language, cell);
           break;
         case 'markdown':
-          newCell = createMarkdownCell(idx, cell);
+          newCell = createMarkdownCell(insertIdx, cell);
           break;
       }
-      channel.push('cell:create', { sessionId: session.id, index: idx, cell: newCell });
+      channel.push('cell:create', { sessionId: session.id, index: insertIdx, cell: newCell });
     }
   }
 

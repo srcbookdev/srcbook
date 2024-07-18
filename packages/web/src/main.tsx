@@ -41,7 +41,6 @@ const router = createBrowserRouter([
       {
         path: '/secrets',
         loader: Secrets.loader,
-        action: Secrets.action,
         element: <Secrets />,
         errorElement: <ErrorPage />,
       },

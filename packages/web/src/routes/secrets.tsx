@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getSecrets } from '@/lib/server';
 import { Eye, KeyRound, EyeOff, Copy, Check } from 'lucide-react';
-import { useLoaderData, Form, useRevalidator } from 'react-router-dom';
+import { Form, useLoaderData, useRevalidator } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { updateSecret, createSecret, deleteSecret } from '@/lib/server';
@@ -14,27 +14,15 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 
+type SecretsType = { secrets: Record<string, string> };
+
 async function loader() {
   const { result } = await getSecrets();
   return { secrets: result };
 }
 
-async function action({ request }: { request: Request }) {
-  const formData = await request.formData();
-  if (formData.get('new-form')) {
-    const name = formData.get('name') as string;
-    const value = formData.get('value') as string;
-    const { result } = await createSecret({ name, value });
-    if (!result) {
-      console.error('Error creating secret');
-    }
-    return { secrets: result };
-  }
-  return null;
-}
-
 function Secrets() {
-  const { secrets } = useLoaderData() as { secrets: Record<string, string> };
+  const { secrets } = useLoaderData() as SecretsType;
 
   return (
     <div>
@@ -219,28 +207,39 @@ function CopyableSecretValue({ value }: { value: string }) {
 }
 
 function NewSecretForm() {
+  const revalidator = useRevalidator();
+
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
 
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    await createSecret({ name, value });
+    setName('');
+    setValue('');
+    revalidator.revalidate();
+  }
+
   return (
     <>
-      <Form method="post" className="flex items-center gap-4">
+      <Form method="post" className="flex items-center gap-4" onSubmit={onSubmit}>
         <Input
           type="text"
           name="name"
-          value={name}
           pattern="^[A-Z0-9_]+$"
           autoComplete="off"
-          onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
           placeholder="name"
+          value={name}
+          onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
         />
+
         <Input
           type="text"
           name="value"
-          value={value}
           autoComplete="off"
-          onChange={(e) => setValue(e.currentTarget.value)}
           placeholder="value"
+          value={value}
+          onChange={(e) => setValue(e.currentTarget.value)}
         />
 
         <Button type="submit" disabled={!name || !value}>
@@ -252,5 +251,4 @@ function NewSecretForm() {
 }
 
 Secrets.loader = loader;
-Secrets.action = action;
 export default Secrets;

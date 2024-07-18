@@ -1,4 +1,5 @@
 import { ChildProcess } from 'node:child_process';
+import { generateCellEdit } from '../ai/generate.mjs';
 import {
   findSession,
   findCell,
@@ -351,12 +352,14 @@ function reopenFileInTsServer(
 }
 
 async function cellGenerate(payload: CellAiGeneratePayloadType) {
-  console.log('cellGenerate', payload);
   const session = await findSession(payload.sessionId);
+  const cell = session.cells.find((cell) => cell.id === payload.cellId) as CodeCellType;
+
+  const result = await generateCellEdit(payload.prompt, session, cell);
 
   wss.broadcast(`session:${session.id}`, 'ai:generated', {
     cellId: payload.cellId,
-    output: payload.prompt,
+    output: result,
   });
 }
 async function cellUpdate(payload: CellUpdatePayloadType) {

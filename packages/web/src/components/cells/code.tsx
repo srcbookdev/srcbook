@@ -34,14 +34,14 @@ export default function CodeCell(props: {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
-  const [promptMode, setShowAiPrompt] = useState(false);
+  const [promptMode, setPromptMode] = useState<'off' | 'generating' | 'idle'>('off');
   const [prompt, setPrompt] = useState('');
 
   useHotkeys(
     'mod+enter',
     () => {
       if (!prompt) return;
-      if (!promptMode) return;
+      if (promptMode !== 'idle') return;
       generate();
     },
     { enableOnFormTags: ['textarea'] },
@@ -84,7 +84,10 @@ export default function CodeCell(props: {
   useEffect(() => {
     function callback(payload: CellAiGeneratedPayloadType) {
       if (payload.cellId !== cell.id) return;
-      console.log('received output', payload.output);
+      // TODO: human-in-the-loop accept flow, and revert mechanism
+      // For now, brute force replace
+      onUpdateCell(cell, { source: payload.output });
+      setPromptMode('idle');
     }
     channel.on('ai:generated', callback);
     return () => channel.off('ai:generated', callback);
@@ -96,7 +99,7 @@ export default function CodeCell(props: {
       cellId: cell.id,
       prompt,
     });
-    console.log('Asking the ai:', prompt);
+    setPromptMode('generating');
   };
 
   function runCell() {
@@ -129,13 +132,13 @@ export default function CodeCell(props: {
       <div
         className={cn(
           'border rounded-md group',
-          cell.status === 'running'
+          cell.status === 'running' || promptMode === 'generating'
             ? 'ring-1 ring-run-ring border-run-ring'
             : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
         )}
       >
         <div className="p-1 flex items-center justify-between gap-2">
-          <div className={cn('flex items-center gap-1', promptMode && 'opacity-50')}>
+          <div className={cn('flex items-center gap-1', promptMode !== 'off' && 'opacity-50')}>
             <FilenameInput
               filename={cell.filename}
               onUpdate={updateFilename}
@@ -169,16 +172,25 @@ export default function CodeCell(props: {
             <Button
               variant="icon"
               size="icon"
-              onClick={() => setShowAiPrompt(!promptMode)}
+              onClick={() => {
+                if (promptMode === 'off') setPromptMode('idle');
+                if (promptMode === 'idle') setPromptMode('off');
+              }}
               tabIndex={1}
             >
-              {promptMode ? <X size={16} /> : <Sparkles size={16} />}
+              {promptMode === 'off' ? <Sparkles size={16} /> : <X size={16} />}
             </Button>
-            {promptMode ? (
+            {promptMode === 'idle' && (
               <Button variant="default" onClick={generate} tabIndex={1}>
                 Generate
               </Button>
-            ) : (
+            )}
+            {promptMode === 'generating' && (
+              <Button variant="run" disabled tabIndex={1}>
+                Generating
+              </Button>
+            )}
+            {promptMode === 'off' && (
               <>
                 {cell.status === 'running' && (
                   <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
@@ -195,7 +207,7 @@ export default function CodeCell(props: {
             )}
           </div>
         </div>
-        {promptMode && (
+        {promptMode === 'idle' && (
           <div className="flex items-start">
             <Sparkles size={16} className="m-2.5" />
             <TextareaAutosize
@@ -208,7 +220,7 @@ export default function CodeCell(props: {
           </div>
         )}
 
-        <div className={cn(promptMode && 'opacity-50')}>
+        <div className={cn(promptMode !== 'off' && 'opacity-50')}>
           <CodeEditor cell={cell} runCell={runCell} onUpdateCell={onUpdateCell} />
         </div>
         <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />

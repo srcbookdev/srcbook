@@ -13,7 +13,7 @@ import {
   sessionToResponse,
   listSessions,
 } from '../session.mjs';
-import { generateCell, generateSrcbook } from '../ai/srcbook-generator.mjs';
+import { generateCell, generateSrcbook } from '../ai/generate.mjs';
 import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import {

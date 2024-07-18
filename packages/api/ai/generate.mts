@@ -2,6 +2,7 @@ import { generateText, GenerateTextResult } from 'ai';
 import {
   type CodeLanguageType,
   type CellType,
+  type CodeCellType,
   randomid,
   type CellWithPlaceholderType,
 } from '@srcbook/shared';
@@ -44,6 +45,32 @@ ${inlineSrcbookWithPlaceholder}
 ==== BEGIN USER REQUEST ====
 ${query}
 ==== END USER REQUEST ====`;
+  return prompt;
+};
+
+const makeGenerateCellEditSystemPrompt = (language: CodeLanguageType) => {
+  return readFileSync(Path.join(PROMPTS_DIR, `code-updater-${language}.txt`), 'utf-8');
+};
+
+const makeGenerateCellEditUserPrompt = (
+  query: string,
+  session: SessionType,
+  cell: CodeCellType,
+) => {
+  const inlineSrcbook = encode(session.cells, session.metadata, { inline: true });
+
+  const prompt = `==== BEGIN SRCBOOK ====
+${inlineSrcbook}
+==== END SRCBOOK ====
+
+==== BEGIN CODE CELL ====
+${cell.source}
+==== END CODE CELL ====
+
+==== BEGIN USER REQUEST ====
+${query}
+==== END USER REQUEST ====
+`;
   return prompt;
 };
 
@@ -90,16 +117,16 @@ export async function generateSrcbook(query: string): Promise<NoToolsGenerateTex
   return result;
 }
 
-type GenerateCellResult = {
+type GenerateCellsResult = {
   error: boolean;
   errors?: string[];
   cells?: CellType[];
 };
-export async function generateCell(
+export async function generateCells(
   query: string,
   session: SessionType,
   insertIdx: number,
-): Promise<GenerateCellResult> {
+): Promise<GenerateCellsResult> {
   const model = await getOpenAIModel();
 
   const systemPrompt = makeGenerateCellSystemPrompt(session.metadata.language);
@@ -127,4 +154,19 @@ export async function generateCell(
   } else {
     return { error: false, cells: decodeResult.cells };
   }
+}
+
+export async function generateCellEdit(query: string, session: SessionType, cell: CodeCellType) {
+  const model = await getOpenAIModel();
+
+  const systemPrompt = makeGenerateCellEditSystemPrompt(session.metadata.language);
+  const userPrompt = makeGenerateCellEditUserPrompt(query, session, cell);
+  const result = await generateText({
+    model: model,
+    system: systemPrompt,
+    prompt: userPrompt,
+  });
+
+  // TODO: PARSING
+  return result.text;
 }

@@ -10,11 +10,13 @@ Srcbooks export to markdown using the `.src.md` extension. These files can easil
 
 To learn more, try out the interactive tutorial which is itself a Srcbook by clicking "Getting Started" when launching the application.
 
-![the getting started srcbook](./assets/getting-started-srcbook.png)
-
-## Note
+#### ⚠️ Warning
 
 Srcbook is currently in alpha which means there may be breaking changes until it's out of alpha.
+
+If you upgrade and are having trouble launching the application, you can `rm -rf ~/.srcbook` to clear the Srcbook directory and start from a clean state. This will, however, delete all your Srcbooks so you may want to first export any you care about to a `.src.md` file.
+
+![the getting started srcbook](./assets/getting-started-srcbook.png)
 
 ## Requirements
 

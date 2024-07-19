@@ -40,7 +40,7 @@ export default function CodeCell(props: {
   const [showStdio, setShowStdio] = useState(false);
   const [promptMode, setPromptMode] = useState<'off' | 'generating' | 'reviewing' | 'idle'>('off');
   const [prompt, setPrompt] = useState('');
-  const [newSource, setNewSource] = useState<string | null>(null);
+  const [newSource, setNewSource] = useState('');
 
   useHotkeys(
     'mod+enter',
@@ -89,8 +89,7 @@ export default function CodeCell(props: {
   useEffect(() => {
     function callback(payload: CellAiGeneratedPayloadType) {
       if (payload.cellId !== cell.id) return;
-      // TODO: human-in-the-loop accept flow, and revert mechanism
-      // For now, brute force replace
+      // We move to the "review" stage of the generation process:
       setNewSource(payload.output);
       setPromptMode('reviewing');
     }
@@ -132,15 +131,15 @@ export default function CodeCell(props: {
     channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
   }
 
-  function onRevert() {
+  function onRevertDiff() {
     setPromptMode('idle');
     setNewSource('');
   }
 
-  async function onAccept() {
-    await onUpdateCell(cell, { source: newSource || '' });
-    setPromptMode('off');
+  async function onAcceptDiff() {
+    await onUpdateCell(cell, { source: newSource });
     setPrompt('');
+    setPromptMode('off');
   }
 
   return (
@@ -239,7 +238,14 @@ export default function CodeCell(props: {
                   <MessageCircleWarning size={16} />
                 </Button>
               </AiGenerateTipsDialog>
-              <Button size="icon" variant="icon" onClick={() => setPromptMode('off')}>
+              <Button
+                size="icon"
+                variant="icon"
+                onClick={() => {
+                  setPromptMode('off');
+                  setPrompt('');
+                }}
+              >
                 <X size={16} />
               </Button>
             </div>
@@ -249,9 +255,9 @@ export default function CodeCell(props: {
         {promptMode === 'reviewing' ? (
           <DiffEditor
             original={cell.source}
-            modified={newSource || ''}
-            onAccept={onAccept}
-            onRevert={onRevert}
+            modified={newSource}
+            onAccept={onAcceptDiff}
+            onRevert={onRevertDiff}
           />
         ) : (
           <>

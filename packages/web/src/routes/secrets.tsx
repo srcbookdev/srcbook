@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
 
 async function loader() {
   const { result } = await getSecrets();
@@ -26,6 +25,28 @@ function isValidSecretName(name: string) {
 function Secrets() {
   const { secrets } = useLoaderData() as { secrets: Record<string, string> };
 
+  const [error, _setError] = useState<string | null>(null);
+  const timeoutRef = useRef<any>(null);
+
+  function setError(message: string | null, clearAfter: number | null = null) {
+    if (message === null) {
+      _setError(null);
+      return;
+    }
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    _setError(message);
+
+    if (clearAfter) {
+      timeoutRef.current = setTimeout(() => {
+        _setError(null);
+      }, clearAfter);
+    }
+  }
+
   return (
     <>
       <h1 className="text-2xl my-4">Secrets</h1>
@@ -36,14 +57,29 @@ function Secrets() {
       </p>
 
       <div className="mt-12 space-y-6">
-        <NewSecretForm />
-        <SecretsTable secrets={secrets} />
+        <NewSecretForm setError={setError} />
+        {error && <ErrorMessage message={error} />}
+        <SecretsTable secrets={secrets} setError={setError} />
       </div>
     </>
   );
 }
 
-function SecretsTable(props: { secrets: Record<string, string> }) {
+function ErrorMessage(props: { message: string }) {
+  return (
+    <div className="w-full flex items-center justify-center">
+      <p className="text-sm max-w-md flex items-center gap-1.5 pl-[10px] pr-3 py-2 bg-error text-error-foreground font-medium rounded-sm">
+        <Info size={16} className="shrink-0" />
+        {props.message}
+      </p>
+    </div>
+  );
+}
+
+function SecretsTable(props: {
+  secrets: Record<string, string>;
+  setError: (message: string | null, clearAfter?: number | null) => void;
+}) {
   const revalidator = useRevalidator();
 
   async function onUpdate(name: string, updatedName: string, updatedValue: string) {
@@ -85,6 +121,7 @@ function SecretsTable(props: { secrets: Record<string, string> }) {
                 value={value}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
+                setError={props.setError}
               />
             ))}
           </tbody>
@@ -99,6 +136,7 @@ function SecretRow(props: {
   value: string;
   onUpdate: (name: string, updatedName: string, updatedValue: string) => void;
   onDelete: (name: string) => void;
+  setError: (message: string | null, clearAfter?: number | null) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(props.name);
@@ -149,6 +187,10 @@ function SecretRow(props: {
     if (isValidSecretName(name)) {
       props.onUpdate(props.name, name, value);
     } else {
+      props.setError(
+        'Secret names must be uppercase and can only contain letters, numbers, and underscores.',
+        5000,
+      );
       setName(props.name);
     }
   }
@@ -217,19 +259,21 @@ function SecretRow(props: {
   );
 }
 
-function NewSecretForm() {
+function NewSecretForm(props: {
+  setError: (message: string | null, clearAfter?: number | null) => void;
+}) {
   const revalidator = useRevalidator();
 
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
-  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!isValidSecretName(name)) {
-      setError(
+      props.setError(
         'Secret names must be uppercase and can only contain letters, numbers, and underscores.',
+        5000,
       );
       return;
     }
@@ -241,43 +285,31 @@ function NewSecretForm() {
   }
 
   return (
-    <div className="space-y-6">
-      <Form method="post" className="flex items-center gap-3" onSubmit={onSubmit}>
-        <Input
-          type="text"
-          name="name"
-          required
-          autoComplete="off"
-          placeholder="name"
-          value={name}
-          onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
-          className={cn(error && 'border-error focus-visible:ring-error')}
-        />
+    <Form method="post" className="flex items-center gap-3" onSubmit={onSubmit}>
+      <Input
+        type="text"
+        name="name"
+        required
+        autoComplete="off"
+        placeholder="SECRET_NAME"
+        value={name}
+        onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
+      />
 
-        <Input
-          type="text"
-          name="value"
-          required
-          autoComplete="off"
-          placeholder="value"
-          value={value}
-          onChange={(e) => setValue(e.currentTarget.value)}
-        />
+      <Input
+        type="text"
+        name="value"
+        required
+        autoComplete="off"
+        placeholder="secret-value"
+        value={value}
+        onChange={(e) => setValue(e.currentTarget.value)}
+      />
 
-        <Button type="submit" disabled={!name || !value}>
-          Create
-        </Button>
-      </Form>
-
-      {error && (
-        <div className="w-full flex items-center justify-center">
-          <p className="text-sm max-w-md flex items-center gap-1.5 pl-[10px] pr-3 py-2 bg-error text-error-foreground font-medium rounded-sm">
-            <Info size={16} className="shrink-0" />
-            {error}
-          </p>
-        </div>
-      )}
-    </div>
+      <Button type="submit" disabled={!name || !value}>
+        Create
+      </Button>
+    </Form>
   );
 }
 

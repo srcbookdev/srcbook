@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { disk, getConfig, updateConfig } from '@/lib/server';
 import { type CodeLanguageType } from '@srcbook/shared';
 import type { SettingsType, FsObjectResultType } from '@/types';
-import { useLoaderData } from 'react-router-dom';
+import { useLoaderData, useRevalidator } from 'react-router-dom';
 import { DirPicker } from '@/components/file-picker';
 import {
   Select,
@@ -44,18 +44,27 @@ function Settings() {
     enabledAnalytics: configEnabledAnalytics,
   } = useLoaderData() as SettingsType & FsObjectResultType;
 
-  const [openaiKey, setOpenaiKey] = useState(configOpenaiKey);
+  const revalidator = useRevalidator();
+
+  const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
   const [enabledAnalytics, setEnabledAnalytics] = useState(configEnabledAnalytics);
 
-  const updateDefaultLanguage = async (value: CodeLanguageType) => {
-    await updateConfig({ defaultLanguage: value });
+  const updateDefaultLanguage = (value: CodeLanguageType) => {
+    updateConfig({ defaultLanguage: value });
   };
 
   const updateOpenaiKey = async () => {
     await updateConfig({ openaiKey });
+    revalidator.revalidate();
   };
 
   const { theme, toggleTheme } = useTheme();
+
+  // Either the key from the server is null/undefined and the user entered input
+  // or the key from the server is a string and the user entered input is different.
+  const openaiKeySaveEnabled =
+    (typeof configOpenaiKey === 'string' && openaiKey !== configOpenaiKey) ||
+    ((configOpenaiKey === null || configOpenaiKey === undefined) && openaiKey.length > 0);
 
   return (
     <div>
@@ -115,7 +124,7 @@ function Settings() {
                 value={openaiKey}
                 onChange={(e) => setOpenaiKey(e.target.value)}
               />
-              <Button className="px-5" onClick={updateOpenaiKey}>
+              <Button className="px-5" onClick={updateOpenaiKey} disabled={!openaiKeySaveEnabled}>
                 Save
               </Button>
             </div>

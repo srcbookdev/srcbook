@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { generateSrcbook } from '@/lib/server';
 
 const EXAMPLES = [
   'Cover the basics of using Prisma, the popular TypeScript database ORM, with example code',
@@ -16,19 +17,17 @@ const EXAMPLES = [
 export default function GenerateSrcbookModal({
   open,
   setOpen,
-  onGenerate,
+  openSrcbook,
   hasOpenaiKey,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onGenerate: (query: string) => Promise<void | string>;
+  openSrcbook: (path: string) => void;
   hasOpenaiKey: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
-  const [error, setError] = useState('');
-
-  const navigate = useNavigate();
+  const [error, setError] = useState<'generic' | 'api_key' | null>(null);
 
   useHotkeys(
     'mod+enter',
@@ -40,13 +39,31 @@ export default function GenerateSrcbookModal({
   );
 
   const generate = async () => {
-    if (!query) return;
+    if (!query) {
+      return;
+    }
+
+    setError(null);
     setStatus('loading');
-    const result = await onGenerate(query);
-    if (result) {
+
+    // Some errors will be handled by the API handler and return with
+    // {error: true, result: {message: string}}}
+    // Some example errors that we expect are:
+    //  - the generated text from the LLM did not parse correctly into Srcbook format
+    //  - the API key is invalid
+    //  - rate limits or out-of-credits issues
+    const { result, error } = await generateSrcbook({ query });
+
+    if (error) {
       console.error(result);
-      setError(result);
       setStatus('idle');
+      if (/Incorrect API key provided/.test(result)) {
+        setError('api_key');
+      } else {
+        setError('generic');
+      }
+    } else {
+      openSrcbook(result.dir);
     }
   };
 
@@ -77,22 +94,8 @@ export default function GenerateSrcbookModal({
               <p>Generate</p>
             )}
           </Button>
-          {error.length > 0 && (
-            <div className="bg-sb-red-30 text-sb-red-80 rounded-sm text-sm px-3 py-2">
-              Something went wrong, please try again.
-            </div>
-          )}
-          {!hasOpenaiKey && (
-            <div className="flex w-full items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm p-1">
-              <p className="px-2">API key required</p>
-              <button
-                className="border border-sb-yellow-70 rounded-sm px-2 py-1 hover:border-sb-yellow-80 animate-all"
-                onClick={() => navigate('/settings')}
-              >
-                Settings
-              </button>
-            </div>
-          )}
+          {error !== null && <ErrorMessage type={error} onRetry={generate} />}
+          {!hasOpenaiKey && <APIKeyWarning />}
           <div className="w-full border-t"></div>
           <p className="font-bold">Examples</p>
           {EXAMPLES.map((example) => (
@@ -108,5 +111,46 @@ export default function GenerateSrcbookModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function APIKeyWarning() {
+  return (
+    <div className="flex items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+      <p>API key is invalid</p>
+      <Link to="/settings" className="underline">
+        Settings
+      </Link>
+    </div>
+  );
+}
+
+function ErrorMessage({ type, onRetry }: { type: 'api_key' | 'generic'; onRetry: () => void }) {
+  return (
+    <div className="bg-error text-error-foreground rounded-sm text-sm font-medium px-3 py-2">
+      {type === 'api_key' ? <APIKeyError /> : <GenericError onRetry={onRetry} />}
+    </div>
+  );
+}
+
+function APIKeyError() {
+  return (
+    <div className="flex items-center justify-between">
+      <p>Invalid API key</p>
+      <Link to="/settings" className="underline">
+        Settings
+      </Link>
+    </div>
+  );
+}
+
+function GenericError(props: { onRetry: () => void }) {
+  return (
+    <div className="flex items-center justify-between">
+      <p>Something went wrong</p>
+      <button onClick={props.onRetry} className="underline">
+        Try again
+      </button>
+    </div>
   );
 }

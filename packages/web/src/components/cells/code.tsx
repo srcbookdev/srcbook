@@ -347,7 +347,7 @@ function DiffEditor({
           }),
         ]}
       />
-      <div className="absolute bottom-0 right-0 flex items-center m-1.5 gap-1.5">
+      <div className="absolute top-0 right-0 flex items-center m-1.5 gap-1.5">
         <Button variant="secondary" onClick={onRevert}>
           Revert
         </Button>

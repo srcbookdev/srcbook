@@ -57,6 +57,18 @@ export default function CodeCell(props: {
     { enableOnFormTags: ['textarea'] },
   );
 
+  useHotkeys(
+    'escape',
+    () => {
+      if (promptMode === 'idle') {
+        setPromptMode('off');
+        setPrompt('');
+      }
+    },
+
+    { enableOnFormTags: ['textarea'] },
+  );
+
   const { updateCell, clearOutput } = useCells();
 
   function setFilenameError(error: string | null) {

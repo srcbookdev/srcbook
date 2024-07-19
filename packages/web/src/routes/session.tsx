@@ -218,6 +218,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
                 channel={channel}
                 onUpdateCell={onUpdateCell}
                 onDeleteCell={onDeleteCell}
+                hasOpenaiKey={!!props.config.openaiKey}
               />
             )}
 

@@ -13,7 +13,7 @@ import {
   sessionToResponse,
   listSessions,
 } from '../session.mjs';
-import { generateCell, generateSrcbook } from '../ai/srcbook-generator.mjs';
+import { generateCells, generateSrcbook } from '../ai/generate.mjs';
 import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import {
@@ -138,7 +138,7 @@ router.post('/sessions/:id/generate_cells', cors(), async (req, res) => {
   try {
     posthog.capture({ event: 'user generated cell with AI', properties: { query } });
     const session = await findSession(req.params.id);
-    const { error, errors, cells } = await generateCell(query, session, insertIdx);
+    const { error, errors, cells } = await generateCells(query, session, insertIdx);
     const result = error ? errors : cells;
     return res.json({ error, result });
   } catch (e) {

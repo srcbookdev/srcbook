@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Circle, Info, Play, Trash2 } from 'lucide-react';
+import { Circle, Info, Play, Trash2, Sparkles, X, MessageCircleWarning } from 'lucide-react';
+import TextareaAutosize from 'react-textarea-autosize';
+import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
 import {
   CellType,
   CodeCellType,
   CodeCellUpdateAttrsType,
   CellErrorPayloadType,
+  AiGeneratedCellPayloadType,
 } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { SessionType } from '@/types';
@@ -18,6 +22,9 @@ import { useCells } from '@/components/use-cell';
 import { CellOutput } from '@/components/cell-output';
 import useTheme from '@/components/use-theme';
 import { useDebouncedCallback } from 'use-debounce';
+import { EditorView } from 'codemirror';
+import { EditorState } from '@codemirror/state';
+import { unifiedMergeView } from '@codemirror/merge';
 
 const DEBOUNCE_DELAY = 500;
 
@@ -31,6 +38,19 @@ export default function CodeCell(props: {
   const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
+  const [promptMode, setPromptMode] = useState<'off' | 'generating' | 'reviewing' | 'idle'>('off');
+  const [prompt, setPrompt] = useState('');
+  const [newSource, setNewSource] = useState('');
+
+  useHotkeys(
+    'mod+enter',
+    () => {
+      if (!prompt) return;
+      if (promptMode !== 'idle') return;
+      generate();
+    },
+    { enableOnFormTags: ['textarea'] },
+  );
 
   const { updateCell, clearOutput } = useCells();
 
@@ -66,6 +86,26 @@ export default function CodeCell(props: {
     });
   }
 
+  useEffect(() => {
+    function callback(payload: AiGeneratedCellPayloadType) {
+      if (payload.cellId !== cell.id) return;
+      // We move to the "review" stage of the generation process:
+      setNewSource(payload.output);
+      setPromptMode('reviewing');
+    }
+    channel.on('ai:generated', callback);
+    return () => channel.off('ai:generated', callback);
+  }, [cell.id, channel]);
+
+  const generate = () => {
+    channel.push('ai:generate', {
+      sessionId: session.id,
+      cellId: cell.id,
+      prompt,
+    });
+    setPromptMode('generating');
+  };
+
   function runCell() {
     if (cell.status === 'running') {
       return false;
@@ -91,24 +131,35 @@ export default function CodeCell(props: {
     channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
   }
 
+  function onRevertDiff() {
+    setPromptMode('idle');
+    setNewSource('');
+  }
+
+  async function onAcceptDiff() {
+    await onUpdateCell(cell, { source: newSource });
+    setPrompt('');
+    setPromptMode('off');
+  }
+
   return (
     <div className="relative group/cell" id={`cell-${props.cell.id}`}>
       <div
         className={cn(
           'border rounded-md group',
-          cell.status === 'running'
+          cell.status === 'running' || promptMode === 'generating'
             ? 'ring-1 ring-run-ring border-run-ring'
             : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
         )}
       >
         <div className="p-1 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
+          <div className={cn('flex items-center gap-1', promptMode !== 'off' && 'opacity-50')}>
             <FilenameInput
               filename={cell.filename}
               onUpdate={updateFilename}
               onChange={() => setFilenameError(null)}
               className={cn(
-                'w-[200px] font-mono font-semibold text-xs transition-colors',
+                'w-[200px] font-mono font-semibold text-xs transition-colors px-2',
                 filenameError
                   ? 'border-error'
                   : 'border-transparent hover:border-input group-hover:border-input ',
@@ -133,21 +184,94 @@ export default function CodeCell(props: {
               cell.status === 'running' ? 'opacity-100' : '',
             )}
           >
-            {cell.status === 'running' && (
-              <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
-                <Circle size={16} /> Stop
+            <Button
+              variant="icon"
+              size="icon"
+              disabled={promptMode !== 'off'}
+              onClick={() => setPromptMode('idle')}
+              tabIndex={1}
+            >
+              <Sparkles size={16} />
+            </Button>
+            {promptMode === 'idle' && (
+              <Button variant="default" onClick={generate} tabIndex={1}>
+                Generate
               </Button>
             )}
-            {cell.status === 'idle' && (
-              <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
-                <Play size={16} />
-                Run
+            {promptMode === 'generating' && (
+              <Button variant="run" className="disabled:opacity-100" disabled tabIndex={1}>
+                Generating
               </Button>
+            )}
+            {promptMode === 'off' && (
+              <>
+                {cell.status === 'running' && (
+                  <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
+                    <Circle size={16} /> Stop
+                  </Button>
+                )}
+                {cell.status === 'idle' && (
+                  <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
+                    <Play size={16} />
+                    Run
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
-        <CodeEditor cell={cell} runCell={runCell} onUpdateCell={onUpdateCell} />
-        <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
+        {promptMode !== 'off' && (
+          <div className="flex items-start justify-between px-1">
+            <div className="flex items-start flex-grow">
+              <Sparkles size={16} className="m-2.5" />
+              <TextareaAutosize
+                className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
+                autoFocus
+                placeholder="Ask the AI to edit this cell..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <AiGenerateTipsDialog>
+                <Button size="icon" variant="icon">
+                  <MessageCircleWarning size={16} />
+                </Button>
+              </AiGenerateTipsDialog>
+              <Button
+                size="icon"
+                variant="icon"
+                onClick={() => {
+                  setPromptMode('off');
+                  setPrompt('');
+                }}
+              >
+                <X size={16} />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {promptMode === 'reviewing' ? (
+          <DiffEditor
+            original={cell.source}
+            modified={newSource}
+            onAccept={onAcceptDiff}
+            onRevert={onRevertDiff}
+          />
+        ) : (
+          <>
+            <div className={cn(promptMode !== 'off' && 'opacity-50')}>
+              <CodeEditor
+                cell={cell}
+                runCell={runCell}
+                onUpdateCell={onUpdateCell}
+                readOnly={['generating', 'idle'].includes(promptMode)}
+              />
+            </div>
+            <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
+          </>
+        )}
       </div>
     </div>
   );
@@ -157,10 +281,12 @@ function CodeEditor({
   cell,
   runCell,
   onUpdateCell,
+  readOnly,
 }: {
   cell: CodeCellType;
   runCell: () => void;
   onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<string | null>;
+  readOnly: boolean;
 }) {
   const { codeTheme } = useTheme();
   const { updateCell: updateCellClientSideOnly } = useCells();
@@ -172,19 +298,62 @@ function CodeEditor({
     return true;
   }
 
+  let extensions = [
+    javascript({ typescript: true }),
+    Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+  ];
+  if (readOnly) {
+    extensions = extensions.concat([EditorView.editable.of(false), EditorState.readOnly.of(true)]);
+  }
+
   return (
     <CodeMirror
       value={cell.source}
       theme={codeTheme}
-      extensions={[
-        javascript({ typescript: true }),
-        Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
-      ]}
+      extensions={extensions}
       onChange={(source) => {
         updateCellClientSideOnly({ ...cell, source });
         onUpdateCellDebounced(cell, { source });
       }}
     />
+  );
+}
+
+function DiffEditor({
+  original,
+  modified,
+  onAccept,
+  onRevert,
+}: {
+  original: string;
+  modified: string;
+  onAccept: () => void;
+  onRevert: () => void;
+}) {
+  const { codeTheme } = useTheme();
+
+  return (
+    <div className="relative flex flex-col">
+      <CodeMirror
+        value={modified}
+        theme={codeTheme}
+        extensions={[
+          javascript({ typescript: true }),
+          EditorView.editable.of(false),
+          EditorState.readOnly.of(true),
+          unifiedMergeView({
+            original: original,
+            mergeControls: false,
+          }),
+        ]}
+      />
+      <div className="absolute top-0 right-0 flex items-center m-1.5 gap-1.5">
+        <Button variant="secondary" onClick={onRevert}>
+          Revert
+        </Button>
+        <Button onClick={onAccept}>Accept</Button>
+      </div>
+    </div>
   );
 }
 

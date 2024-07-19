@@ -1,4 +1,5 @@
 import { ChildProcess } from 'node:child_process';
+import { generateCellEdit } from '../ai/generate.mjs';
 import {
   findSession,
   findCell,
@@ -29,6 +30,7 @@ import type {
   CellRenamePayloadType,
   CellErrorType,
   CellCreatePayloadType,
+  AiGenerateCellPayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -38,6 +40,8 @@ import {
   CellDeletePayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
+  AiGenerateCellPayloadSchema,
+  AiGeneratedCellPayloadSchema,
   DepsInstallPayloadSchema,
   DepsValidatePayloadSchema,
   CellOutputPayloadSchema,
@@ -347,6 +351,17 @@ function reopenFileInTsServer(
   tsserver.open({ file: openFilePath, fileContent: file.source });
 }
 
+async function cellGenerate(payload: AiGenerateCellPayloadType) {
+  const session = await findSession(payload.sessionId);
+  const cell = session.cells.find((cell) => cell.id === payload.cellId) as CodeCellType;
+
+  const result = await generateCellEdit(payload.prompt, session, cell);
+
+  wss.broadcast(`session:${session.id}`, 'ai:generated', {
+    cellId: payload.cellId,
+    output: result,
+  });
+}
 async function cellUpdate(payload: CellUpdatePayloadType) {
   const session = await findSession(payload.sessionId);
 
@@ -569,6 +584,7 @@ wss
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
   .incoming('cell:rename', CellRenamePayloadSchema, cellRename)
   .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)
+  .incoming('ai:generate', AiGenerateCellPayloadSchema, cellGenerate)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
@@ -576,6 +592,7 @@ wss
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
+  .outgoing('ai:generated', AiGeneratedCellPayloadSchema)
   .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
   .outgoing('tsserver:cell:diagnostics', TsServerCellDiagnosticsPayloadSchema);
 

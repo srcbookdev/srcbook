@@ -1,6 +1,8 @@
 import {
   CellOutputPayloadSchema,
   CellCreatePayloadSchema,
+  AiGenerateCellPayloadSchema,
+  AiGeneratedCellPayloadSchema,
   CellUpdatedPayloadSchema,
   DepsValidateResponsePayloadSchema,
   CellExecPayloadSchema,
@@ -29,6 +31,7 @@ const IncomingSessionEvents = {
   'cell:updated': CellUpdatedPayloadSchema,
   'deps:validate:response': DepsValidateResponsePayloadSchema,
   'tsserver:cell:diagnostics': TsServerCellDiagnosticsPayloadSchema,
+  'ai:generated': AiGeneratedCellPayloadSchema,
 };
 
 const OutgoingSessionEvents = {
@@ -38,6 +41,7 @@ const OutgoingSessionEvents = {
   'cell:update': CellUpdatePayloadSchema,
   'cell:rename': CellRenamePayloadSchema,
   'cell:delete': CellDeletePayloadSchema,
+  'ai:generate': AiGenerateCellPayloadSchema,
   'deps:install': DepsInstallPayloadSchema,
   'deps:validate': DepsValidatePayloadSchema,
   'tsserver:start': TsServerStartPayloadSchema,

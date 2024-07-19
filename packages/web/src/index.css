@@ -350,6 +350,10 @@
   min-height: '100px';
 }
 
+.cm-editor del {
+  text-decoration: none;
+}
+
 .cm-editor * {
   font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
     'Liberation Mono', 'Courier New', 'monospace';

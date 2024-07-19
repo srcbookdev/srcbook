@@ -37,6 +37,9 @@ export default function CodeCell(props: {
   const [promptMode, setPromptMode] = useState<'off' | 'generating' | 'idle'>('off');
   const [prompt, setPrompt] = useState('');
 
+  // This is temporary to get the experience working. Should use localStorage
+  const [previous, setPrevious] = useState<string | null>(null);
+
   useHotkeys(
     'mod+enter',
     () => {
@@ -47,6 +50,12 @@ export default function CodeCell(props: {
     { enableOnFormTags: ['textarea'] },
   );
 
+  const revert = () => {
+    if (typeof previous === 'string') {
+      onUpdateCell(cell, { source: previous });
+      setPrevious(null);
+    }
+  };
   const { updateCell, clearOutput } = useCells();
 
   function setFilenameError(error: string | null) {
@@ -86,6 +95,7 @@ export default function CodeCell(props: {
       if (payload.cellId !== cell.id) return;
       // TODO: human-in-the-loop accept flow, and revert mechanism
       // For now, brute force replace
+      setPrevious(cell.source);
       onUpdateCell(cell, { source: payload.output });
       setPromptMode('idle');
     }
@@ -181,12 +191,19 @@ export default function CodeCell(props: {
               {promptMode === 'off' ? <Sparkles size={16} /> : <X size={16} />}
             </Button>
             {promptMode === 'idle' && (
-              <Button variant="default" onClick={generate} tabIndex={1}>
-                Generate
-              </Button>
+              <>
+                {previous && (
+                  <Button variant="secondary" onClick={revert} tabIndex={1}>
+                    Revert
+                  </Button>
+                )}
+                <Button variant="default" onClick={generate} tabIndex={1}>
+                  Generate
+                </Button>
+              </>
             )}
             {promptMode === 'generating' && (
-              <Button variant="run" disabled tabIndex={1}>
+              <Button variant="run" className="disabled:opacity-100" disabled tabIndex={1}>
                 Generating
               </Button>
             )}
@@ -207,7 +224,7 @@ export default function CodeCell(props: {
             )}
           </div>
         </div>
-        {promptMode === 'idle' && (
+        {promptMode !== 'off' && (
           <div className="flex items-start">
             <Sparkles size={16} className="m-2.5" />
             <TextareaAutosize

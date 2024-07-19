@@ -6,7 +6,6 @@ import {
   loadSessions,
   createSrcbook,
   importSrcbook,
-  generateSrcbook,
   loadSrcbookExamples,
 } from '@/lib/server';
 import type { ExampleSrcbookType, SessionType } from '@/types';
@@ -61,33 +60,19 @@ export default function Home() {
     setShowDelete(true);
   }
 
+  async function openSrcbook(path: string) {
+    const { result: srcbook } = await createSession({ path });
+    navigate(`/srcbooks/${srcbook.id}`);
+  }
+
   async function onCreateSrcbook(language: CodeLanguageType) {
     const { result } = await createSrcbook({ path: baseDir, name: 'Untitled', language: language });
-    const { result: srcbook } = await createSession({ path: result.path });
-    return navigate(`/srcbooks/${srcbook.id}`);
+    openSrcbook(result.path);
   }
 
   async function openExampleSrcbook(example: ExampleSrcbookType) {
     const { result } = await importSrcbook({ path: example.path });
-    const { result: srcbook } = await createSession({ path: result.dir });
-    return navigate(`/srcbooks/${srcbook.id}`);
-  }
-
-  // Some errors will be handled by the API handler and return with
-  // {error: true, result: {message: string}}}
-  // Some example errors that we expect are:
-  //  - the generated text from the LLM didn't not parse correctly into Srcbook format
-  //  - the API key is invalid
-  //  - rate limits or out-of-credits issues
-  async function onGenerateSrcbook(query: string) {
-    const { result, error } = await generateSrcbook({ query });
-    if (error === true) {
-      return result;
-    }
-
-    // We know at this point that we have a valid Srcbook from the LLM
-    const { result: srcbook } = await createSession({ path: result.dir });
-    return navigate(`/srcbooks/${srcbook.id}`);
+    openSrcbook(result.dir);
   }
 
   return (
@@ -100,7 +85,7 @@ export default function Home() {
       <GenerateSrcbookModal
         open={showGenSrcbookModal}
         setOpen={setShowGenSrcbookModal}
-        onGenerate={onGenerateSrcbook}
+        openSrcbook={openSrcbook}
         hasOpenaiKey={hasOpenAiKey}
       />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />

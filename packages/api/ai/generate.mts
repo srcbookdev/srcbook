@@ -143,11 +143,9 @@ export async function generateCells(
   }
 
   // Parse the result into cells
-  const text = result.text;
-
-  // TODO figure out logging here. It's incredibly valuable to see the data going to and from the LLM
-  // for debugging, but there are considerations around privacy and log size to think about.
-  const decodeResult = decodeCells(text);
+  // TODO: figure out logging.
+  // Data is incredibly valuable for product improvements, but privacy needs to be considered.
+  const decodeResult = decodeCells(result.text);
 
   if (decodeResult.error) {
     return { error: true, errors: decodeResult.errors };
@@ -167,6 +165,5 @@ export async function generateCellEdit(query: string, session: SessionType, cell
     prompt: userPrompt,
   });
 
-  // TODO: PARSING
   return result.text;
 }

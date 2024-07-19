@@ -10,7 +10,7 @@ import {
   CodeCellType,
   CodeCellUpdateAttrsType,
   CellErrorPayloadType,
-  CellAiGeneratedPayloadType,
+  AiGeneratedCellPayloadType,
 } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { SessionType } from '@/types';
@@ -87,7 +87,7 @@ export default function CodeCell(props: {
   }
 
   useEffect(() => {
-    function callback(payload: CellAiGeneratedPayloadType) {
+    function callback(payload: AiGeneratedCellPayloadType) {
       if (payload.cellId !== cell.id) return;
       // We move to the "review" stage of the generation process:
       setNewSource(payload.output);

@@ -24,7 +24,7 @@ export const CellUpdatePayloadSchema = z.object({
   updates: CellUpdateAttrsSchema,
 });
 
-export const CellAiGeneratePayloadSchema = z.object({
+export const AiGenerateCellPayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
   prompt: z.string(),
@@ -56,7 +56,7 @@ export const CellUpdatedPayloadSchema = z.object({
   cell: CellSchema,
 });
 
-export const CellAiGeneratedPayloadSchema = z.object({
+export const AiGeneratedCellPayloadSchema = z.object({
   cellId: z.string(),
   output: z.string(),
 });

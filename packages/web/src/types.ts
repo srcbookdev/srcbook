@@ -15,7 +15,7 @@ export interface FsObjectResultType {
 export type SettingsType = {
   baseDir: string;
   defaultLanguage: CodeLanguageType;
-  openaiKey?: string;
+  openaiKey?: string | null;
   enabledAnalytics: boolean;
 };
 

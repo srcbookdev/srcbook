@@ -26,6 +26,8 @@ function Secrets() {
   const { secrets } = useLoaderData() as { secrets: Record<string, string> };
 
   const [error, _setError] = useState<string | null>(null);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeoutRef = useRef<any>(null);
 
   function setError(message: string | null, clearAfter: number | null = null) {

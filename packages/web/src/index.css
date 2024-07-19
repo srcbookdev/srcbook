@@ -64,6 +64,8 @@
     --inline-code-foreground: var(--foreground);
     --error: var(--sb-red-30);
     --error-foreground: var(--sb-red-80);
+    --warning: var(--sb-yellow-20);
+    --warning-foreground: var(--sb-yellow-80);
   }
 
   .dark {
@@ -78,6 +80,8 @@
     --inline-code-foreground: var(--foreground);
     --error: var(--sb-red-30);
     --error-foreground: var(--sb-red-80);
+    --warning: var(--sb-yellow-20);
+    --warning-foreground: var(--sb-yellow-80);
   }
 
   /* shadcn variables light */

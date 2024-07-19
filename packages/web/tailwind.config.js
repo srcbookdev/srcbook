@@ -90,6 +90,10 @@ module.exports = {
           DEFAULT: 'hsl(var(--error))',
           foreground: 'hsl(var(--error-foreground))',
         },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
         sb: {
           'core-0': 'hsl(var(--sb-core-0))',
           'core-10': 'hsl(var(--sb-core-10))',

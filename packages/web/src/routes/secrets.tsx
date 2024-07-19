@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { getSecrets } from '@/lib/server';
-import { Trash2 } from 'lucide-react';
+import { Info, Trash2 } from 'lucide-react';
 import { Form, useLoaderData, useRevalidator } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,16 +12,19 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-
-type SecretsType = { secrets: Record<string, string> };
+import { cn } from '@/lib/utils';
 
 async function loader() {
   const { result } = await getSecrets();
   return { secrets: result };
 }
 
+function isValidSecretName(name: string) {
+  return /^[A-Z0-9_]+$/.test(name);
+}
+
 function Secrets() {
-  const { secrets } = useLoaderData() as SecretsType;
+  const { secrets } = useLoaderData() as { secrets: Record<string, string> };
 
   return (
     <>
@@ -40,7 +43,7 @@ function Secrets() {
   );
 }
 
-function SecretsTable(props: SecretsType) {
+function SecretsTable(props: { secrets: Record<string, string> }) {
   const revalidator = useRevalidator();
 
   async function onUpdate(name: string, updatedName: string, updatedValue: string) {
@@ -112,6 +115,15 @@ function SecretRow(props: {
       e.preventDefault();
       e.stopPropagation();
       nameRef.current?.blur();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      // Revert to original name
+      setName(props.name);
+      // Timeout needed for this component to re-render before
+      // we blur, otherwise it'll use an old state value rather than
+      // the value we just set above.
+      setTimeout(() => nameRef.current?.blur(), 10);
     }
   }
 
@@ -120,6 +132,24 @@ function SecretRow(props: {
       e.preventDefault();
       e.stopPropagation();
       passwordRef.current?.blur();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      // Revert to original value
+      setValue(props.value);
+      // Timeout needed for this component to re-render before
+      // we blur, otherwise it'll use an old state value rather than
+      // the value we just set above.
+      setTimeout(() => passwordRef.current?.blur(), 10);
+    }
+  }
+
+  function onBlur() {
+    setInputFocused(false);
+    if (isValidSecretName(name)) {
+      props.onUpdate(props.name, name, value);
+    } else {
+      setName(props.name);
     }
   }
 
@@ -160,10 +190,7 @@ function SecretRow(props: {
           onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
           autoComplete="off"
           onFocus={() => setInputFocused(true)}
-          onBlur={() => {
-            props.onUpdate(props.name, name, value);
-            setInputFocused(false);
-          }}
+          onBlur={onBlur}
           className="border-transparent group-hover:border-border group-focus-within:border-border"
         />
       </td>
@@ -175,19 +202,15 @@ function SecretRow(props: {
           value={value}
           onKeyDown={onPasswordKeydown}
           onChange={(e) => setValue(e.currentTarget.value)}
-          pattern="^[A-Z0-9_]+$"
           required
           onFocus={() => setInputFocused(true)}
-          onBlur={() => {
-            props.onUpdate(props.name, name, value);
-            setInputFocused(false);
-          }}
+          onBlur={onBlur}
           className="border-transparent group-hover:border-border group-focus-within:border-border"
         />
       </td>
       <td className="h-10 pl-3 text-right align-middle w-[52px]">
         <Button variant="icon" onClick={() => setOpen(true)}>
-          <Trash2 size={16} />
+          <Trash2 size={18} />
         </Button>
       </td>
     </tr>
@@ -199,9 +222,18 @@ function NewSecretForm() {
 
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (!isValidSecretName(name)) {
+      setError(
+        'Secret names must be uppercase and can only contain letters, numbers, and underscores.',
+      );
+      return;
+    }
+
     await createSecret({ name, value });
     setName('');
     setValue('');
@@ -209,17 +241,17 @@ function NewSecretForm() {
   }
 
   return (
-    <>
+    <div className="space-y-6">
       <Form method="post" className="flex items-center gap-3" onSubmit={onSubmit}>
         <Input
           type="text"
           name="name"
           required
-          pattern="^[A-Z0-9_]+$"
           autoComplete="off"
           placeholder="name"
           value={name}
           onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
+          className={cn(error && 'border-error focus-visible:ring-error')}
         />
 
         <Input
@@ -236,7 +268,16 @@ function NewSecretForm() {
           Create
         </Button>
       </Form>
-    </>
+
+      {error && (
+        <div className="w-full flex items-center justify-center">
+          <p className="text-sm max-w-md flex items-center gap-1.5 pl-[10px] pr-3 py-2 bg-error text-error-foreground font-medium rounded-sm">
+            <Info size={16} className="shrink-0" />
+            {error}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 

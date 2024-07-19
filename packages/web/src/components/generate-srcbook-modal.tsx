@@ -9,8 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { generateSrcbook } from '@/lib/server';
 
 const EXAMPLES = [
-  'Cover the basics of using Prisma, the popular TypeScript database ORM, with example code',
-  'Create an AI agent that browses the web and answers questions using langchain',
+  'Cover the basics of validating data in TypeScript using Zod, including how to infer types from schemas',
+  'Create an AI agent in Node.js that browses the web and answers questions using langchain',
   'Implement breadth-first-search and depth-first-search using TypeScript',
 ];
 

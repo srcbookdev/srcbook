@@ -8,14 +8,15 @@
 {
   "type": "module",
   "dependencies": {
-    "@langchain/community": "^0.2.12",
-    "@langchain/core": "^0.2.8",
-    "@langchain/langgraph": "^0.0.24",
-    "@langchain/openai": "^0.1.3",
-    "@types/node": "^20.14.7",
-    "better-sqlite3": "^9.6.0",
+    "@langchain/community": "^0.2.20",
+    "@langchain/core": "^0.2.17",
+    "@langchain/langgraph": "^0.0.29",
+    "@langchain/openai": "^0.2.4",
+    "better-sqlite3": "latest",
+    "@types/node": "latest",
     "tsx": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "zod": "^3.23.8"
   }
 }
 ```
@@ -44,12 +45,13 @@ Now, let's define the Agent with LangGraph.js
 ###### agent.ts
 
 ```typescript
-import { HumanMessage } from '@langchain/core/messages';
+import { HumanMessage, AIMessage } from '@langchain/core/messages';
+import { DynamicStructuredTool } from "@langchain/core/tools";
+import { z } from "zod";
 import { TavilySearchResults } from '@langchain/community/tools/tavily_search';
 import { ChatOpenAI } from '@langchain/openai';
 import { END, START, StateGraph, StateGraphArgs } from '@langchain/langgraph';
 import { SqliteSaver } from '@langchain/langgraph/checkpoint/sqlite';
-// import { MemorySaver } from "@langchain/langgraph";
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 
 // Define the state interface
@@ -77,10 +79,10 @@ const model = new ChatOpenAI({ model: 'gpt-4o', temperature: 0 }).bindTools(tool
 // Define the function that determines whether to continue or not
 function shouldContinue(state: AgentState): 'tools' | typeof END {
   const messages = state.messages;
-  const lastMessage = messages[messages.length - 1];
+  const lastMessage = messages[messages.length - 1] as AIMessage;
 
   // If the LLM makes a tool call, then we route to the "tools" node
-  if (lastMessage.additional_kwargs.tool_calls) {
+  if (lastMessage.tool_calls?.length) {
     return 'tools';
   }
   // Otherwise, we stop (reply to the user)
@@ -106,7 +108,6 @@ const workflow = new StateGraph<AgentState>({ channels: graphState })
 
 // Initialize memory to persist state between graph runs
 export const memory = SqliteSaver.fromConnString(DB_NAME);
-// const checkpointer = new MemorySaver();
 
 // Finally, we compile it!
 // This compiles it into a LangChain Runnable.

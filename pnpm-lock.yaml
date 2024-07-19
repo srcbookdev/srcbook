@@ -109,6 +109,12 @@ importers:
       '@codemirror/lang-markdown':
         specifier: ^6.2.5
         version: 6.2.5
+      '@codemirror/merge':
+        specifier: ^6.6.5
+        version: 6.6.5
+      '@codemirror/state':
+        specifier: ^6.4.1
+        version: 6.4.1
       '@lezer/highlight':
         specifier: ^1.2.0
         version: 1.2.0
@@ -157,6 +163,9 @@ importers:
       cmdk:
         specifier: ^1.0.0
         version: 1.0.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      codemirror:
+        specifier: ^6.0.1
+        version: 6.0.1(@lezer/common@1.2.1)
       localforage:
         specifier: ^1.10.0
         version: 1.10.0
@@ -460,6 +469,9 @@ packages:
 
   '@codemirror/lint@6.8.0':
     resolution: {integrity: sha512-lsFofvaw0lnPRJlQylNsC4IRt/1lI4OD/yYslrSGVndOJfStc58v+8p9dgGiD90ktOfL7OhBWns1ZETYgz0EJA==}
+
+  '@codemirror/merge@6.6.5':
+    resolution: {integrity: sha512-jyM/20pb5BaDkFBmobmCq17Gb1ioUkmCrVoBxXv3fvts7TxThHg+vriz1dBqunIr5+ukVN++wHyWWSU13MYJKA==}
 
   '@codemirror/search@6.5.6':
     resolution: {integrity: sha512-rpMgcsh7o0GuCDUXKPvww+muLA1pDJaFrpq/CCHtpQJYz8xopu4D1hPcKRoDD0YlF8gZaqTNIRa4VRBWyhyy7Q==}
@@ -4251,6 +4263,14 @@ snapshots:
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.27.0
       crelt: 1.0.6
+
+  '@codemirror/merge@6.6.5':
+    dependencies:
+      '@codemirror/language': 6.10.2
+      '@codemirror/state': 6.4.1
+      '@codemirror/view': 6.27.0
+      '@lezer/highlight': 1.2.0
+      style-mod: 4.1.2
 
   '@codemirror/search@6.5.6':
     dependencies:

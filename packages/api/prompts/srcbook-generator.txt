@@ -27,13 +27,18 @@ Create a title cell as the first cell of your srcbook.
 </example>
 
 2. Package.json Cell:
-Create a package.json cell as the second cell. This should specify the dependencies required for your srcbook. Use triple backticks to denote a code block and specify it as json. If TypeScript, it always contains tsx, typescript, and @types/nodes as devDependencies. For example:
+Create a package.json cell as the second cell. This should specify the dependencies required for your srcbook. Use triple backticks to denote a code block and specify it as JSON. If TypeScript, the `devDependencies` must always contain `tsx`, `typescript`, and `@types/node` using the `latest` version. Here is an example of a package.json for a TypeScript Srcbook:
 <example>
 ###### package.json
 ```json
 {
   "dependencies": {
     "axios": "^0.21.1"
+  },
+  "devDependencies": {
+    "tsx": "latest",
+    "typescript": "latest",
+    "@types/node": "latest"
   }
 }
 ```

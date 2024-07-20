@@ -133,7 +133,9 @@ export function tsx(options: NodeRequestType) {
 export function npmInstall(options: NPMInstallRequestType) {
   const { cwd, stdout, stderr, onExit } = options;
 
-  const args = options.packages ? ['install', ...options.packages] : ['install'];
+  const args = options.packages
+    ? ['install', '--include=dev', ...options.packages]
+    : ['install', '--include=dev'];
 
   return spawnCall({ command: 'npm', cwd, args, stdout, stderr, onExit, env: process.env });
 }

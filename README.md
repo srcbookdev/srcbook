@@ -26,7 +26,7 @@ Srcbook requires node v22+. We highly recommend using [nvm](https://github.com/n
 
 You can install the `srcbook` application from `npm`:
 
-```
+```bash
 npm install -g srcbook
 ```
 
@@ -38,12 +38,29 @@ srcbook
 
 You can also run it directly using `npx`:
 
-```
+```bash
 # Using npx
 npx srcbook
 
 # Using pnpm
 pnpm dlx srcbook
+```
+
+## Update
+
+You can update `srcbook` using `npm`:
+
+```bash
+npm update -g <package_name>
+```
+
+## Uninstall
+
+You can remove srcbook by first removing the package, and then cleaning it's local directory on disk:
+
+```bash
+npm uninstall -g srcbook
+rm -rf ~/.srcbook
 ```
 
 ## Analytics and tracking

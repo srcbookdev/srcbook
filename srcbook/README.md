@@ -6,7 +6,9 @@ This application allows you to create, run, and share Srcbooks. Srcbooks are Jav
 
 ## Run
 
-### Global install
+### Installing
+
+Srcbook is current distributed as a npm package. You can install it globally with the following command:
 
 ```bash
 # Install
@@ -14,4 +16,12 @@ npm install -g srcbook
 
 # Run the application
 srcbook
+```
+
+### Updating
+
+You can update Srcbook to the latest version with:
+
+```bash
+npm update -g <package_name>
 ```

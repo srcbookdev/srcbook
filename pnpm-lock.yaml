@@ -4,22 +4,39 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/node':
+      specifier: ^20.14.2
+      version: 20.14.2
+    marked:
+      specifier: ^12.0.2
+      version: 12.0.2
+    prettier:
+      specifier: ^3.3.1
+      version: 3.3.1
+    typescript:
+      specifier: ^5.4.5
+      version: 5.4.5
+    ws:
+      specifier: ^8.17.0
+      version: 8.17.0
+    zod:
+      specifier: ^3.23.8
+      version: 3.23.8
+
 importers:
 
   .:
-    dependencies:
-      zod:
-        specifier: ^3.23.8
-        version: 3.23.8
     devDependencies:
       '@types/node':
-        specifier: ^20.14.2
+        specifier: 'catalog:'
         version: 20.14.2
       prettier:
-        specifier: ^3.3.1
+        specifier: 'catalog:'
         version: 3.3.1
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.4.5
 
   packages/api:
@@ -49,19 +66,19 @@ importers:
         specifier: ^4.19.2
         version: 4.19.2
       marked:
-        specifier: ^12.0.2
+        specifier: 'catalog:'
         version: 12.0.2
       posthog-node:
         specifier: ^4.0.1
         version: 4.0.1
       typescript:
-        specifier: ^5.4.5
+        specifier: 'catalog:'
         version: 5.4.5
       ws:
-        specifier: ^8.17.0
+        specifier: 'catalog:'
         version: 8.17.0
       zod:
-        specifier: ^3.23.8
+        specifier: 'catalog:'
         version: 3.23.8
     devDependencies:
       '@types/better-sqlite3':
@@ -73,6 +90,9 @@ importers:
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.21
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.14.2
       '@types/ws':
         specifier: ^8.5.10
         version: 8.5.10
@@ -95,7 +115,7 @@ importers:
         specifier: ^1.1.7
         version: 1.1.7
       zod:
-        specifier: ^3.23.8
+        specifier: 'catalog:'
         version: 3.23.8
 
   packages/web:
@@ -166,21 +186,15 @@ importers:
       codemirror:
         specifier: ^6.0.1
         version: 6.0.1(@lezer/common@1.2.1)
-      localforage:
-        specifier: ^1.10.0
-        version: 1.10.0
       lucide-react:
         specifier: ^0.378.0
         version: 0.378.0(react@18.3.1)
       marked:
-        specifier: ^12.0.2
+        specifier: 'catalog:'
         version: 12.0.2
       marked-react:
         specifier: ^2.0.0
         version: 2.0.0(react@18.3.1)
-      match-sorter:
-        specifier: ^6.3.4
-        version: 6.3.4
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -202,9 +216,6 @@ importers:
       sonner:
         specifier: ^1.4.41
         version: 1.4.41(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      sort-by:
-        specifier: ^1.2.0
-        version: 1.2.0
       tailwind-merge:
         specifier: ^2.3.0
         version: 2.3.0
@@ -214,6 +225,9 @@ importers:
       use-debounce:
         specifier: ^10.0.0
         version: 10.0.1(react@18.3.1)
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
     devDependencies:
       '@types/react':
         specifier: ^18.2.66
@@ -291,13 +305,13 @@ importers:
         specifier: ^4.19.2
         version: 4.19.2
       marked:
-        specifier: ^12.0.2
+        specifier: 'catalog:'
         version: 12.0.2
       posthog-node:
         specifier: ^4.0.1
         version: 4.0.1
       ws:
-        specifier: ^8.17.0
+        specifier: 'catalog:'
         version: 8.17.0
     devDependencies:
       '@types/express':
@@ -2826,9 +2840,6 @@ packages:
     resolution: {integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==}
     engines: {node: '>= 4'}
 
-  immediate@3.0.6:
-    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
-
   import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
     engines: {node: '>=6'}
@@ -2957,9 +2968,6 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
-  lie@3.1.1:
-    resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
-
   lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
     engines: {node: '>=10'}
@@ -2974,9 +2982,6 @@ packages:
   local-pkg@0.5.0:
     resolution: {integrity: sha512-ok6z3qlYyCDS4ZEU27HaU6x/xZa9Whf8jD4ptH5UZTQYZVYeb9bnZ3ojVhiJNLiXK1Hfc0GNbLXcmZ5plLDDBg==}
     engines: {node: '>=14'}
-
-  localforage@1.10.0:
-    resolution: {integrity: sha512-14/H1aX7hzBBmmh7sGPd+AOMkkIrHM3Z1PAyGgZigA1H1p5O5ANnMyWzvpAETtG68/dC4pC0ncy3+PPGzXZHPg==}
 
   locate-character@3.0.0:
     resolution: {integrity: sha512-SW13ws7BjaeJ6p7Q6CO2nchbYEc3X3J6WrmTTDto7yMPqVSZTUyY5Tjbid+Ab8gLnATtygYtiDIJGQRRn2ZOiA==}
@@ -3024,9 +3029,6 @@ packages:
     resolution: {integrity: sha512-7E3m/xIlymrFL5gWswIT4CheIE3fDeh51NV09M4x8iOc7NDYlyERcQMLAIHcSlrvwliwbPQ4OGD+MpPSYiQcqw==}
     engines: {node: '>= 16'}
     hasBin: true
-
-  match-sorter@6.3.4:
-    resolution: {integrity: sha512-jfZW7cWS5y/1xswZo8VBOdudUiSd9nifYRWphc9M5D/ee4w4AoXLgBEdRbgVaxbMuagBPeUC5y2Hi8DO6o9aDg==}
 
   mdn-data@2.0.30:
     resolution: {integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==}
@@ -3176,10 +3178,6 @@ packages:
 
   object-inspect@1.13.1:
     resolution: {integrity: sha512-5qoj1RUiKOMsCCNLV1CBiPYE10sziTsnmNxkAI/rZhiD63CF7IqdFGC/XzjWjpSgLf0LxXX3bDFIh0E18f6UhQ==}
-
-  object-path@0.6.0:
-    resolution: {integrity: sha512-fxrwsCFi3/p+LeLOAwo/wyRMODZxdGBtUlWRzsEpsUVrisZbEfZ21arxLGfaWfcnqb8oHPNihIb4XPE8CQPN5A==}
-    engines: {node: '>=0.8.0'}
 
   on-finished@2.4.1:
     resolution: {integrity: sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==}
@@ -3481,9 +3479,6 @@ packages:
   regenerator-runtime@0.14.1:
     resolution: {integrity: sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==}
 
-  remove-accents@0.5.0:
-    resolution: {integrity: sha512-8g3/Otx1eJaVD12e31UbJj1YzdtVvzH85HV7t+9MJYk/u3XmkOUJ5Ys9wQrf9PCPK8+xn4ymzqYCiZl6QWKn+A==}
-
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
@@ -3599,9 +3594,6 @@ packages:
     peerDependencies:
       react: ^18.0.0
       react-dom: ^18.0.0
-
-  sort-by@1.2.0:
-    resolution: {integrity: sha512-aRyW65r3xMnf4nxJRluCg0H/woJpksU1dQxRtXYzau30sNBOmf5HACpDd9MZDhKh7ALQ5FgSOfMPwZEtUmMqcg==}
 
   source-map-js@1.2.0:
     resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}
@@ -6566,8 +6558,6 @@ snapshots:
 
   ignore@5.3.1: {}
 
-  immediate@3.0.6: {}
-
   import-fresh@3.3.0:
     dependencies:
       parent-module: 1.0.1
@@ -6672,10 +6662,6 @@ snapshots:
       prelude-ls: 1.2.1
       type-check: 0.4.0
 
-  lie@3.1.1:
-    dependencies:
-      immediate: 3.0.6
-
   lilconfig@2.1.0: {}
 
   lilconfig@3.1.1: {}
@@ -6686,10 +6672,6 @@ snapshots:
     dependencies:
       mlly: 1.7.1
       pkg-types: 1.1.1
-
-  localforage@1.10.0:
-    dependencies:
-      lie: 3.1.1
 
   locate-character@3.0.0: {}
 
@@ -6727,11 +6709,6 @@ snapshots:
   marked@12.0.2: {}
 
   marked@6.0.0: {}
-
-  match-sorter@6.3.4:
-    dependencies:
-      '@babel/runtime': 7.24.7
-      remove-accents: 0.5.0
 
   mdn-data@2.0.30: {}
 
@@ -6844,8 +6821,6 @@ snapshots:
   object-hash@3.0.0: {}
 
   object-inspect@1.13.1: {}
-
-  object-path@0.6.0: {}
 
   on-finished@2.4.1:
     dependencies:
@@ -7162,8 +7137,6 @@ snapshots:
 
   regenerator-runtime@0.14.1: {}
 
-  remove-accents@0.5.0: {}
-
   require-directory@2.1.1: {}
 
   require-package-name@2.0.1: {}
@@ -7302,10 +7275,6 @@ snapshots:
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-
-  sort-by@1.2.0:
-    dependencies:
-      object-path: 0.6.0
 
   source-map-js@1.2.0: {}
 

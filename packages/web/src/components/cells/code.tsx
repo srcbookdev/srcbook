@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
@@ -201,15 +203,22 @@ export default function CodeCell(props: {
               cell.status === 'running' ? 'opacity-100' : '',
             )}
           >
-            <Button
-              variant="icon"
-              size="icon"
-              disabled={promptMode !== 'off'}
-              onClick={() => setPromptMode('idle')}
-              tabIndex={1}
-            >
-              <Sparkles size={16} />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="icon"
+                    size="icon"
+                    disabled={promptMode !== 'off'}
+                    onClick={() => setPromptMode('idle')}
+                    tabIndex={1}
+                  >
+                    <Sparkles size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit cell using AI</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             {promptMode === 'idle' && (
               <Button
                 variant="default"
@@ -233,10 +242,19 @@ export default function CodeCell(props: {
                   </Button>
                 )}
                 {cell.status === 'idle' && (
-                  <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
-                    <Play size={16} />
-                    Run
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
+                          <Play size={16} />
+                          Run
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <Shortcut keys={['mod', 'enter']} /> to run cell
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </>
             )}

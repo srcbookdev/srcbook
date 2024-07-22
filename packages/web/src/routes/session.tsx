@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   CellType,
   CellOutputPayloadType,

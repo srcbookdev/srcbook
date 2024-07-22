@@ -35,11 +35,9 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "codemirror": "^6.0.1",
-    "localforage": "^1.10.0",
     "lucide-react": "^0.378.0",
-    "marked": "^12.0.2",
+    "marked": "catalog:",
     "marked-react": "^2.0.0",
-    "match-sorter": "^6.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
@@ -47,10 +45,10 @@
     "react-router-dom": "^6.23.0",
     "react-textarea-autosize": "^8.5.3",
     "sonner": "^1.4.41",
-    "sort-by": "^1.2.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "use-debounce": "^10.0.0"
+    "use-debounce": "^10.0.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

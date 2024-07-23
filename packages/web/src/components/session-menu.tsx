@@ -18,11 +18,9 @@ import {
 } from '@/components/ui/navigation-menu';
 import { useCells } from './use-cell';
 import { SettingsSheet } from './settings-sheet';
-import { SessionChannel } from '@/clients/websocket';
 
 type Props = {
   session: SessionType;
-  channel: SessionChannel;
   openDepsInstallModal: () => void;
 };
 
@@ -49,7 +47,7 @@ const tocFromCell = (cell: TitleCellType | CodeCellType | MarkdownCellType) => {
   }
 };
 
-export default function SessionMenu({ session, channel, openDepsInstallModal }: Props) {
+export default function SessionMenu({ session, openDepsInstallModal }: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
@@ -137,7 +135,6 @@ export default function SessionMenu({ session, channel, openDepsInstallModal }: 
         onOpenChange={setShowSettings}
         openDepsInstallModal={openDepsInstallModal}
         session={session}
-        channel={channel}
       />
       <div className="fixed xl:hidden top-[100px] left-6 group z-20">
         <NavigationMenu>

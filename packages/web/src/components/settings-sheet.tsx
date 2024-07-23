@@ -1,10 +1,6 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { SessionType } from '@/types';
-import {
-  PackageJsonCellType,
-  PackageJsonCellUpdateAttrsType,
-  TitleCellType,
-} from '@srcbook/shared';
+import { TitleCellType } from '@srcbook/shared';
 import { useCells } from './use-cell';
 import { ChevronRight, Info, LoaderCircle, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,23 +10,16 @@ import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import useTheme from './use-theme';
 import { Button } from './ui/button';
-import { SessionChannel } from '@/clients/websocket';
+import { usePackageJson } from './use-package-json';
 
 type PropsType = {
   session: SessionType;
-  channel: SessionChannel;
   open: boolean;
   onOpenChange: (value: boolean) => void;
   openDepsInstallModal: () => void;
 };
 
-export function SettingsSheet({
-  session,
-  channel,
-  open,
-  onOpenChange,
-  openDepsInstallModal,
-}: PropsType) {
+export function SettingsSheet({ session, open, onOpenChange, openDepsInstallModal }: PropsType) {
   const { cells } = useCells();
 
   const title = cells.find((cell) => cell.type === 'title') as TitleCellType;
@@ -48,11 +37,7 @@ export function SettingsSheet({
               {session.metadata.language === 'typescript' ? 'TypeScript' : 'JavaScript'}
             </p>
           </div>
-          <PackageJson
-            session={session}
-            channel={channel}
-            openDepsInstallModal={openDepsInstallModal}
-          />
+          <PackageJson openDepsInstallModal={openDepsInstallModal} />
           {session.metadata.language === 'typescript' && <TsconfigJson session={session} />}
         </div>
       </SheetContent>
@@ -60,59 +45,11 @@ export function SettingsSheet({
   );
 }
 
-function getValidationError(source: string) {
-  try {
-    JSON.parse(source);
-    return null;
-  } catch (e) {
-    const err = e as Error;
-    return err.message;
-  }
-}
-
-function PackageJson(props: {
-  session: SessionType;
-  channel: SessionChannel;
-  openDepsInstallModal: () => void;
-}) {
-  const { session, channel, openDepsInstallModal } = props;
-
+function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => void }) {
   const { codeTheme } = useTheme();
-  const { cells, updateCell: updateCellOnClient } = useCells();
-  const packageJson = cells.find((cell) => cell.type === 'package.json') as PackageJsonCellType;
+  const { source, onChangeSource, validationError, npmInstall, installing } = usePackageJson();
 
   const [open, setOpen] = useState(true);
-  const [error, setError] = useState<string | null>(getValidationError(packageJson.source));
-
-  function updateCellOnServer(updates: PackageJsonCellUpdateAttrsType) {
-    channel.push('cell:update', {
-      sessionId: session.id,
-      cellId: packageJson.id,
-      updates,
-    });
-  }
-
-  function onChangeSource(source: string) {
-    const updates = { ...packageJson, source };
-    updateCellOnClient(updates);
-
-    const error = getValidationError(source);
-    setError(error);
-
-    if (error === null) {
-      updateCellOnServer(updates);
-    }
-  }
-
-  function npmInstall(packages?: Array<string>) {
-    const error = getValidationError(packageJson.source);
-    setError(error);
-
-    if (error === null) {
-      updateCellOnClient({ ...packageJson, status: 'running' });
-      channel.push('deps:install', { sessionId: session.id, packages });
-    }
-  }
 
   function evaluateModEnter() {
     npmInstall();
@@ -126,13 +63,13 @@ function PackageJson(props: {
         setOpen={setOpen}
         title="package.json"
         className={cn({
-          'border-error': error !== null,
-          'border-run': packageJson.status === 'running',
+          'border-error': validationError !== null,
+          'border-run': installing,
         })}
       >
         <div className="pt-1 pb-3 px-3">
           <CodeMirror
-            value={packageJson.source}
+            value={source}
             theme={codeTheme}
             extensions={[
               json(),
@@ -142,14 +79,14 @@ function PackageJson(props: {
             basicSetup={{ lineNumbers: false, foldGutter: false }}
           />
         </div>
-        {error !== null && <Error error={error} />}
+        {validationError !== null && <Error error={validationError} />}
       </CollapsibleContainer>
       {open && (
         <div className="flex justify-end items-center gap-2 pt-1">
           <Button variant="secondary" onClick={openDepsInstallModal}>
             Add package
           </Button>
-          {packageJson.status === 'running' ? (
+          {installing ? (
             <Button variant="run" size="default-with-icon" disabled>
               <LoaderCircle size={16} className="animate-spin" />
               Installing
@@ -158,7 +95,7 @@ function PackageJson(props: {
             <Button
               size="default-with-icon"
               onClick={() => npmInstall()}
-              disabled={packageJson.status !== 'idle' || error !== null}
+              disabled={installing || validationError !== null}
               className="font-mono"
             >
               <Play size={16} />

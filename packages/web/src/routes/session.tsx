@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
-import { toast } from 'sonner';
 import {
   CellType,
   CellOutputPayloadType,
@@ -11,7 +10,6 @@ import {
   MarkdownCellType,
   CodeCellType,
   TitleCellType,
-  DepsValidateResponsePayloadType,
 } from '@srcbook/shared';
 import { loadSession, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
@@ -27,6 +25,7 @@ import useEffectOnce from '@/components/use-effect-once';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
+import { PackageJsonProvider } from '@/components/use-package-json';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: session }] = await Promise.all([
@@ -46,9 +45,6 @@ function SessionPage() {
   useEffectOnce(() => {
     channel.subscribe();
 
-    // TODO: Push once we know subscription succeeded
-    channel.push('deps:validate', { sessionId: session.id });
-
     if (session.metadata.language === 'typescript') {
       channel.push('tsserver:start', { sessionId: session.id });
     }
@@ -64,7 +60,9 @@ function SessionPage() {
 
   return (
     <CellsProvider initialCells={session.cells}>
-      <Session session={session} channel={channelRef.current} config={config} />
+      <PackageJsonProvider session={session} channel={channel}>
+        <Session session={session} channel={channelRef.current} config={config} />
+      </PackageJsonProvider>
     </CellsProvider>
   );
 }
@@ -98,29 +96,6 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
       cellId: cell.id,
     });
   }
-
-  function npmInstall(packages?: Array<string>) {
-    channel.push('deps:install', { sessionId: session.id, packages });
-  }
-
-  useEffect(() => {
-    const callback = (payload: DepsValidateResponsePayloadType) => {
-      const { packages } = payload;
-      const msg = packages
-        ? `Missing dependencies: ${packages.join(', ')}`
-        : 'Packages need to be installed';
-      toast.warning(msg, {
-        duration: 10000,
-        action: {
-          label: 'Install',
-          onClick: () => npmInstall(packages),
-        },
-      });
-    };
-
-    channel.on('deps:validate:response', callback);
-    return () => channel.off('deps:validate:response', callback);
-  }, [channel, npmInstall]);
 
   useEffect(() => {
     const callback = (payload: CellOutputPayloadType) => {
@@ -198,23 +173,14 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   }
 
   // TOOD: We need to stop treating titles and package.json as cells.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [titleCell, _packageJsonCell, ...remainingCells] = allCells;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
 
   return (
     <>
-      <PackageInstallModal
-        open={depsInstallModalOpen}
-        onOpenChange={setDepsInstallModalOpen}
-        channel={channel}
-        session={session}
-      />
-
-      <SessionMenu
-        openDepsInstallModal={() => setDepsInstallModalOpen(true)}
-        session={session}
-        channel={channel}
-      />
+      <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+      <SessionMenu session={session} openDepsInstallModal={() => setDepsInstallModalOpen(true)} />
 
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
       <div className="px-[72px] xl:pl-[100px] pb-28">
@@ -320,13 +286,8 @@ function InsertCellDivider(props: {
   );
 }
 
-function PackageInstallModal(props: {
-  open: boolean;
-  onOpenChange: (value: boolean) => void;
-  channel: SessionChannel;
-  session: SessionType;
-}) {
-  const { open, onOpenChange, channel, session } = props;
+function PackageInstallModal(props: { open: boolean; onOpenChange: (value: boolean) => void }) {
+  const { open, onOpenChange } = props;
 
   useHotkeys('meta+i', () => {
     if (!open) {
@@ -334,9 +295,7 @@ function PackageInstallModal(props: {
     }
   });
 
-  return (
-    <InstallPackageModal channel={channel} session={session} open={open} setOpen={onOpenChange} />
-  );
+  return <InstallPackageModal open={open} setOpen={onOpenChange} />;
 }
 
 SessionPage.loader = loader;

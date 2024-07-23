@@ -205,7 +205,7 @@ export default function CodeCell(props: {
           >
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Button
                     variant="icon"
                     size="icon"
@@ -244,7 +244,7 @@ export default function CodeCell(props: {
                 {cell.status === 'idle' && (
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger>
+                      <TooltipTrigger asChild>
                         <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
                           <Play size={16} />
                           Run

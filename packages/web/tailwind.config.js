@@ -141,6 +141,9 @@ module.exports = {
           'blue-80': 'hsl(var(--sb-blue-80))',
         },
       },
+      dropShadow: {
+        key: '0 1px 0 hsl(var(--border))', // for keyboard shortcuts. border-border 1px straight down
+      },
       borderRadius: {
         sm: '0.1875rem', // 3px
         mid: '0.375rem', // 6px

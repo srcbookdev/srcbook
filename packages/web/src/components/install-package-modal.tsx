@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
-import { CellUpdatedPayloadType, PackageJsonCellType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { searchNpmPackages } from '@/lib/server';
 import { Input } from '@/components/ui/input';
@@ -13,9 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-import type { SessionType } from '@/types';
-import { SessionChannel } from '@/clients/websocket';
-import { useCells } from './use-cell';
+import { usePackageJson } from './use-package-json';
 
 type NPMPackageType = {
   name: string;
@@ -39,13 +36,9 @@ function getSelected(results: NPMPackageType[], selectedName: string, type: 'nex
 }
 
 export default function InstallPackageModal({
-  channel,
-  session,
   open,
   setOpen,
 }: {
-  channel: SessionChannel;
-  session: SessionType;
   open: boolean;
   setOpen: (val: boolean) => void;
 }) {
@@ -55,7 +48,7 @@ export default function InstallPackageModal({
   const [pkg, setPkg] = useState<string>('');
   const [selectedName, setSelectedName] = useState<string | null>(null);
 
-  const { getOutput } = useCells();
+  const { npmInstall, installing, output } = usePackageJson();
 
   const [value] = useDebounce(query, 300);
 
@@ -72,30 +65,16 @@ export default function InstallPackageModal({
       .catch((e) => console.error('error:', e));
   }, [value]);
 
-  const cell = session.cells.find((c) => c.type === 'package.json') as PackageJsonCellType;
-  const output = getOutput(cell.id)
-    .map((o) => o.data)
-    .join('');
-
   useEffect(() => {
-    const callback = (payload: CellUpdatedPayloadType) => {
-      if (open && payload.cell.type === 'package.json' && payload.cell.status === 'idle') {
-        setMode('success');
-      }
-    };
-
-    channel.on('cell:updated', callback);
-    return () => channel.off('cell:updated', callback);
-  }, [channel, open, cell]);
+    if (mode === 'loading' && !installing) {
+      setMode('success');
+    }
+  }, [mode, installing]);
 
   const addPackage = (packageName: string) => {
     setPkg(packageName);
     setMode('loading');
-
-    channel.push('deps:install', {
-      sessionId: session.id,
-      packages: [packageName],
-    });
+    npmInstall([packageName]);
   };
 
   return (
@@ -135,7 +114,9 @@ export default function InstallPackageModal({
             <DialogHeader>
               <DialogTitle>Successfully added {pkg}</DialogTitle>
             </DialogHeader>
-            <p className="font-mono text-sm whitespace-pre-line">{output}</p>
+            <p className="font-mono text-sm whitespace-pre-line">
+              {output.map((o) => o.data).join('')}
+            </p>
           </>
         )}
         {mode === 'search' && (

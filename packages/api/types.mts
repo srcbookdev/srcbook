@@ -8,6 +8,14 @@ export type SessionType = {
   dir: string;
   cells: CellType[];
   metadata: SrcbookMetadataType;
+
+  /**
+   * The tsconfig.json file contents.
+   *
+   * TODO: Better typing.
+   */
+  'tsconfig.json'?: Record<string, any>;
+
   /**
    * Replace this with updatedAt once we store srcbooks in sqlite
    */

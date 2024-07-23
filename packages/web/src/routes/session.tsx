@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import {
   CellType,
@@ -10,14 +10,12 @@ import {
   MarkdownCellType,
   CodeCellType,
   TitleCellType,
-  PackageJsonCellType,
 } from '@srcbook/shared';
 import { loadSession, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
 import TitleCell from '@/components/cells/title';
 import MarkdownCell from '@/components/cells/markdown';
 import GenerateAiCell from '@/components/cells/generate-ai';
-import PackageJsonCell from '@/components/cells/package-json';
 import CodeCell from '@/components/cells/code';
 import SessionMenu from '@/components/session-menu';
 import { Button } from '@/components/ui/button';
@@ -25,6 +23,10 @@ import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import useEffectOnce from '@/components/use-effect-once';
 import { cn } from '@/lib/utils';
+import { useHotkeys } from 'react-hotkeys-hook';
+import InstallPackageModal from '@/components/install-package-modal';
+import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
+import { toast } from 'sonner';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: session }] = await Promise.all([
@@ -44,9 +46,6 @@ function SessionPage() {
   useEffectOnce(() => {
     channel.subscribe();
 
-    // TODO: Push once we know subscription succeeded
-    channel.push('deps:validate', { sessionId: session.id });
-
     if (session.metadata.language === 'typescript') {
       channel.push('tsserver:start', { sessionId: session.id });
     }
@@ -62,7 +61,9 @@ function SessionPage() {
 
   return (
     <CellsProvider initialCells={session.cells}>
-      <Session session={session} channel={channelRef.current} config={config} />
+      <PackageJsonProvider session={session} channel={channel}>
+        <Session session={session} channel={channelRef.current} config={config} />
+      </PackageJsonProvider>
     </CellsProvider>
   );
 }
@@ -81,9 +82,20 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     setTsServerDiagnostics,
   } = useCells();
 
+  const { installing: installingDependencies } = usePackageJson();
+
+  const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  useHotkeys('mod+;', () => {
+    if (!showSettings) {
+      setShowSettings(true);
+    }
+  });
+
   async function onDeleteCell(cell: CellType | GenerateAICellType) {
-    if (cell.type === 'title') {
-      throw new Error('Cannot delete title cell');
+    if (cell.type !== 'code' && cell.type !== 'markdown') {
+      throw new Error(`Cannot delete cell of type '${cell.type}'`);
     }
 
     // Optimistically delete cell
@@ -125,25 +137,12 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     return () => channel.off('cell:updated', callback);
   }, [channel, updateCell]);
 
-  async function onUpdateCell<T extends CellType>(
-    cell: T,
-    updates: CellUpdateAttrsType,
-    getValidationError?: (cell: T) => string | null,
-  ) {
-    getValidationError = getValidationError || (() => null);
-    updateCell({ ...cell, ...updates });
-
-    const error = getValidationError({ ...cell, ...updates });
-    if (typeof error === 'string') {
-      return error;
-    }
-
+  function updateCellOnServer(cell: CellType, updates: CellUpdateAttrsType) {
     channel.push('cell:update', {
       sessionId: session.id,
       cellId: cell.id,
       updates,
     });
-    return null;
   }
 
   async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
@@ -184,23 +183,32 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   }
 
   // TOOD: We need to stop treating titles and package.json as cells.
-  const [titleCell, packageJsonCell, ...remainingCells] = allCells;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [titleCell, _packageJsonCell, ...remainingCells] = allCells;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
+
+  useEffect(() => {
+    if (installingDependencies && !depsInstallModalOpen) {
+      const toastId = toast.loading('Installing dependencies...');
+      return () => toast.dismiss(toastId);
+    } else {
+      return () => {};
+    }
+  }, [installingDependencies, depsInstallModalOpen]);
 
   return (
     <>
-      <SessionMenu session={session} />
+      <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+      <SessionMenu
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
+        session={session}
+        openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+      />
 
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
       <div className="px-[72px] xl:pl-[100px] pb-28">
-        <TitleCell cell={titleCell as TitleCellType} onUpdateCell={onUpdateCell} />
-
-        <PackageJsonCell
-          session={session}
-          channel={channel}
-          cell={packageJsonCell as PackageJsonCellType}
-          onUpdateCell={onUpdateCell}
-        />
+        <TitleCell cell={titleCell as TitleCellType} updateCellOnServer={updateCellOnServer} />
 
         {cells.map((cell, idx) => (
           <div key={cell.id}>
@@ -216,14 +224,18 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
                 cell={cell}
                 session={session}
                 channel={channel}
-                onUpdateCell={onUpdateCell}
+                updateCellOnServer={updateCellOnServer}
                 onDeleteCell={onDeleteCell}
                 hasOpenaiKey={!!props.config.openaiKey}
               />
             )}
 
             {cell.type === 'markdown' && (
-              <MarkdownCell cell={cell} onUpdateCell={onUpdateCell} onDeleteCell={onDeleteCell} />
+              <MarkdownCell
+                cell={cell}
+                updateCellOnServer={updateCellOnServer}
+                onDeleteCell={onDeleteCell}
+              />
             )}
 
             {cell.type === 'generate-ai' && (
@@ -296,6 +308,18 @@ function InsertCellDivider(props: {
       </div>
     </div>
   );
+}
+
+function PackageInstallModal(props: { open: boolean; onOpenChange: (value: boolean) => void }) {
+  const { open, onOpenChange } = props;
+
+  useHotkeys('mod+i', () => {
+    if (!open) {
+      onOpenChange(true);
+    }
+  });
+
+  return <InstallPackageModal open={open} setOpen={onOpenChange} />;
 }
 
 SessionPage.loader = loader;

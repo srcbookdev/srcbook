@@ -3,7 +3,15 @@ import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import type { Tokens } from 'marked';
 import { useState } from 'react';
-import { Upload, Trash2, MessageCircleQuestion, Circle, List } from 'lucide-react';
+import {
+  Upload,
+  Trash2,
+  MessageCircleQuestion,
+  Circle,
+  List,
+  Settings,
+  LoaderCircle,
+} from 'lucide-react';
 import type { SessionType } from '../types';
 import type { CodeCellType, MarkdownCellType, TitleCellType } from '@srcbook/shared';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
@@ -17,9 +25,14 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
 import { useCells } from './use-cell';
+import { SettingsSheet } from './settings-sheet';
+import { usePackageJson } from './use-package-json';
 
 type Props = {
   session: SessionType;
+  showSettings: boolean;
+  setShowSettings: (value: boolean) => void;
+  openDepsInstallModal: () => void;
 };
 
 marked.use({ gfm: true });
@@ -45,10 +58,17 @@ const tocFromCell = (cell: TitleCellType | CodeCellType | MarkdownCellType) => {
   }
 };
 
-export default function SessionMenu({ session }: Props) {
+export default function SessionMenu({
+  session,
+  showSettings,
+  setShowSettings,
+  openDepsInstallModal,
+}: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
+
+  const { installing: installingDependencies } = usePackageJson();
 
   const { cells: allCells } = useCells();
 
@@ -89,28 +109,40 @@ export default function SessionMenu({ session }: Props) {
         </div>
         {/** actions menus */}
         <div className="space-y-1.5 text-tertiary-foreground">
-          <div
+          <button
+            className={cn('flex items-center gap-2 hover:text-foreground cursor-pointer', {
+              'text-run hover:text-run': installingDependencies,
+            })}
+            onClick={() => setShowSettings(true)}
+          >
+            {installingDependencies ? (
+              <LoaderCircle size={16} className="animate-spin" />
+            ) : (
+              <Settings size={16} />
+            )}
+            Settings
+          </button>
+          <button
             onClick={() => setShowSave(true)}
             className="flex items-center gap-2 hover:text-foreground cursor-pointer"
           >
             <Upload size={16} />
-            <p>Export</p>
-          </div>
-          <div
+            Export
+          </button>
+          <button
             onClick={() => setShowDelete(true)}
             className="flex items-center gap-2 hover:text-foreground cursor-pointer"
           >
             <Trash2 size={16} />
-            <p>Delete</p>
-          </div>
-
-          <div
+            Delete
+          </button>
+          <button
             onClick={() => setShowShortcuts(true)}
             className="flex items-center gap-2 hover:text-foreground cursor-pointer"
           >
             <MessageCircleQuestion size={16} />
-            <p>Shortcuts</p>
-          </div>
+            Shortcuts
+          </button>
         </div>
       </div>
     );
@@ -121,6 +153,12 @@ export default function SessionMenu({ session }: Props) {
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
+      <SettingsSheet
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        openDepsInstallModal={openDepsInstallModal}
+        session={session}
+      />
       <div className="fixed xl:hidden top-[100px] left-6 group z-20">
         <NavigationMenu>
           <NavigationMenuList>

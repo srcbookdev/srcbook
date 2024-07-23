@@ -14,11 +14,7 @@ marked.use({ gfm: true });
 
 export default function MarkdownCell(props: {
   cell: MarkdownCellType;
-  onUpdateCell: (
-    cell: MarkdownCellType,
-    attrs: MarkdownCellUpdateAttrsType,
-    getValidationError?: (cell: MarkdownCellType) => string | null,
-  ) => Promise<string | null>;
+  updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const { codeTheme } = useTheme();
@@ -53,21 +49,25 @@ export default function MarkdownCell(props: {
     ]),
   );
 
-  function getValidationError(cell: MarkdownCellType) {
-    const tokens = marked.lexer(cell.text);
+  function getValidationError(text: string) {
+    const tokens = marked.lexer(text);
     const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
     const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
 
     if (hasH1 || hasH6) {
       return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
     }
+
     return null;
   }
 
-  async function onSave() {
-    const error = await props.onUpdateCell(cell, { text }, getValidationError);
+  function onSave() {
+    const error = getValidationError(text);
+
     setError(error);
+
     if (error === null) {
+      props.updateCellOnServer(cell, { text });
       setStatus('view');
       return true;
     }

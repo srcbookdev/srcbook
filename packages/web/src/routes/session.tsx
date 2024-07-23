@@ -85,10 +85,17 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   const { installing: installingDependencies } = usePackageJson();
 
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  useHotkeys('mod+;', () => {
+    if (!showSettings) {
+      setShowSettings(true);
+    }
+  });
 
   async function onDeleteCell(cell: CellType | GenerateAICellType) {
-    if (cell.type === 'title') {
-      throw new Error('Cannot delete title cell');
+    if (cell.type !== 'code' && cell.type !== 'markdown') {
+      throw new Error(`Cannot delete cell of type '${cell.type}'`);
     }
 
     // Optimistically delete cell
@@ -192,7 +199,12 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   return (
     <>
       <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
-      <SessionMenu session={session} openDepsInstallModal={() => setDepsInstallModalOpen(true)} />
+      <SessionMenu
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
+        session={session}
+        openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+      />
 
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
       <div className="px-[72px] xl:pl-[100px] pb-28">
@@ -301,7 +313,7 @@ function InsertCellDivider(props: {
 function PackageInstallModal(props: { open: boolean; onOpenChange: (value: boolean) => void }) {
   const { open, onOpenChange } = props;
 
-  useHotkeys('meta+i', () => {
+  useHotkeys('mod+i', () => {
     if (!open) {
       onOpenChange(true);
     }

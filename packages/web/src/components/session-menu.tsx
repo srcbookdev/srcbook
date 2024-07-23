@@ -3,7 +3,15 @@ import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import type { Tokens } from 'marked';
 import { useState } from 'react';
-import { Upload, Trash2, MessageCircleQuestion, Circle, List, Settings } from 'lucide-react';
+import {
+  Upload,
+  Trash2,
+  MessageCircleQuestion,
+  Circle,
+  List,
+  Settings,
+  LoaderCircle,
+} from 'lucide-react';
 import type { SessionType } from '../types';
 import type { CodeCellType, MarkdownCellType, TitleCellType } from '@srcbook/shared';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
@@ -18,9 +26,12 @@ import {
 } from '@/components/ui/navigation-menu';
 import { useCells } from './use-cell';
 import { SettingsSheet } from './settings-sheet';
+import { usePackageJson } from './use-package-json';
 
 type Props = {
   session: SessionType;
+  showSettings: boolean;
+  setShowSettings: (value: boolean) => void;
   openDepsInstallModal: () => void;
 };
 
@@ -47,11 +58,17 @@ const tocFromCell = (cell: TitleCellType | CodeCellType | MarkdownCellType) => {
   }
 };
 
-export default function SessionMenu({ session, openDepsInstallModal }: Props) {
+export default function SessionMenu({
+  session,
+  showSettings,
+  setShowSettings,
+  openDepsInstallModal,
+}: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+
+  const { installing: installingDependencies } = usePackageJson();
 
   const { cells: allCells } = useCells();
 
@@ -93,10 +110,16 @@ export default function SessionMenu({ session, openDepsInstallModal }: Props) {
         {/** actions menus */}
         <div className="space-y-1.5 text-tertiary-foreground">
           <button
-            className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+            className={cn('flex items-center gap-2 hover:text-foreground cursor-pointer', {
+              'text-run hover:text-run': installingDependencies,
+            })}
             onClick={() => setShowSettings(true)}
           >
-            <Settings size={16} />
+            {installingDependencies ? (
+              <LoaderCircle size={16} className="animate-spin" />
+            ) : (
+              <Settings size={16} />
+            )}
             Settings
           </button>
           <button

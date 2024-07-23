@@ -25,7 +25,8 @@ import useEffectOnce from '@/components/use-effect-once';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
-import { PackageJsonProvider } from '@/components/use-package-json';
+import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
+import { toast } from 'sonner';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: session }] = await Promise.all([
@@ -80,6 +81,8 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     setOutput,
     setTsServerDiagnostics,
   } = useCells();
+
+  const { installing: installingDependencies } = usePackageJson();
 
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
 
@@ -176,6 +179,15 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [titleCell, _packageJsonCell, ...remainingCells] = allCells;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
+
+  useEffect(() => {
+    if (installingDependencies && !depsInstallModalOpen) {
+      const toastId = toast.loading('Installing dependencies...');
+      return () => toast.dismiss(toastId);
+    } else {
+      return () => {};
+    }
+  }, [installingDependencies, depsInstallModalOpen]);
 
   return (
     <>

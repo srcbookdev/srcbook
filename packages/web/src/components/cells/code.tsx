@@ -35,11 +35,11 @@ export default function CodeCell(props: {
   session: SessionType;
   cell: CodeCellType;
   channel: SessionChannel;
-  onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<string | null>;
+  updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
   hasOpenaiKey: boolean;
 }) {
-  const { session, cell, channel, onUpdateCell, onDeleteCell } = props;
+  const { session, cell, channel, updateCellOnServer, onDeleteCell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
   const [promptMode, setPromptMode] = useState<'off' | 'generating' | 'reviewing' | 'idle'>('off');
@@ -155,8 +155,8 @@ export default function CodeCell(props: {
     setNewSource('');
   }
 
-  async function onAcceptDiff() {
-    await onUpdateCell(cell, { source: newSource });
+  function onAcceptDiff() {
+    updateCellOnServer(cell, { source: newSource });
     setPrompt('');
     setPromptMode('off');
   }
@@ -319,7 +319,7 @@ export default function CodeCell(props: {
               <CodeEditor
                 cell={cell}
                 runCell={runCell}
-                onUpdateCell={onUpdateCell}
+                updateCellOnServer={updateCellOnServer}
                 readOnly={['generating', 'idle'].includes(promptMode)}
               />
             </div>
@@ -334,18 +334,18 @@ export default function CodeCell(props: {
 function CodeEditor({
   cell,
   runCell,
-  onUpdateCell,
+  updateCellOnServer,
   readOnly,
 }: {
   cell: CodeCellType;
   runCell: () => void;
-  onUpdateCell: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => Promise<string | null>;
+  updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   readOnly: boolean;
 }) {
   const { codeTheme } = useTheme();
-  const { updateCell: updateCellClientSideOnly } = useCells();
+  const { updateCell: updateCellOnClient } = useCells();
 
-  const onUpdateCellDebounced = useDebouncedCallback(onUpdateCell, DEBOUNCE_DELAY);
+  const updateCellOnServerDebounced = useDebouncedCallback(updateCellOnServer, DEBOUNCE_DELAY);
 
   function evaluateModEnter() {
     runCell();
@@ -366,8 +366,8 @@ function CodeEditor({
       theme={codeTheme}
       extensions={extensions}
       onChange={(source) => {
-        updateCellClientSideOnly({ ...cell, source });
-        onUpdateCellDebounced(cell, { source });
+        updateCellOnClient({ ...cell, source });
+        updateCellOnServerDebounced(cell, { source });
       }}
     />
   );

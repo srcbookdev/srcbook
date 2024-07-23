@@ -29,6 +29,7 @@ import {
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';
 import { pathToCodeFile } from './srcbook/path.mjs';
+import { buildTsconfigJson } from './srcbook/config.mjs';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -58,6 +59,11 @@ export async function createSession(srcbookDir: string) {
     metadata: result.metadata,
     openedAt: Date.now(),
   };
+
+  // TODO: Read from disk once we support editing tsconfig.json.
+  if (session.metadata.language === 'typescript') {
+    session['tsconfig.json'] = buildTsconfigJson();
+  }
 
   sessions[session.id] = session;
 
@@ -280,14 +286,26 @@ export function updateCell(session: SessionType, cell: CellType, updates: CellUp
 }
 
 export function sessionToResponse(session: SessionType) {
-  return {
-    id: session.id,
-    cells: session.cells,
-    metadata: session.metadata,
-    // Only pass the dir ID to the client, making it easier to use it as an identifier in urls
-    dir: Path.basename(session.dir),
-    openedAt: session.openedAt,
-  };
+  if (session.metadata.language === 'typescript') {
+    return {
+      id: session.id,
+      cells: session.cells,
+      metadata: session.metadata,
+      // Only pass the dir ID to the client, making it easier to use it as an identifier in urls
+      dir: Path.basename(session.dir),
+      'tsconfig.json': session['tsconfig.json'],
+      openedAt: session.openedAt,
+    };
+  } else {
+    return {
+      id: session.id,
+      cells: session.cells,
+      metadata: session.metadata,
+      // Only pass the dir ID to the client, making it easier to use it as an identifier in urls
+      dir: Path.basename(session.dir),
+      openedAt: session.openedAt,
+    };
+  }
 }
 
 export async function readPackageJsonContentsFromDisk(session: SessionType) {

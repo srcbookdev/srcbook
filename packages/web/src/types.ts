@@ -28,6 +28,9 @@ export type SessionType = {
   dir: string;
   cells: CellType[];
   metadata: SrcbookMetadataType;
+  // TODO: Better typing.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  'tsconfig.json'?: Record<string, any>;
   openedAt: number;
 };
 

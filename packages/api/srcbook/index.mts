@@ -14,6 +14,7 @@ import { readdir } from '../fs-utils.mjs';
 import { SRCBOOKS_DIR } from '../constants.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 import { pathToCodeFile, pathToPackageJson, pathToReadme } from './path.mjs';
+import { buildJSPackageJson, buildTSPackageJson, buildTsconfigJson } from './config.mjs';
 
 function writeCellOnlyToDisk(srcbookDir: string, cell: PackageJsonCellType | CodeCellType) {
   const path =
@@ -163,39 +164,6 @@ async function createSrcbookDir(language: CodeLanguageType, basename: string = r
 
 function buildPackageJson(language: CodeLanguageType) {
   return toFormattedJSON(language === 'typescript' ? buildTSPackageJson() : buildJSPackageJson());
-}
-
-function buildJSPackageJson() {
-  return {
-    type: 'module',
-    dependencies: {},
-  };
-}
-
-function buildTSPackageJson() {
-  return {
-    type: 'module',
-    dependencies: {
-      tsx: 'latest',
-      typescript: 'latest',
-      '@types/node': 'latest',
-    },
-  };
-}
-
-function buildTsconfigJson() {
-  return {
-    compilerOptions: {
-      module: 'nodenext',
-      moduleResolution: 'nodenext',
-      target: 'es2022',
-      resolveJsonModule: true,
-      noEmit: true,
-      allowImportingTsExtensions: true,
-    },
-    include: ['src/**/*'],
-    exclude: ['node_modules'],
-  };
 }
 
 export function removeSrcbook(srcbookDir: string) {

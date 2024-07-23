@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { cn } from '@/lib/utils';
 import { getSecrets } from '@/lib/server';
-import { Info, Trash2 } from 'lucide-react';
+import { Info, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Form, useLoaderData, useRevalidator } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -148,7 +150,7 @@ function SecretRow(props: {
   const passwordRef = useRef<HTMLInputElement>(null);
 
   const [hovering, setHovering] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
+  const [show, setShow] = useState(false);
 
   function onNameKeydown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
@@ -185,7 +187,6 @@ function SecretRow(props: {
   }
 
   function onBlur() {
-    setInputFocused(false);
     if (isValidSecretName(name)) {
       props.onUpdate(props.name, name, value);
     } else {
@@ -233,24 +234,41 @@ function SecretRow(props: {
           onKeyDown={onNameKeydown}
           onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
           autoComplete="off"
-          onFocus={() => setInputFocused(true)}
           onBlur={onBlur}
           className="border-transparent group-hover:border-border group-focus-within:border-border"
         />
       </td>
-      <td className="h-10 text-left align-middle">
+      <td className="h-10 text-left align-middle relative">
         <Input
           ref={passwordRef}
-          type={inputFocused || hovering ? 'text' : 'password'}
+          type={show ? 'text' : 'password'}
           autoComplete="off"
           value={value}
           onKeyDown={onPasswordKeydown}
           onChange={(e) => setValue(e.currentTarget.value)}
           required
-          onFocus={() => setInputFocused(true)}
           onBlur={onBlur}
-          className="border-transparent group-hover:border-border group-focus-within:border-border"
+          className="border-transparent group-hover:border-border group-focus-within:border-border pr-8"
         />
+        {show ? (
+          <EyeOff
+            size={14}
+            className={cn(
+              'absolute right-3 top-3 cursor-pointer opacity-80 bg-background',
+              !hovering && 'hidden',
+            )}
+            onClick={() => setShow(false)}
+          />
+        ) : (
+          <Eye
+            size={14}
+            className={cn(
+              'absolute right-3 top-3 cursor-pointer opacity-80 bg-background',
+              !hovering && 'hidden',
+            )}
+            onClick={() => setShow(true)}
+          />
+        )}
       </td>
       <td className="h-10 pl-3 text-right align-middle w-[52px]">
         <Button variant="icon" onClick={() => setOpen(true)}>
@@ -264,13 +282,23 @@ function SecretRow(props: {
 function NewSecretForm(props: {
   setError: (message: string | null, clearAfter?: number | null) => void;
 }) {
+  useHotkeys(
+    'mod+enter',
+    () => {
+      onSubmit();
+    },
+    { enableOnFormTags: ['input'] },
+  );
+
   const revalidator = useRevalidator();
 
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function onSubmit(e?: React.FormEvent<HTMLFormElement>) {
+    if (e) {
+      e.preventDefault();
+    }
 
     if (!isValidSecretName(name)) {
       props.setError(

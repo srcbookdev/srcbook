@@ -71,7 +71,7 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
         channel.push('deps:install', { sessionId: session.id, packages });
       }
     },
-    [cell, channel, session.id, updateCellOnClient],
+    [cell, channel, session.id, updateCellOnClient, clearOutput],
   );
 
   useEffect(() => {

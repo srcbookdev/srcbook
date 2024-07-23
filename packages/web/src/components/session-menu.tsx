@@ -111,7 +111,7 @@ export default function SessionMenu({
         <div className="space-y-1.5 text-tertiary-foreground">
           <button
             className={cn('flex items-center gap-2 hover:text-foreground cursor-pointer', {
-              'text-run hover:text-run': installingDependencies,
+              'text-run hover:text-run font-medium': installingDependencies,
             })}
             onClick={() => setShowSettings(true)}
           >

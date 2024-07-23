@@ -150,7 +150,6 @@ function SecretRow(props: {
   const passwordRef = useRef<HTMLInputElement>(null);
 
   const [hovering, setHovering] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
   const [show, setShow] = useState(false);
 
   function onNameKeydown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -188,7 +187,6 @@ function SecretRow(props: {
   }
 
   function onBlur() {
-    setInputFocused(false);
     if (isValidSecretName(name)) {
       props.onUpdate(props.name, name, value);
     } else {
@@ -236,7 +234,6 @@ function SecretRow(props: {
           onKeyDown={onNameKeydown}
           onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
           autoComplete="off"
-          onFocus={() => setInputFocused(true)}
           onBlur={onBlur}
           className="border-transparent group-hover:border-border group-focus-within:border-border"
         />
@@ -250,7 +247,6 @@ function SecretRow(props: {
           onKeyDown={onPasswordKeydown}
           onChange={(e) => setValue(e.currentTarget.value)}
           required
-          onFocus={() => setInputFocused(true)}
           onBlur={onBlur}
           className="border-transparent group-hover:border-border group-focus-within:border-border pr-8"
         />

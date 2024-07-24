@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Circle, Info, Play, Trash2, Sparkles, X, MessageCircleWarning } from 'lucide-react';
+import { Info, Play, Trash2, Sparkles, X, MessageCircleWarning, LoaderCircle } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
 import {
@@ -231,15 +231,21 @@ export default function CodeCell(props: {
               </Button>
             )}
             {promptMode === 'generating' && (
-              <Button variant="run" className="disabled:opacity-100" disabled tabIndex={1}>
-                Generating
+              <Button
+                variant="run"
+                size="default-with-icon"
+                className="disabled:opacity-100"
+                disabled
+                tabIndex={1}
+              >
+                <LoaderCircle size={16} className="animate-spin" /> Generating
               </Button>
             )}
             {promptMode === 'off' && (
               <>
                 {cell.status === 'running' && (
                   <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
-                    <Circle size={16} /> Stop
+                    <LoaderCircle size={16} className="animate-spin" /> Stop
                   </Button>
                 )}
                 {cell.status === 'idle' && (

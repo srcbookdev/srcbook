@@ -71,7 +71,7 @@ export default function CodeCell(props: {
     { enableOnFormTags: ['textarea'] },
   );
 
-  const { updateCell, clearOutput } = useCells();
+  const { updateCell: updateCellOnClient, clearOutput } = useCells();
 
   function setFilenameError(error: string | null) {
     _setFilenameError(error);
@@ -97,7 +97,7 @@ export default function CodeCell(props: {
   }, [cell.id, channel]);
 
   function updateFilename(filename: string) {
-    updateCell({ ...cell, filename });
+    updateCellOnClient({ ...cell, filename });
     channel.push('cell:rename', {
       sessionId: session.id,
       cellId: cell.id,
@@ -133,7 +133,7 @@ export default function CodeCell(props: {
     setShowStdio(true);
 
     // Update client side only. The server will know it's running from the 'cell:exec' event.
-    updateCell({ ...cell, status: 'running' });
+    updateCellOnClient({ ...cell, status: 'running' });
     clearOutput(cell.id);
 
     // Add artificial delay to allow debounced updates to propagate
@@ -156,6 +156,7 @@ export default function CodeCell(props: {
   }
 
   function onAcceptDiff() {
+    updateCellOnClient({ ...cell, source: newSource });
     updateCellOnServer(cell, { source: newSource });
     setPrompt('');
     setPromptMode('off');

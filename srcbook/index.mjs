@@ -14,13 +14,15 @@ import './lib/db/index.mjs';
  *
  */
 import readline from 'node:readline';
-import express from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
 import http from 'node:http';
-import { fileURLToPath } from 'url';
-import path from 'path';
+import { fileURLToPath } from 'node:url';
+import express from 'express';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
 import { wss, app, posthog } from './lib/index.mjs';
 import chalk from 'chalk';
+import open from 'open';
 
 function clearScreen() {
   const repeatCount = process.stdout.rows - 2;
@@ -56,11 +58,18 @@ app.get('*', (_req, res) => res.sendFile(INDEX_HTML));
 console.log(chalk.green('Initialization complete.'));
 
 const port = process.env.PORT || 2150;
+const url = `http://localhost:${port}`;
 
 posthog.capture({ event: 'user started Srcbook application' });
 
+const packageJsonPath = path.join(__dirname, 'package.json');
+const packageJson = fs.readFileSync(packageJsonPath, 'utf-8');
+const { name, version } = JSON.parse(packageJson);
+
 server.listen(port, () => {
-  console.log(`Running at http://localhost:${port}`);
+  console.log(`${name}@${version} running at ${url}`);
+  const noop = () => {};
+  open(url).catch(noop);
 });
 
 process.on('SIGINT', async function () {

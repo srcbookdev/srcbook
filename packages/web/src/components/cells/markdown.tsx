@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import useTheme from '@/components/use-theme';
+import { useCells } from '../use-cell';
 
 marked.use({ gfm: true });
 
@@ -18,7 +19,8 @@ export default function MarkdownCell(props: {
   onDeleteCell: (cell: CellType) => void;
 }) {
   const { codeTheme } = useTheme();
-  const cell = props.cell;
+  const { updateCell: updateCellOnClient } = useCells();
+  const { cell, updateCellOnServer, onDeleteCell } = props;
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
   const [text, setText] = useState(cell.text);
@@ -28,7 +30,7 @@ export default function MarkdownCell(props: {
     if (status === 'edit') {
       setText(cell.text);
     }
-  }, [status, cell]);
+  }, [status, cell.text]);
 
   const keyMap = Prec.highest(
     keymap.of([
@@ -67,7 +69,8 @@ export default function MarkdownCell(props: {
     setError(error);
 
     if (error === null) {
-      props.updateCellOnServer(cell, { text });
+      updateCellOnClient({ ...cell, text });
+      updateCellOnServer(cell, { text });
       setStatus('view');
       return true;
     }
@@ -75,7 +78,7 @@ export default function MarkdownCell(props: {
 
   return (
     <div
-      id={`cell-${props.cell.id}`}
+      id={`cell-${cell.id}`}
       onDoubleClick={() => setStatus('edit')}
       className={cn(
         'group/cell relative w-full rounded-md border border-transparent hover:border-border transition-all',
@@ -88,7 +91,7 @@ export default function MarkdownCell(props: {
           <div className="p-1 w-full hidden group-hover/cell:flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
               <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
-              <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+              <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
                 <Button variant="secondary" size="icon" className="border-transparent">
                   <Trash2 size={16} />
                 </Button>
@@ -121,7 +124,7 @@ export default function MarkdownCell(props: {
             <div className="p-1 w-full flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
-                <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+                <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
                   <Button variant="secondary" size="icon" className="border-transparent">
                     <Trash2 size={16} />
                   </Button>
@@ -143,7 +146,7 @@ export default function MarkdownCell(props: {
                 value={text}
                 basicSetup={{ lineNumbers: false, foldGutter: false }}
                 extensions={[markdown(), keyMap, EditorView.lineWrapping]}
-                onChange={(source) => setText(source)}
+                onChange={setText}
               />
             </div>
           </div>

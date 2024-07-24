@@ -23,6 +23,7 @@
     "drizzle-orm": "^0.31.2",
     "express": "^4.19.2",
     "marked": "catalog:",
+    "open": "^10.1.0",
     "posthog-node": "^4.0.1",
     "ws": "catalog:",
     "zod": "catalog:"

@@ -316,6 +316,9 @@ importers:
       ws:
         specifier: 'catalog:'
         version: 8.17.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
     devDependencies:
       '@types/express':
         specifier: ^4.17.21

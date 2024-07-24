@@ -1,4 +1,4 @@
-import { generateText, GenerateTextResult } from 'ai';
+import { generateText, type GenerateTextResult } from 'ai';
 import {
   type CodeLanguageType,
   type CellType,

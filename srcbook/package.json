@@ -24,7 +24,8 @@
     "express": "^4.19.2",
     "marked": "catalog:",
     "posthog-node": "^4.0.1",
-    "ws": "catalog:"
+    "ws": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/express": "^4.17.21"

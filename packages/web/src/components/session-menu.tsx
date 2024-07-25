@@ -6,15 +6,17 @@ import { useState } from 'react';
 import {
   Upload,
   Trash2,
-  MessageCircleQuestion,
+  MessageCircleMore,
   Circle,
   List,
   Settings,
   LoaderCircle,
+  Keyboard,
 } from 'lucide-react';
 import type { SessionType } from '../types';
 import type { CodeCellType, MarkdownCellType, TitleCellType } from '@srcbook/shared';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
+import FeedbackDialog from '@/components/feedback-dialog';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { ExportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import {
@@ -65,6 +67,7 @@ export default function SessionMenu({
   openDepsInstallModal,
 }: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
 
@@ -140,8 +143,15 @@ export default function SessionMenu({
             onClick={() => setShowShortcuts(true)}
             className="flex items-center gap-2 hover:text-foreground cursor-pointer"
           >
-            <MessageCircleQuestion size={16} />
+            <Keyboard size={16} />
             Shortcuts
+          </button>
+          <button
+            onClick={() => setShowFeedback(true)}
+            className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+          >
+            <MessageCircleMore size={16} />
+            Feedback
           </button>
         </div>
       </div>
@@ -151,6 +161,7 @@ export default function SessionMenu({
   return (
     <>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+      <FeedbackDialog open={showFeedback} onOpenChange={setShowFeedback} />
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
       <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
       <SettingsSheet

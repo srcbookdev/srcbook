@@ -28,6 +28,8 @@ export function getTitleForSession(session: SessionType) {
   return titleCell?.text;
 }
 
+// POST feedback to Google Sheets
+// Because of CORS, we don't get a response here so this is a fire and forget.
 export async function sendFeedback(feedback: string) {
   const url =
     'https://script.google.com/macros/s/AKfycbxbNh5sEvmvuaYZyuNYY6vULEX1vyhkHrqoyfuUMBz3PG5RcekCVcuC4-ceboefxgF0FA/exec';
@@ -39,6 +41,4 @@ export async function sendFeedback(feedback: string) {
     body: JSON.stringify({ feedback }),
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
   });
-
-  console.log('request sent');
 }

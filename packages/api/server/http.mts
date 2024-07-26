@@ -69,7 +69,7 @@ router.post('/srcbooks', cors(), async (req, res) => {
   }
 
   try {
-    const srcbookDir = await createSrcbook(name, { language });
+    const srcbookDir = await createSrcbook(name, language);
     return res.json({ error: false, result: { name, path: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;

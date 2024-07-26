@@ -1,4 +1,4 @@
-import type { CellType, SrcbookMetadataType } from '@srcbook/shared';
+import type { CellType, CodeLanguageType } from '@srcbook/shared';
 
 export type SessionType = {
   id: string;
@@ -7,7 +7,11 @@ export type SessionType = {
    */
   dir: string;
   cells: CellType[];
-  metadata: SrcbookMetadataType;
+
+  /**
+   * The language of the srcbook, i.e.: 'typescript' or 'javascript'
+   */
+  language: CodeLanguageType;
 
   /**
    * The tsconfig.json file contents.

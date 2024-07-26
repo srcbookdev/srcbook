@@ -51,6 +51,10 @@ export const CellWithPlaceholderSchema = z.union([
   PlaceholderCellSchema,
 ]);
 
+// Used to parse metadata from a srcbook header in .src.md.
+//
+// i.e. <!-- srcbook:{"language": "javascript"} -->
+//
 export const SrcbookMetadataSchema = z.object({
   language: z.enum(['javascript', 'typescript']),
 });

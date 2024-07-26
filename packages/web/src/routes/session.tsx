@@ -46,14 +46,14 @@ function SessionPage() {
   useEffectOnce(() => {
     channel.subscribe();
 
-    if (session.metadata.language === 'typescript') {
+    if (session.language === 'typescript') {
       channel.push('tsserver:start', { sessionId: session.id });
     }
 
     return () => {
       channel.unsubscribe();
 
-      if (session.metadata.language === 'typescript') {
+      if (session.language === 'typescript') {
         channel.push('tsserver:stop', { sessionId: session.id });
       }
     };
@@ -152,7 +152,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     let cell;
     switch (type) {
       case 'code':
-        cell = createCodeCell(index, session.metadata.language);
+        cell = createCodeCell(index, session.language);
         channel.push('cell:create', { sessionId: session.id, index, cell });
         break;
       case 'markdown':
@@ -172,7 +172,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
       let newCell;
       switch (cell.type) {
         case 'code':
-          newCell = createCodeCell(insertIdx, session.metadata.language, cell);
+          newCell = createCodeCell(insertIdx, session.language, cell);
           break;
         case 'markdown':
           newCell = createMarkdownCell(insertIdx, cell);
@@ -213,7 +213,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         {cells.map((cell, idx) => (
           <div key={cell.id}>
             <InsertCellDivider
-              language={session.metadata.language}
+              language={session.language}
               createCodeCell={() => createNewCell('code', idx + 2)}
               createMarkdownCell={() => createNewCell('markdown', idx + 2)}
               createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
@@ -252,7 +252,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
 
         {/* There is always an insert cell divider after the last cell */}
         <InsertCellDivider
-          language={session.metadata.language}
+          language={session.language}
           createCodeCell={() => createNewCell('code', allCells.length)}
           createMarkdownCell={() => createNewCell('markdown', allCells.length)}
           createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}

@@ -1,4 +1,4 @@
-import { CellType, SrcbookMetadataType, CodeLanguageType } from '@srcbook/shared';
+import { CellType, CodeLanguageType } from '@srcbook/shared';
 
 export interface FsObjectType {
   path: string;
@@ -26,7 +26,7 @@ export type OutputType = StdoutOutputType | StderrOutputType;
 export type SessionType = {
   id: string;
   cells: CellType[];
-  metadata: SrcbookMetadataType;
+  language: CodeLanguageType;
   // TODO: Better typing.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   'tsconfig.json'?: Record<string, any>;

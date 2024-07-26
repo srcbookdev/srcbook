@@ -126,7 +126,7 @@ export default function Home() {
                   key={srcbook.id}
                   title={(srcbook.cells[0] as TitleCellType).text}
                   running={srcbook.cells.some((c) => c.type === 'code' && c.status === 'running')}
-                  language={srcbook.metadata.language}
+                  language={srcbook.language}
                   cellCount={srcbook.cells.length}
                   onClick={() => navigate(`/srcbooks/${srcbook.id}`)}
                   onDelete={() => onDeleteSrcbook(srcbook)}

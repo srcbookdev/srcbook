@@ -34,7 +34,7 @@ const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, que
     text: '==== INTRODUCE CELL HERE ====',
   });
 
-  const inlineSrcbookWithPlaceholder = encode(cellsWithPlaceholder, session.metadata, {
+  const inlineSrcbookWithPlaceholder = encode(cellsWithPlaceholder, session.language, {
     inline: true,
   });
 
@@ -57,7 +57,7 @@ const makeGenerateCellEditUserPrompt = (
   session: SessionType,
   cell: CodeCellType,
 ) => {
-  const inlineSrcbook = encode(session.cells, session.metadata, { inline: true });
+  const inlineSrcbook = encode(session.cells, session.language, { inline: true });
 
   const prompt = `==== BEGIN SRCBOOK ====
 ${inlineSrcbook}
@@ -129,7 +129,7 @@ export async function generateCells(
 ): Promise<GenerateCellsResult> {
   const model = await getOpenAIModel();
 
-  const systemPrompt = makeGenerateCellSystemPrompt(session.metadata.language);
+  const systemPrompt = makeGenerateCellSystemPrompt(session.language);
   const userPrompt = makeGenerateCellUserPrompt(session, insertIdx, query);
   const result = await generateText({
     model: model,
@@ -157,7 +157,7 @@ export async function generateCells(
 export async function generateCellEdit(query: string, session: SessionType, cell: CodeCellType) {
   const model = await getOpenAIModel();
 
-  const systemPrompt = makeGenerateCellEditSystemPrompt(session.metadata.language);
+  const systemPrompt = makeGenerateCellEditSystemPrompt(session.language);
   const userPrompt = makeGenerateCellEditUserPrompt(query, session, cell);
   const result = await generateText({
     model: model,

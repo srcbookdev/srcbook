@@ -1,4 +1,4 @@
-import { type CellType, type SrcbookMetadataType } from '@srcbook/shared';
+import { type CellType, type CodeLanguageType } from '@srcbook/shared';
 
 export type DecodeErrorResult = {
   error: true;
@@ -8,11 +8,11 @@ export type DecodeErrorResult = {
 export type DecodeSuccessResult = {
   error: false;
   cells: CellType[];
-  metadata: SrcbookMetadataType;
+  language: CodeLanguageType;
 };
 
 // This represents the result of decoding a complete .src.md file.
 export type DecodeResult = DecodeErrorResult | DecodeSuccessResult;
 
 // This represents the result of decoding a subset of content from a .src.md file.
-export type DecodeCellsResult = DecodeErrorResult | Omit<DecodeSuccessResult, 'metadata'>;
+export type DecodeCellsResult = DecodeErrorResult | Omit<DecodeSuccessResult, 'language'>;

@@ -26,7 +26,7 @@ export default function DeleteSrcbookModal({
   if (!session) return;
 
   const onConfirmDelete = async () => {
-    deleteSrcbook({ id: session.dir })
+    deleteSrcbook({ id: session.id })
       .then(() => {
         onOpenChange(false);
         navigate('/', { replace: true });

@@ -291,8 +291,6 @@ export function sessionToResponse(session: SessionType) {
       id: session.id,
       cells: session.cells,
       metadata: session.metadata,
-      // Only pass the dir ID to the client, making it easier to use it as an identifier in urls
-      dir: Path.basename(session.dir),
       'tsconfig.json': session['tsconfig.json'],
       openedAt: session.openedAt,
     };
@@ -301,8 +299,6 @@ export function sessionToResponse(session: SessionType) {
       id: session.id,
       cells: session.cells,
       metadata: session.metadata,
-      // Only pass the dir ID to the client, making it easier to use it as an identifier in urls
-      dir: Path.basename(session.dir),
       openedAt: session.openedAt,
     };
   }

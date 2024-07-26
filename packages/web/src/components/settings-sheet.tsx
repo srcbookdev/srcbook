@@ -11,6 +11,7 @@ import { json } from '@codemirror/lang-json';
 import useTheme from './use-theme';
 import { Button } from './ui/button';
 import { usePackageJson } from './use-package-json';
+import { useTsconfigJson } from './use-tsconfig-json';
 
 type PropsType = {
   session: SessionType;
@@ -38,7 +39,7 @@ export function SettingsSheet({ session, open, onOpenChange, openDepsInstallModa
             </p>
           </div>
           <PackageJson openDepsInstallModal={openDepsInstallModal} />
-          {session.language === 'typescript' && <TsconfigJson session={session} />}
+          {session.language === 'typescript' && <TsconfigJson />}
         </div>
       </SheetContent>
     </Sheet>
@@ -108,29 +109,30 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
   );
 }
 
-function TsconfigJson({ session }: { session: SessionType }) {
+function TsconfigJson() {
   const { codeTheme } = useTheme();
-
+  const { source, onChangeSource, validationError } = useTsconfigJson();
   const [open, setOpen] = useState(false);
 
   return (
     <div>
-      <CollapsibleContainer open={open} setOpen={setOpen} title="tsconfig.json">
+      <CollapsibleContainer
+        open={open}
+        setOpen={setOpen}
+        title="tsconfig.json"
+        className={cn({ 'border-error': validationError !== null })}
+      >
         <div className="pt-1 pb-3 px-3">
           <CodeMirror
-            value={JSON.stringify(session['tsconfig.json'], null, 2)}
+            value={source}
             theme={codeTheme}
             extensions={[json()]}
-            editable={false}
+            onChange={onChangeSource}
             basicSetup={{ lineNumbers: false, foldGutter: false }}
           />
         </div>
+        {validationError !== null && <Error error={validationError} />}
       </CollapsibleContainer>
-      {open && (
-        <p className="text-xs text-tertiary-foreground mt-1.5 text-right">
-          Ability to customize coming soon.
-        </p>
-      )}
     </div>
   );
 }

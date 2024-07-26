@@ -29,7 +29,6 @@ import {
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';
 import { pathToCodeFile } from './srcbook/path.mjs';
-import { buildTsconfigJson } from './srcbook/config.mjs';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -52,17 +51,18 @@ export async function createSession(srcbookDir: string) {
     throw new Error(`Cannot create session from invalid srcbook directory at ${srcbookDir}`);
   }
 
+  const srcbook = result.srcbook;
+
   const session: SessionType = {
     id: Path.basename(srcbookDir),
     dir: srcbookDir,
-    cells: result.cells,
-    language: result.language,
+    cells: srcbook.cells,
+    language: srcbook.language,
     openedAt: Date.now(),
   };
 
-  // TODO: Read from disk once we support editing tsconfig.json.
   if (session.language === 'typescript') {
-    session['tsconfig.json'] = buildTsconfigJson();
+    session['tsconfig.json'] = srcbook['tsconfig.json'];
   }
 
   sessions[session.id] = session;
@@ -108,7 +108,7 @@ export async function updateSession(
   const updatedSession = { ...session, ...updates };
   sessions[id] = updatedSession;
   if (flush) {
-    await writeToDisk(updatedSession.dir, session.language, updatedSession.cells);
+    await writeToDisk(updatedSession);
   }
   return updatedSession;
 }
@@ -118,7 +118,17 @@ export async function exportSrcmdFile(session: SessionType, destinationPath: str
     throw new Error(`Cannot export .src.md file: ${destinationPath} already exists`);
   }
 
-  return fs.writeFile(destinationPath, encode(session.cells, session.language, { inline: true }));
+  return fs.writeFile(
+    destinationPath,
+    encode(
+      {
+        cells: session.cells,
+        language: session.language,
+        'tsconfig.json': session['tsconfig.json'],
+      },
+      { inline: true },
+    ),
+  );
 }
 
 export async function findSession(id: string): Promise<SessionType> {

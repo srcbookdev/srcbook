@@ -31,6 +31,7 @@ import type {
   CellErrorType,
   CellCreatePayloadType,
   AiGenerateCellPayloadType,
+  TsConfigUpdatePayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -50,6 +51,7 @@ import {
   TsServerStopPayloadSchema,
   TsServerCellDiagnosticsPayloadSchema,
   CellCreatePayloadSchema,
+  TsConfigUpdatePayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -568,6 +570,22 @@ async function tsserverStop(payload: TsServerStopPayloadType) {
   tsservers.shutdown(payload.sessionId);
 }
 
+async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  const updatedSession = await updateSession(session, { 'tsconfig.json': payload.source });
+
+  if (tsservers.has(updatedSession.id)) {
+    const tsserver = tsservers.get(updatedSession.id);
+    tsserver.reloadProjects();
+    requestAllDiagnostics(tsserver, updatedSession);
+  }
+}
+
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
@@ -581,6 +599,7 @@ wss
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
   .incoming('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
+  .incoming('tsconfig.json:update', TsConfigUpdatePayloadSchema, tsconfigUpdate)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)

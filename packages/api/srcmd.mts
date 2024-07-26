@@ -1,5 +1,10 @@
 import fs from 'node:fs/promises';
-import { pathToCodeFile, pathToPackageJson, pathToReadme } from './srcbook/path.mjs';
+import {
+  pathToCodeFile,
+  pathToPackageJson,
+  pathToReadme,
+  pathToTsconfigJson,
+} from './srcbook/path.mjs';
 import type { DecodeResult } from './srcmd/types.mjs';
 
 import { encode } from './srcmd/encoding.mjs';
@@ -30,7 +35,9 @@ export async function decodeDir(dir: string): Promise<DecodeResult> {
       return readmeResult;
     }
 
-    const cells = readmeResult.cells;
+    const srcbook = readmeResult.srcbook;
+
+    const cells = srcbook.cells;
     const pendingFileReads: Promise<void>[] = [];
 
     // Let's replace all the code cells with the actual file contents for each one
@@ -52,7 +59,15 @@ export async function decodeDir(dir: string): Promise<DecodeResult> {
     // Wait for all file reads to complete
     await Promise.all(pendingFileReads);
 
-    return { error: false, language: readmeResult.language, cells };
+    if (srcbook.language === 'typescript') {
+      const tsconfig = await fs.readFile(pathToTsconfigJson(dir), 'utf8');
+      return {
+        error: false,
+        srcbook: { language: srcbook.language, cells, 'tsconfig.json': tsconfig },
+      };
+    } else {
+      return { error: false, srcbook: { language: srcbook.language, cells } };
+    }
   } catch (e) {
     const error = e as unknown as Error;
     return { error: true, errors: [error.message] };

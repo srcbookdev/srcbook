@@ -42,7 +42,14 @@ export function decode(contents: string): DecodeResult {
   // Finally, return either the set of errors or the tokens converted to cells if no errors were found.
   return errors.length > 0
     ? { error: true, errors: errors }
-    : { error: false, language: metadata.language, cells: convertToCells(groups) };
+    : {
+        error: false,
+        srcbook: {
+          language: metadata.language,
+          cells: convertToCells(groups),
+          'tsconfig.json': metadata['tsconfig.json'],
+        },
+      };
 }
 
 /**
@@ -58,7 +65,7 @@ export function decodeCells(contents: string): DecodeCellsResult {
   const errors = validateTokenGroupsPartial(groups);
   return errors.length > 0
     ? { error: true, errors }
-    : { error: false, cells: convertToCells(groups) };
+    : { error: false, srcbook: { cells: convertToCells(groups) } };
 }
 
 const SRCBOOK_METADATA_RE = /^<!--\s*srcbook:(.+)\s*-->$/;

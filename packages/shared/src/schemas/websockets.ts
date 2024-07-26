@@ -2,6 +2,13 @@ import z from 'zod';
 import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells.js';
 import { TsServerDiagnosticSchema } from './tsserver.js';
 
+// A _message_ over websockets
+export const WebSocketMessageSchema = z.tuple([
+  z.string(), // The _topic_, eg: "sessions:123"
+  z.string(), // The _event_, eg: "cell:updated"
+  z.record(z.string(), z.any()), // The _payload_, eg: "{cell: {<cell properties>}}"
+]);
+
 export const CellExecPayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
@@ -95,9 +102,7 @@ export const TsServerCellDiagnosticsPayloadSchema = z.object({
   diagnostics: z.array(TsServerDiagnosticSchema),
 });
 
-// A _message_ over websockets
-export const WebSocketMessageSchema = z.tuple([
-  z.string(), // The _topic_, eg: "sessions:123"
-  z.string(), // The _event_, eg: "cell:updated"
-  z.record(z.string(), z.any()), // The _payload_, eg: "{cell: {<cell properties>}}"
-]);
+export const TsConfigUpdatePayloadSchema = z.object({
+  sessionId: z.string(),
+  source: z.string(),
+});

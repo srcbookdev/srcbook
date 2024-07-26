@@ -12,8 +12,9 @@ import { toFormattedJSON } from '../utils.mjs';
 import { readdir } from '../fs-utils.mjs';
 import { SRCBOOKS_DIR } from '../constants.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
-import { pathToCodeFile, pathToPackageJson, pathToReadme } from './path.mjs';
+import { pathToCodeFile, pathToPackageJson, pathToReadme, pathToTsconfigJson } from './path.mjs';
 import { buildJSPackageJson, buildTSPackageJson, buildTsconfigJson } from './config.mjs';
+import type { SessionType } from '../types.mjs';
 
 function writeCellOnlyToDisk(srcbookDir: string, cell: PackageJsonCellType | CodeCellType) {
   const path =
@@ -24,12 +25,22 @@ function writeCellOnlyToDisk(srcbookDir: string, cell: PackageJsonCellType | Cod
   return fs.writeFile(path, cell.source, { encoding: 'utf8' });
 }
 
-export function writeToDisk(srcbookDir: string, language: CodeLanguageType, cells: CellType[]) {
-  const writes = [writeReadmeToDisk(srcbookDir, language, cells)];
+export function writeToDisk(
+  srcbook: Pick<SessionType, 'dir' | 'cells' | 'language' | 'tsconfig.json'>,
+) {
+  const writes = [writeReadmeToDisk(srcbook.dir, srcbook.language, srcbook.cells)];
 
-  for (const cell of cells) {
+  if (srcbook['tsconfig.json']) {
+    writes.push(
+      fs.writeFile(pathToTsconfigJson(srcbook.dir), srcbook['tsconfig.json'], {
+        encoding: 'utf8',
+      }),
+    );
+  }
+
+  for (const cell of srcbook.cells) {
     if (cell.type === 'package.json' || cell.type === 'code') {
-      writes.push(writeCellOnlyToDisk(srcbookDir, cell));
+      writes.push(writeCellOnlyToDisk(srcbook.dir, cell));
     }
   }
 
@@ -68,7 +79,7 @@ export function writeReadmeToDisk(
   language: CodeLanguageType,
   cells: CellType[],
 ) {
-  return fs.writeFile(pathToReadme(srcbookDir), encode(cells, language, { inline: false }), {
+  return fs.writeFile(pathToReadme(srcbookDir), encode({ cells, language }, { inline: false }), {
     encoding: 'utf8',
   });
 }
@@ -106,9 +117,25 @@ export async function importSrcbookFromSrcmdText(text: string, directoryBasename
     throw new Error(`Cannot decode invalid srcmd`);
   }
 
-  const dirname = await createSrcbookDir(result.language, directoryBasename);
+  const srcbook = result.srcbook;
 
-  await writeToDisk(dirname, result.language, result.cells);
+  const dirname = await createSrcbookDir(directoryBasename);
+
+  if (srcbook.language === 'typescript') {
+    // It's possible the srcmd text does not contain tsconfig.json contents.
+    // If that's the case, we must generate a new tsconfig.json file with our defaults
+    // because reading from this directory will fail if tsconfig.json is missing.
+    const tsconfig = srcbook['tsconfig.json'] || toFormattedJSON(buildTsconfigJson());
+
+    await writeToDisk({
+      dir: dirname,
+      cells: srcbook.cells,
+      language: srcbook.language,
+      'tsconfig.json': tsconfig,
+    });
+  } else {
+    await writeToDisk({ dir: dirname, ...srcbook });
+  }
 
   return dirname;
 }
@@ -120,7 +147,7 @@ export async function importSrcbookFromSrcmdText(text: string, directoryBasename
  * Users are not supposed to be aware or modify private directories.
  */
 export async function createSrcbook(title: string, language: CodeLanguageType) {
-  const dirname = await createSrcbookDir(language);
+  const dirname = await createSrcbookDir();
 
   const cells: CellType[] = [
     {
@@ -137,12 +164,21 @@ export async function createSrcbook(title: string, language: CodeLanguageType) {
     },
   ];
 
-  await writeToDisk(dirname, language, cells);
+  if (language === 'typescript') {
+    await writeToDisk({
+      dir: dirname,
+      language,
+      cells,
+      'tsconfig.json': toFormattedJSON(buildTsconfigJson()),
+    });
+  } else {
+    await writeToDisk({ dir: dirname, language, cells });
+  }
 
   return dirname;
 }
 
-async function createSrcbookDir(language: CodeLanguageType, basename: string = randomid()) {
+async function createSrcbookDir(basename: string = randomid()) {
   const srcbookDirectoryPath = Path.join(SRCBOOKS_DIR, basename);
 
   // Create the srcbook directory
@@ -151,12 +187,6 @@ async function createSrcbookDir(language: CodeLanguageType, basename: string = r
   // Create the src directory for user code
   const srcPath = Path.join(srcbookDirectoryPath, 'src');
   await fs.mkdir(srcPath);
-
-  // Create the tsconfig.json file for typescript projects
-  if (language === 'typescript') {
-    const tsconfigPath = Path.join(srcbookDirectoryPath, 'tsconfig.json');
-    await fs.writeFile(tsconfigPath, toFormattedJSON(buildTsconfigJson()), { encoding: 'utf8' });
-  }
 
   return srcbookDirectoryPath;
 }

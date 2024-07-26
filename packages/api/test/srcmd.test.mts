@@ -87,7 +87,7 @@ describe('encoding and decoding srcmd files', () => {
   it('can encode cells', () => {
     const result = decode(srcmd) as DecodeSuccessResult;
     expect(result.error).toBe(false);
-    expect(encode(result.cells, result.metadata, { inline: true })).toEqual(srcmd);
+    expect(encode(result.cells, result.language, { inline: true })).toEqual(srcmd);
   });
 });
 

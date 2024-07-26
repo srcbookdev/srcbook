@@ -250,7 +250,7 @@ async function depsInstall(payload: DepsInstallPayloadType) {
 
         wss.broadcast(`session:${updatedSession.id}`, 'cell:updated', { cell: updatedCell });
 
-        if (updatedSession.metadata.language === 'typescript') {
+        if (updatedSession.language === 'typescript') {
           const mustCreateTsServer = !tsservers.has(updatedSession.id);
 
           // Make sure to handle the following case here:
@@ -304,11 +304,7 @@ async function cellCreate(payload: CellCreatePayloadType) {
   // TODO: handle potential errors
   await addCell(session, cell, index);
 
-  if (
-    session.metadata.language === 'typescript' &&
-    cell.type === 'code' &&
-    tsservers.has(session.id)
-  ) {
+  if (session.language === 'typescript' && cell.type === 'code' && tsservers.has(session.id)) {
     const tsserver = tsservers.get(session.id);
 
     tsserver.open({
@@ -385,11 +381,7 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
 
   const cell = result.cell as CodeCellType;
 
-  if (
-    session.metadata.language === 'typescript' &&
-    cell.type === 'code' &&
-    tsservers.has(session.id)
-  ) {
+  if (session.language === 'typescript' && cell.type === 'code' && tsservers.has(session.id)) {
     const tsserver = tsservers.get(session.id);
 
     // This isn't intended for renaming, so the filenames
@@ -432,7 +424,7 @@ async function cellRename(payload: CellRenamePayloadType) {
   }
 
   if (
-    session.metadata.language === 'typescript' &&
+    session.language === 'typescript' &&
     cellBeforeUpdate.type === 'code' &&
     tsservers.has(session.id)
   ) {
@@ -495,7 +487,7 @@ async function cellDelete(payload: CellDeletePayloadType) {
   if (cell.type === 'code') {
     removeCodeCellFromDisk(updatedSession.dir, cell.filename);
 
-    if (updatedSession.metadata.language === 'typescript' && tsservers.has(updatedSession.id)) {
+    if (updatedSession.language === 'typescript' && tsservers.has(updatedSession.id)) {
       const file = pathToCodeFile(updatedSession.dir, cell.filename);
       const tsserver = tsservers.get(updatedSession.id);
       tsserver.close({ file });
@@ -562,7 +554,7 @@ async function tsserverStart(payload: TsServerStartPayloadType) {
     throw new Error(`No session exists for session '${payload.sessionId}'`);
   }
 
-  if (session.metadata.language !== 'typescript') {
+  if (session.language !== 'typescript') {
     throw new Error(`tsserver can only be used with TypeScript Srcbooks.`);
   }
 

@@ -42,7 +42,7 @@ export function decode(contents: string): DecodeResult {
   // Finally, return either the set of errors or the tokens converted to cells if no errors were found.
   return errors.length > 0
     ? { error: true, errors: errors }
-    : { error: false, metadata, cells: convertToCells(groups) };
+    : { error: false, language: metadata.language, cells: convertToCells(groups) };
 }
 
 /**
@@ -50,7 +50,7 @@ export function decode(contents: string): DecodeResult {
  *
  * For example, we generate a subset of a Srcbook (1 or more cells) using AI.
  * When that happens, we do not have the entire .src.md contents, so we need
- * to ignore some aspects of it, like parsing the metadata.
+ * to ignore some aspects of it, like parsing the srcbook metadata comment.
  */
 export function decodeCells(contents: string): DecodeCellsResult {
   const tokens = marked.lexer(contents);

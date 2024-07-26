@@ -3,14 +3,14 @@ import type {
   MarkdownCellType,
   PackageJsonCellType,
   TitleCellType,
-  SrcbookMetadataType,
   CellWithPlaceholderType,
   PlaceholderCellType,
+  CodeLanguageType,
 } from '@srcbook/shared';
 
 export function encode(
   allCells: CellWithPlaceholderType[],
-  metadata: SrcbookMetadataType,
+  language: CodeLanguageType,
   options: { inline: boolean },
 ) {
   const [firstCell, secondCell, ...remainingCells] = allCells;
@@ -19,7 +19,7 @@ export function encode(
   const cells = remainingCells as (MarkdownCellType | CodeCellType | PlaceholderCellType)[];
 
   const encoded = [
-    `<!-- srcbook:${JSON.stringify(metadata)} -->`,
+    `<!-- srcbook:${JSON.stringify({ language })} -->`,
     encodeTitleCell(titleCell),
     encodePackageJsonCell(packageJsonCell, options),
     ...cells.map((cell) => {

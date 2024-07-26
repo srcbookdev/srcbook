@@ -56,12 +56,12 @@ export async function createSession(srcbookDir: string) {
     id: Path.basename(srcbookDir),
     dir: srcbookDir,
     cells: result.cells,
-    metadata: result.metadata,
+    language: result.language,
     openedAt: Date.now(),
   };
 
   // TODO: Read from disk once we support editing tsconfig.json.
-  if (session.metadata.language === 'typescript') {
+  if (session.language === 'typescript') {
     session['tsconfig.json'] = buildTsconfigJson();
   }
 
@@ -93,9 +93,9 @@ export async function addCell(
 
   switch (cell.type) {
     case 'markdown':
-      return writeReadmeToDisk(session.dir, session.metadata, session.cells);
+      return writeReadmeToDisk(session.dir, session.language, session.cells);
     case 'code':
-      return writeCellToDisk(session.dir, session.metadata, session.cells, cell);
+      return writeCellToDisk(session.dir, session.language, session.cells, cell);
   }
 }
 
@@ -108,7 +108,7 @@ export async function updateSession(
   const updatedSession = { ...session, ...updates };
   sessions[id] = updatedSession;
   if (flush) {
-    await writeToDisk(updatedSession.dir, session.metadata, updatedSession.cells);
+    await writeToDisk(updatedSession.dir, session.language, updatedSession.cells);
   }
   return updatedSession;
 }
@@ -118,7 +118,7 @@ export async function exportSrcmdFile(session: SessionType, destinationPath: str
     throw new Error(`Cannot export .src.md file: ${destinationPath} already exists`);
   }
 
-  return fs.writeFile(destinationPath, encode(session.cells, session.metadata, { inline: true }));
+  return fs.writeFile(destinationPath, encode(session.cells, session.language, { inline: true }));
 }
 
 export async function findSession(id: string): Promise<SessionType> {
@@ -155,7 +155,7 @@ function updateTitleCell(session: SessionType, cell: TitleCellType, updates: any
   const attrs = TitleCellUpdateAttrsSchema.parse(updates);
   return updateCellWithRollback(session, cell, attrs, async (session) => {
     try {
-      await writeReadmeToDisk(session.dir, session.metadata, session.cells);
+      await writeReadmeToDisk(session.dir, session.language, session.cells);
     } catch (e) {
       console.error(e);
       return [{ message: 'An error occurred persisting files to disk' }];
@@ -167,7 +167,7 @@ function updateMarkdownCell(session: SessionType, cell: MarkdownCellType, update
   const attrs = MarkdownCellUpdateAttrsSchema.parse(updates);
   return updateCellWithRollback(session, cell, attrs, async (session) => {
     try {
-      await writeReadmeToDisk(session.dir, session.metadata, session.cells);
+      await writeReadmeToDisk(session.dir, session.language, session.cells);
     } catch (e) {
       console.error(e);
       return [{ message: 'An error occurred persisting files to disk' }];
@@ -181,7 +181,7 @@ function updatePackageJsonCell(session: SessionType, cell: PackageJsonCellType, 
     try {
       await writeCellToDisk(
         session.dir,
-        session.metadata,
+        session.language,
         session.cells,
         updatedCell as PackageJsonCellType,
       );
@@ -202,7 +202,7 @@ async function updateCodeCell(
     try {
       await writeCellToDisk(
         session.dir,
-        session.metadata,
+        session.language,
         session.cells,
         updatedCell as CodeCellType,
       );
@@ -235,14 +235,12 @@ export async function updateCodeCellFilename(
     };
   }
 
-  const language = session.metadata.language;
-
-  if (language !== languageFromFilename(filename)) {
+  if (session.language !== languageFromFilename(filename)) {
     return {
       success: false,
       errors: [
         {
-          message: `File must have one of the following extensions: ${extensionsForLanguage(language)}`,
+          message: `File must have one of the following extensions: ${extensionsForLanguage(session.language)}`,
           attribute: 'filename',
         },
       ],
@@ -260,7 +258,7 @@ export async function updateCodeCellFilename(
     try {
       await moveCodeCellOnDisk(
         session.dir,
-        session.metadata,
+        session.language,
         session.cells,
         updatedCell as CodeCellType,
         cell.filename,
@@ -286,22 +284,18 @@ export function updateCell(session: SessionType, cell: CellType, updates: CellUp
 }
 
 export function sessionToResponse(session: SessionType) {
-  if (session.metadata.language === 'typescript') {
-    return {
-      id: session.id,
-      cells: session.cells,
-      metadata: session.metadata,
-      'tsconfig.json': session['tsconfig.json'],
-      openedAt: session.openedAt,
-    };
-  } else {
-    return {
-      id: session.id,
-      cells: session.cells,
-      metadata: session.metadata,
-      openedAt: session.openedAt,
-    };
+  const result: Pick<SessionType, 'id' | 'cells' | 'language' | 'tsconfig.json' | 'openedAt'> = {
+    id: session.id,
+    cells: session.cells,
+    language: session.language,
+    openedAt: session.openedAt,
+  };
+
+  if (session.language === 'typescript') {
+    result['tsconfig.json'] = session['tsconfig.json'];
   }
+
+  return result;
 }
 
 export async function readPackageJsonContentsFromDisk(session: SessionType) {

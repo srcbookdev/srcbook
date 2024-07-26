@@ -34,11 +34,11 @@ export function SettingsSheet({ session, open, onOpenChange, openDepsInstallModa
           <div className="flex items-center justify-between gap-8 text-sm">
             <h5 className="font-medium max-w-72 truncate">{title.text}</h5>
             <p className="text-tertiary-foreground">
-              {session.metadata.language === 'typescript' ? 'TypeScript' : 'JavaScript'}
+              {session.language === 'typescript' ? 'TypeScript' : 'JavaScript'}
             </p>
           </div>
           <PackageJson openDepsInstallModal={openDepsInstallModal} />
-          {session.metadata.language === 'typescript' && <TsconfigJson session={session} />}
+          {session.language === 'typescript' && <TsconfigJson session={session} />}
         </div>
       </SheetContent>
     </Sheet>

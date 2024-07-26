@@ -52,7 +52,7 @@ export async function decodeDir(dir: string): Promise<DecodeResult> {
     // Wait for all file reads to complete
     await Promise.all(pendingFileReads);
 
-    return { error: false, metadata: readmeResult.metadata, cells };
+    return { error: false, language: readmeResult.language, cells };
   } catch (e) {
     const error = e as unknown as Error;
     return { error: true, errors: [error.message] };

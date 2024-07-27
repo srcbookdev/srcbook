@@ -360,3 +360,20 @@ export async function loadSrcbookExamples(): Promise<SrcbookExamplesResponse> {
 
   return response.json();
 }
+
+type FeedbackRequestType = {
+  feedback: string;
+  email: string;
+};
+
+export async function sendFeedback({ feedback, email }: FeedbackRequestType) {
+  const response = await fetch(API_BASE_URL + '/feedback', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ feedback, email }),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+  }
+}

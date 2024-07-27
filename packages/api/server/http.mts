@@ -272,6 +272,23 @@ router.delete('/secrets/:name', cors(), async (req, res) => {
   return res.json({ result: updated });
 });
 
+router.options('/feedback', cors());
+router.post('/feedback', cors(), async (req, res) => {
+  const { feedback, email } = req.body;
+  // Every time you modify the appscript here, you'll need to update the URL below
+  // @TODO: once we have an env variable setup, we can use that here.
+  const url =
+    'https://script.google.com/macros/s/AKfycbxPrg8z47SkJnHyoZBYqNtkcH8hBe12f-f2UJJ3PcIHmKdbMMuJuPoOemEB1ib8a_IKCg/exec';
+
+  const result = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({ feedback, email }),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+  });
+
+  return res.json({ success: result.ok });
+});
+
 type NpmSearchResult = {
   package: {
     name: string;

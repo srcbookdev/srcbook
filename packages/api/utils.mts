@@ -21,9 +21,11 @@ export async function disk(dirname: string, ext: string) {
       return entry.isDirectory() || entry.name.endsWith(ext);
     })
     .map((entry) => {
+      // .path -> .parentPath from node21 onwards.
+      const parentPath = entry.parentPath || entry.path;
       return {
-        path: Path.join(entry.parentPath, entry.name),
-        dirname: entry.parentPath,
+        path: Path.join(parentPath, entry.name),
+        dirname: entry.path,
         basename: entry.name,
         isDirectory: entry.isDirectory(),
       };

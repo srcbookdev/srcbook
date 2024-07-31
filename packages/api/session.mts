@@ -325,8 +325,10 @@ async function load() {
   const loadedSessions = srcbookDirs
     .filter((entry) => entry.isDirectory())
     .map(async (entry) => {
+      // .path -> .parentPath from node21 onwards.
+      const parentPath = entry.parentPath || entry.path;
       try {
-        const session = await createSession(Path.join(entry.parentPath, entry.name));
+        const session = await createSession(Path.join(parentPath, entry.name));
         sessions[session.id] = session;
         return session;
       } catch (e) {

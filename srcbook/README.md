@@ -37,3 +37,7 @@ npm uninstall -g srcbook
 # Clear up srcbook files on disk
 rm -rf ~/.srcbook/
 ```
+
+## Requirements
+
+Srcbook requires node v20+. We highly recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions.

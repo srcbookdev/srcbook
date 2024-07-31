@@ -20,7 +20,7 @@ If you upgrade and are having trouble launching the application, you can `rm -rf
 
 ## Requirements
 
-Srcbook requires node v22+. We highly recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions.
+Srcbook requires node v20+. We highly recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions.
 
 ## Install
 

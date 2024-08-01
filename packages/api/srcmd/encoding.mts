@@ -3,23 +3,28 @@ import type {
   MarkdownCellType,
   PackageJsonCellType,
   TitleCellType,
-  CellWithPlaceholderType,
   PlaceholderCellType,
-  CodeLanguageType,
+  CellWithPlaceholderType,
 } from '@srcbook/shared';
+import type { SrcbookType } from './types.mjs';
 
-export function encode(
-  allCells: CellWithPlaceholderType[],
-  language: CodeLanguageType,
-  options: { inline: boolean },
-) {
-  const [firstCell, secondCell, ...remainingCells] = allCells;
+type SrcbookWithPlacebolderType = Omit<SrcbookType, 'cells'> & {
+  cells: CellWithPlaceholderType[];
+};
+
+export function encode(srcbook: SrcbookWithPlacebolderType, options: { inline: boolean }) {
+  const [firstCell, secondCell, ...remainingCells] = srcbook.cells;
   const titleCell = firstCell as TitleCellType;
   const packageJsonCell = secondCell as PackageJsonCellType;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | PlaceholderCellType)[];
 
+  const metadata =
+    srcbook.language === 'javascript'
+      ? { language: srcbook.language }
+      : { language: srcbook.language, 'tsconfig.json': srcbook['tsconfig.json'] };
+
   const encoded = [
-    `<!-- srcbook:${JSON.stringify({ language })} -->`,
+    `<!-- srcbook:${JSON.stringify(metadata)} -->`,
     encodeTitleCell(titleCell),
     encodePackageJsonCell(packageJsonCell, options),
     ...cells.map((cell) => {

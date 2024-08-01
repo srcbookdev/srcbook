@@ -34,9 +34,13 @@ const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, que
     text: '==== INTRODUCE CELL HERE ====',
   });
 
-  const inlineSrcbookWithPlaceholder = encode(cellsWithPlaceholder, session.language, {
-    inline: true,
-  });
+  // Intentionally not passing in tsconfig.json here as that doesn't need to be in the prompt.
+  const inlineSrcbookWithPlaceholder = encode(
+    { cells: cellsWithPlaceholder, language: session.language },
+    {
+      inline: true,
+    },
+  );
 
   const prompt = `==== BEGIN SRCBOOK ====
 ${inlineSrcbookWithPlaceholder}
@@ -57,7 +61,11 @@ const makeGenerateCellEditUserPrompt = (
   session: SessionType,
   cell: CodeCellType,
 ) => {
-  const inlineSrcbook = encode(session.cells, session.language, { inline: true });
+  // Intentionally not passing in tsconfig.json here as that doesn't need to be in the prompt.
+  const inlineSrcbook = encode(
+    { cells: session.cells, language: session.language },
+    { inline: true },
+  );
 
   const prompt = `==== BEGIN SRCBOOK ====
 ${inlineSrcbook}
@@ -150,7 +158,7 @@ export async function generateCells(
   if (decodeResult.error) {
     return { error: true, errors: decodeResult.errors };
   } else {
-    return { error: false, cells: decodeResult.cells };
+    return { error: false, cells: decodeResult.srcbook.cells };
   }
 }
 

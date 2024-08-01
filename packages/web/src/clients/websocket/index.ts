@@ -16,6 +16,7 @@ import {
   CellDeletePayloadSchema,
   TsServerCellDiagnosticsPayloadSchema,
   CellRenamePayloadSchema,
+  TsConfigUpdatePayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -46,6 +47,7 @@ const OutgoingSessionEvents = {
   'deps:validate': DepsValidatePayloadSchema,
   'tsserver:start': TsServerStartPayloadSchema,
   'tsserver:stop': TsServerStopPayloadSchema,
+  'tsconfig.json:update': TsConfigUpdatePayloadSchema,
 };
 
 export class SessionChannel extends Channel<

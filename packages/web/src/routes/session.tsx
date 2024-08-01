@@ -27,6 +27,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
 import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
 import { toast } from 'sonner';
+import { TsConfigProvider } from '@/components/use-tsconfig-json';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: session }] = await Promise.all([
@@ -62,7 +63,9 @@ function SessionPage() {
   return (
     <CellsProvider initialCells={session.cells}>
       <PackageJsonProvider session={session} channel={channel}>
-        <Session session={session} channel={channelRef.current} config={config} />
+        <TsConfigProvider session={session} channel={channel}>
+          <Session session={session} channel={channelRef.current} config={config} />
+        </TsConfigProvider>
       </PackageJsonProvider>
     </CellsProvider>
   );

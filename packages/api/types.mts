@@ -15,10 +15,8 @@ export type SessionType = {
 
   /**
    * The tsconfig.json file contents.
-   *
-   * TODO: Better typing.
    */
-  'tsconfig.json'?: Record<string, any>;
+  'tsconfig.json'?: string;
 
   /**
    * Replace this with updatedAt once we store srcbooks in sqlite

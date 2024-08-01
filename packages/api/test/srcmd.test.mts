@@ -41,7 +41,7 @@ describe('encoding and decoding srcmd files', () => {
   it('can decode a well-formed file', () => {
     const result = decode(srcmd) as DecodeSuccessResult;
     expect(result.error).toBe(false);
-    expect(result.cells).toEqual([
+    expect(result.srcbook.cells).toEqual([
       { id: expect.any(String), type: 'title', text: 'Srcbook title' },
       {
         id: expect.any(String),
@@ -87,7 +87,9 @@ describe('encoding and decoding srcmd files', () => {
   it('can encode cells', () => {
     const result = decode(srcmd) as DecodeSuccessResult;
     expect(result.error).toBe(false);
-    expect(encode(result.cells, result.language, { inline: true })).toEqual(srcmd);
+    expect(
+      encode({ cells: result.srcbook.cells, language: result.srcbook.language }, { inline: true }),
+    ).toEqual(srcmd);
   });
 });
 
@@ -96,7 +98,7 @@ describe('it can decode from directories', () => {
     const dirPath = Path.resolve(__dirname, 'srcmd_files/mock_srcbook/');
     const result = (await decodeDir(dirPath)) as DecodeSuccessResult;
     expect(result.error).toBe(false);
-    expect(result.cells).toEqual([
+    expect(result.srcbook.cells).toEqual([
       { id: expect.any(String), type: 'title', text: 'Srcbook' },
       {
         id: expect.any(String),

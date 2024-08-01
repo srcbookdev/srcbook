@@ -27,9 +27,7 @@ export type SessionType = {
   id: string;
   cells: CellType[];
   language: CodeLanguageType;
-  // TODO: Better typing.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  'tsconfig.json'?: Record<string, any>;
+  'tsconfig.json'?: string;
   openedAt: number;
 };
 

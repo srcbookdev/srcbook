@@ -57,6 +57,7 @@ export const CellWithPlaceholderSchema = z.union([
 //
 export const SrcbookMetadataSchema = z.object({
   language: z.enum(['javascript', 'typescript']),
+  'tsconfig.json': z.optional(z.string()),
 });
 
 ///////////////////////////////////////////

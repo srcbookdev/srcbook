@@ -159,9 +159,19 @@ function FsEntryItem({
   );
 }
 
-export function ExportLocationPicker(props: { onSave: (directory: string, path: string) => void }) {
+export function ExportLocationPicker(props: {
+  title: string;
+  onSave: (directory: string, path: string) => void;
+}) {
   const filenameRef = useRef<HTMLInputElement | null>(null);
-  const [filename, setFilename] = useState('untitled.src.md');
+  function toValidFilename(s: string) {
+    return s
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+  const [filename, setFilename] = useState(toValidFilename(props.title) + '.src.md');
   const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
 
   function onDiskResponse({ result }: DiskResponseType) {

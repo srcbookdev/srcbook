@@ -106,3 +106,7 @@ export const TsConfigUpdatePayloadSchema = z.object({
   sessionId: z.string(),
   source: z.string(),
 });
+
+export const TsConfigUpdatedPayloadSchema = z.object({
+  source: z.string(),
+});

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import type { Tokens } from 'marked';
 import { useState } from 'react';
+import { SessionChannel } from '@/clients/websocket';
 import {
   Upload,
   Trash2,
@@ -35,6 +36,7 @@ type Props = {
   showSettings: boolean;
   setShowSettings: (value: boolean) => void;
   openDepsInstallModal: () => void;
+  channel: SessionChannel;
 };
 
 marked.use({ gfm: true });
@@ -65,6 +67,7 @@ export default function SessionMenu({
   showSettings,
   setShowSettings,
   openDepsInstallModal,
+  channel,
 }: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -169,6 +172,7 @@ export default function SessionMenu({
         onOpenChange={setShowSettings}
         openDepsInstallModal={openDepsInstallModal}
         session={session}
+        channel={channel}
       />
       <div className="fixed xl:hidden top-[100px] left-6 group z-20">
         <NavigationMenu>

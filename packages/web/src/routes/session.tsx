@@ -207,6 +207,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         setShowSettings={setShowSettings}
         session={session}
         openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+        channel={channel}
       />
 
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}

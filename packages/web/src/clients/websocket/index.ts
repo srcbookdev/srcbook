@@ -17,6 +17,7 @@ import {
   TsServerCellDiagnosticsPayloadSchema,
   CellRenamePayloadSchema,
   TsConfigUpdatePayloadSchema,
+  TsConfigUpdatedPayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -33,6 +34,7 @@ const IncomingSessionEvents = {
   'deps:validate:response': DepsValidateResponsePayloadSchema,
   'tsserver:cell:diagnostics': TsServerCellDiagnosticsPayloadSchema,
   'ai:generated': AiGeneratedCellPayloadSchema,
+  'tsconfig.json:updated': TsConfigUpdatedPayloadSchema,
 };
 
 const OutgoingSessionEvents = {

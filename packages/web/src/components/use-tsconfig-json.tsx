@@ -27,7 +27,7 @@ type ProviderPropsType = {
 };
 
 /**
- * An interface for working with tsconifg.json.
+ * An interface for working with tsconfig.json.
  */
 export function TsConfigProvider({ channel, session, children }: ProviderPropsType) {
   const [source, setSource] = useState(session['tsconfig.json'] || '');

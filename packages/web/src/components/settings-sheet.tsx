@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { SessionType } from '@/types';
-import { TitleCellType } from '@srcbook/shared';
+import { TitleCellType, TsConfigUpdatedPayloadType } from '@srcbook/shared';
 import { useCells } from './use-cell';
 import { ChevronRight, Info, LoaderCircle, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import useTheme from './use-theme';
+import { SessionChannel } from '@/clients/websocket';
 import { Button } from './ui/button';
 import { usePackageJson } from './use-package-json';
 import { useTsconfigJson } from './use-tsconfig-json';
@@ -18,9 +20,16 @@ type PropsType = {
   open: boolean;
   onOpenChange: (value: boolean) => void;
   openDepsInstallModal: () => void;
+  channel: SessionChannel;
 };
 
-export function SettingsSheet({ session, open, onOpenChange, openDepsInstallModal }: PropsType) {
+export function SettingsSheet({
+  session,
+  open,
+  onOpenChange,
+  openDepsInstallModal,
+  channel,
+}: PropsType) {
   const { cells } = useCells();
 
   const title = cells.find((cell) => cell.type === 'title') as TitleCellType;
@@ -39,7 +48,7 @@ export function SettingsSheet({ session, open, onOpenChange, openDepsInstallModa
             </p>
           </div>
           <PackageJson openDepsInstallModal={openDepsInstallModal} />
-          {session.language === 'typescript' && <TsconfigJson />}
+          {session.language === 'typescript' && <TsconfigJson channel={channel} />}
         </div>
       </SheetContent>
     </Sheet>
@@ -109,10 +118,23 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
   );
 }
 
-function TsconfigJson() {
+function TsconfigJson({ channel }: { channel: SessionChannel }) {
   const { codeTheme } = useTheme();
   const { source, onChangeSource, validationError } = useTsconfigJson();
   const [open, setOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!channel) return;
+    const callback = (_payload: TsConfigUpdatedPayloadType) => {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 20000);
+    };
+
+    channel.on('tsconfig.json:updated', callback);
+
+    return () => channel.off('tsconfig.json:updated', callback);
+  }, [channel, setSaved]);
 
   return (
     <div>
@@ -122,7 +144,7 @@ function TsconfigJson() {
         title="tsconfig.json"
         className={cn({ 'border-error': validationError !== null })}
       >
-        <div className="pt-1 pb-3 px-3">
+        <div className="pt-1 pb-3 px-3 relative">
           <CodeMirror
             value={source}
             theme={codeTheme}
@@ -130,6 +152,7 @@ function TsconfigJson() {
             onChange={onChangeSource}
             basicSetup={{ lineNumbers: false, foldGutter: false }}
           />
+          {saved && <p className="absolute right-1 bottom-1 text-xs text-foreground/80">Saved!</p>}
         </div>
         {validationError !== null && <Error error={validationError} />}
       </CollapsibleContainer>

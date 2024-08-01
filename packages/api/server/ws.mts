@@ -52,6 +52,7 @@ import {
   TsServerCellDiagnosticsPayloadSchema,
   CellCreatePayloadSchema,
   TsConfigUpdatePayloadSchema,
+  TsConfigUpdatedPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -584,6 +585,10 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
     tsserver.reloadProjects();
     requestAllDiagnostics(tsserver, updatedSession);
   }
+
+  wss.broadcast(`session:${updatedSession.id}`, 'tsconfig.json:updated', {
+    source: payload.source,
+  });
 }
 
 wss
@@ -605,6 +610,7 @@ wss
   .outgoing('cell:output', CellOutputPayloadSchema)
   .outgoing('ai:generated', AiGeneratedCellPayloadSchema)
   .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
-  .outgoing('tsserver:cell:diagnostics', TsServerCellDiagnosticsPayloadSchema);
+  .outgoing('tsserver:cell:diagnostics', TsServerCellDiagnosticsPayloadSchema)
+  .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema);
 
 export default wss;

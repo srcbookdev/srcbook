@@ -1,4 +1,5 @@
 import { createSession, disk, exportSrcmdFile, importSrcbook } from '@/lib/server';
+import { getTitleForSession } from '@/lib/utils';
 import { FsObjectResultType, FsObjectType, SessionType } from '@/types';
 import { useState } from 'react';
 import { ExportLocationPicker, FilePicker } from '@/components/file-picker';
@@ -105,7 +106,7 @@ export function ExportSrcbookModal({
             </p>
           </DialogDescription>
         </DialogHeader>
-        <ExportLocationPicker onSave={onSave} />
+        <ExportLocationPicker onSave={onSave} title={getTitleForSession(session)} />
         {error && <p className="text-destructive-foreground">{error}</p>}
       </DialogContent>
     </Dialog>

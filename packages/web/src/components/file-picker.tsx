@@ -203,7 +203,17 @@ export function ExportLocationPicker(props: {
       <FsEntrySelect
         entries={fsResult.entries}
         selected={null}
-        onChange={(entry) => disk({ dirname: entry.path }).then(onDiskResponse)}
+        onChange={(entry) => {
+          if (entry.isDirectory) {
+            disk({ dirname: entry.path }).then(onDiskResponse);
+          } else {
+            setFilename(entry.basename);
+            const el = filenameRef.current;
+            if (el) {
+              el.value = entry.basename;
+            }
+          }
+        }}
       />
 
       <div className="flex items-center justify-between">

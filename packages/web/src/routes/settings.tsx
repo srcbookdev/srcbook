@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { disk, getConfig, updateConfig } from '@/lib/server';
+import { useAiConfig } from '@/components/use-ai-config';
 import { type CodeLanguageType } from '@srcbook/shared';
 import type { SettingsType, FsObjectResultType } from '@/types';
-import { useLoaderData, useRevalidator } from 'react-router-dom';
+import { useLoaderData } from 'react-router-dom';
 import { DirPicker } from '@/components/file-picker';
 import {
   Select,
@@ -22,8 +23,8 @@ async function loader() {
   return {
     defaultLanguage: config.defaultLanguage,
     baseDir: config.baseDir,
-    openaiKey: config.openaiKey,
     enabledAnalytics: config.enabledAnalytics,
+    aiConfig: config.aiConfig,
     ...diskResult,
   };
 }
@@ -37,25 +38,26 @@ async function action({ request }: { request: Request }) {
 
 function Settings() {
   const {
-    openaiKey: configOpenaiKey,
     entries,
     baseDir,
     defaultLanguage,
     enabledAnalytics: configEnabledAnalytics,
   } = useLoaderData() as SettingsType & FsObjectResultType;
-
-  const revalidator = useRevalidator();
+  const {
+    aiConfig,
+    openaiKey: configOpenaiKey,
+    anthropicKey: configAnthropicKey,
+    setOpenaiKey: configSetOpenaiKey,
+    setAnthropicKey: configSetAnthropicKey,
+    setProvider,
+  } = useAiConfig();
 
   const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
+  const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [enabledAnalytics, setEnabledAnalytics] = useState(configEnabledAnalytics);
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfig({ defaultLanguage: value });
-  };
-
-  const updateOpenaiKey = async () => {
-    await updateConfig({ openaiKey });
-    revalidator.revalidate();
   };
 
   const { theme, toggleTheme } = useTheme();
@@ -65,6 +67,10 @@ function Settings() {
   const openaiKeySaveEnabled =
     (typeof configOpenaiKey === 'string' && openaiKey !== configOpenaiKey) ||
     ((configOpenaiKey === null || configOpenaiKey === undefined) && openaiKey.length > 0);
+
+  const anthropicKeySaveEnabled =
+    (typeof configAnthropicKey === 'string' && anthropicKey !== configAnthropicKey) ||
+    ((configAnthropicKey === null || configAnthropicKey === undefined) && anthropicKey.length > 0);
 
   return (
     <div>
@@ -103,30 +109,59 @@ function Settings() {
         </div>
 
         <div>
-          <h2 className="text-xl pb-2">OpenAI API key</h2>
+          <h2 className="text-xl pb-2">AI</h2>
           <div className="flex flex-col gap-1">
             <label className="opacity-70">
-              Enter your openAI API key to use AI features of Srcbook. Get one{' '}
-              <a
-                href="https://platform.openai.com/api-keys"
-                target="_blank"
-                className="underline font-medium"
-              >
-                here
-              </a>
-              .
+              Select your preferred LLM and enter your credentials to use Srcbook's AI features.
             </label>
-            <div className="flex gap-2">
-              <Input
-                name="openaiKey"
-                placeholder="API key"
-                type="password"
-                value={openaiKey}
-                onChange={(e) => setOpenaiKey(e.target.value)}
-              />
-              <Button className="px-5" onClick={updateOpenaiKey} disabled={!openaiKeySaveEnabled}>
-                Save
-              </Button>
+            <div className="space-y-2">
+              <Select onValueChange={setProvider}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder={aiConfig.provider} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">openai</SelectItem>
+                  <SelectItem value="anthropic">anthropic</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {aiConfig.provider === 'openai' && (
+                <div className="flex gap-2">
+                  <Input
+                    name="openaiKey"
+                    placeholder="openAI API key"
+                    type="password"
+                    value={openaiKey}
+                    onChange={(e) => setOpenaiKey(e.target.value)}
+                  />
+                  <Button
+                    className="px-5"
+                    onClick={() => configSetOpenaiKey(openaiKey)}
+                    disabled={!openaiKeySaveEnabled}
+                  >
+                    Save
+                  </Button>
+                </div>
+              )}
+
+              {aiConfig.provider === 'anthropic' && (
+                <div className="flex gap-2">
+                  <Input
+                    name="anthropicKey"
+                    placeholder="anthropic API key"
+                    type="password"
+                    value={anthropicKey}
+                    onChange={(e) => setAnthropicKey(e.target.value)}
+                  />
+                  <Button
+                    className="px-5"
+                    onClick={() => configSetAnthropicKey(anthropicKey)}
+                    disabled={!anthropicKeySaveEnabled}
+                  >
+                    Save
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>

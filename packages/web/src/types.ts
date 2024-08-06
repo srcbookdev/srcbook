@@ -12,11 +12,20 @@ export interface FsObjectResultType {
   entries: FsObjectType[];
 }
 
+export const OPENAI_CONFIG = { provider: 'openai', model: 'gpt-4o' } as const;
+export const ANTHROPIC_CONFIG = {
+  provider: 'anthropic',
+  model: 'claude-3-5-sonnet-20240620',
+} as const;
+export type AiConfigType = typeof OPENAI_CONFIG | typeof ANTHROPIC_CONFIG;
+
 export type SettingsType = {
   baseDir: string;
   defaultLanguage: CodeLanguageType;
   openaiKey?: string | null;
   enabledAnalytics: boolean;
+  anthropicKey?: string | null;
+  aiConfig: AiConfigType;
 };
 
 export type StdoutOutputType = { type: 'stdout'; data: string };

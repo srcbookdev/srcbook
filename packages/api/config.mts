@@ -12,6 +12,7 @@ async function init() {
       baseDir: HOME_DIR,
       defaultLanguage: 'typescript',
       installId: randomid(),
+      aiConfig: { provider: 'openai', model: 'gpt-4o' } as const,
     };
     console.log();
     console.log('Initializing application with the following configuration:\n');

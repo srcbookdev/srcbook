@@ -18,12 +18,12 @@ export default function GenerateSrcbookModal({
   open,
   setOpen,
   openSrcbook,
-  hasOpenaiKey,
+  aiEnabled: hasOpenaiKey,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   openSrcbook: (path: string) => void;
-  hasOpenaiKey: boolean;
+  aiEnabled: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');

@@ -94,6 +94,11 @@ module.exports = {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
         },
+        ai: {
+          DEFAULT: 'hsl(var(--ai))',
+          foreground: 'hsl(var(--ai-foreground))',
+          border: 'hsl(var(--ai-border))',
+        },
         sb: {
           'core-0': 'hsl(var(--sb-core-0))',
           'core-10': 'hsl(var(--sb-core-10))',
@@ -139,6 +144,11 @@ module.exports = {
           'blue-60': 'hsl(var(--sb-blue-60))',
           'blue-70': 'hsl(var(--sb-blue-70))',
           'blue-80': 'hsl(var(--sb-blue-80))',
+
+          'purple-10': 'hsl(var(--sb-purple-10))',
+          'purple-20': 'hsl(var(--sb-purple-20))',
+          'purple-60': 'hsl(var(--sb-purple-60))',
+          'purple-80': 'hsl(var(--sb-purple-80))',
         },
       },
       dropShadow: {

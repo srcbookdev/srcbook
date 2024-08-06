@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { SessionType } from '@/types';
 import { TitleCellType, TsConfigUpdatedPayloadType } from '@srcbook/shared';
 import { useCells } from './use-cell';
-import { ChevronRight, Info, LoaderCircle, Play } from 'lucide-react';
+import { ChevronRight, X, Info, LoaderCircle, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
@@ -21,6 +21,7 @@ type PropsType = {
   onOpenChange: (value: boolean) => void;
   openDepsInstallModal: () => void;
   channel: SessionChannel;
+  aiEnabled: boolean;
 };
 
 export function SettingsSheet({
@@ -29,8 +30,11 @@ export function SettingsSheet({
   onOpenChange,
   openDepsInstallModal,
   channel,
+  aiEnabled,
 }: PropsType) {
   const { cells } = useCells();
+  const navigate = useNavigate();
+  const [showAiNudge, setShowAiNudge] = useState(!aiEnabled);
 
   const title = cells.find((cell) => cell.type === 'title') as TitleCellType;
 
@@ -38,6 +42,28 @@ export function SettingsSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="pt-12">
         <SheetHeader>
+          {showAiNudge && (
+            <div className="relative flex flex-col px-3 py-3.5 border border-ai-border bg-ai text-ai-foreground rounded-sm text-sm">
+              <div
+                className="absolute top-2 right-2 cursor-pointer text-sb-purple-60"
+                onClick={() => setShowAiNudge(false)}
+              >
+                <X size={16} />
+              </div>
+              <h2 className="font-bold">Use AI in Srcbook</h2>
+              <p>
+                AI features not enabled. To enable them, set up in{' '}
+                <a
+                  className="font-medium underline cursor-pointer"
+                  onClick={() => navigate('/settings')}
+                >
+                  {' '}
+                  global settings
+                </a>
+                .
+              </p>
+            </div>
+          )}
           <SheetTitle className="font-bold">Settings</SheetTitle>
         </SheetHeader>
         <div className="text-foreground mt-2 space-y-6">

@@ -208,6 +208,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         session={session}
         openDepsInstallModal={() => setDepsInstallModalOpen(true)}
         channel={channel}
+        aiEnabled={!!props.config.openaiKey}
       />
 
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}

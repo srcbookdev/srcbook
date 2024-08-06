@@ -50,6 +50,11 @@
     --sb-blue-60: 202 100% 40%;
     --sb-blue-70: 202 100% 30%;
     --sb-blue-80: 202 100% 20%;
+
+    --sb-purple-10: 270 62% 96%;
+    --sb-purple-20: 270 78% 91%;
+    --sb-purple-60: 270 42% 57%;
+    --sb-purple-80: 277 38% 38%;
   }
 
   :root {
@@ -57,6 +62,9 @@
     --secondary-hover: var(--sb-core-80);
     --tertiary: var(--sb-core-0);
     --tertiary-foreground: var(--sb-core-60);
+    --ai: var(--sb-purple-10);
+    --ai-foreground: var(--sb-purple-80);
+    --ai-border: var(--sb-purple-20);
     --run: var(--sb-yellow-50);
     --run-foreground: var(--sb-core-100);
     --run-ring: var(--sb-yellow-50);
@@ -73,6 +81,9 @@
     --secondary-hover: var(--sb-core-30);
     --tertiary: var(--sb-core-130);
     --tertiary-foreground: var(--sb-core-60);
+    --ai: var(--sb-purple-10);
+    --ai-foreground: var(--sb-purple-80);
+    --ai-border: var(--sb-purple-20);
     --run: var(--sb-yellow-50);
     --run-foreground: var(--sb-core-100);
     --run-ring: var(--sb-yellow-50);

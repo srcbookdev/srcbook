@@ -20,9 +20,10 @@
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^0.0.37",
     "@ai-sdk/openai": "^0.0.34",
     "@srcbook/shared": "workspace:^",
-    "ai": "^3.2.16",
+    "ai": "^3.3.2",
     "better-sqlite3": "^11.0.0",
     "cors": "^2.8.5",
     "depcheck": "^1.4.7",
@@ -37,8 +38,8 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.10",
     "@types/cors": "^2.8.17",
-    "@types/node": "catalog:",
     "@types/express": "^4.17.21",
+    "@types/node": "catalog:",
     "@types/ws": "^8.5.10",
     "drizzle-kit": "^0.22.7",
     "vite": "^5.2.11",

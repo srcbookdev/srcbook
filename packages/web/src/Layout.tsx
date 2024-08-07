@@ -1,9 +1,19 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLoaderData } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { SrcbookLogo } from './components/logos';
 import useTheme from './components/use-theme';
+import { SettingsProvider } from '@/components/use-settings';
+import { type SettingsType } from '@/types';
+import { getConfig } from '@/lib/server';
+
+export async function loader() {
+  const { result: config } = await getConfig();
+
+  return { config };
+}
 
 export default function Layout(props: { children: React.ReactNode }) {
+  const { config } = useLoaderData() as { config: SettingsType };
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -57,7 +67,11 @@ export default function Layout(props: { children: React.ReactNode }) {
             </div>
           )}
         </header>
-        <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">{props.children}</div>
+        <SettingsProvider config={config}>
+          <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">
+            {props.children}
+          </div>
+        </SettingsProvider>
       </div>
       <Toaster position="top-right" offset="20px" closeButton />
     </>

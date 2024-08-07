@@ -231,7 +231,6 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
                 channel={channel}
                 updateCellOnServer={updateCellOnServer}
                 onDeleteCell={onDeleteCell}
-                hasOpenaiKey={!!props.config.openaiKey}
               />
             )}
 
@@ -249,7 +248,6 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
                 session={session}
                 insertIdx={idx + 2}
                 onSuccess={insertGeneratedCells}
-                hasOpenaiKey={!!props.config.openaiKey}
               />
             )}
           </div>

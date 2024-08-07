@@ -1,5 +1,5 @@
 import type { CodeLanguageType, MarkdownCellType, CodeCellType } from '@srcbook/shared';
-import { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
+import { AiConfigType, SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
 
 const API_BASE_URL = 'http://localhost:2150/api';
 
@@ -228,7 +228,9 @@ interface EditConfigRequestType {
   baseDir?: string;
   defaultLanguage?: 'typescript' | 'javascript';
   openaiKey?: string;
+  anthropicKey?: string;
   enabledAnalytics?: boolean;
+  aiConfig?: AiConfigType;
 }
 
 export async function getConfig() {

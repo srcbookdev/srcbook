@@ -15,6 +15,7 @@ import {
   CellErrorPayloadType,
   AiGeneratedCellPayloadType,
 } from '@srcbook/shared';
+import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
 import { SessionType } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,6 @@ export default function CodeCell(props: {
   channel: SessionChannel;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
-  hasOpenaiKey: boolean;
 }) {
   const { session, cell, channel, updateCellOnServer, onDeleteCell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
@@ -46,6 +46,8 @@ export default function CodeCell(props: {
   const [prompt, setPrompt] = useState('');
   const [newSource, setNewSource] = useState('');
 
+  const { aiEnabled } = useSettings();
+
   const navigate = useNavigate();
 
   useHotkeys(
@@ -53,7 +55,7 @@ export default function CodeCell(props: {
     () => {
       if (!prompt) return;
       if (promptMode !== 'idle') return;
-      if (!props.hasOpenaiKey) return;
+      if (!aiEnabled) return;
       generate();
     },
     { enableOnFormTags: ['textarea'] },
@@ -221,12 +223,7 @@ export default function CodeCell(props: {
               </Tooltip>
             </TooltipProvider>
             {promptMode === 'idle' && (
-              <Button
-                variant="default"
-                onClick={generate}
-                tabIndex={1}
-                disabled={!props.hasOpenaiKey}
-              >
+              <Button variant="default" onClick={generate} tabIndex={1} disabled={!aiEnabled}>
                 Generate
               </Button>
             )}
@@ -299,7 +296,7 @@ export default function CodeCell(props: {
               </div>
             </div>
 
-            {!props.hasOpenaiKey && (
+            {!aiEnabled && (
               <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
                 <p>API key required</p>
                 <a

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import './index.css';
-import Layout from './Layout';
+import Layout, { loader as configLoader } from './Layout';
 import Home, { loader as homeLoader } from './routes/home';
 import Session from './routes/session';
 import Settings from './routes/settings';
@@ -31,6 +31,7 @@ const router = createBrowserRouter([
       </Layout>
     ),
     errorElement: <ErrorPage />,
+    loader: configLoader,
     children: [
       {
         path: '/srcbooks/:id',

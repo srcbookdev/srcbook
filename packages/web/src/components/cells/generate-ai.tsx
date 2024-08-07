@@ -8,19 +8,21 @@ import { GenerateAICellType, SessionType } from '@/types';
 import { useCells } from '@/components/use-cell';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useSettings } from '@/components/use-settings';
 
 export default function GenerateAiCell(props: {
   cell: GenerateAICellType;
   insertIdx: number;
   session: SessionType;
   onSuccess: (idx: number, cells: Array<CodeCellType | MarkdownCellType>) => void;
-  hasOpenaiKey: boolean;
 }) {
-  const { cell, insertIdx, session, onSuccess, hasOpenaiKey } = props;
+  const { cell, insertIdx, session, onSuccess } = props;
   const [state, setState] = useState<'idle' | 'loading'>('idle');
   const { removeCell } = useCells();
   const [prompt, setPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const { aiEnabled } = useSettings();
 
   const navigate = useNavigate();
   useHotkeys(
@@ -78,7 +80,7 @@ export default function GenerateAiCell(props: {
 
           <div>
             <Button
-              disabled={!prompt || !hasOpenaiKey}
+              disabled={!prompt || !aiEnabled}
               onClick={generate}
               variant={state === 'idle' ? 'default' : 'run'}
             >
@@ -106,7 +108,7 @@ export default function GenerateAiCell(props: {
           </div>
         )}
 
-        {!hasOpenaiKey && (
+        {!aiEnabled && (
           <div className="flex items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm p-1 m-3">
             <p className="px-2">API key required</p>
             <button

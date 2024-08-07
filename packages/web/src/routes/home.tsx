@@ -33,7 +33,7 @@ export async function loader() {
     baseDir: config.baseDir,
     srcbooks,
     examples,
-    hasOpenAiKey: !!config.openaiKey,
+    config,
   };
 }
 
@@ -42,12 +42,10 @@ type HomeLoaderDataType = {
   srcbooks: SessionType[];
   examples: ExampleSrcbookType[];
   defaultLanguage: CodeLanguageType;
-  hasOpenAiKey: boolean;
 };
 
 export default function Home() {
-  const { defaultLanguage, baseDir, srcbooks, examples, hasOpenAiKey } =
-    useLoaderData() as HomeLoaderDataType;
+  const { defaultLanguage, baseDir, srcbooks, examples } = useLoaderData() as HomeLoaderDataType;
   const navigate = useNavigate();
 
   const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
@@ -86,7 +84,6 @@ export default function Home() {
         open={showGenSrcbookModal}
         setOpen={setShowGenSrcbookModal}
         openSrcbook={openSrcbook}
-        hasOpenaiKey={hasOpenAiKey}
       />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 

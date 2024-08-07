@@ -10,11 +10,10 @@ import { type SessionType } from '../types.mjs';
 import { readFileSync } from 'node:fs';
 import Path from 'node:path';
 import { createOpenAI } from '@ai-sdk/openai';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
 import { getConfig } from '../config.mjs';
-
-const OPENAI_MODEL = 'gpt-4o';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -83,21 +82,34 @@ ${query}
 };
 
 /**
- * Get the OpenAI client and model configuration.
- * Throws an error if the OpenAI API key is not set in the settings.
+ * Get the correct client and model configuration.
+ * Throws an error if the given API key is not set in the settings.
  */
-async function getOpenAIModel() {
+async function getModel() {
   const config = await getConfig();
-  if (!config.openaiKey) {
-    throw new Error('OpenAI API key is not set');
+  const { model, provider } = config.aiConfig;
+  switch (provider) {
+    case 'openai':
+      if (!config.openaiKey) {
+        throw new Error('OpenAI API key is not set');
+      }
+
+      const openai = createOpenAI({
+        compatibility: 'strict', // strict mode, enabled when using the OpenAI API
+        apiKey: config.openaiKey,
+      });
+
+      return openai(model);
+    case 'anthropic':
+      if (!config.anthropicKey) {
+        throw new Error('Anthropic API key is not set');
+      }
+      const anthropic = createAnthropic({
+        apiKey: config.anthropicKey,
+      });
+
+      return anthropic(model);
   }
-
-  const openai = createOpenAI({
-    compatibility: 'strict', // strict mode, enabled when using the OpenAI API
-    apiKey: config.openaiKey,
-  });
-
-  return openai(OPENAI_MODEL);
 }
 
 type NoToolsGenerateTextResult = GenerateTextResult<{}>;
@@ -111,7 +123,7 @@ type NoToolsGenerateTextResult = GenerateTextResult<{}>;
  * users to use different providers like Anthropic or local ones.
  */
 export async function generateSrcbook(query: string): Promise<NoToolsGenerateTextResult> {
-  const model = await getOpenAIModel();
+  const model = await getModel();
   const result = await generateText({
     model: model,
     system: makeGenerateSrcbookSystemPrompt(),
@@ -135,7 +147,7 @@ export async function generateCells(
   session: SessionType,
   insertIdx: number,
 ): Promise<GenerateCellsResult> {
-  const model = await getOpenAIModel();
+  const model = await getModel();
 
   const systemPrompt = makeGenerateCellSystemPrompt(session.language);
   const userPrompt = makeGenerateCellUserPrompt(session, insertIdx, query);
@@ -163,7 +175,7 @@ export async function generateCells(
 }
 
 export async function generateCellEdit(query: string, session: SessionType, cell: CodeCellType) {
-  const model = await getOpenAIModel();
+  const model = await getModel();
 
   const systemPrompt = makeGenerateCellEditSystemPrompt(session.language);
   const userPrompt = makeGenerateCellEditUserPrompt(query, session, cell);

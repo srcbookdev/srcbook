@@ -23,8 +23,8 @@ export type SettingsType = {
   baseDir: string;
   defaultLanguage: CodeLanguageType;
   openaiKey?: string | null;
-  enabledAnalytics: boolean;
   anthropicKey?: string | null;
+  enabledAnalytics: boolean;
   aiConfig: AiConfigType;
 };
 

@@ -2,7 +2,7 @@ import { NavLink, useLoaderData } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { SrcbookLogo } from './components/logos';
 import useTheme from './components/use-theme';
-import { AiConfigProvider } from '@/components/use-ai-config';
+import { SettingsProvider } from '@/components/use-settings';
 import { type SettingsType } from '@/types';
 import { getConfig } from '@/lib/server';
 
@@ -67,11 +67,11 @@ export default function Layout(props: { children: React.ReactNode }) {
             </div>
           )}
         </header>
-        <AiConfigProvider config={config}>
+        <SettingsProvider config={config}>
           <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">
             {props.children}
           </div>
-        </AiConfigProvider>
+        </SettingsProvider>
       </div>
       <Toaster position="top-right" offset="20px" closeButton />
     </>

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { generateSrcbook } from '@/lib/server';
+import { useSettings } from '@/components/use-settings';
 
 const EXAMPLES = [
   'Cover the basics of validating data in TypeScript using Zod, including how to infer types from schemas',
@@ -18,16 +19,15 @@ export default function GenerateSrcbookModal({
   open,
   setOpen,
   openSrcbook,
-  aiEnabled: hasOpenaiKey,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   openSrcbook: (path: string) => void;
-  aiEnabled: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
   const [error, setError] = useState<'generic' | 'api_key' | null>(null);
+  const { aiEnabled } = useSettings();
 
   useHotkeys(
     'mod+enter',
@@ -95,7 +95,7 @@ export default function GenerateSrcbookModal({
             )}
           </Button>
           {error !== null && <ErrorMessage type={error} onRetry={generate} />}
-          {!hasOpenaiKey && <APIKeyWarning />}
+          {!aiEnabled && <APIKeyWarning />}
           <div className="w-full border-t"></div>
           <p className="font-bold">Examples</p>
           {EXAMPLES.map((example) => (

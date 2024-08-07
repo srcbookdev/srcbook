@@ -12,7 +12,6 @@ import type { ExampleSrcbookType, SessionType } from '@/types';
 import { useState } from 'react';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
-import { useAiConfig } from '@/components/use-ai-config';
 import {
   MainCTACard,
   SrcbookCard,
@@ -48,8 +47,6 @@ type HomeLoaderDataType = {
 export default function Home() {
   const { defaultLanguage, baseDir, srcbooks, examples } = useLoaderData() as HomeLoaderDataType;
   const navigate = useNavigate();
-  const { aiEnabled } = useAiConfig();
-  console.log('aiEnabled', aiEnabled);
 
   const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
   const [showGenSrcbookModal, setShowGenSrcbookModal] = useState(false);
@@ -87,7 +84,6 @@ export default function Home() {
         open={showGenSrcbookModal}
         setOpen={setShowGenSrcbookModal}
         openSrcbook={openSrcbook}
-        aiEnabled={aiEnabled}
       />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 

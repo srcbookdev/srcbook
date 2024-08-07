@@ -149,6 +149,9 @@ module.exports = {
           'purple-20': 'hsl(var(--sb-purple-20))',
           'purple-60': 'hsl(var(--sb-purple-60))',
           'purple-80': 'hsl(var(--sb-purple-80))',
+
+          'green-20': 'hsl(var(--sb-green-20))',
+          'green-80': 'hsl(var(--sb-green-80))',
         },
       },
       dropShadow: {

@@ -47,7 +47,6 @@ export default function CodeCell(props: {
   const [newSource, setNewSource] = useState('');
 
   const { aiEnabled } = useSettings();
-  console.log('aiEnabled is ', aiEnabled, ' in code.tsx');
 
   const navigate = useNavigate();
 

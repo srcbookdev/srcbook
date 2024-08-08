@@ -372,6 +372,15 @@
   text-decoration: none;
 }
 
+.cm-editor .cm-deletedChunk {
+  background-color: rgba(248, 81, 73, 0.15);
+}
+
+.cm-editor.cm-merge-a .cm-changedLine,
+.cm-editor.cm-merge-b .cm-changedLine {
+  background-color: rgba(46, 160, 67, 0.15);
+}
+
 .cm-editor * {
   font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
     'Liberation Mono', 'Courier New', 'monospace';

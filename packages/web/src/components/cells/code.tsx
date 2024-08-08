@@ -1,11 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Info, Play, Trash2, Sparkles, X, MessageCircleWarning, LoaderCircle } from 'lucide-react';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import {
+  Info,
+  Play,
+  Trash2,
+  Sparkles,
+  X,
+  MessageCircleWarning,
+  LoaderCircle,
+  Maximize,
+  Minimize,
+} from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
 import {
@@ -42,19 +54,20 @@ export default function CodeCell(props: {
   const { session, cell, channel, updateCellOnServer, onDeleteCell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
-  const [promptMode, setPromptMode] = useState<'off' | 'generating' | 'reviewing' | 'idle'>('off');
+  const [promptMode, setPromptMode] = useState<'off' | 'generating' | 'reviewing' | 'prompting'>(
+    'off',
+  );
   const [prompt, setPrompt] = useState('');
   const [newSource, setNewSource] = useState('');
+  const [fullscreen, setFullscreen] = useState(false);
 
   const { aiEnabled } = useSettings();
-
-  const navigate = useNavigate();
 
   useHotkeys(
     'mod+enter',
     () => {
       if (!prompt) return;
-      if (promptMode !== 'idle') return;
+      if (promptMode !== 'prompting') return;
       if (!aiEnabled) return;
       generate();
     },
@@ -64,7 +77,7 @@ export default function CodeCell(props: {
   useHotkeys(
     'escape',
     () => {
-      if (promptMode === 'idle') {
+      if (promptMode === 'prompting') {
         setPromptMode('off');
         setPrompt('');
       }
@@ -153,7 +166,7 @@ export default function CodeCell(props: {
   }
 
   function onRevertDiff() {
-    setPromptMode('idle');
+    setPromptMode('prompting');
     setNewSource('');
   }
 
@@ -165,173 +178,314 @@ export default function CodeCell(props: {
   }
 
   return (
-    <div className="relative group/cell" id={`cell-${props.cell.id}`}>
-      <div
-        className={cn(
-          'border rounded-md group',
-          cell.status === 'running' || promptMode === 'generating'
-            ? 'ring-1 ring-run-ring border-run-ring'
-            : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
-        )}
-      >
-        <div className="p-1 flex items-center justify-between gap-2">
-          <div className={cn('flex items-center gap-1', promptMode !== 'off' && 'opacity-50')}>
-            <FilenameInput
-              filename={cell.filename}
-              onUpdate={updateFilename}
-              onChange={() => setFilenameError(null)}
-              className={cn(
-                'w-[200px] font-mono font-semibold text-xs transition-colors px-2',
-                filenameError
-                  ? 'border-error'
-                  : 'border-transparent hover:border-input group-hover:border-input ',
-              )}
-            />
-            {filenameError && (
-              <div className="bg-error text-error-foreground flex items-center rounded-sm border border-transparent px-[10px] py-2 text-sm leading-none font-medium">
-                <Info size={14} className="mr-1.5" />
-                Invalid filename
-              </div>
-            )}
-            <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-              <Button className="hidden group-hover:flex" variant="icon" size="icon" tabIndex={1}>
-                <Trash2 size={16} />
-              </Button>
-            </DeleteCellWithConfirmation>
-          </div>
-          <div
-            className={cn(
-              'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2',
+    <div id={`cell-${props.cell.id}`}>
+      <Dialog open={fullscreen} onOpenChange={setFullscreen}>
+        <DialogContent
+          className={cn(
+            `w-[95vw] h-[95vh] max-w-none p-0 group flex flex-col`,
+            cell.status === 'running' || promptMode === 'generating'
+              ? 'ring-1 ring-run-ring border-run-ring'
+              : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
+          )}
+          hideClose
+        >
+          <Header
+            cell={cell}
+            runCell={runCell}
+            stopCell={stopCell}
+            onDeleteCell={onDeleteCell}
+            generate={generate}
+            promptMode={promptMode}
+            setPromptMode={setPromptMode}
+            prompt={prompt}
+            setPrompt={setPrompt}
+            updateFilename={updateFilename}
+            filenameError={filenameError}
+            setFilenameError={setFilenameError}
+            fullscreen={fullscreen}
+            setFullscreen={setFullscreen}
+          />
 
-              cell.status === 'running' ? 'opacity-100' : '',
-            )}
-          >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="icon"
-                    size="icon"
-                    disabled={promptMode !== 'off'}
-                    onClick={() => setPromptMode('idle')}
-                    tabIndex={1}
-                  >
-                    <Sparkles size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit cell using AI</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            {promptMode === 'idle' && (
-              <Button variant="default" onClick={generate} tabIndex={1} disabled={!aiEnabled}>
-                Generate
-              </Button>
-            )}
-            {promptMode === 'generating' && (
-              <Button
-                variant="run"
-                size="default-with-icon"
-                className="disabled:opacity-100"
-                disabled
-                tabIndex={1}
+          {promptMode === 'reviewing' ? (
+            <DiffEditor
+              original={cell.source}
+              modified={newSource}
+              onAccept={onAcceptDiff}
+              onRevert={onRevertDiff}
+            />
+          ) : (
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel
+                className="overflow-scroll"
+                style={{ overflow: 'scroll' }}
+                defaultSize={60}
               >
-                <LoaderCircle size={16} className="animate-spin" /> Generating
-              </Button>
-            )}
-            {promptMode === 'off' && (
-              <>
-                {cell.status === 'running' && (
-                  <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
-                    <LoaderCircle size={16} className="animate-spin" /> Stop
-                  </Button>
-                )}
-                {cell.status === 'idle' && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
-                          <Play size={16} />
-                          Run
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <Shortcut keys={['mod', 'enter']} /> to run cell
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-        {promptMode !== 'off' && (
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-start justify-between px-1">
-              <div className="flex items-start flex-grow">
-                <Sparkles size={16} className="m-2.5" />
-                <TextareaAutosize
-                  className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
-                  autoFocus
-                  placeholder="Ask the AI to edit this cell..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                <div className={cn(promptMode !== 'off' && 'opacity-50')}>
+                  <CodeEditor
+                    cell={cell}
+                    runCell={runCell}
+                    updateCellOnServer={updateCellOnServer}
+                    readOnly={['generating', 'prompting'].includes(promptMode)}
+                  />
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+              <ResizablePanel
+                className="overflow-scroll"
+                defaultSize={40}
+                style={{ overflow: 'scroll' }}
+              >
+                <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} fullscreen />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <div className="relative group/cell" id={`cell-${props.cell.id}`}>
+        <div
+          className={cn(
+            'border rounded-md group',
+            cell.status === 'running' || promptMode === 'generating'
+              ? 'ring-1 ring-run-ring border-run-ring'
+              : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
+          )}
+        >
+          <Header
+            cell={cell}
+            runCell={runCell}
+            stopCell={stopCell}
+            onDeleteCell={onDeleteCell}
+            generate={generate}
+            promptMode={promptMode}
+            setPromptMode={setPromptMode}
+            prompt={prompt}
+            setPrompt={setPrompt}
+            updateFilename={updateFilename}
+            filenameError={filenameError}
+            setFilenameError={setFilenameError}
+            fullscreen={fullscreen}
+            setFullscreen={setFullscreen}
+          />
+
+          {promptMode === 'reviewing' ? (
+            <DiffEditor
+              original={cell.source}
+              modified={newSource}
+              onAccept={onAcceptDiff}
+              onRevert={onRevertDiff}
+            />
+          ) : (
+            <>
+              <div className={cn(promptMode !== 'off' && 'opacity-50')}>
+                <CodeEditor
+                  cell={cell}
+                  runCell={runCell}
+                  updateCellOnServer={updateCellOnServer}
+                  readOnly={['generating', 'prompting'].includes(promptMode)}
                 />
               </div>
-              <div className="flex items-center gap-1.5">
-                <AiGenerateTipsDialog>
-                  <Button size="icon" variant="icon">
-                    <MessageCircleWarning size={16} />
-                  </Button>
-                </AiGenerateTipsDialog>
-                <Button
-                  size="icon"
-                  variant="icon"
-                  onClick={() => {
-                    setPromptMode('off');
-                    setPrompt('');
-                  }}
-                >
-                  <X size={16} />
-                </Button>
-              </div>
-            </div>
-
-            {!aiEnabled && (
-              <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
-                <p>API key required</p>
-                <a
-                  className="font-medium underline cursor-pointer"
-                  onClick={() => navigate('/settings')}
-                >
-                  Settings
-                </a>
-              </div>
-            )}
-          </div>
-        )}
-
-        {promptMode === 'reviewing' ? (
-          <DiffEditor
-            original={cell.source}
-            modified={newSource}
-            onAccept={onAcceptDiff}
-            onRevert={onRevertDiff}
-          />
-        ) : (
-          <>
-            <div className={cn(promptMode !== 'off' && 'opacity-50')}>
-              <CodeEditor
-                cell={cell}
-                runCell={runCell}
-                updateCellOnServer={updateCellOnServer}
-                readOnly={['generating', 'idle'].includes(promptMode)}
-              />
-            </div>
-            <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
-          </>
-        )}
+              <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
+            </>
+          )}
+        </div>
       </div>
     </div>
+  );
+}
+
+function Header(props: {
+  cell: CodeCellType;
+  runCell: () => void;
+  onDeleteCell: (cell: CellType) => void;
+  promptMode: 'off' | 'generating' | 'reviewing' | 'prompting';
+  setPromptMode: (mode: 'off' | 'generating' | 'reviewing' | 'prompting') => void;
+  updateFilename: (filename: string) => void;
+  filenameError: string | null;
+  setFilenameError: (error: string | null) => void;
+  fullscreen: boolean;
+  setFullscreen: (open: boolean) => void;
+  generate: () => void;
+  prompt: string;
+  setPrompt: (prompt: string) => void;
+  stopCell: () => void;
+}) {
+  const {
+    cell,
+    runCell,
+    onDeleteCell,
+    promptMode,
+    setPromptMode,
+    updateFilename,
+    filenameError,
+    setFilenameError,
+    fullscreen,
+    setFullscreen,
+    generate,
+    prompt,
+    setPrompt,
+    stopCell,
+  } = props;
+
+  const { aiEnabled } = useSettings();
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <div className="p-1 flex items-center justify-between gap-2">
+        <div className={cn('flex items-center gap-1', promptMode !== 'off' && 'opacity-50')}>
+          <FilenameInput
+            filename={cell.filename}
+            onUpdate={updateFilename}
+            onChange={() => setFilenameError(null)}
+            className={cn(
+              'w-[200px] font-mono font-semibold text-xs transition-colors px-2',
+              filenameError
+                ? 'border-error'
+                : 'border-transparent hover:border-input group-hover:border-input ',
+            )}
+          />
+          {filenameError && (
+            <div className="bg-error text-error-foreground flex items-center rounded-sm border border-transparent px-[10px] py-2 text-sm leading-none font-medium">
+              <Info size={14} className="mr-1.5" />
+              Invalid filename
+            </div>
+          )}
+          <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
+            <Button className="hidden group-hover:flex" variant="icon" size="icon" tabIndex={1}>
+              <Trash2 size={16} />
+            </Button>
+          </DeleteCellWithConfirmation>
+        </div>
+        <div
+          className={cn(
+            'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2',
+
+            cell.status === 'running' ? 'opacity-100' : '',
+          )}
+        >
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="icon"
+                  size="icon"
+                  onClick={() => setFullscreen(!fullscreen)}
+                  tabIndex={1}
+                >
+                  {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {fullscreen ? 'Minimize back to cells view' : 'Maximize to full screen'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="icon"
+                  size="icon"
+                  disabled={promptMode !== 'off'}
+                  onClick={() => setPromptMode('prompting')}
+                  tabIndex={1}
+                >
+                  <Sparkles size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit cell using AI</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {promptMode === 'prompting' && (
+            <Button variant="default" onClick={generate} tabIndex={1} disabled={!aiEnabled}>
+              Generate
+            </Button>
+          )}
+          {promptMode === 'generating' && (
+            <Button
+              variant="run"
+              size="default-with-icon"
+              className="disabled:opacity-100"
+              disabled
+              tabIndex={1}
+            >
+              <LoaderCircle size={16} className="animate-spin" /> Generating
+            </Button>
+          )}
+          {promptMode === 'off' && (
+            <>
+              {cell.status === 'running' && (
+                <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
+                  <LoaderCircle size={16} className="animate-spin" /> Stop
+                </Button>
+              )}
+              {cell.status === 'idle' && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
+                        <Play size={16} />
+                        Run
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <Shortcut keys={['mod', 'enter']} /> to run cell
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      {promptMode !== 'off' && (
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-start justify-between px-1">
+            <div className="flex items-start flex-grow">
+              <Sparkles size={16} className="m-2.5" />
+              <TextareaAutosize
+                className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
+                autoFocus
+                placeholder="Ask the AI to edit this cell..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <AiGenerateTipsDialog>
+                <Button size="icon" variant="icon">
+                  <MessageCircleWarning size={16} />
+                </Button>
+              </AiGenerateTipsDialog>
+              <Button
+                size="icon"
+                variant="icon"
+                onClick={() => {
+                  setPromptMode('off');
+                  setPrompt('');
+                }}
+              >
+                <X size={16} />
+              </Button>
+            </div>
+          </div>
+
+          {!aiEnabled && (
+            <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
+              <p>API key required</p>
+              <a
+                className="font-medium underline cursor-pointer"
+                onClick={() => navigate('/settings')}
+              >
+                Settings
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 

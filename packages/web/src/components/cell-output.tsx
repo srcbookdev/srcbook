@@ -10,9 +10,10 @@ type PropsType = {
   cell: CodeCellType | PackageJsonCellType;
   show: boolean;
   setShow: (show: boolean) => void;
+  fullscreen?: boolean;
 };
 
-export function CellOutput({ cell, show, setShow }: PropsType) {
+export function CellOutput({ cell, show, setShow, fullscreen }: PropsType) {
   const { getOutput, clearOutput, getTsServerDiagnostics } = useCells();
 
   const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems'>('stdout');
@@ -22,15 +23,16 @@ export function CellOutput({ cell, show, setShow }: PropsType) {
   const diagnostics = getTsServerDiagnostics(cell.id);
 
   return (
-    <div className="border-t font-mono text-sm">
+    <div className="font-mono text-sm relative">
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as 'stdout' | 'stderr' | 'problems')}
       >
         <div
           className={cn(
-            'px-3 flex items-center justify-between bg-muted text-tertiary-foreground rounded-md',
+            'border-t px-3 flex items-center justify-between bg-muted text-tertiary-foreground rounded-md',
             show && 'border-b rounded-none',
+            fullscreen && 'sticky top-0',
           )}
         >
           <TabsList className={cn('h-full', !show && '')}>
@@ -93,8 +95,13 @@ export function CellOutput({ cell, show, setShow }: PropsType) {
           </div>
         </div>
         {show && (
-          <>
-            <TabsContent value="stdout" className="mt-0">
+          <div
+            className={cn(
+              'p-2 flex flex-col-reverse overflow-scroll whitespace-pre-wrap text-[13px]',
+              !fullscreen && 'max-h-96',
+            )}
+          >
+            <TabsContent className="mt-0" value="stdout">
               <Stdout stdout={stdout} />
             </TabsContent>
             <TabsContent value="stderr" className="mt-0">
@@ -105,7 +112,7 @@ export function CellOutput({ cell, show, setShow }: PropsType) {
                 <TsServerDiagnostics diagnostics={diagnostics} />
               </TabsContent>
             )}
-          </>
+          </div>
         )}
       </Tabs>
     </div>
@@ -117,25 +124,16 @@ function formatOutput(output: OutputType[], sep = '') {
 }
 
 function Stdout({ stdout }: { stdout: StdoutOutputType[] }) {
-  return (
-    <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap text-[13px]">
-      {stdout.length === 0 ? (
-        <div className="italic text-center text-muted-foreground">No output</div>
-      ) : (
-        formatOutput(stdout)
-      )}
-    </div>
+  return stdout.length === 0 ? (
+    <div className="italic text-center text-muted-foreground">No output</div>
+  ) : (
+    formatOutput(stdout)
   );
 }
 
 function Stderr({ stderr }: { stderr: StderrOutputType[] }) {
   return (
-    <div
-      className={cn(
-        'p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap text-[13px]',
-        stderr.length > 0 && 'text-sb-red-30',
-      )}
-    >
+    <div className={stderr.length > 0 ? 'text-sb-red-30' : ''}>
       {stderr.length === 0 ? (
         <div className="italic text-center text-muted-foreground">No errors or warnings</div>
       ) : (
@@ -150,13 +148,9 @@ function formatDiagnostic(diag: TsServerDiagnosticType) {
 }
 
 function TsServerDiagnostics({ diagnostics }: { diagnostics: TsServerDiagnosticType[] }) {
-  return (
-    <div className="p-2 flex flex-col-reverse max-h-96 overflow-scroll whitespace-pre-wrap text-[13px]">
-      {diagnostics.length === 0 ? (
-        <div className="italic text-center text-muted-foreground">No problems</div>
-      ) : (
-        diagnostics.map(formatDiagnostic).join('\n')
-      )}
-    </div>
+  return diagnostics.length === 0 ? (
+    <div className="italic text-center text-muted-foreground">No problems</div>
+  ) : (
+    diagnostics.map(formatDiagnostic).join('\n')
   );
 }

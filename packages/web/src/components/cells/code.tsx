@@ -204,6 +204,7 @@ export default function CodeCell(props: {
             setFilenameError={setFilenameError}
             fullscreen={fullscreen}
             setFullscreen={setFullscreen}
+            setShowStdio={setShowStdio}
           />
 
           {promptMode === 'reviewing' ? (
@@ -215,11 +216,7 @@ export default function CodeCell(props: {
             />
           ) : (
             <ResizablePanelGroup direction="vertical">
-              <ResizablePanel
-                className="overflow-scroll"
-                style={{ overflow: 'scroll' }}
-                defaultSize={60}
-              >
+              <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
                 <div className={cn(promptMode !== 'off' && 'opacity-50')}>
                   <CodeEditor
                     cell={cell}
@@ -230,12 +227,8 @@ export default function CodeCell(props: {
                 </div>
               </ResizablePanel>
 
-              <ResizableHandle withHandle />
-              <ResizablePanel
-                className="overflow-scroll"
-                defaultSize={40}
-                style={{ overflow: 'scroll' }}
-              >
+              <ResizableHandle withHandle className="border-none" />
+              <ResizablePanel defaultSize={40} style={{ overflow: 'scroll' }}>
                 <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} fullscreen />
               </ResizablePanel>
             </ResizablePanelGroup>
@@ -267,6 +260,7 @@ export default function CodeCell(props: {
             setFilenameError={setFilenameError}
             fullscreen={fullscreen}
             setFullscreen={setFullscreen}
+            setShowStdio={setShowStdio}
           />
 
           {promptMode === 'reviewing' ? (
@@ -306,6 +300,7 @@ function Header(props: {
   setFilenameError: (error: string | null) => void;
   fullscreen: boolean;
   setFullscreen: (open: boolean) => void;
+  setShowStdio: (open: boolean) => void;
   generate: () => void;
   prompt: string;
   setPrompt: (prompt: string) => void;
@@ -322,6 +317,7 @@ function Header(props: {
     setFilenameError,
     fullscreen,
     setFullscreen,
+    setShowStdio,
     generate,
     prompt,
     setPrompt,
@@ -371,7 +367,11 @@ function Header(props: {
                 <Button
                   variant="icon"
                   size="icon"
-                  onClick={() => setFullscreen(!fullscreen)}
+                  onClick={() => {
+                    // Open stdout drawer in fullscreen mode.
+                    if (!fullscreen) setShowStdio(true);
+                    setFullscreen(!fullscreen);
+                  }}
                   tabIndex={1}
                 >
                   {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}

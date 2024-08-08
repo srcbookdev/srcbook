@@ -23,16 +23,17 @@ export function CellOutput({ cell, show, setShow, fullscreen }: PropsType) {
   const diagnostics = getTsServerDiagnostics(cell.id);
 
   return (
-    <div className="font-mono text-sm relative">
+    <div className={cn('font-mono text-sm', fullscreen && !show && 'border-b')}>
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as 'stdout' | 'stderr' | 'problems')}
+        defaultValue="stdout"
       >
         <div
           className={cn(
-            'border-t px-3 flex items-center justify-between bg-muted text-tertiary-foreground rounded-md',
+            'border-t px-3 flex items-center justify-between bg-muted text-tertiary-foreground rounded-b-md',
             show && 'border-b rounded-none',
-            fullscreen && 'sticky top-0',
+            fullscreen && 'sticky top-0 border-t',
           )}
         >
           <TabsList className={cn('h-full', !show && '')}>

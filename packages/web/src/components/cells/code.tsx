@@ -556,6 +556,7 @@ function DiffEditor({
           unifiedMergeView({
             original: original,
             mergeControls: false,
+            highlightChanges: false,
           }),
         ]}
       />

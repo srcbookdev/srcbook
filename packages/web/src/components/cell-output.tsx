@@ -1,19 +1,30 @@
 import { useState } from 'react';
-import { Ban, PanelBottomClose, PanelBottomOpen } from 'lucide-react';
+import { useSettings } from '@/components/use-settings';
+import { Ban, PanelBottomClose, Loader2, PanelBottomOpen, Sparkles } from 'lucide-react';
 import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
 import { useCells } from '@/components/use-cell';
 import { OutputType, StdoutOutputType, StderrOutputType } from '@/types';
+import { Button } from './ui/button';
 
 type PropsType = {
   cell: CodeCellType | PackageJsonCellType;
   show: boolean;
   setShow: (show: boolean) => void;
+  fixDiagnostics: (diagnostics: string) => void;
+  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
   fullscreen?: boolean;
 };
 
-export function CellOutput({ cell, show, setShow, fullscreen }: PropsType) {
+export function CellOutput({
+  cell,
+  show,
+  setShow,
+  fixDiagnostics,
+  cellMode,
+  fullscreen,
+}: PropsType) {
   const { getOutput, clearOutput, getTsServerDiagnostics } = useCells();
 
   const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems'>('stdout');
@@ -110,7 +121,11 @@ export function CellOutput({ cell, show, setShow, fullscreen }: PropsType) {
             </TabsContent>
             {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsContent value="problems" className="mt-0">
-                <TsServerDiagnostics diagnostics={diagnostics} />
+                <TsServerDiagnostics
+                  diagnostics={diagnostics}
+                  fixDiagnostics={fixDiagnostics}
+                  cellMode={cellMode}
+                />
               </TabsContent>
             )}
           </div>
@@ -148,10 +163,42 @@ function formatDiagnostic(diag: TsServerDiagnosticType) {
   return `[Ln ${diag.start.line}, Col ${diag.start.offset}] ${diag.category} ts(${diag.code}): ${diag.text}`;
 }
 
-function TsServerDiagnostics({ diagnostics }: { diagnostics: TsServerDiagnosticType[] }) {
+function TsServerDiagnostics({
+  diagnostics,
+  fixDiagnostics,
+  cellMode,
+}: {
+  diagnostics: TsServerDiagnosticType[];
+  fixDiagnostics: (diagnostics: string) => void;
+  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+}) {
+  const { aiEnabled } = useSettings();
+  const formattedDiagnostics = diagnostics.map(formatDiagnostic).join('\n');
   return diagnostics.length === 0 ? (
     <div className="italic text-center text-muted-foreground">No problems</div>
   ) : (
-    diagnostics.map(formatDiagnostic).join('\n')
+    <div className="flex flex-col w-full">
+      <p>{formattedDiagnostics}</p>
+      {aiEnabled && (
+        <Button
+          variant="ai"
+          className="self-end flex items-center gap-2"
+          onClick={() => fixDiagnostics(formattedDiagnostics)}
+          disabled={cellMode === 'fixing' || cellMode === 'generating'}
+        >
+          {cellMode === 'fixing' ? (
+            <>
+              <Loader2 className="animate-spin" size={16} />
+              <p>Working on it...</p>
+            </>
+          ) : (
+            <>
+              <Sparkles size={16} />
+              <p>Fix with AI</p>
+            </>
+          )}
+        </Button>
+      )}
+    </div>
   );
 }

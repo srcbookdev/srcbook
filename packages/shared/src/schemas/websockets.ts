@@ -37,6 +37,12 @@ export const AiGenerateCellPayloadSchema = z.object({
   prompt: z.string(),
 });
 
+export const AiFixDiagnosticsPayloadSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+  diagnostics: z.string(),
+});
+
 export const CellRenamePayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),

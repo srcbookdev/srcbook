@@ -43,6 +43,7 @@ import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 
 const DEBOUNCE_DELAY = 500;
+type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
 
 export default function CodeCell(props: {
   session: SessionType;
@@ -54,9 +55,7 @@ export default function CodeCell(props: {
   const { session, cell, channel, updateCellOnServer, onDeleteCell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
-  const [promptMode, setPromptMode] = useState<'off' | 'generating' | 'reviewing' | 'prompting'>(
-    'off',
-  );
+  const [cellMode, setCellMode] = useState<CellModeType>('off');
   const [prompt, setPrompt] = useState('');
   const [newSource, setNewSource] = useState('');
   const [fullscreen, setFullscreen] = useState(false);
@@ -67,7 +66,7 @@ export default function CodeCell(props: {
     'mod+enter',
     () => {
       if (!prompt) return;
-      if (promptMode !== 'prompting') return;
+      if (cellMode !== 'prompting') return;
       if (!aiEnabled) return;
       generate();
     },
@@ -77,8 +76,8 @@ export default function CodeCell(props: {
   useHotkeys(
     'escape',
     () => {
-      if (promptMode === 'prompting') {
-        setPromptMode('off');
+      if (cellMode === 'prompting') {
+        setCellMode('off');
         setPrompt('');
       }
     },
@@ -125,7 +124,7 @@ export default function CodeCell(props: {
       if (payload.cellId !== cell.id) return;
       // We move to the "review" stage of the generation process:
       setNewSource(payload.output);
-      setPromptMode('reviewing');
+      setCellMode('reviewing');
     }
     channel.on('ai:generated', callback);
     return () => channel.off('ai:generated', callback);
@@ -137,7 +136,12 @@ export default function CodeCell(props: {
       cellId: cell.id,
       prompt,
     });
-    setPromptMode('generating');
+    setCellMode('generating');
+  };
+
+  const aiFixDiagnostics = (diagnostics: string) => {
+    setCellMode('fixing');
+    channel.push('ai:fix_diagnostics', { sessionId: session.id, cellId: cell.id, diagnostics });
   };
 
   function runCell() {
@@ -166,7 +170,8 @@ export default function CodeCell(props: {
   }
 
   function onRevertDiff() {
-    setPromptMode('prompting');
+    // TODO fix me, what about reverting a fix diff?
+    setCellMode('prompting');
     setNewSource('');
   }
 
@@ -174,7 +179,7 @@ export default function CodeCell(props: {
     updateCellOnClient({ ...cell, source: newSource });
     updateCellOnServer(cell, { source: newSource });
     setPrompt('');
-    setPromptMode('off');
+    setCellMode('off');
   }
 
   return (
@@ -183,7 +188,7 @@ export default function CodeCell(props: {
         <DialogContent
           className={cn(
             `w-[95vw] h-[95vh] max-w-none p-0 group flex flex-col`,
-            cell.status === 'running' || promptMode === 'generating'
+            cell.status === 'running' || cellMode === 'generating' || cellMode === 'fixing'
               ? 'ring-1 ring-run-ring border-run-ring'
               : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
           )}
@@ -195,8 +200,8 @@ export default function CodeCell(props: {
             stopCell={stopCell}
             onDeleteCell={onDeleteCell}
             generate={generate}
-            promptMode={promptMode}
-            setPromptMode={setPromptMode}
+            cellMode={cellMode}
+            setCellMode={setCellMode}
             prompt={prompt}
             setPrompt={setPrompt}
             updateFilename={updateFilename}
@@ -207,7 +212,7 @@ export default function CodeCell(props: {
             setShowStdio={setShowStdio}
           />
 
-          {promptMode === 'reviewing' ? (
+          {cellMode === 'reviewing' ? (
             <DiffEditor
               original={cell.source}
               modified={newSource}
@@ -217,19 +222,26 @@ export default function CodeCell(props: {
           ) : (
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
-                <div className={cn(promptMode !== 'off' && 'opacity-50')}>
+                <div className={cn(cellMode !== 'off' && 'opacity-50')}>
                   <CodeEditor
                     cell={cell}
                     runCell={runCell}
                     updateCellOnServer={updateCellOnServer}
-                    readOnly={['generating', 'prompting'].includes(promptMode)}
+                    readOnly={['generating', 'prompting', 'fixing'].includes(cellMode)}
                   />
                 </div>
               </ResizablePanel>
 
               <ResizableHandle withHandle className="border-none" />
               <ResizablePanel defaultSize={40} style={{ overflow: 'scroll' }}>
-                <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} fullscreen />
+                <CellOutput
+                  cell={cell}
+                  show={showStdio}
+                  setShow={setShowStdio}
+                  fullscreen
+                  fixDiagnostics={aiFixDiagnostics}
+                  cellMode={cellMode}
+                />
               </ResizablePanel>
             </ResizablePanelGroup>
           )}
@@ -240,7 +252,7 @@ export default function CodeCell(props: {
         <div
           className={cn(
             'border rounded-md group',
-            cell.status === 'running' || promptMode === 'generating'
+            cell.status === 'running' || cellMode === 'generating' || cellMode === 'fixing'
               ? 'ring-1 ring-run-ring border-run-ring'
               : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
           )}
@@ -251,8 +263,8 @@ export default function CodeCell(props: {
             stopCell={stopCell}
             onDeleteCell={onDeleteCell}
             generate={generate}
-            promptMode={promptMode}
-            setPromptMode={setPromptMode}
+            cellMode={cellMode}
+            setCellMode={setCellMode}
             prompt={prompt}
             setPrompt={setPrompt}
             updateFilename={updateFilename}
@@ -263,7 +275,7 @@ export default function CodeCell(props: {
             setShowStdio={setShowStdio}
           />
 
-          {promptMode === 'reviewing' ? (
+          {cellMode === 'reviewing' ? (
             <DiffEditor
               original={cell.source}
               modified={newSource}
@@ -272,15 +284,21 @@ export default function CodeCell(props: {
             />
           ) : (
             <>
-              <div className={cn(promptMode !== 'off' && 'opacity-50')}>
+              <div className={cn(cellMode !== 'off' && 'opacity-50')}>
                 <CodeEditor
                   cell={cell}
                   runCell={runCell}
                   updateCellOnServer={updateCellOnServer}
-                  readOnly={['generating', 'prompting'].includes(promptMode)}
+                  readOnly={['generating', 'prompting'].includes(cellMode)}
                 />
               </div>
-              <CellOutput cell={cell} show={showStdio} setShow={setShowStdio} />
+              <CellOutput
+                cell={cell}
+                show={showStdio}
+                setShow={setShowStdio}
+                fixDiagnostics={aiFixDiagnostics}
+                cellMode={cellMode}
+              />
             </>
           )}
         </div>
@@ -293,8 +311,8 @@ function Header(props: {
   cell: CodeCellType;
   runCell: () => void;
   onDeleteCell: (cell: CellType) => void;
-  promptMode: 'off' | 'generating' | 'reviewing' | 'prompting';
-  setPromptMode: (mode: 'off' | 'generating' | 'reviewing' | 'prompting') => void;
+  cellMode: CellModeType;
+  setCellMode: (mode: CellModeType) => void;
   updateFilename: (filename: string) => void;
   filenameError: string | null;
   setFilenameError: (error: string | null) => void;
@@ -310,8 +328,8 @@ function Header(props: {
     cell,
     runCell,
     onDeleteCell,
-    promptMode,
-    setPromptMode,
+    cellMode,
+    setCellMode,
     updateFilename,
     filenameError,
     setFilenameError,
@@ -330,7 +348,7 @@ function Header(props: {
   return (
     <>
       <div className="p-1 flex items-center justify-between gap-2">
-        <div className={cn('flex items-center gap-1', promptMode !== 'off' && 'opacity-50')}>
+        <div className={cn('flex items-center gap-1', cellMode !== 'off' && 'opacity-50')}>
           <FilenameInput
             filename={cell.filename}
             onUpdate={updateFilename}
@@ -388,8 +406,8 @@ function Header(props: {
                 <Button
                   variant="icon"
                   size="icon"
-                  disabled={promptMode !== 'off'}
-                  onClick={() => setPromptMode('prompting')}
+                  disabled={cellMode !== 'off'}
+                  onClick={() => setCellMode('prompting')}
                   tabIndex={1}
                 >
                   <Sparkles size={16} />
@@ -398,12 +416,12 @@ function Header(props: {
               <TooltipContent>Edit cell using AI</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          {promptMode === 'prompting' && (
+          {cellMode === 'prompting' && (
             <Button variant="default" onClick={generate} tabIndex={1} disabled={!aiEnabled}>
               Generate
             </Button>
           )}
-          {promptMode === 'generating' && (
+          {cellMode === 'generating' && (
             <Button
               variant="run"
               size="default-with-icon"
@@ -414,7 +432,18 @@ function Header(props: {
               <LoaderCircle size={16} className="animate-spin" /> Generating
             </Button>
           )}
-          {promptMode === 'off' && (
+          {cellMode === 'fixing' && (
+            <Button
+              variant="run"
+              size="default-with-icon"
+              className="disabled:opacity-100"
+              disabled
+              tabIndex={1}
+            >
+              <LoaderCircle size={16} className="animate-spin" /> Fixing...
+            </Button>
+          )}
+          {cellMode === 'off' && (
             <>
               {cell.status === 'running' && (
                 <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
@@ -440,7 +469,7 @@ function Header(props: {
           )}
         </div>
       </div>
-      {promptMode !== 'off' && (
+      {['prompting', 'generating'].includes(cellMode) && (
         <div className="flex flex-col gap-1.5">
           <div className="flex items-start justify-between px-1">
             <div className="flex items-start flex-grow">
@@ -463,7 +492,7 @@ function Header(props: {
                 size="icon"
                 variant="icon"
                 onClick={() => {
-                  setPromptMode('off');
+                  setCellMode('off');
                   setPrompt('');
                 }}
               >

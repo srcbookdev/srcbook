@@ -20,6 +20,7 @@ import {
   TsServerCellDiagnosticsPayloadSchema,
   TsConfigUpdatePayloadSchema,
   TsConfigUpdatedPayloadSchema,
+  AiFixDiagnosticsPayloadSchema,
 } from '../schemas/websockets.js';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -32,6 +33,7 @@ export type CellDeletePayloadType = z.infer<typeof CellDeletePayloadSchema>;
 export type CellOutputPayloadType = z.infer<typeof CellOutputPayloadSchema>;
 export type AiGenerateCellPayloadType = z.infer<typeof AiGenerateCellPayloadSchema>;
 export type AiGeneratedCellPayloadType = z.infer<typeof AiGeneratedCellPayloadSchema>;
+export type AiFixDiagnosticsPayloadType = z.infer<typeof AiFixDiagnosticsPayloadSchema>;
 
 export type DepsInstallPayloadType = z.infer<typeof DepsInstallPayloadSchema>;
 export type DepsValidateResponsePayloadType = z.infer<typeof DepsValidateResponsePayloadSchema>;

@@ -56,6 +56,7 @@ export default function CodeCell(props: {
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
   const [cellMode, setCellMode] = useState<CellModeType>('off');
+  const [generationType, setGenerationType] = useState<'edit' | 'fix'>('edit');
   const [prompt, setPrompt] = useState('');
   const [newSource, setNewSource] = useState('');
   const [fullscreen, setFullscreen] = useState(false);
@@ -131,6 +132,7 @@ export default function CodeCell(props: {
   }, [cell.id, channel]);
 
   const generate = () => {
+    setGenerationType('edit');
     channel.push('ai:generate', {
       sessionId: session.id,
       cellId: cell.id,
@@ -141,6 +143,7 @@ export default function CodeCell(props: {
 
   const aiFixDiagnostics = (diagnostics: string) => {
     setCellMode('fixing');
+    setGenerationType('fix');
     channel.push('ai:fix_diagnostics', { sessionId: session.id, cellId: cell.id, diagnostics });
   };
 
@@ -170,8 +173,7 @@ export default function CodeCell(props: {
   }
 
   function onRevertDiff() {
-    // TODO fix me, what about reverting a fix diff?
-    setCellMode('prompting');
+    setCellMode(generationType === 'edit' ? 'prompting' : 'off');
     setNewSource('');
   }
 

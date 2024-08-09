@@ -18,6 +18,7 @@ import {
   CellRenamePayloadSchema,
   TsConfigUpdatePayloadSchema,
   TsConfigUpdatedPayloadSchema,
+  AiFixDiagnosticsPayloadSchema,
 } from '@srcbook/shared';
 
 import Channel from '@/clients/websocket/channel';
@@ -45,6 +46,7 @@ const OutgoingSessionEvents = {
   'cell:rename': CellRenamePayloadSchema,
   'cell:delete': CellDeletePayloadSchema,
   'ai:generate': AiGenerateCellPayloadSchema,
+  'ai:fix_diagnostics': AiFixDiagnosticsPayloadSchema,
   'deps:install': DepsInstallPayloadSchema,
   'deps:validate': DepsValidatePayloadSchema,
   'tsserver:start': TsServerStartPayloadSchema,

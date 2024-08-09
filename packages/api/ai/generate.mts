@@ -23,6 +23,10 @@ const makeGenerateCellSystemPrompt = (language: CodeLanguageType) => {
   return readFileSync(Path.join(PROMPTS_DIR, `cell-generator-${language}.txt`), 'utf-8');
 };
 
+const makeFixDiagnosticsSystemPrompt = () => {
+  return readFileSync(Path.join(PROMPTS_DIR, 'fix-cell-diagnostics.txt'), 'utf-8');
+};
+
 const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, query: string) => {
   // Make sure we copy cells so we don't mutate the session
   const cellsWithPlaceholder: CellWithPlaceholderType[] = [...session.cells];
@@ -48,6 +52,31 @@ ${inlineSrcbookWithPlaceholder}
 ==== BEGIN USER REQUEST ====
 ${query}
 ==== END USER REQUEST ====`;
+  return prompt;
+};
+
+const makeFixDiagnosticsUserPrompt = (
+  session: SessionType,
+  cell: CodeCellType,
+  diagnostics: string,
+) => {
+  const inlineSrcbook = encode(
+    { cells: session.cells, language: session.language },
+    { inline: true },
+  );
+  const cellSource = cell.source;
+  const prompt = `==== BEGIN SRCBOOK ====
+${inlineSrcbook}
+==== END SRCBOOK ====
+
+==== BEGIN CODE CELL ====
+${cellSource}
+==== END CODE CELL ====
+
+==== BEGIN DIAGNOSTICS ====
+${diagnostics}
+==== END DIAGNOSTICS ====
+`;
   return prompt;
 };
 
@@ -179,6 +208,25 @@ export async function generateCellEdit(query: string, session: SessionType, cell
 
   const systemPrompt = makeGenerateCellEditSystemPrompt(session.language);
   const userPrompt = makeGenerateCellEditUserPrompt(query, session, cell);
+  const result = await generateText({
+    model: model,
+    system: systemPrompt,
+    prompt: userPrompt,
+  });
+
+  return result.text;
+}
+
+export async function fixDiagnostics(
+  session: SessionType,
+  cell: CodeCellType,
+  diagnostics: string,
+): Promise<string> {
+  const model = await getModel();
+
+  const systemPrompt = makeFixDiagnosticsSystemPrompt();
+  const userPrompt = makeFixDiagnosticsUserPrompt(session, cell, diagnostics);
+
   const result = await generateText({
     model: model,
     system: systemPrompt,

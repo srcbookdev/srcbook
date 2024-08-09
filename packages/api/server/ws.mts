@@ -1,5 +1,5 @@
 import { ChildProcess } from 'node:child_process';
-import { generateCellEdit } from '../ai/generate.mjs';
+import { generateCellEdit, fixDiagnostics } from '../ai/generate.mjs';
 import {
   findSession,
   findCell,
@@ -32,6 +32,7 @@ import type {
   CellCreatePayloadType,
   AiGenerateCellPayloadType,
   TsConfigUpdatePayloadType,
+  AiFixDiagnosticsPayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -43,6 +44,7 @@ import {
   CellStopPayloadSchema,
   AiGenerateCellPayloadSchema,
   AiGeneratedCellPayloadSchema,
+  AiFixDiagnosticsPayloadSchema,
   DepsInstallPayloadSchema,
   DepsValidatePayloadSchema,
   CellOutputPayloadSchema,
@@ -361,6 +363,19 @@ async function cellGenerate(payload: AiGenerateCellPayloadType) {
     output: result,
   });
 }
+
+async function cellFixDiagnostics(payload: AiFixDiagnosticsPayloadType) {
+  const session = await findSession(payload.sessionId);
+  const cell = findCell(session, payload.cellId) as CodeCellType;
+
+  const result = await fixDiagnostics(session, cell, payload.diagnostics);
+
+  wss.broadcast(`session:${session.id}`, 'ai:generated', {
+    cellId: payload.cellId,
+    output: result,
+  });
+}
+
 async function cellUpdate(payload: CellUpdatePayloadType) {
   const session = await findSession(payload.sessionId);
 
@@ -600,6 +615,7 @@ wss
   .incoming('cell:rename', CellRenamePayloadSchema, cellRename)
   .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)
   .incoming('ai:generate', AiGenerateCellPayloadSchema, cellGenerate)
+  .incoming('ai:fix_diagnostics', AiFixDiagnosticsPayloadSchema, cellFixDiagnostics)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
   .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)

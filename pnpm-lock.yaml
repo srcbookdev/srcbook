@@ -6,6 +6,12 @@ settings:
 
 catalogs:
   default:
+    '@ai-sdk/anthropic':
+      specifier: ^0.0.37
+      version: 0.0.37
+    '@ai-sdk/openai':
+      specifier: ^0.0.34
+      version: 0.0.34
     '@types/node':
       specifier: ^20.14.2
       version: 20.14.2
@@ -42,10 +48,10 @@ importers:
   packages/api:
     dependencies:
       '@ai-sdk/anthropic':
-        specifier: ^0.0.37
+        specifier: 'catalog:'
         version: 0.0.37(zod@3.23.8)
       '@ai-sdk/openai':
-        specifier: ^0.0.34
+        specifier: 'catalog:'
         version: 0.0.34(zod@3.23.8)
       '@srcbook/shared':
         specifier: workspace:^
@@ -286,8 +292,11 @@ importers:
 
   srcbook:
     dependencies:
+      '@ai-sdk/anthropic':
+        specifier: 'catalog:'
+        version: 0.0.37(zod@3.23.8)
       '@ai-sdk/openai':
-        specifier: ^0.0.34
+        specifier: 'catalog:'
         version: 0.0.34(zod@3.23.8)
       '@srcbook/shared':
         specifier: workspace:^

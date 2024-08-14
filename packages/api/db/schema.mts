@@ -1,11 +1,13 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { randomid } from '@srcbook/shared';
 
+// Deprecated. Remove me when migration is complete
 // Opening us up for different types of configuration:
 // supporting different models, local models and openAI url compatible providers
 type AiConfig =
   | { provider: 'openai'; model: 'gpt-4o' }
-  | { provider: 'anthropic'; model: 'claude-3-5-sonnet-20240620' };
+  | { provider: 'anthropic'; model: 'claude-3-5-sonnet-20240620' }
+  | { provider: 'local'; model: 'llama3' };
 
 export const configs = sqliteTable('config', {
   // Directory where .src.md files will be stored and searched by default.
@@ -22,6 +24,8 @@ export const configs = sqliteTable('config', {
     .$type<AiConfig>()
     .notNull()
     .default({ provider: 'openai', model: 'gpt-4o' }),
+  aiProvider: text('ai_provider').notNull().default('openai'),
+  aiModel: text('ai_model').default('gpt-4o'),
 });
 
 export type Config = typeof configs.$inferSelect;

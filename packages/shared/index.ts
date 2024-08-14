@@ -5,3 +5,4 @@ export * from './src/types/cells.js';
 export * from './src/types/tsserver.js';
 export * from './src/types/websockets.js';
 export * from './src/utils.js';
+export * from './src/ai.js';

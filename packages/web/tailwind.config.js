@@ -98,6 +98,8 @@ module.exports = {
           DEFAULT: 'hsl(var(--ai))',
           foreground: 'hsl(var(--ai-foreground))',
           border: 'hsl(var(--ai-border))',
+          btn: 'hsl(var(--ai-btn))',
+          ring: 'hsl(var(--ai-ring))',
         },
         sb: {
           'core-0': 'hsl(var(--sb-core-0))',

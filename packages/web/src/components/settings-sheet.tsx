@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSettings } from '@/components/use-settings';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { SessionType } from '@/types';
@@ -21,7 +22,6 @@ type PropsType = {
   onOpenChange: (value: boolean) => void;
   openDepsInstallModal: () => void;
   channel: SessionChannel;
-  aiEnabled: boolean;
 };
 
 export function SettingsSheet({
@@ -30,11 +30,12 @@ export function SettingsSheet({
   onOpenChange,
   openDepsInstallModal,
   channel,
-  aiEnabled,
 }: PropsType) {
+  const { aiEnabled } = useSettings();
   const { cells } = useCells();
   const navigate = useNavigate();
   const [showAiNudge, setShowAiNudge] = useState(!aiEnabled);
+  console.log('aiEnabled', aiEnabled);
 
   const title = cells.find((cell) => cell.type === 'title') as TitleCellType;
 

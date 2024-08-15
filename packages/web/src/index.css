@@ -53,7 +53,7 @@
 
     --sb-purple-10: 270 62% 96%;
     --sb-purple-20: 270 78% 91%;
-    --sb-purple-60: 270 42% 57%;
+    --sb-purple-60: 277 42% 57%;
     --sb-purple-80: 277 38% 38%;
 
     --sb-green-20: 123 40% 90%;
@@ -66,6 +66,8 @@
     --tertiary: var(--sb-core-0);
     --tertiary-foreground: var(--sb-core-60);
     --ai: var(--sb-purple-10);
+    --ai-btn: var(--sb-purple-60);
+    --ai-ring: var(--sb-purple-60);
     --ai-foreground: var(--sb-purple-80);
     --ai-border: var(--sb-purple-20);
     --run: var(--sb-yellow-50);
@@ -84,9 +86,9 @@
     --secondary-hover: var(--sb-core-30);
     --tertiary: var(--sb-core-130);
     --tertiary-foreground: var(--sb-core-60);
-    --ai: hsl(277, 42%, 57%, 0.1);
-    --ai-foreground: hsl(269, 100%, 83%);
-    --ai-border: hsl(277, 42%, 57%, 0.2);
+    --ai: 277 42% 57% / 0.1;
+    --ai-foreground: 269 100% 83%;
+    --ai-border: 277 42% 57% / 0.2;
     --run: var(--sb-yellow-50);
     --run-foreground: var(--sb-core-100);
     --run-ring: var(--sb-yellow-50);

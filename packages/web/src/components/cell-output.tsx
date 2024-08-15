@@ -179,24 +179,15 @@ function TsServerDiagnostics({
   ) : (
     <div className="flex flex-col w-full">
       <p>{formattedDiagnostics}</p>
-      {aiEnabled && (
+      {aiEnabled && cellMode !== 'fixing' && (
         <Button
           variant="ai"
-          className="self-end flex items-center gap-2"
+          className="self-start flex items-center gap-2 px-2.5 py-2 font-sans h-7 mt-2"
           onClick={() => fixDiagnostics(formattedDiagnostics)}
-          disabled={cellMode === 'fixing' || cellMode === 'generating'}
+          disabled={cellMode === 'generating'}
         >
-          {cellMode === 'fixing' ? (
-            <>
-              <Loader2 className="animate-spin" size={16} />
-              <p>Working on it...</p>
-            </>
-          ) : (
-            <>
-              <Sparkles size={16} />
-              <p>Fix with AI</p>
-            </>
-          )}
+          <Sparkles size={16} />
+          <p>Fix with AI</p>
         </Button>
       )}
     </div>

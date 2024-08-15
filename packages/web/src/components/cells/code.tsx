@@ -190,9 +190,11 @@ export default function CodeCell(props: {
         <DialogContent
           className={cn(
             `w-[95vw] h-[95vh] max-w-none p-0 group flex flex-col`,
-            cell.status === 'running' || cellMode === 'generating' || cellMode === 'fixing'
+            cell.status === 'running'
               ? 'ring-1 ring-run-ring border-run-ring'
               : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
+            (cellMode === 'generating' || cellMode === 'fixing') &&
+              'ring-1 ring-ai-ring border-ai-ring',
           )}
           hideClose
         >
@@ -254,9 +256,11 @@ export default function CodeCell(props: {
         <div
           className={cn(
             'border rounded-md group',
-            cell.status === 'running' || cellMode === 'generating' || cellMode === 'fixing'
+            cell.status === 'running'
               ? 'ring-1 ring-run-ring border-run-ring'
               : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
+            (cellMode === 'generating' || cellMode === 'fixing') &&
+              'ring-1 ring-ai-ring border-ai-ring',
           )}
         >
           <Header
@@ -378,7 +382,9 @@ function Header(props: {
           className={cn(
             'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2',
 
-            cell.status === 'running' ? 'opacity-100' : '',
+            cell.status === 'running' || cellMode === 'fixing' || cellMode === 'generating'
+              ? 'opacity-100'
+              : '',
           )}
         >
           <TooltipProvider>
@@ -425,7 +431,7 @@ function Header(props: {
           )}
           {cellMode === 'generating' && (
             <Button
-              variant="run"
+              variant="ai"
               size="default-with-icon"
               className="disabled:opacity-100"
               disabled
@@ -436,7 +442,7 @@ function Header(props: {
           )}
           {cellMode === 'fixing' && (
             <Button
-              variant="run"
+              variant="ai"
               size="default-with-icon"
               className="disabled:opacity-100"
               disabled

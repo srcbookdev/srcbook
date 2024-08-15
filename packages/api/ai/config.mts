@@ -17,21 +17,17 @@ export async function getModel(): Promise<LanguageModel> {
       if (!config.openaiKey) {
         throw new Error('OpenAI API key is not set');
       }
-
       const openai = createOpenAI({
         compatibility: 'strict', // strict mode, enabled when using the OpenAI API
         apiKey: config.openaiKey,
       });
-
       return openai(model);
+
     case 'anthropic':
       if (!config.anthropicKey) {
         throw new Error('Anthropic API key is not set');
       }
-      const anthropic = createAnthropic({
-        apiKey: config.anthropicKey,
-      });
-
+      const anthropic = createAnthropic({ apiKey: config.anthropicKey });
       return anthropic(model);
 
     case 'custom':

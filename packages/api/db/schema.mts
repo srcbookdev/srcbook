@@ -1,13 +1,12 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { randomid } from '@srcbook/shared';
 
-// Deprecated. Remove me when migration is complete
-// Opening us up for different types of configuration:
+// Deprecated. Remove me when migration of AI config is stable.
+// Opening us up for different types of configuration
 // supporting different models, local models and openAI url compatible providers
 type AiConfig =
   | { provider: 'openai'; model: 'gpt-4o' }
-  | { provider: 'anthropic'; model: 'claude-3-5-sonnet-20240620' }
-  | { provider: 'local'; model: 'llama3' };
+  | { provider: 'anthropic'; model: 'claude-3-5-sonnet-20240620' };
 
 export const configs = sqliteTable('config', {
   // Directory where .src.md files will be stored and searched by default.
@@ -20,6 +19,7 @@ export const configs = sqliteTable('config', {
   enabledAnalytics: integer('enabled_analytics', { mode: 'boolean' }).notNull().default(true),
   // Stable ID for posthog
   installId: text('srcbook_installation_id').notNull().default(randomid()),
+  // Deprecated. Remove me when migration of AI config is stable.
   aiConfig: text('ai_config', { mode: 'json' })
     .$type<AiConfig>()
     .notNull()

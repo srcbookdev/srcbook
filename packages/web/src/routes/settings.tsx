@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { CircleCheck } from 'lucide-react';
-import { disk, updateConfig } from '@/lib/server';
+import { cn } from '@/lib/utils';
+import { CircleCheck, Loader2, CircleX } from 'lucide-react';
+import { disk, updateConfig, aiHealthcheck } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
-import { type CodeLanguageType } from '@srcbook/shared';
+import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
 import type { SettingsType, FsObjectResultType } from '@/types';
 import { useLoaderData } from 'react-router-dom';
 import { DirPicker } from '@/components/file-picker';
@@ -36,11 +37,12 @@ async function action({ request }: { request: Request }) {
 function Settings() {
   const { entries, baseDir } = useLoaderData() as SettingsType & FsObjectResultType;
   const {
-    aiConfig,
+    aiProvider,
+    aiModel,
+    aiBaseUrl,
     openaiKey: configOpenaiKey,
     anthropicKey: configAnthropicKey,
     updateConfig: updateConfigContext,
-    setAiProvider: setAiProvider,
     defaultLanguage,
     enabledAnalytics: configEnabledAnalytics,
   } = useSettings();
@@ -48,9 +50,17 @@ function Settings() {
   const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [enabledAnalytics, setEnabledAnalytics] = useState(configEnabledAnalytics);
+  const [model, setModel] = useState<string>(aiModel);
+  const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfigContext({ defaultLanguage: value });
+  };
+
+  const setAiProvider = (provider: AiProviderType) => {
+    const model = getDefaultModel(provider);
+    setModel(model);
+    updateConfigContext({ aiProvider: provider, aiModel: model });
   };
 
   const { theme, toggleTheme } = useTheme();
@@ -59,11 +69,19 @@ function Settings() {
   // or the key from the server is a string and the user entered input is different.
   const openaiKeySaveEnabled =
     (typeof configOpenaiKey === 'string' && openaiKey !== configOpenaiKey) ||
-    ((configOpenaiKey === null || configOpenaiKey === undefined) && openaiKey.length > 0);
+    ((configOpenaiKey === null || configOpenaiKey === undefined) && openaiKey.length > 0) ||
+    model !== aiModel;
 
   const anthropicKeySaveEnabled =
     (typeof configAnthropicKey === 'string' && anthropicKey !== configAnthropicKey) ||
-    ((configAnthropicKey === null || configAnthropicKey === undefined) && anthropicKey.length > 0);
+    ((configAnthropicKey === null || configAnthropicKey === undefined) &&
+      anthropicKey.length > 0) ||
+    model !== aiModel;
+
+  const customModelSaveEnabled =
+    (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
+    ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
+    model !== aiModel;
 
   return (
     <div>
@@ -110,20 +128,30 @@ function Settings() {
             <label className="opacity-70 text-sm pb-4">
               Select your preferred LLM and enter your credentials to use Srcbook's AI features.
             </label>
-            <div className="flex items-center justify-between w-full mb-6">
-              <Select onValueChange={setAiProvider}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder={aiConfig.provider} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="openai">openai</SelectItem>
-                  <SelectItem value="anthropic">anthropic</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between w-full mb-2 min-h-10">
+              <div className="flex items-center gap-2">
+                <Select onValueChange={setAiProvider}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder={aiProvider} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="openai">openai</SelectItem>
+                    <SelectItem value="anthropic">anthropic</SelectItem>
+                    <SelectItem value="local">custom</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  name="aiModel"
+                  className="w-[200px]"
+                  placeholder="AI model"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                />
+              </div>
               <AiInfoBanner />
             </div>
 
-            {aiConfig.provider === 'openai' && (
+            {aiProvider === 'openai' && (
               <div className="flex gap-2">
                 <Input
                   name="openaiKey"
@@ -134,7 +162,7 @@ function Settings() {
                 />
                 <Button
                   className="px-5"
-                  onClick={() => updateConfigContext({ openaiKey })}
+                  onClick={() => updateConfigContext({ openaiKey, aiModel: model })}
                   disabled={!openaiKeySaveEnabled}
                 >
                   Save
@@ -142,7 +170,7 @@ function Settings() {
               </div>
             )}
 
-            {aiConfig.provider === 'anthropic' && (
+            {aiProvider === 'anthropic' && (
               <div className="flex gap-2">
                 <Input
                   name="anthropicKey"
@@ -153,11 +181,35 @@ function Settings() {
                 />
                 <Button
                   className="px-5"
-                  onClick={() => updateConfigContext({ anthropicKey })}
+                  onClick={() => updateConfigContext({ anthropicKey, aiModel: model })}
                   disabled={!anthropicKeySaveEnabled}
                 >
                   Save
                 </Button>
+              </div>
+            )}
+
+            {aiProvider === 'local' && (
+              <div>
+                <p className="opacity-70 text-sm mb-4">
+                  If you want to use an openai-compatible model (for example when running local
+                  models with Ollama), choose this option and set the baseUrl.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    name="baseUrl"
+                    placeholder="http://localhost:11434/v1"
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                  />
+                  <Button
+                    className="px-5"
+                    onClick={() => updateConfigContext({ aiBaseUrl: baseUrl, aiModel: model })}
+                    disabled={!customModelSaveEnabled}
+                  >
+                    Save
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -186,32 +238,95 @@ function Settings() {
 }
 
 function AiInfoBanner() {
-  const { aiEnabled, aiConfig } = useSettings();
-  const provider = aiConfig.provider === 'openai' ? 'OpenAI' : 'Anthropic';
-  const link = (provider: 'openai' | 'anthropic') => {
-    return provider === 'openai'
-      ? 'https://platform.openai.com/api-keys'
-      : 'https://console.anthropic.com/settings/keys';
+  const { aiEnabled, aiProvider } = useSettings();
+
+  const fragments = (provider: AiProviderType) => {
+    switch (provider) {
+      case 'openai':
+        return (
+          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+            <p>API key required</p>
+            <a href="https://platform.openai.com/api-keys" target="_blank" className="underline">
+              Go to {aiProvider}
+            </a>
+          </div>
+        );
+
+      case 'anthropic':
+        return (
+          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+            <p>API key required</p>
+            <a
+              href="https://console.anthropic.com/settings/keys"
+              target="_blank"
+              className="underline"
+            >
+              Go to {aiProvider}
+            </a>
+          </div>
+        );
+
+      case 'local':
+        return (
+          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+            <p>Base URL required</p>
+          </div>
+        );
+    }
   };
 
   return (
     <div className="flex items-center gap-1">
-      {aiEnabled ? (
-        <div className="flex items-center gap-2 bg-sb-green-20 text-sb-green-80 rounded-sm text-sm font-medium px-3 py-2">
-          <CircleCheck size={16} />
-          <p>{provider} enabled</p>
-        </div>
-      ) : (
-        <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-          <p>API key required</p>
-          <a href={link(aiConfig.provider)} target="_blank" className="underline">
-            Go to {provider}
-          </a>
-        </div>
-      )}
+      {aiEnabled ? <TestAiButton /> : fragments(aiProvider)}
     </div>
   );
 }
+
+const TestAiButton = () => {
+  const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const TIMEOUT = 2500;
+  const check = () => {
+    setState('loading');
+    aiHealthcheck()
+      .then((res) => {
+        setState(res.error ? 'error' : 'success');
+        setTimeout(() => setState('idle'), TIMEOUT);
+      })
+      .catch((err) => {
+        console.error(err);
+        setState('error');
+        setTimeout(() => setState('idle'), TIMEOUT);
+      });
+  };
+  return (
+    <>
+      {state === 'idle' && (
+        <div className="flex items-center gap-2 bg-primary text-run-foreground rounded-sm text-sm font-medium px-3 py-1 w-fit">
+          <button onClick={check}>Test AI config</button>
+        </div>
+      )}
+      {state === 'loading' && (
+        <div className="flex items-center gap-2 bg-run text-run-foreground rounded-sm text-sm font-medium px-3 py-1 w-fit">
+          <Loader2 size={16} className="animate-spin" />
+          <p>Testing</p>
+        </div>
+      )}
+      {state === 'success' && (
+        <div className="flex items-center gap-2 bg-sb-green-20 text-sb-green-80 rounded-sm text-sm font-medium px-3 py-1 w-fit">
+          <CircleCheck size={16} />
+          <p>Success</p>
+        </div>
+      )}
+      {state === 'error' && (
+        <div className="flex items-center gap-2 bg-error text-error-foreground rounded-sm text-sm font-medium px-3 py-1 w-fit">
+          <CircleX size={16} />
+          <p>Error (check logs)</p>
+        </div>
+      )}
+    </>
+  );
+};
 
 Settings.loader = loader;
 Settings.action = action;

@@ -133,6 +133,16 @@ export async function generateSrcbook(query: string): Promise<NoToolsGenerateTex
   return result;
 }
 
+export async function healthcheck(): Promise<string> {
+  const model = await getModel();
+  const result = await generateText({
+    model,
+    system: 'This is a test, simply respond "yes" to confirm the model is working.',
+    prompt: 'Are you working?',
+  });
+  return result.text;
+}
+
 type GenerateCellsResult = {
   error: boolean;
   errors?: string[];

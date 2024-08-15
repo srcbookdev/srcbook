@@ -26,6 +26,7 @@ export const configs = sqliteTable('config', {
     .default({ provider: 'openai', model: 'gpt-4o' }),
   aiProvider: text('ai_provider').notNull().default('openai'),
   aiModel: text('ai_model').default('gpt-4o'),
+  aiBaseUrl: text('ai_base_url'),
 });
 
 export type Config = typeof configs.$inferSelect;

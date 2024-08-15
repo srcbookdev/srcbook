@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "933a6a2a-6bb5-4d9d-b98c-df8bb9ab5fe2",
+  "id": "3b9a5cbb-0675-4de3-9030-e3305e3cd7b9",
   "prevId": "60f5c930-2a73-4a40-ac7b-ccbe02696f87",
   "tables": {
     "config": {
@@ -50,7 +50,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'k5lm3pjkjhmcr57la1m3jnc1ig'"
+          "default": "'udjl51v4fi960i2rdoh5o6r8rc'"
         },
         "ai_config": {
           "name": "ai_config",
@@ -75,6 +75,13 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'gpt-4o'"
+        },
+        "ai_base_url": {
+          "name": "ai_base_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},

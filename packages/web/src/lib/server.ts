@@ -379,3 +379,14 @@ export async function sendFeedback({ feedback, email }: FeedbackRequestType) {
     console.error(response);
   }
 }
+
+export async function aiHealthcheck() {
+  const response = await fetch(API_BASE_URL + '/ai/healthcheck', {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+  if (!response.ok) {
+    console.error(response);
+  }
+  return response.json();
+}

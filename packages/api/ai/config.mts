@@ -2,7 +2,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { getConfig } from '../config.mjs';
 import type { LanguageModel } from 'ai';
-import { AiProvider, getDefaultModel, type AiProviderType } from '@srcbook/shared';
+import { getDefaultModel, type AiProviderType } from '@srcbook/shared';
 
 /**
  * Get the correct client and model configuration.
@@ -10,7 +10,7 @@ import { AiProvider, getDefaultModel, type AiProviderType } from '@srcbook/share
  */
 export async function getModel(): Promise<LanguageModel> {
   const config = await getConfig();
-  const { aiModel, aiProvider } = config;
+  const { aiModel, aiProvider, aiBaseUrl } = config;
   const model = aiModel || getDefaultModel(aiProvider as AiProviderType);
   switch (aiProvider as AiProviderType) {
     case 'openai':
@@ -35,9 +35,13 @@ export async function getModel(): Promise<LanguageModel> {
       return anthropic(model);
 
     case 'local':
+      if (typeof aiBaseUrl !== 'string') {
+        throw new Error('Local AI base URL is not set');
+      }
       const openaiCompatible = createOpenAI({
         compatibility: 'compatible',
         apiKey: 'bogus', // required but unused
+        baseURL: aiBaseUrl,
       });
       return openaiCompatible(model);
   }

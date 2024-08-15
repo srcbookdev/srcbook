@@ -35,7 +35,6 @@ export function SettingsSheet({
   const { cells } = useCells();
   const navigate = useNavigate();
   const [showAiNudge, setShowAiNudge] = useState(!aiEnabled);
-  console.log('aiEnabled', aiEnabled);
 
   const title = cells.find((cell) => cell.type === 'title') as TitleCellType;
 

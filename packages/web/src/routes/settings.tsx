@@ -87,14 +87,6 @@ function Settings() {
       <h1 className="text-4xl pb-4">Settings</h1>
       <div className="space-y-10">
         <div>
-          <h2 className="text-xl pb-2">Base Directory</h2>
-          <label className="opacity-70 text-sm">
-            The default directory to look for Srcbooks when importing.
-          </label>
-          <DirPicker dirname={baseDir} entries={entries} cta="Change" />
-        </div>
-
-        <div>
           <h2 className="text-xl pb-2">Theme</h2>
           <label className="opacity-70 text-sm">
             Select light or dark mode for the Srcbook app.
@@ -212,6 +204,14 @@ function Settings() {
               </div>
             )}
           </div>
+        </div>
+
+        <div>
+          <h2 className="text-xl pb-2">Base Directory</h2>
+          <label className="opacity-70 text-sm">
+            The default directory to look for Srcbooks when importing.
+          </label>
+          <DirPicker dirname={baseDir} entries={entries} cta="Change" />
         </div>
 
         <div>

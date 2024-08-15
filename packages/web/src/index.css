@@ -84,9 +84,9 @@
     --secondary-hover: var(--sb-core-30);
     --tertiary: var(--sb-core-130);
     --tertiary-foreground: var(--sb-core-60);
-    --ai: var(--sb-purple-10);
-    --ai-foreground: var(--sb-purple-80);
-    --ai-border: var(--sb-purple-20);
+    --ai: hsl(277, 42%, 57%, 0.1);
+    --ai-foreground: hsl(269, 100%, 83%);
+    --ai-border: hsl(277, 42%, 57%, 0.2);
     --run: var(--sb-yellow-50);
     --run-foreground: var(--sb-core-100);
     --run-ring: var(--sb-yellow-50);

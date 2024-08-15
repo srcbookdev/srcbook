@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CircleCheck, Loader2, CircleX } from 'lucide-react';
 import { disk, updateConfig, aiHealthcheck } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
@@ -285,17 +285,22 @@ const TestAiButton = () => {
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const TIMEOUT = 2500;
+  useEffect(() => {
+    if (state === 'success' || state === 'error') {
+      const timeout = setTimeout(() => setState('idle'), TIMEOUT);
+      return () => clearTimeout(timeout);
+    }
+  }, [state]);
+
   const check = () => {
     setState('loading');
     aiHealthcheck()
       .then((res) => {
         setState(res.error ? 'error' : 'success');
-        setTimeout(() => setState('idle'), TIMEOUT);
       })
       .catch((err) => {
         console.error(err);
         setState('error');
-        setTimeout(() => setState('idle'), TIMEOUT);
       });
   };
   return (

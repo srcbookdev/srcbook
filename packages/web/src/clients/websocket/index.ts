@@ -25,7 +25,7 @@ import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
 
 // Establish websocket connection immediately.
-const client = new WebSocketClient('ws://localhost:2150/websocket');
+const client = new WebSocketClient(`ws://${window.location.host}/websocket`);
 
 export default client;
 const IncomingSessionEvents = {

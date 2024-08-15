@@ -1,5 +1,10 @@
-import type { CodeLanguageType, MarkdownCellType, CodeCellType } from '@srcbook/shared';
-import { AiConfigType, SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
+import type {
+  AiProviderType,
+  CodeLanguageType,
+  MarkdownCellType,
+  CodeCellType,
+} from '@srcbook/shared';
+import { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
 
 const API_BASE_URL = 'http://localhost:2150/api';
 
@@ -230,7 +235,9 @@ interface EditConfigRequestType {
   openaiKey?: string;
   anthropicKey?: string;
   enabledAnalytics?: boolean;
-  aiConfig?: AiConfigType;
+  aiBaseUrl?: string;
+  aiModel?: string;
+  aiProvider?: AiProviderType;
 }
 
 export async function getConfig() {

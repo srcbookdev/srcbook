@@ -34,7 +34,7 @@ export function SettingsProvider({ config, children }: ProviderPropsType) {
   const aiEnabled =
     (config.openaiKey && config.aiProvider === 'openai') ||
     (config.anthropicKey && config.aiProvider === 'anthropic') ||
-    (config.aiProvider === 'local' && !!config.aiBaseUrl) ||
+    (config.aiProvider === 'custom' && !!config.aiBaseUrl) ||
     false;
 
   const context: SettingsContextValue = {

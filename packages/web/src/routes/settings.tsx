@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { CircleCheck, Loader2, CircleX } from 'lucide-react';
 import { disk, updateConfig, aiHealthcheck } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
@@ -137,7 +136,7 @@ function Settings() {
                   <SelectContent>
                     <SelectItem value="openai">openai</SelectItem>
                     <SelectItem value="anthropic">anthropic</SelectItem>
-                    <SelectItem value="local">custom</SelectItem>
+                    <SelectItem value="custom">custom</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
@@ -189,7 +188,7 @@ function Settings() {
               </div>
             )}
 
-            {aiProvider === 'local' && (
+            {aiProvider === 'custom' && (
               <div>
                 <p className="opacity-70 text-sm mb-4">
                   If you want to use an openai-compatible model (for example when running local
@@ -266,7 +265,7 @@ function AiInfoBanner() {
           </div>
         );
 
-      case 'local':
+      case 'custom':
         return (
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
             <p>Base URL required</p>

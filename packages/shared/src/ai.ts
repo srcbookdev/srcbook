@@ -1,7 +1,7 @@
 export const AiProvider = {
   OpenAI: 'openai',
   Anthropic: 'anthropic',
-  Local: 'local',
+  Custom: 'custom',
 } as const;
 
 export type AiProviderType = (typeof AiProvider)[keyof typeof AiProvider];
@@ -9,7 +9,7 @@ export type AiProviderType = (typeof AiProvider)[keyof typeof AiProvider];
 export const defaultModels: Record<AiProviderType, string> = {
   [AiProvider.OpenAI]: 'gpt-4o',
   [AiProvider.Anthropic]: 'claude-3-5-sonnet-20240620',
-  [AiProvider.Local]: 'mistral-nemo',
+  [AiProvider.Custom]: 'mistral-nemo',
 } as const;
 
 export function isValidProvider(provider: string): provider is AiProviderType {

@@ -34,7 +34,7 @@ export async function getModel(): Promise<LanguageModel> {
 
       return anthropic(model);
 
-    case 'local':
+    case 'custom':
       if (typeof aiBaseUrl !== 'string') {
         throw new Error('Local AI base URL is not set');
       }

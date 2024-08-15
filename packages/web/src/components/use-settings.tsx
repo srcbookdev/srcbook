@@ -50,7 +50,7 @@ export function useSettings() {
   const context = useContext(SettingsContext);
 
   if (!context) {
-    throw new Error('useAiConfig must be used within a AiConfigProvider');
+    throw new Error('useSettings must be used within a SettingsProvider');
   }
 
   return context;

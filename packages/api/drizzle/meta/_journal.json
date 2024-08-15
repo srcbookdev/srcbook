@@ -43,6 +43,13 @@
       "when": 1723676786701,
       "tag": "0005_new_provider_ai_models",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1723745583289,
+      "tag": "0006_deprecate_ai_config",
+      "breakpoints": true
     }
   ]
 }

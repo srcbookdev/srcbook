@@ -216,15 +216,12 @@ export default function CodeCell(props: {
             fullscreen={fullscreen}
             setFullscreen={setFullscreen}
             setShowStdio={setShowStdio}
+            onAccept={onAcceptDiff}
+            onRevert={onRevertDiff}
           />
 
           {cellMode === 'reviewing' ? (
-            <DiffEditor
-              original={cell.source}
-              modified={newSource}
-              onAccept={onAcceptDiff}
-              onRevert={onRevertDiff}
-            />
+            <DiffEditor original={cell.source} modified={newSource} />
           ) : (
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
@@ -283,15 +280,12 @@ export default function CodeCell(props: {
             fullscreen={fullscreen}
             setFullscreen={setFullscreen}
             setShowStdio={setShowStdio}
+            onAccept={onAcceptDiff}
+            onRevert={onRevertDiff}
           />
 
           {cellMode === 'reviewing' ? (
-            <DiffEditor
-              original={cell.source}
-              modified={newSource}
-              onAccept={onAcceptDiff}
-              onRevert={onRevertDiff}
-            />
+            <DiffEditor original={cell.source} modified={newSource} />
           ) : (
             <>
               <div className={cn(cellMode !== 'off' && 'opacity-50')}>
@@ -333,6 +327,8 @@ function Header(props: {
   prompt: string;
   setPrompt: (prompt: string) => void;
   stopCell: () => void;
+  onAccept: () => void;
+  onRevert: () => void;
 }) {
   const {
     cell,
@@ -386,48 +382,54 @@ function Header(props: {
           className={cn(
             'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2',
 
-            cell.status === 'running' || cellMode === 'fixing' || cellMode === 'generating'
+            cell.status === 'running' ||
+              cellMode === 'fixing' ||
+              cellMode === 'generating' ||
+              cellMode === 'reviewing'
               ? 'opacity-100'
               : '',
           )}
         >
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="icon"
-                  size="icon"
-                  onClick={() => {
-                    // Open stdout drawer in fullscreen mode.
-                    if (!fullscreen) setShowStdio(true);
-                    setFullscreen(!fullscreen);
-                  }}
-                  tabIndex={1}
-                >
-                  {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {fullscreen ? 'Minimize back to cells view' : 'Maximize to full screen'}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="icon"
-                  size="icon"
-                  disabled={cellMode !== 'off'}
-                  onClick={() => setCellMode('prompting')}
-                  tabIndex={1}
-                >
-                  <Sparkles size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Edit cell using AI</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="icon"
+                    className="w-8 px-0"
+                    size="icon"
+                    onClick={() => {
+                      // Open stdout drawer in fullscreen mode.
+                      if (!fullscreen) setShowStdio(true);
+                      setFullscreen(!fullscreen);
+                    }}
+                    tabIndex={1}
+                  >
+                    {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {fullscreen ? 'Minimize back to cells view' : 'Maximize to full screen'}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="icon"
+                    size="icon"
+                    disabled={cellMode !== 'off'}
+                    onClick={() => setCellMode('prompting')}
+                    tabIndex={1}
+                  >
+                    <Sparkles size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit cell using AI</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           {cellMode === 'prompting' && (
             <Button variant="default" onClick={generate} tabIndex={1} disabled={!aiEnabled}>
               Generate
@@ -454,6 +456,14 @@ function Header(props: {
             >
               <LoaderCircle size={16} className="animate-spin" /> Fixing...
             </Button>
+          )}
+          {cellMode === 'reviewing' && (
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={props.onRevert}>
+                Revert
+              </Button>
+              <Button onClick={props.onAccept}>Accept</Button>
+            </div>
           )}
           {cellMode === 'off' && (
             <>
@@ -494,7 +504,7 @@ function Header(props: {
                 onChange={(e) => setPrompt(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <AiGenerateTipsDialog>
                 <Button size="icon" variant="icon">
                   <MessageCircleWarning size={16} />
@@ -572,21 +582,11 @@ function CodeEditor({
   );
 }
 
-function DiffEditor({
-  original,
-  modified,
-  onAccept,
-  onRevert,
-}: {
-  original: string;
-  modified: string;
-  onAccept: () => void;
-  onRevert: () => void;
-}) {
+function DiffEditor({ original, modified }: { original: string; modified: string }) {
   const { codeTheme } = useTheme();
 
   return (
-    <div className="relative flex flex-col">
+    <div className="flex flex-col">
       <CodeMirror
         value={modified}
         theme={codeTheme}
@@ -601,12 +601,6 @@ function DiffEditor({
           }),
         ]}
       />
-      <div className="absolute top-0 right-0 flex items-center m-1.5 gap-1.5">
-        <Button variant="secondary" onClick={onRevert}>
-          Revert
-        </Button>
-        <Button onClick={onAccept}>Accept</Button>
-      </div>
     </div>
   );
 }

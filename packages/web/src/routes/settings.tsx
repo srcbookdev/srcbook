@@ -301,12 +301,17 @@ const TestAiButton = () => {
   return (
     <>
       {state === 'idle' && (
-        <div className="flex items-center gap-2 bg-primary text-run-foreground rounded-sm text-sm font-medium px-3 py-1 w-fit">
-          <button onClick={check}>Test AI config</button>
+        <div>
+          <button
+            className="flex items-center gap-2 bg-secondary text-secondary-foreground border border-border hover:bg-muted hover:text-secondary-hover rounded-sm text-sm font-medium px-3 py-1"
+            onClick={check}
+          >
+            Test AI config
+          </button>
         </div>
       )}
       {state === 'loading' && (
-        <div className="flex items-center gap-2 bg-run text-run-foreground rounded-sm text-sm font-medium px-3 py-1 w-fit">
+        <div className="flex items-center gap-2 bg-secondary text-secondary-foreground border border-border hover:bg-muted hover:text-secondary-hover rounded-sm text-sm font-medium px-3 py-1">
           <Loader2 size={16} className="animate-spin" />
           <p>Testing</p>
         </div>

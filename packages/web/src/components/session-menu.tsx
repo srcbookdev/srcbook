@@ -37,7 +37,6 @@ type Props = {
   setShowSettings: (value: boolean) => void;
   openDepsInstallModal: () => void;
   channel: SessionChannel;
-  aiEnabled: boolean;
 };
 
 marked.use({ gfm: true });
@@ -69,7 +68,6 @@ export default function SessionMenu({
   setShowSettings,
   openDepsInstallModal,
   channel,
-  aiEnabled,
 }: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -175,7 +173,6 @@ export default function SessionMenu({
         openDepsInstallModal={openDepsInstallModal}
         session={session}
         channel={channel}
-        aiEnabled={aiEnabled}
       />
       <div className="fixed xl:hidden top-[100px] left-6 group z-20">
         <NavigationMenu>

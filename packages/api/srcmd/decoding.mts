@@ -9,6 +9,7 @@ import type {
   TitleCellType,
 } from '@srcbook/shared';
 import type { DecodeCellsResult, DecodeResult } from './types.mjs';
+import { toFormattedJSON } from '../utils.mjs';
 
 /**
  * This is used to decode a complete .src.md file.
@@ -93,9 +94,22 @@ function getSrcbookMetadata(tokens: TokensList) {
 
   try {
     const metadata = JSON.parse(match[1]);
+
+    const filteredTokens = tokens.filter((t) => t !== srcbookMetdataToken);
+
+    if (metadata && metadata['tsconfig.json']) {
+      // This needs to be a string.
+      const tsconfig = toFormattedJSON(metadata['tsconfig.json']);
+
+      return {
+        metadata: SrcbookMetadataSchema.parse({ ...metadata, 'tsconfig.json': tsconfig }),
+        tokens: filteredTokens,
+      };
+    }
+
     return {
       metadata: SrcbookMetadataSchema.parse(metadata),
-      tokens: tokens.filter((t) => t !== srcbookMetdataToken),
+      tokens: filteredTokens,
     };
   } catch (e) {
     throw new Error(`Unable to parse srcbook metadata: ${(e as Error).message}`);

@@ -7,7 +7,7 @@ export const AiProvider = {
 export type AiProviderType = (typeof AiProvider)[keyof typeof AiProvider];
 
 export const defaultModels: Record<AiProviderType, string> = {
-  [AiProvider.OpenAI]: 'gpt-4o',
+  [AiProvider.OpenAI]: 'chatgpt-4o-latest',
   [AiProvider.Anthropic]: 'claude-3-5-sonnet-20240620',
   [AiProvider.Custom]: 'mistral-nemo',
 } as const;

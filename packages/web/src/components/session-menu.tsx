@@ -37,7 +37,6 @@ type Props = {
   setShowSettings: (value: boolean) => void;
   openDepsInstallModal: () => void;
   channel: SessionChannel;
-  aiEnabled: boolean;
 };
 
 marked.use({ gfm: true });

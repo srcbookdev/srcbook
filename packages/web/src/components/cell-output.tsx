@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSettings } from '@/components/use-settings';
-import { Ban, PanelBottomClose, Loader2, PanelBottomOpen, Sparkles } from 'lucide-react';
+import { Ban, PanelBottomClose, PanelBottomOpen, Sparkles } from 'lucide-react';
 import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';

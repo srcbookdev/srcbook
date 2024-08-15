@@ -182,7 +182,7 @@ function TsServerDiagnostics({
       {aiEnabled && cellMode !== 'fixing' && (
         <Button
           variant="ai"
-          className="self-start flex items-center gap-2 px-2.5 py-2 font-sans h-7 mt-2"
+          className="self-start flex items-center gap-2 px-2.5 py-2 font-sans h-7 mt-3"
           onClick={() => fixDiagnostics(formattedDiagnostics)}
           disabled={cellMode === 'generating'}
         >

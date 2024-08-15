@@ -1,4 +1,4 @@
-import { CellType, CodeLanguageType } from '@srcbook/shared';
+import { CellType, CodeLanguageType, AiProviderType } from '@srcbook/shared';
 
 export interface FsObjectType {
   path: string;
@@ -12,20 +12,15 @@ export interface FsObjectResultType {
   entries: FsObjectType[];
 }
 
-export const OPENAI_CONFIG = { provider: 'openai', model: 'gpt-4o' } as const;
-export const ANTHROPIC_CONFIG = {
-  provider: 'anthropic',
-  model: 'claude-3-5-sonnet-20240620',
-} as const;
-export type AiConfigType = typeof OPENAI_CONFIG | typeof ANTHROPIC_CONFIG;
-
 export type SettingsType = {
   baseDir: string;
   defaultLanguage: CodeLanguageType;
   openaiKey?: string | null;
   anthropicKey?: string | null;
   enabledAnalytics: boolean;
-  aiConfig: AiConfigType;
+  aiProvider: AiProviderType;
+  aiModel: string;
+  aiBaseUrl?: string | null;
 };
 
 export type StdoutOutputType = { type: 'stdout'; data: string };

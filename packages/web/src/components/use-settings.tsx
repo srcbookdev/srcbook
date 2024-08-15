@@ -2,10 +2,8 @@ import React, { createContext, useContext } from 'react';
 import { useRevalidator } from 'react-router-dom';
 import { updateConfig as updateConfigServer } from '@/lib/server';
 import type { SettingsType } from '@/types';
-import { OPENAI_CONFIG, ANTHROPIC_CONFIG } from '@/types';
 
 export type SettingsContextValue = SettingsType & {
-  setAiProvider: (provider: 'openai' | 'anthropic') => void;
   aiEnabled: boolean;
   updateConfig: (newConfig: Partial<SettingsType>) => Promise<void>;
 };
@@ -33,19 +31,14 @@ export function SettingsProvider({ config, children }: ProviderPropsType) {
     revalidator.revalidate();
   };
 
-  const setAiProvider = async (provider: 'openai' | 'anthropic') => {
-    const val = provider === 'openai' ? OPENAI_CONFIG : ANTHROPIC_CONFIG;
-    await updateConfig({ aiConfig: val });
-  };
-
   const aiEnabled =
-    (config.openaiKey && config.aiConfig.provider === 'openai') ||
-    (config.anthropicKey && config.aiConfig.provider === 'anthropic') ||
+    (config.openaiKey && config.aiProvider === 'openai') ||
+    (config.anthropicKey && config.aiProvider === 'anthropic') ||
+    (config.aiProvider === 'custom' && !!config.aiBaseUrl) ||
     false;
 
   const context: SettingsContextValue = {
     ...config,
-    setAiProvider,
     aiEnabled,
     updateConfig,
   };

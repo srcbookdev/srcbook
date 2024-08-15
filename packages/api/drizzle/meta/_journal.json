@@ -36,6 +36,13 @@
       "when": 1722982500003,
       "tag": "0004_add_ai_config",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1723676786701,
+      "tag": "0005_new_provider_ai_models",
+      "breakpoints": true
     }
   ]
 }

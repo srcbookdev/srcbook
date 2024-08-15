@@ -13,7 +13,7 @@ import {
   sessionToResponse,
   listSessions,
 } from '../session.mjs';
-import { generateCells, generateSrcbook } from '../ai/generate.mjs';
+import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
 import { disk } from '../utils.mjs';
 import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
 import {
@@ -141,6 +141,19 @@ router.post('/sessions/:id/generate_cells', cors(), async (req, res) => {
     const { error, errors, cells } = await generateCells(query, session, insertIdx);
     const result = error ? errors : cells;
     return res.json({ error, result });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+// Test that the AI generation is working with the current configuration
+router.options('/ai/healthcheck', cors());
+router.get('/ai/healthcheck', cors(), async (_req, res) => {
+  try {
+    const result = await healthcheck();
+    return res.json({ error: false, result });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

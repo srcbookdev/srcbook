@@ -1,4 +1,5 @@
 import { generateText, type GenerateTextResult } from 'ai';
+import { getModel } from './config.mjs';
 import {
   type CodeLanguageType,
   type CellType,
@@ -9,11 +10,8 @@ import {
 import { type SessionType } from '../types.mjs';
 import { readFileSync } from 'node:fs';
 import Path from 'node:path';
-import { createOpenAI } from '@ai-sdk/openai';
-import { createAnthropic } from '@ai-sdk/anthropic';
 import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
-import { getConfig } from '../config.mjs';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -110,37 +108,6 @@ ${query}
   return prompt;
 };
 
-/**
- * Get the correct client and model configuration.
- * Throws an error if the given API key is not set in the settings.
- */
-async function getModel() {
-  const config = await getConfig();
-  const { model, provider } = config.aiConfig;
-  switch (provider) {
-    case 'openai':
-      if (!config.openaiKey) {
-        throw new Error('OpenAI API key is not set');
-      }
-
-      const openai = createOpenAI({
-        compatibility: 'strict', // strict mode, enabled when using the OpenAI API
-        apiKey: config.openaiKey,
-      });
-
-      return openai(model);
-    case 'anthropic':
-      if (!config.anthropicKey) {
-        throw new Error('Anthropic API key is not set');
-      }
-      const anthropic = createAnthropic({
-        apiKey: config.anthropicKey,
-      });
-
-      return anthropic(model);
-  }
-}
-
 type NoToolsGenerateTextResult = GenerateTextResult<{}>;
 /*
  * Given a user request, which is free form text describing their intent,
@@ -154,7 +121,7 @@ type NoToolsGenerateTextResult = GenerateTextResult<{}>;
 export async function generateSrcbook(query: string): Promise<NoToolsGenerateTextResult> {
   const model = await getModel();
   const result = await generateText({
-    model: model,
+    model,
     system: makeGenerateSrcbookSystemPrompt(),
     prompt: query,
   });
@@ -164,6 +131,16 @@ export async function generateSrcbook(query: string): Promise<NoToolsGenerateTex
     console.warn('Generated a srcbook, but finish_reason was not "stop":', result.finishReason);
   }
   return result;
+}
+
+export async function healthcheck(): Promise<string> {
+  const model = await getModel();
+  const result = await generateText({
+    model,
+    system: 'This is a test, simply respond "yes" to confirm the model is working.',
+    prompt: 'Are you working?',
+  });
+  return result.text;
 }
 
 type GenerateCellsResult = {
@@ -181,7 +158,7 @@ export async function generateCells(
   const systemPrompt = makeGenerateCellSystemPrompt(session.language);
   const userPrompt = makeGenerateCellUserPrompt(session, insertIdx, query);
   const result = await generateText({
-    model: model,
+    model,
     system: systemPrompt,
     prompt: userPrompt,
   });
@@ -209,7 +186,7 @@ export async function generateCellEdit(query: string, session: SessionType, cell
   const systemPrompt = makeGenerateCellEditSystemPrompt(session.language);
   const userPrompt = makeGenerateCellEditUserPrompt(query, session, cell);
   const result = await generateText({
-    model: model,
+    model,
     system: systemPrompt,
     prompt: userPrompt,
   });
@@ -228,7 +205,7 @@ export async function fixDiagnostics(
   const userPrompt = makeFixDiagnosticsUserPrompt(session, cell, diagnostics);
 
   const result = await generateText({
-    model: model,
+    model,
     system: systemPrompt,
     prompt: userPrompt,
   });

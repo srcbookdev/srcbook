@@ -1,7 +1,8 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { randomid } from '@srcbook/shared';
 
-// Opening us up for different types of configuration:
+// Deprecated. Remove me when migration of AI config is stable.
+// Opening us up for different types of configuration
 // supporting different models, local models and openAI url compatible providers
 type AiConfig =
   | { provider: 'openai'; model: 'gpt-4o' }
@@ -18,10 +19,14 @@ export const configs = sqliteTable('config', {
   enabledAnalytics: integer('enabled_analytics', { mode: 'boolean' }).notNull().default(true),
   // Stable ID for posthog
   installId: text('srcbook_installation_id').notNull().default(randomid()),
+  // Deprecated. Remove me when migration of AI config is stable.
   aiConfig: text('ai_config', { mode: 'json' })
     .$type<AiConfig>()
     .notNull()
     .default({ provider: 'openai', model: 'gpt-4o' }),
+  aiProvider: text('ai_provider').notNull().default('openai'),
+  aiModel: text('ai_model').default('gpt-4o'),
+  aiBaseUrl: text('ai_base_url'),
 });
 
 export type Config = typeof configs.$inferSelect;

@@ -23,7 +23,7 @@ pnpm run dev-web
 
 Then visit http://localhost:5173
 
-_Note: make sure to run the database migrations with `npm run migrate` prior to running the api server_
+_Note: make sure to run the database migrations with `pnpm run migrate` prior to running the api server_
 
 ## Running pnpm scripts
 
@@ -71,13 +71,13 @@ To create a new migration, first modify [schema.ts](./packages/api/db/schema.mts
 
 ```shell
 # This will generate the migration
-npm run generate -- --name <migration_name>
+pnpm run generate -- --name <migration_name>
 ```
 
 To apply migrations:
 
 ```shell
-npm run migrate
+pnpm run migrate
 ```
 
 ## Releasing
@@ -86,5 +86,6 @@ The package that gets published to npm is under [srcbook/](./srcbook/). Publishi
 
 - run `pnpm run build`
 - bump the version in the [srcbook/package.json](./srcbook/package.json)
+- Don't forget to first publish sub packages (e.g., `shared`) if they've been modified
 - `cd srcbook/ && pnpm publish`
 - push git tags & add release notes to GitHub

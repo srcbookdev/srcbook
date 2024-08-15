@@ -1,6 +1,6 @@
 {
   "name": "srcbook",
-  "version": "0.0.1-alpha.14",
+  "version": "0.0.1-alpha.15",
   "description": "Srcbook is a interactive programming environment for TypeScript",
   "type": "module",
   "bin": "./bin/cli.mjs",

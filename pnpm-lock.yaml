@@ -4,33 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-catalogs:
-  default:
-    '@ai-sdk/anthropic':
-      specifier: ^0.0.37
-      version: 0.0.37
-    '@ai-sdk/openai':
-      specifier: ^0.0.34
-      version: 0.0.34
-    '@types/node':
-      specifier: ^20.14.2
-      version: 20.14.2
-    marked:
-      specifier: ^12.0.2
-      version: 12.0.2
-    prettier:
-      specifier: ^3.3.1
-      version: 3.3.1
-    typescript:
-      specifier: ^5.4.5
-      version: 5.4.5
-    ws:
-      specifier: ^8.17.0
-      version: 8.17.0
-    zod:
-      specifier: ^3.23.8
-      version: 3.23.8
-
 importers:
 
   .:
@@ -310,6 +283,9 @@ importers:
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
+      commander:
+        specifier: ^12.1.0
+        version: 12.1.0
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -2420,6 +2396,10 @@ packages:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
 
+  commander@12.1.0:
+    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
+    engines: {node: '>=18'}
+
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
     engines: {node: '>= 6'}
@@ -4305,6 +4285,33 @@ packages:
 
   zod@3.23.8:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+
+catalogs:
+  default:
+    '@ai-sdk/anthropic':
+      specifier: ^0.0.37
+      version: 0.0.37
+    '@ai-sdk/openai':
+      specifier: ^0.0.34
+      version: 0.0.34
+    '@types/node':
+      specifier: ^20.14.2
+      version: 20.14.2
+    marked:
+      specifier: ^12.0.2
+      version: 12.0.2
+    prettier:
+      specifier: ^3.3.1
+      version: 3.3.1
+    typescript:
+      specifier: ^5.4.5
+      version: 5.4.5
+    ws:
+      specifier: ^8.17.0
+      version: 8.17.0
+    zod:
+      specifier: ^3.23.8
+      version: 3.23.8
 
 snapshots:
 
@@ -6348,6 +6355,8 @@ snapshots:
   combined-stream@1.0.8:
     dependencies:
       delayed-stream: 1.0.0
+
+  commander@12.1.0: {}
 
   commander@4.1.1: {}
 

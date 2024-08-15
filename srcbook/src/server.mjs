@@ -1,8 +1,8 @@
 // This is important. It will create necessary directories on the file system. Import this first.
-import './lib/initialization.mjs';
+import '../lib/initialization.mjs';
 
 // This is important. It will create and setup the database. Import this second.
-import './lib/db/index.mjs';
+import '../lib/db/index.mjs';
 
 /**
  * Run the Srcbook application.
@@ -14,15 +14,12 @@ import './lib/db/index.mjs';
  *
  */
 import readline from 'node:readline';
-import fs from 'node:fs';
-import path from 'node:path';
 import http from 'node:http';
-import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
-import { wss, app, posthog } from './lib/index.mjs';
+import { wss, app, posthog } from '../lib/index.mjs';
 import chalk from 'chalk';
-import open from 'open';
+import { pathTo, getPackageJson } from './utils.mjs';
 
 function clearScreen() {
   const repeatCount = process.stdout.rows - 2;
@@ -36,11 +33,8 @@ clearScreen();
 
 console.log(chalk.bgGreen.black('  Srcbook  '));
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const PUBLIC_DIR = path.join(__dirname, 'public');
-const INDEX_HTML = path.join(PUBLIC_DIR, 'index.html');
+const PUBLIC_DIR = pathTo('public');
+const INDEX_HTML = pathTo('public', 'index.html');
 
 // Serve the static files, compiled from the packages/web/ React app
 console.log(chalk.dim('Serving static files (React app)...'));
@@ -55,24 +49,21 @@ webSocketServer.on('connection', wss.onConnection);
 // Serve the react-app for all other routes, handled by client-side routing
 app.get('*', (_req, res) => res.sendFile(INDEX_HTML));
 
-console.log(chalk.green('Initialization complete.'));
+console.log(chalk.green('Initialization complete'));
 
-const port = process.env.PORT || 2150;
+const port = Number(process.env.PORT ?? 2150);
 const url = `http://localhost:${port}`;
 
 posthog.capture({ event: 'user started Srcbook application' });
 
-const packageJsonPath = path.join(__dirname, 'package.json');
-const packageJson = fs.readFileSync(packageJsonPath, 'utf-8');
-const { name, version } = JSON.parse(packageJson);
+const { name, version } = getPackageJson();
 
 server.listen(port, () => {
   console.log(`${name}@${version} running at ${url}`);
-  const noop = () => {};
-  open(url).catch(noop);
+  process.send('{"type":"init"}');
 });
 
-process.on('SIGINT', async function () {
+process.on('SIGINT', async () => {
   await posthog.shutdown();
   server.close();
   process.exit();

@@ -6,7 +6,7 @@ import type {
 } from '@srcbook/shared';
 import { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
 
-const API_BASE_URL = 'http://localhost:2150/api';
+const API_BASE_URL = `${window.location.origin}/api`;
 
 interface DiskRequestType {
   dirname?: string;

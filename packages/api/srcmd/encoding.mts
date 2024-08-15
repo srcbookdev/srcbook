@@ -5,6 +5,7 @@ import type {
   TitleCellType,
   PlaceholderCellType,
   CellWithPlaceholderType,
+  CodeLanguageType,
 } from '@srcbook/shared';
 import type { SrcbookType } from './types.mjs';
 
@@ -18,13 +19,8 @@ export function encode(srcbook: SrcbookWithPlacebolderType, options: { inline: b
   const packageJsonCell = secondCell as PackageJsonCellType;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | PlaceholderCellType)[];
 
-  const metadata =
-    srcbook.language === 'javascript'
-      ? { language: srcbook.language }
-      : { language: srcbook.language, 'tsconfig.json': srcbook['tsconfig.json'] };
-
   const encoded = [
-    `<!-- srcbook:${JSON.stringify(metadata)} -->`,
+    encodeMetdata(srcbook),
     encodeTitleCell(titleCell),
     encodePackageJsonCell(packageJsonCell, options),
     ...cells.map((cell) => {
@@ -41,6 +37,26 @@ export function encode(srcbook: SrcbookWithPlacebolderType, options: { inline: b
 
   // End every file with exactly one newline.
   return encoded.join('\n\n').trimEnd() + '\n';
+}
+
+function encodeMetdata(srcbook: SrcbookWithPlacebolderType) {
+  const metadata: { language: CodeLanguageType; 'tsconfig.json'?: any } = {
+    language: srcbook.language,
+  };
+
+  // tsconfig is kept as a string in srcbook. However, when encoding
+  // it in srcmd, we need it to be an object in the metadata header.
+  if (srcbook.language === 'typescript' && srcbook['tsconfig.json']) {
+    try {
+      const parsed = JSON.parse(srcbook['tsconfig.json']);
+      metadata['tsconfig.json'] = parsed;
+    } catch (e) {
+      // This should never happen
+      console.error('Failed to parse tsconfig.json:', e);
+    }
+  }
+
+  return `<!-- srcbook:${JSON.stringify(metadata)} -->`;
 }
 
 function encodeTitleCell(cell: TitleCellType) {

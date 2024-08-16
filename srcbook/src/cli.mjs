@@ -33,6 +33,12 @@ function startServer(port, callback) {
       callback();
     }
   });
+
+  // Kill the server (child) process when the CLI (parent) process terminates from an exception
+  process.on('uncaughtException', (error) => {
+    console.error(error);
+    server.kill();
+  });
 }
 
 export default function program() {

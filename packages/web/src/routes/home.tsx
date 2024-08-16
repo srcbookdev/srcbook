@@ -20,6 +20,7 @@ import {
   ImportSrcbookButton,
 } from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
+import { ExternalLink } from 'lucide-react';
 
 export async function loader() {
   const [{ result: config }, { result: srcbooks }, { result: examples }] = await Promise.all([
@@ -100,6 +101,15 @@ export default function Home() {
               />
             ))}
           </div>
+
+          <a href="https://hub.srcbook.com" target="_blank">
+            <div className="flex gap-2 items-center mt-6 hover:-translate-y-0.5 transition-all">
+              <p className="px-2">
+                See more examples in <span className="underline font-medium">the hub</span>
+              </p>
+              <ExternalLink size={16} className="text-muted-foreground" />
+            </div>
+          </a>
         </div>
       )}
 

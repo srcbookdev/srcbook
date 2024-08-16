@@ -1,10 +1,10 @@
 # Srcbook
 
-Srcbooks are interactive notebooks for JavaScript & TypeScript. They allow you to create, run and share reproduceable programs and ideas.
+Srcbooks are interactive notebooks for JavaScript & TypeScript. They allow you to create, run and share reproduceable programs and ideas, and they export to a valid markdown format. It has AI features which make it very productive to explore and iterate on ideas.
 
 Srcbook runs locally on your machine and is fully open-source under the Apache2 license.
 
-Under the hood, Srcbook creates folders on your local machine and provides a web interface (also running locally) as a programming environment.
+Srcbook is served as a CLI application that you can install through npm. Once installed, it provides a web interface running locally. You can use this interface to create, export or import Srcbooks.
 
 Srcbooks export to markdown using the `.src.md` extension. These files can easily be shared, versioned, and rendered in any environment that supports Markdown, like your editor or GitHub UI.
 
@@ -22,7 +22,7 @@ If you upgrade and are having trouble launching the application, you can `rm -rf
 
 Srcbook requires node v20+. We highly recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions.
 
-## Install
+## Installing
 
 You can install the `srcbook` application from `npm`:
 
@@ -30,31 +30,48 @@ You can install the `srcbook` application from `npm`:
 npm install -g srcbook
 ```
 
-And then run it:
+## Running
 
 ```
-srcbook
+srcbook start
 ```
 
 You can also run it directly using `npx`:
 
 ```bash
 # Using npx
-npx srcbook
+npx srcbook start
 
 # Using pnpm
-pnpm dlx srcbook
+pnpm dlx srcbook start
 ```
 
-## Update
+Here is the current list of commands:
+```bash
+$ srcbook -h
+Usage: srcbook [options] [command]
+
+Srcbook is a interactive programming environment for TypeScript
+
+Options:
+  -V, --version                 output the version number
+  -h, --help                    display help for command
+
+Commands:
+  start [options]               Start the Srcbook server
+  import [options] <specifier>  Import a Srcbook
+  help [command]                display help for command
+```
+
+## Updating
 
 You can update `srcbook` using `npm`:
 
 ```bash
-npm update -g <package_name>
+npm update -g srcbook
 ```
 
-## Uninstall
+## Uninstalling
 
 You can remove srcbook by first removing the package, and then cleaning it's local directory on disk:
 

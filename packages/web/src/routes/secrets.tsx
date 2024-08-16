@@ -53,7 +53,7 @@ function Secrets() {
 
   return (
     <>
-      <h1 className="text-2xl my-4">Secrets</h1>
+      <h4 className="h4 mx-auto mb-6">Secrets</h4>
 
       <p>
         Secrets are a safe way utilize API tokens or other private credentials in Srcbooks. These

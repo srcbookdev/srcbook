@@ -84,7 +84,7 @@ function Settings() {
 
   return (
     <div>
-      <h1 className="text-4xl pb-4">Settings</h1>
+      <h4 className="h4 mx-auto mb-6">Settings</h4>
       <div className="space-y-10">
         <div>
           <h2 className="text-xl pb-2">Theme</h2>

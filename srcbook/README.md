@@ -1,4 +1,3 @@
-
 # Srcbook
 
 Srcbooks are interactive notebooks for JavaScript & TypeScript. They allow you to create, run and share reproduceable programs and ideas, and they export to a valid markdown format. It has AI features which make it very productive to explore and iterate on ideas.
@@ -48,6 +47,7 @@ pnpm dlx srcbook start
 ```
 
 Here is the current list of commands:
+
 ```bash
 $ srcbook -h
 Usage: srcbook [options] [command]

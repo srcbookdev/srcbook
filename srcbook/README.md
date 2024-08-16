@@ -1,43 +1,95 @@
 # Srcbook
 
-JavaScript and TypeSript notebooks.
+[![npm version](https://badge.fury.io/js/srcbook.svg)](https://badge.fury.io/js/srcbook)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-This application allows you to create, run, and share Srcbooks. Srcbooks are JavaScript or TypeScript notebooks that use the node runtime and run locally on your machine. Srcbooks export to markdown using the `.src.md` extension. These files can easily be shared, versioned, and rendered in any environment that supports Markdown, like your editor or GitHub UI.
+TypeScript & JavaScript notebooks.
 
-## Run
+## Features
+
+- Create, run, and share reproducible programs and ideas
+- Export to valid markdown format (.src.md)
+- AI features for exploring and iterating on ideas
+- Local execution with a web interface
+- Powered by Node.js
+- Open-source under the Apache2 license
+
+![the getting started srcbook](./assets/getting-started-srcbook.png)
+
+## Getting Started
+
+Srcbook runs locally on your machine as a CLI application with a web interface.
+
+### Requirements
+
+- Node.js v20+
+- We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions
 
 ### Installing
 
-Srcbook is currently distributed as a npm package. You can install it globally with the following command:
+You can install the `srcbook` application from `npm`:
 
 ```bash
-# Install
 npm install -g srcbook
+```
 
-# Run the application
-srcbook
+### Running
+
+```
+srcbook start
+```
+
+You can also run it directly using `npx`:
+
+```bash
+# Using npx
+npx srcbook start
+
+# Using pnpm
+pnpm dlx srcbook start
+```
+
+Here is the current list of commands:
+
+```bash
+$ srcbook -h
+Usage: srcbook [options] [command]
+
+Srcbook is a interactive programming environment for TypeScript
+
+Options:
+  -V, --version                 output the version number
+  -h, --help                    display help for command
+
+Commands:
+  start [options]               Start the Srcbook server
+  import [options] <specifier>  Import a Srcbook
+  help [command]                display help for command
 ```
 
 ### Updating
 
-You can update Srcbook to the latest version with:
+You can update `srcbook` using `npm`:
 
 ```bash
-npm update -g <package_name>
+npm update -g srcbook
 ```
 
-### Uninstall
+### Uninstalling
 
-To clean up all Srcbook data on your machine, you'll need to perform the following:
+You can remove srcbook by first removing the package, and then cleaning it's local directory on disk:
 
 ```bash
-# Remove the npm package
 npm uninstall -g srcbook
-
-# Clear up srcbook files on disk
-rm -rf ~/.srcbook/
+rm -rf ~/.srcbook
 ```
 
-## Requirements
+## Analytics and tracking
 
-Srcbook requires node v20+. We highly recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions.
+In order to improve Srcbook, we collect some behavioral analytics. We don't collect anything personal or identifiable, our goals are simply to improve the application. The code is open source so you don't have to trust us, you can verify! You can find more information in our [privacy policy](./PRIVACY-POLICY.md).
+
+If you want to disable tracking, you can do so in the settings page of the application.
+
+## Development
+
+For development instructions, see [CONTRIBUTING.md](./CONTRIBUTING.md).

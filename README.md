@@ -1,28 +1,31 @@
 # Srcbook
 
-Srcbooks are interactive notebooks for JavaScript & TypeScript. They allow you to create, run and share reproduceable programs and ideas.
+[![npm version](https://badge.fury.io/js/srcbook.svg)](https://badge.fury.io/js/srcbook)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Srcbook runs locally on your machine and is fully open-source under the Apache2 license.
+TypeScript & JavaScript notebooks.
 
-Under the hood, Srcbook creates folders on your local machine and provides a web interface (also running locally) as a programming environment.
+## Features
 
-Srcbooks export to markdown using the `.src.md` extension. These files can easily be shared, versioned, and rendered in any environment that supports Markdown, like your editor or GitHub UI.
-
-To learn more, try out the interactive tutorial which is itself a Srcbook by clicking "Getting Started" when launching the application.
-
-#### ⚠️ Warning
-
-Srcbook is currently in alpha which means there may be breaking changes until it's out of alpha.
-
-If you upgrade and are having trouble launching the application, you can `rm -rf ~/.srcbook` to clear the Srcbook directory and start from a clean state. This will, however, delete all your Srcbooks so you may want to first export any you care about to a `.src.md` file.
+- Create, run, and share reproducible programs and ideas
+- Export to valid markdown format (.src.md)
+- AI features for exploring and iterating on ideas
+- Local execution with a web interface
+- Powered by Node.js
+- Open-source under the Apache2 license
 
 ![the getting started srcbook](./assets/getting-started-srcbook.png)
 
-## Requirements
+## Getting Started
 
-Srcbook requires node v20+. We highly recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions.
+Srcbook runs locally on your machine as a CLI application with a web interface.
 
-## Install
+### Requirements
+
+- Node.js v20+
+- We recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions
+
+### Installing
 
 You can install the `srcbook` application from `npm`:
 
@@ -30,31 +33,49 @@ You can install the `srcbook` application from `npm`:
 npm install -g srcbook
 ```
 
-And then run it:
+### Running
 
 ```
-srcbook
+srcbook start
 ```
 
 You can also run it directly using `npx`:
 
 ```bash
 # Using npx
-npx srcbook
+npx srcbook start
 
 # Using pnpm
-pnpm dlx srcbook
+pnpm dlx srcbook start
 ```
 
-## Update
+Here is the current list of commands:
+
+```bash
+$ srcbook -h
+Usage: srcbook [options] [command]
+
+Srcbook is a interactive programming environment for TypeScript
+
+Options:
+  -V, --version                 output the version number
+  -h, --help                    display help for command
+
+Commands:
+  start [options]               Start the Srcbook server
+  import [options] <specifier>  Import a Srcbook
+  help [command]                display help for command
+```
+
+### Updating
 
 You can update `srcbook` using `npm`:
 
 ```bash
-npm update -g <package_name>
+npm update -g srcbook
 ```
 
-## Uninstall
+### Uninstalling
 
 You can remove srcbook by first removing the package, and then cleaning it's local directory on disk:
 

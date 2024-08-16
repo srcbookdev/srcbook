@@ -19,6 +19,14 @@
         }
       })(localStorage.getItem('sb:theme'));
     </script>
+    <script type="text/javascript">
+      globalThis.SRCBOOK_CONFIG = {
+        api: {
+          host: %VITE_SRCBOOK_API_HOST%,
+          origin: %VITE_SRCBOOK_API_ORIGIN%,
+        },
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>

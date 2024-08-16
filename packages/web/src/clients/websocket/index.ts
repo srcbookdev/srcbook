@@ -20,12 +20,12 @@ import {
   TsConfigUpdatedPayloadSchema,
   AiFixDiagnosticsPayloadSchema,
 } from '@srcbook/shared';
-
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
+import SRCBOOK_CONFIG from '@/config';
 
 // Establish websocket connection immediately.
-const client = new WebSocketClient(`ws://${window.location.host}/websocket`);
+const client = new WebSocketClient(`ws://${SRCBOOK_CONFIG.api.host}/websocket`);
 
 export default client;
 const IncomingSessionEvents = {

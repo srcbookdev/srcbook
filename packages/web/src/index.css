@@ -337,6 +337,10 @@
   @apply my-1;
 }
 
+.sb-prose img {
+  border-radius: 3px;
+}
+
 .cm-editor {
   @apply rounded-b;
   max-height: 80vh;

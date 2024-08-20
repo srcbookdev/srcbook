@@ -58,7 +58,7 @@ export default function GenerateAiCell(props: {
       className={cn(
         'group/cell relative w-full rounded-md border border-border transition-all',
         state === 'loading'
-          ? 'ring-1 ring-run-ring border-run-ring'
+          ? 'ring-1 ring-ai-ring border-ai-ring'
           : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
         error &&
           'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30 focus-within:border-sb-red-30 focus-within:ring-sb-red-30',
@@ -82,7 +82,7 @@ export default function GenerateAiCell(props: {
             <Button
               disabled={!prompt || !aiEnabled}
               onClick={generate}
-              variant={state === 'idle' ? 'default' : 'run'}
+              variant={state === 'idle' ? 'default' : 'ai'}
             >
               {state === 'idle' ? 'Generate' : 'Generating'}
             </Button>

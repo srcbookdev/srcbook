@@ -242,10 +242,12 @@ router.get('/settings', cors(), async (_req, res) => {
 router.post('/settings', cors(), async (req, res) => {
   try {
     const updated = await updateConfig(req.body);
+
     posthog.capture({
       event: 'user updated settings',
       properties: { setting_changed: Object.keys(req.body) },
     });
+
     return res.json({ result: updated });
   } catch (e) {
     const error = e as unknown as Error;

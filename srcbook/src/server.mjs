@@ -64,7 +64,8 @@ server.listen(port, () => {
 });
 
 process.on('SIGINT', async () => {
-  await posthog.shutdown();
+  // Ensure we gracefully shutdown posthog since it may need to flush events
+  posthog.shutdown();
   server.close();
   process.exit();
 });

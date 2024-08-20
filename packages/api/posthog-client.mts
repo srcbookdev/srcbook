@@ -25,7 +25,6 @@ class PostHogClient {
   }
 
   private get isEnabled(): boolean {
-    console.log({ analyticsEnabled: this.analyticsEnabled });
     return this.analyticsEnabled && IS_PRODUCTION;
   }
 

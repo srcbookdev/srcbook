@@ -235,7 +235,6 @@ interface EditConfigRequestType {
   defaultLanguage?: 'typescript' | 'javascript';
   openaiKey?: string;
   anthropicKey?: string;
-  enabledAnalytics?: boolean;
   aiBaseUrl?: string;
   aiModel?: string;
   aiProvider?: AiProviderType;

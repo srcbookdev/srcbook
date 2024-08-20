@@ -43,12 +43,10 @@ function Settings() {
     anthropicKey: configAnthropicKey,
     updateConfig: updateConfigContext,
     defaultLanguage,
-    enabledAnalytics: configEnabledAnalytics,
   } = useSettings();
 
   const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
-  const [enabledAnalytics, setEnabledAnalytics] = useState(configEnabledAnalytics);
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
 
@@ -212,24 +210,6 @@ function Settings() {
             The default directory to look for Srcbooks when importing.
           </label>
           <DirPicker dirname={baseDir} entries={entries} cta="Change" />
-        </div>
-
-        <div>
-          <h2 className="text-xl pb-2">Analytics tracking</h2>
-          <label className="opacity-70 block pb-4 text-sm">
-            We track behavioral analytics to improve Srcbook. We do not track any personally
-            identifiable information (PII).
-          </label>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={enabledAnalytics}
-              onCheckedChange={() => {
-                setEnabledAnalytics(!enabledAnalytics);
-                updateConfigContext({ enabledAnalytics: !enabledAnalytics });
-              }}
-            />
-            <label>{enabledAnalytics ? 'enabled' : 'disabled'}</label>
-          </div>
         </div>
       </div>
     </div>

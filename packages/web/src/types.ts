@@ -17,7 +17,6 @@ export type SettingsType = {
   defaultLanguage: CodeLanguageType;
   openaiKey?: string | null;
   anthropicKey?: string | null;
-  enabledAnalytics: boolean;
   aiProvider: AiProviderType;
   aiModel: string;
   aiBaseUrl?: string | null;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSettings } from '@/components/use-settings';
-import { Ban, PanelBottomClose, PanelBottomOpen, Sparkles } from 'lucide-react';
+import { Ban, Maximize, Minimize, PanelBottomClose, PanelBottomOpen, Sparkles } from 'lucide-react';
 import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
@@ -14,7 +14,8 @@ type PropsType = {
   setShow: (show: boolean) => void;
   fixDiagnostics: (diagnostics: string) => void;
   cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
-  fullscreen?: boolean;
+  setFullscreen: (fullscreen: boolean) => void;
+  fullscreen: boolean;
 };
 
 export function CellOutput({
@@ -24,6 +25,7 @@ export function CellOutput({
   fixDiagnostics,
   cellMode,
   fullscreen,
+  setFullscreen,
 }: PropsType) {
   const { getOutput, clearOutput, getTsServerDiagnostics } = useCells();
 
@@ -94,6 +96,14 @@ export function CellOutput({
             )}
           </TabsList>
           <div className="flex items-center gap-6">
+            <button
+              className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
+              onClick={() => {
+                setFullscreen(!fullscreen);
+              }}
+            >
+              {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+            </button>
             <button
               className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
               disabled={activeTab === 'problems'}

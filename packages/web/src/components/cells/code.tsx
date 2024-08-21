@@ -241,7 +241,8 @@ export default function CodeCell(props: {
                   cell={cell}
                   show={showStdio}
                   setShow={setShowStdio}
-                  fullscreen
+                  fullscreen={fullscreen}
+                  setFullscreen={setFullscreen}
                   fixDiagnostics={aiFixDiagnostics}
                   cellMode={cellMode}
                 />
@@ -302,6 +303,8 @@ export default function CodeCell(props: {
                 setShow={setShowStdio}
                 fixDiagnostics={aiFixDiagnostics}
                 cellMode={cellMode}
+                fullscreen={fullscreen}
+                setFullscreen={setFullscreen}
               />
             </>
           )}

@@ -1,7 +1,7 @@
 import EventEmitter from 'node:events';
 import type { ChildProcess } from 'node:child_process';
 import type { server as tsserver } from 'typescript';
-import { parseTsServerMessages } from './utils.mjs';
+import { parse } from './messages.mjs';
 
 /**
  * This class provides a wrapper around a process running tsserver and is used to communicate
@@ -41,7 +41,7 @@ export class TsServer extends EventEmitter {
     super();
     this.process = process;
     this.process.stdout?.on('data', (chunk) => {
-      const { messages, buffered } = parseTsServerMessages(chunk, this.buffered);
+      const { messages, buffered } = parse(chunk, this.buffered);
       this.buffered = buffered;
       for (const message of messages) {
         if (message.type === 'response') {

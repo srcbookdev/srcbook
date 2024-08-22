@@ -6,7 +6,7 @@
   "scripts": {
     "dev-api": "pnpm --filter api dev",
     "dev-web": "pnpm --filter web dev",
-    "build": "./scripts/build",
+    "build": "sh ./scripts/build.sh",
     "lint-web": "pnpm --filter web lint",
     "check-types": "pnpm --recursive check-types",
     "check-prettier": "pnpm prettier --check .",
@@ -20,5 +20,8 @@
     "prettier": "catalog:",
     "typescript": "catalog:"
   },
-  "packageManager": "pnpm@9.6.0+sha512.38dc6fba8dba35b39340b9700112c2fe1e12f10b17134715a4aa98ccf7bb035e76fd981cf0bb384dfa98f8d6af5481c2bef2f4266a24bfa20c34eb7147ce0b5e"
+  "packageManager": "pnpm@9.6.0+sha512.38dc6fba8dba35b39340b9700112c2fe1e12f10b17134715a4aa98ccf7bb035e76fd981cf0bb384dfa98f8d6af5481c2bef2f4266a24bfa20c34eb7147ce0b5e",
+  "dependencies": {
+    "turbo": "^2.0.14"
+  }
 }

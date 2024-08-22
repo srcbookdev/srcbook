@@ -35,3 +35,6 @@ srcbook/public/**/*
 
 srcbook/lib/**/*
 !srcbook/lib/.gitkeep
+
+# turbo
+**/.turbo

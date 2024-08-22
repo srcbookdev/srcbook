@@ -93,3 +93,7 @@ If you want to disable tracking, you can run Srcbook with `SRCBOOK_DISABLE_ANALY
 ## Development
 
 For development instructions, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## FAQ
+
+See [FAQ](./FAQ.md).

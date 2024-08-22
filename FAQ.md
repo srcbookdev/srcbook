@@ -17,7 +17,7 @@ Technical differences include:
 - Srcbook currently runs your code in a Node.js process. Thus, it is more for backend code or code shared across the frontend and backend. Our understanding is that observable runs your code in the browser and is therefore limited to what you can do in the browser. For Srcbook, this means that you can open database connections, spawn web servers, work directly with the file system, etc.
 - Observable publishes static sites (dashboards). We believe notebook-like products have more potential. We want Srcbook to be dynamic (hence Node.js) so that we eventually have the capability of turning your Srcbook into a full-fledged application, similar to [Livebook's apps](https://news.livebook.dev/deploy-notebooks-as-apps-quality-of-life-upgrades---launch-week-1---day-1-2OTEWI) or possibly products like [Streamlit](https://streamlit.io/). This would make Srcbook a great option for internal tools and more.
 
-This is our current understanding of the differences. Please reach out of something here is inaccurate.
+This is our current understanding of the differences. Please reach out if something here is inaccurate.
 
 ### Can I write React Components or other UI logic in Srcbook?
 

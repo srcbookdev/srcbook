@@ -96,4 +96,4 @@ For development instructions, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## FAQ
 
-See [FAQ](./FAQ.md)
+See [FAQ](./FAQ.md).

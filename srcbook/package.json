@@ -6,7 +6,7 @@
   "bin": "./bin/cli.mjs",
   "scripts": {
     "start": "./bin/cli.mjs start",
-    "build": "pnpm run --workspace-root build",
+    "build": "cd .. && sh ./scripts/build.sh",
     "depcheck": "depcheck",
     "prepublishOnly": "pnpm run --workspace-root build",
     "preversion": "pnpm run build",

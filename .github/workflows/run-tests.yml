@@ -1,45 +1,41 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests.
-# For now we only run against node 22.x, but can easily add more node versions should we decide to support them.
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js + pnpm CI
+name: CI
 
 on:
   push:
     branches: ['main']
   pull_request:
-    branches: ['main']
+    types: [opened, synchronize]
 
 jobs:
-  app:
+  build:
+    name: Build and Test
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-        node-version: [20.x, 22.x]
-
     steps:
-      - name: Checkout
+      - name: Check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22
           cache: 'pnpm'
 
-      - name: Install
+      - name: Install dependencies
         run: pnpm install
 
       - name: Lint
-        run: turbo check-format
+        run: pnpm check-format
 
       - name: Build
-        run: turbo build
+        run: pnpm build
 
       - name: Test
-        run: turbo test
+        run: pnpm test

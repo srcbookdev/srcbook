@@ -6,7 +6,8 @@
   "scripts": {
     "dev-api": "pnpm --filter api dev",
     "dev-web": "pnpm --filter web dev",
-    "build": "sh ./scripts/build.sh",
+    "build": "turbo build",
+    "test": "turbo test",
     "lint-web": "pnpm --filter web lint",
     "check-format": "prettier --check .",
     "format": "prettier --write .",
@@ -19,8 +20,11 @@
     "prettier": "catalog:",
     "typescript": "catalog:"
   },
-  "packageManager": "pnpm@9.8.0",
   "dependencies": {
     "turbo": "^2.0.14"
+  },
+  "packageManager": "pnpm@9.8.0",
+  "engines": {
+    "node": ">=20"
   }
 }

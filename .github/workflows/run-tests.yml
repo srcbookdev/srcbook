@@ -35,10 +35,10 @@ jobs:
           cache: 'pnpm'
 
       - name: Lint
-        run: turbo run check-prettier
+        run: turbo check-format
 
-      - name: Check that the application can successfully build
-        run: turbo run build
+      - name: Build
+        run: turbo build
 
       - name: Test
         run: turbo test

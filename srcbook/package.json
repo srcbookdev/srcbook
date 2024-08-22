@@ -5,7 +5,7 @@
   "type": "module",
   "bin": "./bin/cli.mjs",
   "scripts": {
-    "start": "./bin/cli.mjs",
+    "start": "./bin/cli.mjs start",
     "build": "pnpm run --workspace-root build",
     "depcheck": "depcheck",
     "prepublishOnly": "pnpm run --workspace-root build",

@@ -90,13 +90,12 @@ export default function Home() {
 
       {examples.length > 0 && (
         <div className="mb-11">
-          <h4 className="h4 mx-auto mb-6">Library</h4>
+          <h4 className="h4 mb-6">Library</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {examples.map((example) => (
               <MainCTACard
                 key={example.id}
-                title={example.title}
-                description={example.description}
+                srcbook={example}
                 onClick={() => openExampleSrcbook(example)}
               />
             ))}

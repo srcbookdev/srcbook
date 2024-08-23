@@ -39,7 +39,9 @@ export type ExampleSrcbookType = {
   path: string;
   title: string;
   dirname: string;
+  language: CodeLanguageType;
   description: string;
+  tags: string[];
 };
 
 export type GenerateAICellType = {

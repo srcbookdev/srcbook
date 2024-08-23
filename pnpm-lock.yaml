@@ -302,6 +302,9 @@ importers:
       '@ai-sdk/openai':
         specifier: 'catalog:'
         version: 0.0.34(zod@3.23.8)
+      '@srcbook/api':
+        specifier: workspace:^
+        version: link:../packages/api
       '@srcbook/shared':
         specifier: workspace:^
         version: link:../packages/shared

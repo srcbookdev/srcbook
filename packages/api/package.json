@@ -3,6 +3,10 @@
   "version": "0.0.1-alpha.1",
   "type": "module",
   "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist/**"
+  ],
   "scripts": {
     "init": "vite-node ./initialization.mts",
     "predev": "pnpm run init",

@@ -2,7 +2,6 @@
  * Make sure we've created the .srcbook directory on disk
  * before creating the DB
  */
-import '../initialization.mjs';
 import path from 'node:path';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
@@ -18,4 +17,7 @@ const DB_PATH = `${process.env.HOME}/.srcbook/srcbook.db`;
 
 const sqlite = new Database(DB_PATH);
 export const db = drizzle(sqlite, { schema });
-migrate(db, { migrationsFolder: drizzleFolder });
+
+export function configureDB(): void {
+  migrate(db, { migrationsFolder: drizzleFolder });
+}

@@ -6,7 +6,6 @@
   "bin": "./bin/cli.mjs",
   "scripts": {
     "start": "./bin/cli.mjs start",
-    "build": "cd .. && sh ./scripts/build.sh",
     "depcheck": "depcheck",
     "prepublishOnly": "pnpm run --workspace-root build",
     "preversion": "pnpm run build",
@@ -16,6 +15,7 @@
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/openai": "catalog:",
     "@srcbook/shared": "workspace:^",
+    "@srcbook/api": "workspace:^",
     "ai": "^3.2.16",
     "better-sqlite3": "^11.0.0",
     "chalk": "^5.3.0",

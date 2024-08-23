@@ -1,8 +1,25 @@
-// This is important. It will create necessary directories on the file system. Import this first.
-import '../lib/initialization.mjs';
+/**
+ * This file is meant to be executed before the rest of the application boots.
+ * Otherwise, the application will fail to boot because it expects the code in
+ * here to already have executed.
+ */
 
-// This is important. It will create and setup the database. Import this second.
-import '../lib/db/index.mjs';
+import fs from 'node:fs';
+import { SRCBOOKS_DIR } from '@srcbook/api';
+
+// This single mkdir is creating:
+//
+//     ~/.srcbook
+//     ~/.srcbook/srcbooks
+//
+// Make sure the `recursive` options is true to retain this
+// behavior and make sure both get created during initialization
+// or the app will not work properly.
+fs.mkdirSync(SRCBOOKS_DIR, { recursive: true });
+
+import { configureDB } from '@srcbook/api';
+
+configureDB();
 
 /**
  * Run the Srcbook application.
@@ -17,7 +34,7 @@ import readline from 'node:readline';
 import http from 'node:http';
 import express from 'express';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
-import { wss, app, posthog } from '../lib/index.mjs';
+import { wss, app, posthog } from '@srcbook/api';
 import chalk from 'chalk';
 import { pathTo, getPackageJson } from './utils.mjs';
 

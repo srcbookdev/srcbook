@@ -1,6 +1,4 @@
-<p>
-  <img src="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/ed5f26c2-ea9f-47b8-1a19-96cb31dfd900/public" alt="Srcbook banner" />
-</p>
+![Srcbook banner light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/733eaa72-3f6a-47f4-2560-9b9441d5ce00/public)
 
 [![npm version](https://badge.fury.io/js/srcbook.svg)](https://badge.fury.io/js/srcbook)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -14,7 +12,7 @@
 - Powered by Node.js
 - Open-source under the Apache2 license
 
-![Example Srcbook](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/b39712a9-d814-4907-acbe-ada6226c2800/public)
+![Example Srcbook light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/08f1a7b9-2fc1-404c-6621-9f0280010600/public)
 
 ## FAQ
 

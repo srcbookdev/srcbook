@@ -1,5 +1,8 @@
-![Srcbook banner light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/733eaa72-3f6a-47f4-2560-9b9441d5ce00/public#gh-light-mode-only)
-![Srcbook banner dark](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/aa3fa190-bffb-413d-6919-0adfeaae1800/public#gh-dark-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/aa3fa190-bffb-413d-6919-0adfeaae1800/public">
+  <source media="(prefers-color-scheme: light)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/733eaa72-3f6a-47f4-2560-9b9441d5ce00/public">
+  <img alt="Srcbook banner" src="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/733eaa72-3f6a-47f4-2560-9b9441d5ce00/public">
+</picture>
 
 [![npm version](https://badge.fury.io/js/srcbook.svg)](https://badge.fury.io/js/srcbook)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -13,8 +16,11 @@
 - Powered by Node.js
 - Open-source under the Apache2 license
 
-![Example Srcbook light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/08f1a7b9-2fc1-404c-6621-9f0280010600/public#gh-light-mode-only)
-![Example Srcbook dark](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/7c2f1fdf-8c9a-4e5c-46eb-64a35a5c4400/public#gh-dark-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/7c2f1fdf-8c9a-4e5c-46eb-64a35a5c4400/public">
+  <source media="(prefers-color-scheme: light)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/08f1a7b9-2fc1-404c-6621-9f0280010600/public">
+  <img alt="Srcbook banner" src="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/08f1a7b9-2fc1-404c-6621-9f0280010600/public">
+</picture>
 
 ## FAQ
 

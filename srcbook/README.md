@@ -14,7 +14,11 @@ TypeScript & JavaScript notebooks.
 - Powered by Node.js
 - Open-source under the Apache2 license
 
-![the getting started srcbook](./assets/getting-started-srcbook.png)
+![Example Srcbook](https://github.com/srcbookdev/srcbook/blob/main/assets/srcbook-screenshot.png?raw=true)
+
+## FAQ
+
+See [FAQ](https://github.com/srcbookdev/srcbook/blob/main/FAQ.md).
 
 ## Getting Started
 
@@ -86,10 +90,10 @@ rm -rf ~/.srcbook
 
 ## Analytics and tracking
 
-In order to improve Srcbook, we collect some behavioral analytics. We don't collect any Personal Identifiable Information (PII), our goals are simply to improve the application. The code is open source so you don't have to trust us, you can verify! You can find more information in our [privacy policy](./PRIVACY-POLICY.md).
+In order to improve Srcbook, we collect some behavioral analytics. We don't collect any Personal Identifiable Information (PII), our goals are simply to improve the application. The code is open source so you don't have to trust us, you can verify! You can find more information in our [privacy policy](https://github.com/srcbookdev/srcbook/blob/main/PRIVACY-POLICY.md).
 
 If you want to disable tracking, you can run Srcbook with `SRCBOOK_DISABLE_ANALYTICS=true` set in the environment.
 
-## Development
+## Contributing
 
-For development instructions, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+For development instructions, see [CONTRIBUTING.md](https://github.com/srcbookdev/srcbook/blob/main/CONTRIBUTING.md).

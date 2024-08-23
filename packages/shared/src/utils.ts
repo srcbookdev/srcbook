@@ -1,5 +1,6 @@
 import { base32hexnopad } from '@scure/base';
 import type { CodeLanguageType } from './types/cells.js';
+import * as crypto from 'crypto';
 
 export function randomid(byteSize = 16) {
   const bytes = crypto.getRandomValues(new Uint8Array(byteSize));

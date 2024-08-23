@@ -5,103 +5,36 @@ type PropsType = {
   className?: string;
 };
 
-/*
- * Our logo comes in different widths based on the size.
- */
 export function SrcbookLogo(props: PropsType) {
-  const size = Number(props.size ?? 16);
-
-  if (size <= 16) {
-    return (
-      <svg
-        width={size ?? 16}
-        height={size ?? 16}
-        className={props.className}
-        viewBox="0 0 17 17"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M8.51922 1.37231L11.5423 3.11896L12.298 3.55562M14.5653 4.8656V8.29171V9.14823M14.5653 11.7178L11.5423 13.4645L10.7865 13.9011M8.51922 15.2111L5.49618 13.4645L4.74042 13.0278M2.47314 11.7178V8.29171V7.43518M2.47314 4.8656L5.49618 3.11896L6.25194 2.6823"
-          stroke="currentColor"
-          strokeWidth="1.25"
-          strokeLinejoin="round"
-        />
-        <circle cx="8.76757" cy="1.57006" r="0.858393" fill="currentColor" />
-        <circle cx="14.5652" cy="5.12011" r="0.858393" fill="currentColor" />
-        <circle cx="14.5652" cy="8.90014" r="0.858393" fill="currentColor" />
-        <circle cx="14.3176" cy="11.9199" r="0.858393" fill="currentColor" />
-        <circle cx="10.7858" cy="13.9011" r="0.858393" fill="currentColor" />
-        <circle cx="8.51922" cy="15.2109" r="0.858393" fill="currentColor" />
-        <circle cx="4.98754" cy="13.23" r="0.858393" fill="currentColor" />
-        <circle cx="2.47314" cy="11.47" r="0.858393" fill="currentColor" />
-        <circle cx="2.47314" cy="7.69018" r="0.858393" fill="currentColor" />
-        <circle cx="2.47314" cy="4.86547" r="0.858393" fill="currentColor" />
-        <circle cx="5.99755" cy="2.88012" r="0.858393" fill="currentColor" />
-        <circle cx="12.2973" cy="3.55541" r="0.858393" fill="currentColor" />
-      </svg>
-    );
-  } else if (size <= 24) {
-    return (
-      <svg
-        width={size ?? 25}
-        height={size ?? 25}
-        className={props.className}
-        viewBox="0 0 25 25"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M12.5192 1.91235L17.0537 4.53232L18.1874 5.18731M21.5883 7.15228V12.2914V13.5762M21.5883 17.4306L17.0537 20.0506L15.9201 20.7056M12.5192 22.6705L7.98463 20.0506L6.85099 19.3956M3.45007 17.4306V12.2914V11.0067M3.45007 7.15228L7.98463 4.53232L9.11826 3.87733"
-          stroke="currentColor"
-          strokeWidth="1.25"
-          strokeLinejoin="round"
-        />
-        <circle cx="12.5192" cy="1.91235" r="1.28759" fill="currentColor" />
-        <circle cx="21.5882" cy="7.15234" r="1.28759" fill="currentColor" />
-        <circle cx="21.5882" cy="13.5771" r="1.28759" fill="currentColor" />
-        <circle cx="21.5882" cy="17.4307" r="1.28759" fill="currentColor" />
-        <circle cx="15.9191" cy="20.7056" r="1.28759" fill="currentColor" />
-        <circle cx="12.5192" cy="22.6704" r="1.28759" fill="currentColor" />
-        <circle cx="6.84997" cy="19.3955" r="1.28759" fill="currentColor" />
-        <circle cx="3.45007" cy="17.4307" r="1.28759" fill="currentColor" />
-        <circle cx="3.45007" cy="11.0076" r="1.28759" fill="currentColor" />
-        <circle cx="3.45007" cy="7.15234" r="1.28759" fill="currentColor" />
-        <circle cx="9.11724" cy="3.87743" r="1.28759" fill="currentColor" />
-        <circle cx="18.1863" cy="5.18725" r="1.28759" fill="currentColor" />
-      </svg>
-    );
-  } else {
-    return (
-      <svg
-        width={size ?? 73}
-        height={size ?? 73}
-        className={props.className}
-        viewBox="0 0 73 73"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M36.5192 5.1543L50.1229 13.0142L53.5238 14.9792M63.7266 20.8741V36.2916V40.1459M63.7266 51.709L50.1229 59.5689L46.722 61.5339M36.5192 67.4288L22.9156 59.5689L19.5147 57.604M9.31192 51.709V36.2916V32.4372M9.31192 20.8741L22.9156 13.0142L26.3165 11.0492"
-          stroke="currentColor"
-          strokeWidth="3.37992"
-          strokeLinejoin="round"
-        />
-        <circle cx="36.5192" cy="5.15427" r="3.86277" fill="currentColor" />
-        <circle cx="63.7264" cy="20.874" r="3.86277" fill="currentColor" />
-        <circle cx="63.7264" cy="40.1489" r="3.86277" fill="currentColor" />
-        <circle cx="63.7264" cy="51.709" r="3.86277" fill="currentColor" />
-        <circle cx="46.7188" cy="61.5339" r="3.86277" fill="currentColor" />
-        <circle cx="36.5192" cy="67.4287" r="3.86277" fill="currentColor" />
-        <circle cx="19.5116" cy="57.604" r="3.86277" fill="currentColor" />
-        <circle cx="9.31193" cy="51.709" r="3.86277" fill="currentColor" />
-        <circle cx="9.31193" cy="32.4402" r="3.86277" fill="currentColor" />
-        <circle cx="9.31193" cy="20.874" r="3.86277" fill="currentColor" />
-        <circle cx="26.3134" cy="11.0493" r="3.86277" fill="currentColor" />
-        <circle cx="53.5206" cy="14.9792" r="3.86277" fill="currentColor" />
-      </svg>
-    );
-  }
+  return (
+    <svg
+      width={props.size ?? 16}
+      height={props.size ?? 16}
+      className={props.className}
+      viewBox="0 0 25 25"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M12.5192 1.91235L17.0537 4.53232L18.1874 5.18731M21.5883 7.15228V12.2914V13.5762M21.5883 17.4306L17.0537 20.0506L15.9201 20.7056M12.5192 22.6705L7.98463 20.0506L6.85099 19.3956M3.45007 17.4306V12.2914V11.0067M3.45007 7.15228L7.98463 4.53232L9.11826 3.87733"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinejoin="round"
+      />
+      <circle cx="12.5192" cy="1.91235" r="1.28759" fill="currentColor" />
+      <circle cx="21.5882" cy="7.15234" r="1.28759" fill="currentColor" />
+      <circle cx="21.5882" cy="13.5771" r="1.28759" fill="currentColor" />
+      <circle cx="21.5882" cy="17.4307" r="1.28759" fill="currentColor" />
+      <circle cx="15.9191" cy="20.7056" r="1.28759" fill="currentColor" />
+      <circle cx="12.5192" cy="22.6704" r="1.28759" fill="currentColor" />
+      <circle cx="6.84997" cy="19.3955" r="1.28759" fill="currentColor" />
+      <circle cx="3.45007" cy="17.4307" r="1.28759" fill="currentColor" />
+      <circle cx="3.45007" cy="11.0076" r="1.28759" fill="currentColor" />
+      <circle cx="3.45007" cy="7.15234" r="1.28759" fill="currentColor" />
+      <circle cx="9.11724" cy="3.87743" r="1.28759" fill="currentColor" />
+      <circle cx="18.1863" cy="5.18725" r="1.28759" fill="currentColor" />
+    </svg>
+  );
 }
 
 export function JavaScriptLogo(props: PropsType) {

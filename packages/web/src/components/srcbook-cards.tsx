@@ -4,6 +4,7 @@ import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { ExampleSrcbookType } from '@/types';
 
 function LongDashedHorizontalLine(props: { className?: string }) {
   return (
@@ -41,24 +42,46 @@ function LongDashedVerticalLine(props: { className?: string }) {
   );
 }
 
-export function MainCTACard(props: { title: string; description: string; onClick: () => void }) {
+export function MainCTACard(props: { srcbook: ExampleSrcbookType; onClick: () => void }) {
+  const { srcbook, onClick } = props;
+
   return (
     <div
       className="flex flex-col items-center cursor-pointer border hover:border-foreground transition-colors active:translate-y-0.5 rounded-sm"
-      onClick={props.onClick}
+      onClick={onClick}
     >
-      <div className="w-full grow h-44 bg-foreground rounded-t-[2px]"></div>
-      <div className="relative overflow-clip">
+      <div className="w-full grow h-[130px] bg-sb-core-20 rounded-t-[2px] flex items-center justify-center">
+        <SrcbookLogo size={64} className="text-sb-core-40" />
+      </div>
+      <div className="w-full relative overflow-clip">
         <LongDashedHorizontalLine className="absolute top-[10px] text-border" />
         <LongDashedHorizontalLine className="absolute bottom-[10px] text-border" />
         <LongDashedVerticalLine className="absolute left-[10px] top-0 text-border" />
         <LongDashedVerticalLine className="absolute right-[10px] top-0 text-border" />
-        <div className="w-full p-6 space-y-2">
-          <h4 className="h4">{props.title}</h4>
-          <p className="text-sm text-tertiary-foreground">{props.description}</p>
+        <div className="w-full flex-1 p-6 space-y-2">
+          <h4 className="h5 line-clamp-2">{srcbook.title}</h4>
+          <p className="text-sm text-ter tiary-foreground line-clamp-2">{srcbook.description}</p>
+          <div className="flex items-center justify-between">
+            <div className="space-x-1">
+              {srcbook.tags.map((tag) => (
+                <Tag key={tag} value={tag} />
+              ))}
+            </div>
+            <span className="font-mono text-sm text-tertiary-foreground">
+              {srcbook.language === 'typescript' ? 'TS' : 'JS'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function Tag(props: { value: string }) {
+  return (
+    <span className="px-1.5 py-1 text-[13px] bg-sb-yellow-20 text-sb-yellow-70 dark:bg-sb-yellow-50 dark:text-sb-core-160 rounded-sm">
+      {props.value}
+    </span>
   );
 }
 

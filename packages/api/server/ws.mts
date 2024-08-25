@@ -416,6 +416,7 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
 
 async function cellRename(payload: CellRenamePayloadType) {
   const session = await findSession(payload.sessionId);
+
   if (!session) {
     throw new Error(`No session exists for session '${payload.sessionId}'`);
   }

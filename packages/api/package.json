@@ -3,9 +3,11 @@
   "version": "0.0.1-alpha.1",
   "type": "module",
   "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist/**"
+  ],
   "scripts": {
-    "init": "vite-node ./initialization.mts",
-    "predev": "pnpm run init",
     "dev": "vite-node dev-server.mts",
     "test": "vitest",
     "prebuild": "rm -rf ./dist",
@@ -13,7 +15,6 @@
     "check-types": "tsc",
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",
-    "premigrate": "pnpm run init",
     "migrate": "drizzle-kit migrate",
     "prepublishOnly": "tsc",
     "preversion": "vitest run && pnpm run build",

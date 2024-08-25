@@ -1,44 +1,46 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests.
-# For now we only run against node 22.x, but can easily add more node versions should we decide to support them.
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js + pnpm CI
+name: CI
 
 on:
   push:
     branches: ['main']
   pull_request:
-    branches: ['main']
+    types: [opened, synchronize]
 
 jobs:
-  app:
+  build:
+    name: Build and Test
+    timeout-minutes: 10
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-        node-version: [22.x]
+    # To use enable remote caching just set these env vars up
+    # env:
+    #  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+    #  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+    #  TURBO_REMOTE_ONLY: true
 
     steps:
-      - name: Checkout
+      - name: Check out code
         uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
         with:
-          run_install: true
+          fetch-depth: 2
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          version: 9
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
           cache: 'pnpm'
 
-      - name: Lint
-        run: pnpm run check-prettier
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Check that the application can successfully build
-        run: pnpm run build
+      - name: Lint
+        run: pnpm check-format
+
+      - name: Build
+        run: pnpm build
 
       - name: Test
-        run: pnpm --filter api test
+        run: pnpm test

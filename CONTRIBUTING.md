@@ -12,13 +12,7 @@ To run the app for local development, you'll need to start both:
 Run the API:
 
 ```shell
-pnpm run dev-api
-```
-
-Run the Web server:
-
-```shell
-pnpm run dev-web
+turbo dev
 ```
 
 Then visit http://localhost:5173
@@ -30,13 +24,13 @@ _Note: make sure to run the database migrations with `pnpm run migrate` prior to
 Similar to NPM, check top-level package.json for scripts.
 
 ```shell
-pnpm check-types
+turbo check-types
 ```
 
 To run a script defined in one of the packages:
 
 ```shell
-pnpm --filter api check-types
+turbo check-types --filter=@srcbook/api
 ```
 
 ## Adding a dependency

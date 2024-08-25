@@ -11,28 +11,30 @@ export function EditableH1(props: {
   className?: string;
   onUpdated: (text: string) => void;
 }) {
-  const ref = React.useRef<HTMLHeadingElement | null>(null);
-  const [heading, setHeading] = React.useState(props.text);
-  const [isMaxHeadingLengthExceeded, setisMaxHeadingLengthExceeded] = React.useState(false);
+  const ref = React.useRef<HTMLTextAreaElement | null>(null);
+  const [heading, setHeading] = React.useState<string>(props.text);
+  const [isMaxHeadingLengthExceeded, setIsMaxHeadingLengthExceeded] =
+    React.useState<boolean>(false);
   const maxHeadingLength = 50;
 
-  const handleChange = (e: HTMLTextAreaElement['value']) => {
-    if (e.length > maxHeadingLength) {
-      setisMaxHeadingLengthExceeded(true);
+  const handleChange = (newValue: string) => {
+    if (newValue.length > maxHeadingLength) {
+      setIsMaxHeadingLengthExceeded(true);
       setTimeout(() => {
-        setisMaxHeadingLengthExceeded(false);
+        setIsMaxHeadingLengthExceeded(false);
       }, 2000);
       return;
     }
-    setHeading(e);
+    setHeading(newValue);
   };
+
   return (
     <div>
       <textarea
         className={cn(className, props.className)}
         value={heading}
         onBlur={(e) => {
-          const text = e.currentTarget.innerHTML;
+          const text = e.currentTarget.value;
           if (text !== props.text) {
             props.onUpdated(text);
           }
@@ -42,7 +44,10 @@ export function EditableH1(props: {
             ref.current.blur();
           }
         }}
-        onChange={(e) => handleChange(e.target.value)}
+        onChange={(e) => {
+          handleChange(e.target.value);
+        }}
+        ref={ref}
         rows={1}
       />
       {isMaxHeadingLengthExceeded && (

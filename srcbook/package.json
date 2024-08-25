@@ -34,6 +34,6 @@
     "@types/express": "^4.17.21"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
   }
 }

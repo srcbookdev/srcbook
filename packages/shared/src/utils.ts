@@ -1,8 +1,15 @@
 import { base32hexnopad } from '@scure/base';
 import type { CodeLanguageType } from './types/cells.js';
+import * as crypto from 'crypto';
+
+export function isBrowser(): boolean {
+  return typeof window !== 'undefined';
+}
 
 export function randomid(byteSize = 16) {
-  const bytes = crypto.getRandomValues(new Uint8Array(byteSize));
+  const bytes = isBrowser()
+    ? globalThis.crypto.getRandomValues(new Uint8Array(byteSize))
+    : crypto.getRandomValues(new Uint8Array(byteSize));
   return base32hexnopad.encode(bytes).toLowerCase();
 }
 

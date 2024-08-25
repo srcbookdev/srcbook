@@ -32,7 +32,7 @@ Srcbook runs locally on your machine as a CLI application with a web interface.
 
 ### Requirements
 
-- Node 20+, we recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions
+- Node 18+, we recommend using [nvm](https://github.com/nvm-sh/nvm) to manage local node versions
 - [corepack](https://nodejs.org/api/corepack.html) to manage package manager versions
 
 ### Installing

@@ -17,6 +17,10 @@ jobs:
     #  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     #  TURBO_REMOTE_ONLY: true
 
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x', '22.x']
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -27,10 +31,10 @@ jobs:
         with:
           version: 9
 
-      - name: Setup Node.js environment
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
       - name: Install dependencies

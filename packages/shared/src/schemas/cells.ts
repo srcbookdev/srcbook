@@ -65,7 +65,7 @@ export const SrcbookMetadataSchema = z.object({
 ///////////////////////////////////////////
 
 export const TitleCellUpdateAttrsSchema = z.object({
-  text: z.string(),
+  text: z.string().max(44, 'Title must be 44 characters or fewer'),
 });
 
 export const MarkdownCellUpdateAttrsSchema = z.object({

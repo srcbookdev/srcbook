@@ -32,8 +32,8 @@ export function ImportSrcbookModal({
   async function onChange(entry: FsObjectType) {
     setError(null);
 
-    if (entry.basename.length > 50) {
-      setError('File name should be less than 50 characters');
+    if (entry.basename.length > 44) {
+      setError('Srcbook title should be less than 44 characters');
       return;
     }
 

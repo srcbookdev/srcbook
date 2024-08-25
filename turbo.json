@@ -1,0 +1,33 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "VITE_SRCBOOK_API_ORIGIN",
+    "VITE_SRCBOOK_API_HOST",
+    "SRCBOOK_DISABLE_ANALYTICS",
+    "PORT",
+    "HOME"
+  ],
+  "tasks": {
+    "//#format": {},
+    "//#check-format": {},
+    "dev": {
+      "persistent": true,
+      "cache": false
+    },
+    "build": {
+      "outputs": ["dist/**"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "start": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    }
+  }
+}

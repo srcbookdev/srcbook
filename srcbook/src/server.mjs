@@ -1,9 +1,3 @@
-// This is important. It will create necessary directories on the file system. Import this first.
-import '../lib/initialization.mjs';
-
-// This is important. It will create and setup the database. Import this second.
-import '../lib/db/index.mjs';
-
 /**
  * Run the Srcbook application.
  *
@@ -17,7 +11,7 @@ import readline from 'node:readline';
 import http from 'node:http';
 import express from 'express';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
-import { wss, app, posthog } from '../lib/index.mjs';
+import { wss, app, posthog } from '@srcbook/api';
 import chalk from 'chalk';
 import { pathTo, getPackageJson } from './utils.mjs';
 

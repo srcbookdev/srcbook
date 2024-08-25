@@ -69,21 +69,28 @@ export default function GenerateSrcbookModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className={cn('flex flex-col transition-height w-[800px]')}>
+      <DialogContent
+        className={cn(
+          'flex flex-col transition-height w-[800px]',
+          status == 'loading' && 'cursor-wait',
+        )}
+      >
         <DialogHeader>
           <DialogTitle>Generate with AI</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3">
+          {!aiEnabled && <APIKeyWarning />}
           <Textarea
             placeholder="Write a prompt to create a Srcbook..."
             className="focus-visible:ring-2"
             rows={4}
             value={query}
+            disabled={!aiEnabled || status === 'loading'}
             onChange={(e) => setQuery(e.target.value)}
           />
           <Button
             className="w-fit self-end flex items-center gap-2"
-            disabled={!query}
+            disabled={!query || status === 'loading'}
             onClick={generate}
           >
             {status === 'loading' ? (
@@ -95,7 +102,6 @@ export default function GenerateSrcbookModal({
             )}
           </Button>
           {error !== null && <ErrorMessage type={error} onRetry={generate} />}
-          {!aiEnabled && <APIKeyWarning />}
           <div className="w-full border-t"></div>
           <p className="font-bold">Examples</p>
           {EXAMPLES.map((example) => (
@@ -117,7 +123,7 @@ export default function GenerateSrcbookModal({
 function APIKeyWarning() {
   return (
     <div className="flex items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-      <p>Missing API key</p>
+      <p>Set up an AI provider to start using AI features.</p>
       <Link to="/settings" className="underline">
         Settings
       </Link>

@@ -32,6 +32,11 @@ export function ImportSrcbookModal({
   async function onChange(entry: FsObjectType) {
     setError(null);
 
+    if (entry.basename.length > 50) {
+      setError('File name should be less than 50 characters');
+      return;
+    }
+
     const { error: importError, result: importResult } = await importSrcbook({ path: entry.path });
 
     if (importError) {

@@ -390,6 +390,13 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
       `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
     );
   }
+  if (
+    cellBeforeUpdate.type === 'title' &&
+    'text' in payload.updates &&
+    payload.updates?.text?.length > 50
+  ) {
+    throw new Error('Title cannot be more than 50 characters');
+  }
 
   const result = await updateCell(session, cellBeforeUpdate, payload.updates);
 
@@ -416,7 +423,6 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
 
 async function cellRename(payload: CellRenamePayloadType) {
   const session = await findSession(payload.sessionId);
-
   if (!session) {
     throw new Error(`No session exists for session '${payload.sessionId}'`);
   }

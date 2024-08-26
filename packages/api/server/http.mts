@@ -68,6 +68,11 @@ router.post('/srcbooks', cors(), async (req, res) => {
     });
   }
 
+  posthog.capture({
+    event: 'user created srcbook',
+    properties: { language },
+  });
+
   try {
     const srcbookDir = await createSrcbook(name, language);
     return res.json({ error: false, result: { name, path: srcbookDir } });
@@ -99,9 +104,11 @@ router.post('/import', cors(), async (req, res) => {
 
   try {
     if (typeof path === 'string') {
+      posthog.capture({ event: 'user imported srcbook from file' });
       const srcbookDir = await importSrcbookFromSrcmdFile(path);
       return res.json({ error: false, result: { dir: srcbookDir } });
     } else {
+      posthog.capture({ event: 'user imported srcbook from text' });
       const srcbookDir = await importSrcbookFromSrcmdText(text);
       return res.json({ error: false, result: { dir: srcbookDir } });
     }

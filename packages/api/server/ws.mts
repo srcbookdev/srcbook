@@ -1,4 +1,5 @@
 import { ChildProcess } from 'node:child_process';
+import { posthog } from '../posthog-client.mjs';
 import { generateCellEdit, fixDiagnostics } from '../ai/generate.mjs';
 import {
   findSession,
@@ -116,6 +117,16 @@ async function cellExec(payload: CellExecPayloadType) {
     return;
   }
 
+  // Consider removing sessionId and cellId if cardinality increases costs too much
+  posthog.capture({
+    event: 'user ran a cell',
+    properties: {
+      language: cell.language,
+      sessionId: session.id,
+      cellId: cell.id,
+    },
+  });
+
   nudgeMissingDeps(wss, session);
 
   const secrets = await getSecrets();
@@ -221,6 +232,14 @@ async function depsInstall(payload: DepsInstallPayloadType) {
   cell.status = 'running';
   wss.broadcast(`session:${session.id}`, 'cell:updated', { cell });
 
+  posthog.capture({
+    event: 'user installed dependencies',
+    properties: {
+      sessionId: session.id,
+      packages: payload.packages,
+    },
+  });
+
   addRunningProcess(
     session,
     cell,
@@ -287,6 +306,15 @@ async function cellStop(payload: CellStopPayloadType) {
   if (!cell || cell.type !== 'code') {
     return;
   }
+
+  posthog.capture({
+    event: 'user stopped cell execution',
+    properties: {
+      sessionId: session.id,
+      cellId: cell.id,
+      language: cell.language,
+    },
+  });
 
   const killed = processes.kill(session.id, cell.id);
 
@@ -355,6 +383,14 @@ function reopenFileInTsServer(
 async function cellGenerate(payload: AiGenerateCellPayloadType) {
   const session = await findSession(payload.sessionId);
   const cell = session.cells.find((cell) => cell.id === payload.cellId) as CodeCellType;
+
+  posthog.capture({
+    event: 'user edited a cell with AI',
+    properties: {
+      language: cell.language,
+      prompt: payload.prompt,
+    },
+  });
 
   const result = await generateCellEdit(payload.prompt, session, cell);
 
@@ -435,6 +471,14 @@ async function cellRename(payload: CellRenamePayloadType) {
     );
   }
 
+  posthog.capture({
+    event: 'user renamed cell',
+    properties: {
+      sessionId: session.id,
+      cellId: cellBeforeUpdate.id,
+    },
+  });
+
   const result = await updateCodeCellFilename(session, cellBeforeUpdate, payload.filename);
 
   if (!result.success) {
@@ -493,6 +537,11 @@ async function cellDelete(payload: CellDeletePayloadType) {
       `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
     );
   }
+
+  posthog.capture({
+    event: 'user deleted cell',
+    properties: { cellType: cell.type },
+  });
 
   if (cell.type !== 'markdown' && cell.type !== 'code') {
     throw new Error(`Cannot delete cell of type '${cell.type}'`);
@@ -592,6 +641,8 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
   if (!session) {
     throw new Error(`No session exists for session '${payload.sessionId}'`);
   }
+
+  posthog.capture({ event: 'user updated tsconfig' });
 
   const updatedSession = await updateSession(session, { 'tsconfig.json': payload.source });
 

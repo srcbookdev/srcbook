@@ -5,32 +5,39 @@
 
 ## Development
 
-In development, the app runs 2 separate servers, one vite server that hot-reloads and runs the web application, and one express server that runs the API and the websocket transport.
+First, make sure to install dependencies:
 
-To run the app for local development, you'll need to start both:
+```
+pnpm install
+```
 
-Run the API:
+The app runs 2 separate servers:
+
+- one vite server that hot-reloads and runs the web application
+- one express server that runs the API and the websocket transport.
+
+To run the app for local development, you can start both with a single command:
 
 ```shell
-turbo dev
+pnpm run dev
 ```
 
 Then visit http://localhost:5173
 
-_Note: make sure to run the database migrations with `pnpm run migrate` prior to running the api server_
+_Note: make sure to run the database migrations with `pnpm run migrate` if you get a drizzle DB error._
 
 ## Running pnpm scripts
 
 Similar to NPM, check top-level package.json for scripts.
 
 ```shell
-turbo check-types
+pnpm run check-types
 ```
 
 To run a script defined in one of the packages:
 
 ```shell
-turbo check-types --filter=@srcbook/api
+pnpm run check-types --filter=@srcbook/api
 ```
 
 ## Adding a dependency
@@ -76,10 +83,16 @@ pnpm run migrate
 
 ## Releasing
 
-The package that gets published to npm is under [srcbook/](./srcbook/). Publishing checklist:
+The package that gets published to npm is under [srcbook/](./srcbook/). Publishing `srcbook` currently assumes that you've published the latest relevant versions for `@srcbook/shared` and `@srcbook/api`. Currently, you should do all of these manually, following this checklist:
+
+From the root level:
 
 - run `pnpm run build`
-- bump the version in the [srcbook/package.json](./srcbook/package.json)
-- Don't forget to first publish sub packages (e.g., `shared`) if they've been modified
-- `cd srcbook/ && pnpm publish`
+
+From the relevant package directory:
+
+- bump the version in the package.json, commit and push the changes. Example: `git commit -m "Release srcbook version 0.0.1-alpha.10`
+- `pnpm publish`
 - push git tags & add release notes to GitHub
+
+TODO: automate this further with semantic commits, auto-changelogs and git tag pushing.

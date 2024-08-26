@@ -15,7 +15,7 @@ export function EditableH1(props: {
   const [heading, setHeading] = React.useState<string>(props.text);
   const [isMaxHeadingLengthExceeded, setIsMaxHeadingLengthExceeded] =
     React.useState<boolean>(false);
-  const maxHeadingLength = 50;
+  const maxHeadingLength = 44;
 
   const handleChange = (newValue: string) => {
     if (newValue.length > maxHeadingLength) {

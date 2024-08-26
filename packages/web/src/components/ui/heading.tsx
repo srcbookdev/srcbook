@@ -2,39 +2,50 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 import { Info } from 'lucide-react';
+import { z } from 'zod';
 
 const className =
-  'flex w-full rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
+  'flex w-full break-all whitespace-normal rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 export function EditableH1(props: {
   text: string;
   className?: string;
   onUpdated: (text: string) => void;
 }) {
-  const ref = React.useRef<HTMLTextAreaElement | null>(null);
-  const [heading, setHeading] = React.useState<string>(props.text);
+  const ref = React.useRef<HTMLHeadingElement>(null);
   const [isMaxHeadingLengthExceeded, setIsMaxHeadingLengthExceeded] =
     React.useState<boolean>(false);
+
   const maxHeadingLength = 44;
+  const headingSchema = z.string().max(maxHeadingLength, {
+    message: `Heading must be at most ${maxHeadingLength} characters long.`,
+  });
 
   const handleChange = (newValue: string) => {
-    if (newValue.length > maxHeadingLength) {
+    const result = headingSchema.safeParse(newValue);
+    if (!result.success) {
       setIsMaxHeadingLengthExceeded(true);
+      if (ref.current) {
+        // Ensure text is saved when contenteditable becomes false  by triggering blur event
+        ref.current.blur();
+      }
       setTimeout(() => {
         setIsMaxHeadingLengthExceeded(false);
       }, 2000);
       return;
     }
-    setHeading(newValue);
   };
 
   return (
     <div>
-      <textarea
+      <h1
         className={cn(className, props.className)}
-        value={heading}
+        ref={ref}
+        contentEditable={!isMaxHeadingLengthExceeded}
+        suppressContentEditableWarning={true}
         onBlur={(e) => {
-          const text = e.currentTarget.value;
+          e.currentTarget.innerHTML = e.currentTarget.innerHTML.slice(0, maxHeadingLength);
+          const text = e.currentTarget.innerHTML;
           if (text !== props.text) {
             props.onUpdated(text);
           }
@@ -44,12 +55,12 @@ export function EditableH1(props: {
             ref.current.blur();
           }
         }}
-        onChange={(e) => {
-          handleChange(e.target.value);
+        onInput={(e) => {
+          handleChange(e.currentTarget.innerText);
         }}
-        ref={ref}
-        rows={1}
-      />
+      >
+        {props.text}
+      </h1>
       {isMaxHeadingLengthExceeded && (
         <div className="bg-error text-error-foreground flex items-center rounded-sm border border-transparent px-[10px] py-2 text-sm leading-none font-medium">
           <Info size={14} className="mr-1.5" />

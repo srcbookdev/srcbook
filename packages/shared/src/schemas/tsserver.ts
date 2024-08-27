@@ -12,3 +12,11 @@ export const TsServerDiagnosticSchema = z.object({
   start: TsServerLocationSchema,
   end: TsServerLocationSchema,
 });
+
+export const TsServerSuggestionSchema = z.object({
+  code: z.number(),
+  category: z.string(),
+  text: z.string(),
+  start: TsServerLocationSchema,
+  end: TsServerLocationSchema,
+});

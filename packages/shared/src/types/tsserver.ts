@@ -4,3 +4,4 @@ import { TsServerLocationSchema, TsServerDiagnosticSchema } from '../schemas/tss
 
 export type TsServerLocationType = z.infer<typeof TsServerLocationSchema>;
 export type TsServerDiagnosticType = z.infer<typeof TsServerDiagnosticSchema>;
+export type TsServerSuggestionType = TsServerDiagnosticType;

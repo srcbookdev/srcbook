@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec, hoverTooltip } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
@@ -543,6 +543,52 @@ function Header(props: {
   );
 }
 
+export const wordHoverExtension = hoverTooltip((view, pos, side) => {
+  console.log('Position: ', pos);
+  const { from, to, text } = view.state.doc.lineAt(pos);
+  let start = pos,
+    end = pos;
+
+  console.log('From: ', from);
+  console.log('To: ', to);
+  console.log('Text: ', text);
+  while (start > from && /\w/.test(text[start - from - 1])) start--;
+  while (end < to && /\w/.test(text[end - from])) end++;
+
+  if ((start == pos && side < 0) || (end == pos && side > 0)) return null;
+
+  const word = text.slice(start - from, end - from);
+  console.log('Word: ', word);
+
+  return {
+    pos: start,
+    end,
+    above: false,
+    create() {
+      const dom = document.createElement('tag-div');
+      dom.className = 'cm-tooltip-cursor';
+      EditorView.baseTheme({
+        '.cm-tooltip-lint': {
+          width: '80%',
+        },
+        '.cm-tooltip-cursor': {
+          border: 'none',
+          padding: '5px',
+          borderRadius: '4px',
+          '& .cm-tooltip-arrow:before': {
+            borderTopColor: '#66b !important',
+          },
+          '& .cm-tooltip-arrow:after': {
+            borderTopColor: 'transparent',
+          },
+        },
+      });
+      dom.textContent = text;
+      return { dom };
+    },
+  };
+});
+
 function CodeEditor({
   cell,
   runCell,
@@ -566,6 +612,7 @@ function CodeEditor({
 
   let extensions = [
     javascript({ typescript: true }),
+    wordHoverExtension,
     Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
   ];
   if (readOnly) {

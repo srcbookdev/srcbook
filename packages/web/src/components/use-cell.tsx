@@ -5,6 +5,7 @@ import {
   CodeLanguageType,
   MarkdownCellType,
   TsServerDiagnosticType,
+  TsServerSuggestionType,
   getDefaultExtensionForLanguage,
 } from '@srcbook/shared';
 import { GenerateAICellType, OutputType } from '@/types';
@@ -89,6 +90,8 @@ interface CellsContextType {
   clearOutput: (id: string, type?: 'stdout' | 'stderr') => void;
   getTsServerDiagnostics: (id: string) => TsServerDiagnosticType[];
   setTsServerDiagnostics: (id: string, diagnostics: TsServerDiagnosticType[]) => void;
+  getTsServerSuggestions: (id: string) => TsServerSuggestionType[];
+  setTsServerSuggestions: (id: string, suggestions: TsServerSuggestionType[]) => void;
 }
 
 const CellsContext = createContext<CellsContextType | undefined>(undefined);
@@ -105,6 +108,9 @@ export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children:
 
   // Use ref to help avoid stale state bugs in closures.
   const tsServerDiagnosticsRef = useRef<TsServerStateType>({});
+
+  // Use ref to help avoid stale state bugs in closures.
+  const tsServerSuggestionsRef = useRef<TsServerStateType>({});
 
   // Because we use refs for our state, we need a way to trigger
   // component re-renders when the ref state changes.
@@ -125,6 +131,11 @@ export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children:
 
   const stableSetTsServerDiagnostics = useCallback((diagnostics: TsServerStateType) => {
     tsServerDiagnosticsRef.current = diagnostics;
+    forceComponentRerender();
+  }, []);
+
+  const stableSetTsServerSuggestions = useCallback((suggestions: TsServerStateType) => {
+    tsServerSuggestionsRef.current = suggestions;
     forceComponentRerender();
   }, []);
 
@@ -213,11 +224,22 @@ export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children:
     return tsServerDiagnosticsRef.current[id] || [];
   }, []);
 
+  const getTsServerSuggestions = useCallback((id: string) => {
+    return tsServerSuggestionsRef.current[id] || [];
+  }, []);
+
   const setTsServerDiagnostics = useCallback(
     (id: string, diagnostics: TsServerDiagnosticType[]) => {
       stableSetTsServerDiagnostics({ ...tsServerDiagnosticsRef.current, [id]: diagnostics });
     },
     [stableSetTsServerDiagnostics],
+  );
+
+  const setTsServerSuggestions = useCallback(
+    (id: string, suggestions: TsServerSuggestionType[]) => {
+      stableSetTsServerSuggestions({ ...tsServerSuggestionsRef.current, [id]: suggestions });
+    },
+    [stableSetTsServerSuggestions],
   );
 
   return (
@@ -236,7 +258,9 @@ export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children:
         setOutput,
         clearOutput,
         getTsServerDiagnostics,
+        getTsServerSuggestions,
         setTsServerDiagnostics,
+        setTsServerSuggestions,
       }}
     >
       {children}

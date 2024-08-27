@@ -27,19 +27,24 @@ export function CellOutput({
   fullscreen,
   setFullscreen,
 }: PropsType) {
-  const { getOutput, clearOutput, getTsServerDiagnostics } = useCells();
+  const { getOutput, clearOutput, getTsServerDiagnostics, getTsServerSuggestions } = useCells();
 
-  const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems'>('stdout');
+  const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems' | 'warnings'>(
+    'stdout',
+  );
 
   const stdout = getOutput(cell.id, 'stdout') as StdoutOutputType[];
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
   const diagnostics = getTsServerDiagnostics(cell.id);
+  const suggestions = getTsServerSuggestions(cell.id);
 
   return (
     <div className={cn('font-mono text-sm', fullscreen && !show && 'border-b')}>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as 'stdout' | 'stderr' | 'problems')}
+        onValueChange={(value) =>
+          setActiveTab(value as 'stdout' | 'stderr' | 'problems' | 'warnings')
+        }
         defaultValue="stdout"
       >
         <div
@@ -94,6 +99,24 @@ export function CellOutput({
                 )}
               </TabsTrigger>
             )}
+            {cell.type === 'code' && cell.language === 'typescript' && (
+              <TabsTrigger
+                onClick={() => setShow(true)}
+                value="warnings"
+                className={cn(
+                  !show &&
+                    'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
+                )}
+              >
+                {diagnostics.length > 0 ? (
+                  <>
+                    warnings <span className="text-sb-yellow-50">({suggestions.length})</span>
+                  </>
+                ) : (
+                  'warnings'
+                )}
+              </TabsTrigger>
+            )}
           </TabsList>
           <div className="flex items-center gap-6">
             <button
@@ -106,8 +129,13 @@ export function CellOutput({
             </button>
             <button
               className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
-              disabled={activeTab === 'problems'}
-              onClick={() => clearOutput(cell.id, activeTab === 'problems' ? undefined : activeTab)}
+              disabled={activeTab === 'problems' || activeTab === 'warnings'}
+              onClick={() =>
+                clearOutput(
+                  cell.id,
+                  activeTab === 'problems' || activeTab === 'warnings' ? undefined : activeTab,
+                )
+              }
             >
               <Ban size={16} />
             </button>
@@ -133,6 +161,15 @@ export function CellOutput({
               <TabsContent value="problems" className="mt-0">
                 <TsServerDiagnostics
                   diagnostics={diagnostics}
+                  fixDiagnostics={fixDiagnostics}
+                  cellMode={cellMode}
+                />
+              </TabsContent>
+            )}
+            {cell.type === 'code' && cell.language === 'typescript' && (
+              <TabsContent value="warnings" className="mt-0">
+                <TsServerDiagnostics
+                  diagnostics={suggestions}
                   fixDiagnostics={fixDiagnostics}
                   cellMode={cellMode}
                 />

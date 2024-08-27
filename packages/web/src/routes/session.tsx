@@ -10,6 +10,7 @@ import {
   MarkdownCellType,
   CodeCellType,
   TitleCellType,
+  TsServerCellSuggestionsPayloadType,
 } from '@srcbook/shared';
 import { loadSession, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
@@ -83,6 +84,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     createGenerateAiCell,
     setOutput,
     setTsServerDiagnostics,
+    setTsServerSuggestions,
   } = useCells();
 
   const { installing: installingDependencies } = usePackageJson();
@@ -129,6 +131,16 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
 
     return () => channel.off('tsserver:cell:diagnostics', callback);
   }, [channel, setTsServerDiagnostics]);
+
+  useEffect(() => {
+    const callback = (payload: TsServerCellSuggestionsPayloadType) => {
+      setTsServerSuggestions(payload.cellId, payload.diagnostics);
+    };
+
+    channel.on('tsserver:cell:suggestions', callback);
+
+    return () => channel.off('tsserver:cell:suggestions', callback);
+  }, [channel, setTsServerSuggestions]);
 
   useEffect(() => {
     const callback = (payload: CellUpdatedPayloadType) => {

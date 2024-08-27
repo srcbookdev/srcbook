@@ -74,6 +74,12 @@ export class TsServer extends EventEmitter {
   }
 
   private handleEvent(event: tsserver.protocol.Event) {
+    if (event.event === 'semanticDiag') {
+      console.error('Error: ', event.body);
+    }
+    if (event.event === 'suggestionDiag') {
+      console.warn('Suggestion: ', event.body);
+    }
     this.emit(event.event, event);
   }
 

@@ -69,12 +69,7 @@ export default function GenerateSrcbookModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent
-        className={cn(
-          'flex flex-col transition-height w-[800px]',
-          status == 'loading' && 'cursor-wait',
-        )}
-      >
+      <DialogContent className={cn('flex flex-col transition-height w-[800px]')}>
         <DialogHeader>
           <DialogTitle>Generate with AI</DialogTitle>
         </DialogHeader>

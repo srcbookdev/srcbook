@@ -26,6 +26,7 @@ import {
   CodeCellUpdateAttrsType,
   CellErrorPayloadType,
   AiGeneratedCellPayloadType,
+  TsServerDiagnosticType,
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { EditorView } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
+import { type Diagnostic, linter } from '@codemirror/lint';
 
 const DEBOUNCE_DELAY = 500;
 type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
@@ -543,22 +545,94 @@ function Header(props: {
   );
 }
 
-export const wordHoverExtension = hoverTooltip((view, pos, side) => {
-  console.log('Position: ', pos);
+function tsCategoryToSeverity(
+  diagnostic: Pick<TsServerDiagnosticType, 'category' | 'code'>,
+): Diagnostic['severity'] {
+  if (diagnostic.code === 7027) {
+    return 'warning';
+  }
+  // force resolve types with fallback
+  switch (diagnostic.category) {
+    case 'error':
+      return 'error';
+    case 'warning':
+      return 'warning';
+    case 'suggestion':
+      return 'warning';
+    case 'info':
+      return 'info';
+    default:
+      return 'info';
+  }
+}
+
+function isDiagnosticWithLocation(
+  diagnostic: TsServerDiagnosticType,
+): diagnostic is TsServerDiagnosticType {
+  return !!(typeof diagnostic.start.line === 'number' && typeof diagnostic.end.line === 'number');
+}
+
+function tsDiagnosticMessage(diagnostic: TsServerDiagnosticType): string {
+  if (typeof diagnostic.text === 'string') {
+    return diagnostic.text;
+  }
+  return JSON.stringify(diagnostic); // Fallback
+}
+
+function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: string): Diagnostic {
+  const message = tsDiagnosticMessage(diagnostic);
+
+  // parse conversion TS server is {line, offset} to CodeMirror {from, to} in absolute chars
+  return {
+    from: Math.min(
+      code.length - 1,
+      code
+        .split('\n')
+        .slice(0, diagnostic.start.line - 1)
+        .join('\n').length + diagnostic.start.offset,
+    ),
+    to: Math.min(
+      code.length - 1,
+      code
+        .split('\n')
+        .slice(0, diagnostic.end.line - 1)
+        .join('\n').length + diagnostic.end.offset,
+    ),
+    message: message,
+    severity: tsCategoryToSeverity(diagnostic),
+  };
+}
+
+function tsLinter(
+  cell: CodeCellType,
+  getTsServerDiagnostics: (id: string) => TsServerDiagnosticType[],
+  getTsServerSuggestions: (id: string) => TsServerDiagnosticType[],
+) {
+  const semanticDiagnostics = getTsServerDiagnostics(cell.id);
+  const syntaticDiagnostics = getTsServerSuggestions(cell.id);
+  const diagnostics = [...syntaticDiagnostics, ...semanticDiagnostics].filter(
+    isDiagnosticWithLocation,
+  );
+
+  const cm_diagnostics = diagnostics.map((diagnostic) => {
+    return convertTSDiagnosticToCM(diagnostic, cell.source);
+  });
+
+  return linter(async (): Promise<readonly Diagnostic[]> => {
+    return cm_diagnostics;
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- to be used later
+const wordHoverExtension = hoverTooltip((view, pos, side) => {
   const { from, to, text } = view.state.doc.lineAt(pos);
   let start = pos,
     end = pos;
 
-  console.log('From: ', from);
-  console.log('To: ', to);
-  console.log('Text: ', text);
   while (start > from && /\w/.test(text[start - from - 1])) start--;
   while (end < to && /\w/.test(text[end - from])) end++;
 
   if ((start == pos && side < 0) || (end == pos && side > 0)) return null;
-
-  const word = text.slice(start - from, end - from);
-  console.log('Word: ', word);
 
   return {
     pos: start,
@@ -567,22 +641,6 @@ export const wordHoverExtension = hoverTooltip((view, pos, side) => {
     create() {
       const dom = document.createElement('tag-div');
       dom.className = 'cm-tooltip-cursor';
-      EditorView.baseTheme({
-        '.cm-tooltip-lint': {
-          width: '80%',
-        },
-        '.cm-tooltip-cursor': {
-          border: 'none',
-          padding: '5px',
-          borderRadius: '4px',
-          '& .cm-tooltip-arrow:before': {
-            borderTopColor: '#66b !important',
-          },
-          '& .cm-tooltip-arrow:after': {
-            borderTopColor: 'transparent',
-          },
-        },
-      });
       dom.textContent = text;
       return { dom };
     },
@@ -601,7 +659,11 @@ function CodeEditor({
   readOnly: boolean;
 }) {
   const { codeTheme } = useTheme();
-  const { updateCell: updateCellOnClient } = useCells();
+  const {
+    updateCell: updateCellOnClient,
+    getTsServerDiagnostics,
+    getTsServerSuggestions,
+  } = useCells();
 
   const updateCellOnServerDebounced = useDebouncedCallback(updateCellOnServer, DEBOUNCE_DELAY);
 
@@ -612,7 +674,8 @@ function CodeEditor({
 
   let extensions = [
     javascript({ typescript: true }),
-    wordHoverExtension,
+    // wordHoverExtension,
+    tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
   ];
   if (readOnly) {

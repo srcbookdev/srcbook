@@ -108,7 +108,7 @@ export function CellOutput({
                     'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
                 )}
               >
-                {diagnostics.length > 0 ? (
+                {suggestions.length > 0 ? (
                   <>
                     warnings <span className="text-sb-yellow-50">({suggestions.length})</span>
                   </>

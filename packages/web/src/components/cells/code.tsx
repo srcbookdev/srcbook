@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror, { keymap, Prec, hoverTooltip } from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
@@ -622,30 +622,6 @@ function tsLinter(
     return cm_diagnostics;
   });
 }
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- to be used later
-const wordHoverExtension = hoverTooltip((view, pos, side) => {
-  const { from, to, text } = view.state.doc.lineAt(pos);
-  let start = pos,
-    end = pos;
-
-  while (start > from && /\w/.test(text[start - from - 1])) start--;
-  while (end < to && /\w/.test(text[end - from])) end++;
-
-  if ((start == pos && side < 0) || (end == pos && side > 0)) return null;
-
-  return {
-    pos: start,
-    end,
-    above: false,
-    create() {
-      const dom = document.createElement('tag-div');
-      dom.className = 'cm-tooltip-cursor';
-      dom.textContent = text;
-      return { dom };
-    },
-  };
-});
 
 function CodeEditor({
   cell,

@@ -168,9 +168,9 @@ export function CellOutput({
             )}
             {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsContent value="warnings" className="mt-0">
-                <TsServerDiagnostics
-                  diagnostics={suggestions}
-                  fixDiagnostics={fixDiagnostics}
+                <TsServerSuggestions
+                  suggestions={suggestions}
+                  fixSuggestions={fixDiagnostics} // fixDiagnostics works for both diagnostics and suggestions
                   cellMode={cellMode}
                 />
               </TabsContent>
@@ -231,6 +231,37 @@ function TsServerDiagnostics({
           variant="ai"
           className="self-start flex items-center gap-2 px-2.5 py-2 font-sans h-7 mt-3"
           onClick={() => fixDiagnostics(formattedDiagnostics)}
+          disabled={cellMode === 'generating'}
+        >
+          <Sparkles size={16} />
+          <p>Fix with AI</p>
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function TsServerSuggestions({
+  suggestions,
+  fixSuggestions,
+  cellMode,
+}: {
+  suggestions: TsServerDiagnosticType[];
+  fixSuggestions: (suggestions: string) => void;
+  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+}) {
+  const { aiEnabled } = useSettings();
+  const formattedSuggestions = suggestions.map(formatDiagnostic).join('\n');
+  return suggestions.length === 0 ? (
+    <div className="italic text-center text-muted-foreground">No warnings or suggestions</div>
+  ) : (
+    <div className="flex flex-col w-full">
+      <p>{formattedSuggestions}</p>
+      {aiEnabled && cellMode !== 'fixing' && (
+        <Button
+          variant="ai"
+          className="self-start flex items-center gap-2 px-2.5 py-2 font-sans h-7 mt-3"
+          onClick={() => fixSuggestions(formattedSuggestions)}
           disabled={cellMode === 'generating'}
         >
           <Sparkles size={16} />

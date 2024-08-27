@@ -108,6 +108,11 @@ export const TsServerCellDiagnosticsPayloadSchema = z.object({
   diagnostics: z.array(TsServerDiagnosticSchema),
 });
 
+export const TsServerCellSuggestionsPayloadSchema = z.object({
+  cellId: z.string(),
+  diagnostics: z.array(TsServerDiagnosticSchema),
+});
+
 export const TsConfigUpdatePayloadSchema = z.object({
   sessionId: z.string(),
   source: z.string(),

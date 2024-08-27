@@ -21,6 +21,7 @@ import {
   TsConfigUpdatePayloadSchema,
   TsConfigUpdatedPayloadSchema,
   AiFixDiagnosticsPayloadSchema,
+  TsServerCellSuggestionsPayloadSchema,
 } from '../schemas/websockets.js';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -45,6 +46,9 @@ export type TsServerStartPayloadType = z.infer<typeof TsServerStartPayloadSchema
 export type TsServerStopPayloadType = z.infer<typeof TsServerStopPayloadSchema>;
 export type TsServerCellDiagnosticsPayloadType = z.infer<
   typeof TsServerCellDiagnosticsPayloadSchema
+>;
+export type TsServerCellSuggestionsPayloadType = z.infer<
+  typeof TsServerCellSuggestionsPayloadSchema
 >;
 
 export type TsConfigUpdatePayloadType = z.infer<typeof TsConfigUpdatePayloadSchema>;

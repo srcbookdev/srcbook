@@ -56,6 +56,7 @@ import {
   CellCreatePayloadSchema,
   TsConfigUpdatePayloadSchema,
   TsConfigUpdatedPayloadSchema,
+  TsServerCellSuggestionsPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -601,6 +602,30 @@ function createTsServer(session: SessionType) {
     });
   });
 
+  tsserver.onSuggestionDiag(async (event) => {
+    const eventBody = event.body;
+
+    // Get most recent session state
+    const session = await findSession(sessionId);
+
+    if (!eventBody || !session) {
+      return;
+    }
+
+    const filename = filenameFromPath(eventBody.file);
+    const cells = session.cells.filter((cell) => cell.type === 'code') as CodeCellType[];
+    const cell = cells.find((c) => c.filename === filename);
+
+    if (!cell) {
+      return;
+    }
+
+    wss.broadcast(`session:${session.id}`, 'tsserver:cell:suggestions', {
+      cellId: cell.id,
+      diagnostics: eventBody.diagnostics.map(normalizeDiagnostic),
+    });
+  });
+
   // Open all code cells in tsserver
   for (const cell of session.cells) {
     if (cell.type === 'code') {
@@ -678,6 +703,7 @@ wss
   .outgoing('ai:generated', AiGeneratedCellPayloadSchema)
   .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
   .outgoing('tsserver:cell:diagnostics', TsServerCellDiagnosticsPayloadSchema)
+  .outgoing('tsserver:cell:suggestions', TsServerCellSuggestionsPayloadSchema)
   .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema);
 
 export default wss;

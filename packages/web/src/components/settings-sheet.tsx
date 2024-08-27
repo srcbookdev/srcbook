@@ -40,7 +40,7 @@ export function SettingsSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="pt-12">
+      <SheetContent side="left" className="pt-12 overflow-y-scroll">
         <SheetHeader>
           {showAiNudge && (
             <div className="relative flex flex-col px-3 py-3.5 border border-ai-border bg-ai text-ai-foreground rounded-sm text-sm">

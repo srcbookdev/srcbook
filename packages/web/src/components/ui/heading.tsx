@@ -1,69 +1,91 @@
-import * as React from 'react';
+import { useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
-import { Info } from 'lucide-react';
 import { TitleCellUpdateAttrsSchema } from '@srcbook/shared';
 
 const className =
   'flex w-full break-all whitespace-normal rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
+
+function isCharacterKey(e: React.KeyboardEvent<HTMLHeadingElement>) {
+  return (
+    e.key.length === 1 && // This checks if the pressed key is a single character
+    !e.ctrlKey &&
+    !e.metaKey &&
+    !e.altKey
+  );
+}
 
 export function EditableH1(props: {
   text: string;
   className?: string;
   onUpdated: (text: string) => void;
 }) {
-  const ref = React.useRef<HTMLHeadingElement>(null);
-  const [isMaxHeadingLengthExceeded, setIsMaxHeadingLengthExceeded] =
-    React.useState<boolean>(false);
+  const ref = useRef<HTMLHeadingElement>(null);
+  const timeoutRef = useRef<number | null>(null);
 
-  const maxHeadingLength = 44;
+  const [error, _setError] = useState<string | null>(null);
 
-  const handleChange = (newValue: string) => {
-    const result = TitleCellUpdateAttrsSchema.safeParse({ text: newValue });
-    if (!result.success) {
-      setIsMaxHeadingLengthExceeded(true);
-      if (ref.current) {
-        // Ensures text is saved when contenteditable becomes false  by triggering blur event
-        ref.current.blur();
-      }
-      setTimeout(() => {
-        setIsMaxHeadingLengthExceeded(false);
-      }, 2000);
-      return;
-    }
-  };
+  function clearError() {
+    _setError(null);
+    timeoutRef.current && clearTimeout(timeoutRef.current);
+  }
+
+  function setError(error: string) {
+    timeoutRef.current && clearTimeout(timeoutRef.current);
+    _setError(error);
+    timeoutRef.current = setTimeout(() => {
+      _setError(null);
+    }, 3000) as unknown as number;
+  }
 
   return (
     <div>
       <h1
         className={cn(className, props.className)}
         ref={ref}
-        contentEditable={!isMaxHeadingLengthExceeded}
+        contentEditable
         suppressContentEditableWarning={true}
         onBlur={(e) => {
-          e.currentTarget.innerHTML = e.currentTarget.innerHTML.slice(0, maxHeadingLength);
-          const text = e.currentTarget.innerHTML;
-          if (text !== props.text) {
-            props.onUpdated(text);
+          const result = TitleCellUpdateAttrsSchema.safeParse({ text: e.currentTarget.innerHTML });
+
+          if (result.success) {
+            props.onUpdated(result.data.text);
+          } else {
+            setError(result.error.errors[0].message);
+            if (ref.current) {
+              ref.current.innerText = props.text;
+            }
           }
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && ref.current) {
+          if (!ref.current) {
+            return;
+          }
+
+          if (isCharacterKey(e)) {
+            const result = TitleCellUpdateAttrsSchema.safeParse({
+              text: ref.current.innerText + e.key,
+            });
+            if (result.error) {
+              setError(result.error.errors[0].message);
+              e.preventDefault();
+              return false;
+            }
+          }
+
+          clearError();
+
+          if (e.key === 'Enter') {
+            ref.current.blur();
+          } else if (e.key === 'Escape') {
+            ref.current.innerText = props.text;
             ref.current.blur();
           }
-        }}
-        onInput={(e) => {
-          handleChange(e.currentTarget.innerText);
         }}
       >
         {props.text}
       </h1>
-      {isMaxHeadingLengthExceeded && (
-        <div className="bg-error text-error-foreground flex items-center rounded-sm border border-transparent px-[10px] py-2 text-sm leading-none font-medium">
-          <Info size={14} className="mr-1.5" />
-          Max heading length exceeded
-        </div>
-      )}
+      {error && <span className="text-error pt-3 text-sm font-medium">{error}</span>}
     </div>
   );
 }

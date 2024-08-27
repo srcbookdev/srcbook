@@ -23,7 +23,7 @@ export function EditableH1(props: {
     if (!result.success) {
       setIsMaxHeadingLengthExceeded(true);
       if (ref.current) {
-        // Ensure text is saved when contenteditable becomes false  by triggering blur event
+        // Ensures text is saved when contenteditable becomes false  by triggering blur event
         ref.current.blur();
       }
       setTimeout(() => {

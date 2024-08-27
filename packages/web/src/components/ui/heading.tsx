@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 import { Info } from 'lucide-react';
-import { z } from 'zod';
+import { TitleCellUpdateAttrsSchema } from '@srcbook/shared';
 
 const className =
   'flex w-full break-all whitespace-normal rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
@@ -17,12 +17,9 @@ export function EditableH1(props: {
     React.useState<boolean>(false);
 
   const maxHeadingLength = 44;
-  const headingSchema = z.string().max(maxHeadingLength, {
-    message: `Heading must be at most ${maxHeadingLength} characters long.`,
-  });
 
   const handleChange = (newValue: string) => {
-    const result = headingSchema.safeParse(newValue);
+    const result = TitleCellUpdateAttrsSchema.safeParse({ text: newValue });
     if (!result.success) {
       setIsMaxHeadingLengthExceeded(true);
       if (ref.current) {

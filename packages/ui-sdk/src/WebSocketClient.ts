@@ -1,8 +1,12 @@
+import { WebSocketMessageSchema } from '@srcbook/shared';
+
 export class WebSocketClient {
   private ws: WebSocket;
+  topic: string;
 
-  constructor(url: string) {
+  constructor(url: string, sessionId: string) {
     this.ws = new WebSocket(url);
+    this.topic = `session:${sessionId}`;
   }
 
   connect(): Promise<void> {
@@ -12,14 +16,22 @@ export class WebSocketClient {
     });
   }
 
-  sendMessage(message: any): void {
-    this.ws.send(JSON.stringify(message));
+  // This needs to support more events. Hardcoding for simple MVP
+  sendMessage(event: string, message: any): void {
+    const payload = [this.topic, event, message];
+    this.ws.send(JSON.stringify(payload));
   }
 
-  onMessage(callback: (data: any) => void): void {
+  onMessage(
+    callback: (data: { topic: string; eventName: string; payload: unknown }) => void,
+  ): void {
     this.ws.onmessage = (event) => {
-      const data = JSON.parse(event.data as string);
-      callback(data);
+      const parsed = JSON.parse(event.data as string);
+      const [topic, eventName, payload] = WebSocketMessageSchema.parse(parsed);
+      if (topic !== this.topic) {
+        console.warn(`Server received unknown topic '${topic}. Expected '${this.topic}'`);
+      }
+      callback({ topic, eventName, payload });
     };
   }
 }

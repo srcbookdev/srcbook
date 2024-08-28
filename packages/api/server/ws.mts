@@ -161,7 +161,10 @@ async function jsExec({ session, cell, secrets }: ExecRequestType) {
     cell,
     node({
       cwd: session.dir,
-      env: secrets,
+      env: Object.assign({}, secrets, {
+        SRCBOOK_WS_URL: 'ws://localhost:2150/websocket',
+        SRCBOOK_SESSION_ID: session.id,
+      }),
       entry: pathToCodeFile(session.dir, cell.filename),
       stdout(data) {
         wss.broadcast(`session:${session.id}`, 'cell:output', {
@@ -195,7 +198,10 @@ async function tsxExec({ session, cell, secrets }: ExecRequestType) {
     cell,
     tsx({
       cwd: session.dir,
-      env: secrets,
+      env: Object.assign({}, secrets, {
+        SRCBOOK_WS_URL: 'ws://localhost:2150/websocket',
+        SRCBOOK_SESSION_ID: session.id,
+      }),
       entry: pathToCodeFile(session.dir, cell.filename),
       stdout(data) {
         wss.broadcast(`session:${session.id}`, 'cell:output', {

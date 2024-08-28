@@ -1,0 +1,18 @@
+{
+  "name": "@srcbook/ui-sdk",
+  "version": "0.0.1-alpha.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "prebuild": "rm -rf ./dist",
+    "build": "tsc",
+    "check-types": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "ws": "catalog:"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.10"
+  }
+}

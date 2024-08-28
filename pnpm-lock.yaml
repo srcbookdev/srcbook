@@ -131,6 +131,16 @@ importers:
         specifier: 'catalog:'
         version: 3.23.8
 
+  packages/ui-sdk:
+    dependencies:
+      ws:
+        specifier: 'catalog:'
+        version: 8.17.0
+    devDependencies:
+      '@types/ws':
+        specifier: ^8.5.10
+        version: 8.5.10
+
   packages/web:
     dependencies:
       '@codemirror/lang-javascript':

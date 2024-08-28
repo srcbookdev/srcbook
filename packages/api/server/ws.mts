@@ -697,8 +697,7 @@ wss
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
   .incoming('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
   .incoming('tsconfig.json:update', TsConfigUpdatePayloadSchema, tsconfigUpdate)
-  .incoming('ui:action:register', UiActionRegisterPayloadSchema, uiActionRegister)
-  .incoming('ui:io:call', UiIoCallPayloadSchema, uiIoCall)
+  .incoming('ui:io:response', UiIoResponsePayloadSchema, handleUiResponse)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
@@ -708,7 +707,7 @@ wss
   .outgoing('tsserver:cell:suggestions', TsServerCellSuggestionsPayloadSchema)
   .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema)
   .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema)
-  .outgoing('ui:io:response', UiIoResponsePayloadSchema)
+  .outgoing('ui:io:send_io_call', UiIoResponsePayloadSchema)
   .outgoing('ui:render', UiRenderPayloadSchema);
 
 export default wss;

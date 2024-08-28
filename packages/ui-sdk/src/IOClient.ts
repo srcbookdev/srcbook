@@ -9,7 +9,9 @@ export class IOClient {
   private wsClient: WebSocketClient;
   private components: Map<string, IOComponent> = new Map();
 
-  constructor(wsUrl: string) {
+  constructor() {
+    // This should be set by the node process spawning the UIApp instance.
+    const wsUrl = process.env.SRCBOOK_WS_URL!;
     this.wsClient = new WebSocketClient(wsUrl);
   }
 

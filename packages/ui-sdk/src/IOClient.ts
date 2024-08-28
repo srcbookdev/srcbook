@@ -1,7 +1,6 @@
 // - Manages WebSocket communication
 // - Keeps track of active IOComponents
 // - Handles sending and receiving messages
-
 import { WebSocketClient } from './WebSocketClient.js';
 import { IOComponent } from './IOComponent.js';
 
@@ -42,7 +41,7 @@ export class IOClient {
       const component = this.components.get(data.componentId);
       if (component) {
         component.resolve(data.value);
-        this.components.delete(data.componentId);
+        // cleanup?
       }
     }
   }

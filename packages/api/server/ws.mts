@@ -34,6 +34,8 @@ import type {
   AiGenerateCellPayloadType,
   TsConfigUpdatePayloadType,
   AiFixDiagnosticsPayloadType,
+  IoAwaitResponsePayloadType,
+  IoResponsePayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -57,6 +59,8 @@ import {
   TsConfigUpdatePayloadSchema,
   TsConfigUpdatedPayloadSchema,
   TsServerCellSuggestionsPayloadSchema,
+  IoAwaitResponsePayloadSchema,
+  IoResponsePayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -682,6 +686,16 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
   });
 }
 
+// TODO: implement a wss.proxy(). But required passing the wss to channel... so held off for now.
+async function ioAwaitResponseProxy(payload: IoAwaitResponsePayloadType) {
+  wss.broadcast(`session:${payload.sessionId}`, 'ui:io:await_response', payload);
+}
+
+// TODO: implement a wss.proxy(). But required passing the wss to channel... so held off for now.
+async function ioResponseProxy(payload: IoResponsePayloadType) {
+  wss.broadcast(`session:${payload.sessionId}`, 'ui:io:response', payload);
+}
+
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
@@ -697,7 +711,8 @@ wss
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
   .incoming('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
   .incoming('tsconfig.json:update', TsConfigUpdatePayloadSchema, tsconfigUpdate)
-  .incoming('ui:io:response', UiIoResponsePayloadSchema, handleUiResponse)
+  .incoming('ui:io:await_response', IoAwaitResponsePayloadSchema, ioAwaitResponseProxy)
+  .incoming('ui:io:response', IoResponsePayloadSchema, ioResponseProxy)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
@@ -707,7 +722,7 @@ wss
   .outgoing('tsserver:cell:suggestions', TsServerCellSuggestionsPayloadSchema)
   .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema)
   .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema)
-  .outgoing('ui:io:send_io_call', UiIoResponsePayloadSchema)
-  .outgoing('ui:render', UiRenderPayloadSchema);
+  .outgoing('ui:io:await_response', IoAwaitResponsePayloadSchema)
+  .outgoing('ui:io:response', IoResponsePayloadSchema);
 
 export default wss;

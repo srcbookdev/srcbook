@@ -10,7 +10,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "ws": "catalog:"
+    "ws": "catalog:",
+    "@srcbook/shared": "workspace:^"
   },
   "devDependencies": {
     "@types/ws": "^8.5.10"

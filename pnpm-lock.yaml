@@ -133,6 +133,9 @@ importers:
 
   packages/ui-sdk:
     dependencies:
+      '@srcbook/shared':
+        specifier: workspace:^
+        version: link:../shared
       ws:
         specifier: 'catalog:'
         version: 8.17.0

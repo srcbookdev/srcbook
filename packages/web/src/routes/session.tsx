@@ -11,6 +11,7 @@ import {
   CodeCellType,
   TitleCellType,
   TsServerCellSuggestionsPayloadType,
+  IoAwaitResponsePayloadType,
 } from '@srcbook/shared';
 import { loadSession, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
@@ -111,6 +112,23 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
       cellId: cell.id,
     });
   }
+
+  // Dummy code for now to immediately respond to await_response events
+  useEffect(() => {
+    const callback = (payload: IoAwaitResponsePayloadType) => {
+      console.log('ui:io:await_response', payload);
+      channel.push('ui:io:response', {
+        sessionId: session.id,
+        type: 'dummy',
+        value: 'my super value',
+        componentId: payload.componentId,
+      });
+    };
+
+    channel.on('ui:io:await_response', callback);
+
+    return () => channel.off('ui:io:await_response', callback);
+  }, [channel, session.id]);
 
   useEffect(() => {
     const callback = (payload: CellOutputPayloadType) => {

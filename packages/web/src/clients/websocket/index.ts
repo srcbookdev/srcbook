@@ -20,6 +20,8 @@ import {
   TsConfigUpdatedPayloadSchema,
   AiFixDiagnosticsPayloadSchema,
   TsServerCellSuggestionsPayloadSchema,
+  IoResponsePayloadSchema,
+  IoAwaitResponsePayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -38,6 +40,7 @@ const IncomingSessionEvents = {
   'tsserver:cell:suggestions': TsServerCellSuggestionsPayloadSchema,
   'ai:generated': AiGeneratedCellPayloadSchema,
   'tsconfig.json:updated': TsConfigUpdatedPayloadSchema,
+  'ui:io:await_response': IoAwaitResponsePayloadSchema,
 };
 
 const OutgoingSessionEvents = {
@@ -54,6 +57,7 @@ const OutgoingSessionEvents = {
   'tsserver:start': TsServerStartPayloadSchema,
   'tsserver:stop': TsServerStopPayloadSchema,
   'tsconfig.json:update': TsConfigUpdatePayloadSchema,
+  'ui:io:response': IoResponsePayloadSchema,
 };
 
 export class SessionChannel extends Channel<

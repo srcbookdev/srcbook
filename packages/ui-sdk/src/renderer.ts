@@ -1,8 +1,13 @@
 export interface RenderComponent {
+  id: string;
   type: string;
   props: any;
 }
 
+export interface RenderUpdate {
+  components: RenderComponent[];
+}
+
 export interface Renderer {
-  render(component: RenderComponent): Promise<any>;
+  render(update: RenderUpdate): Promise<void>;
 }

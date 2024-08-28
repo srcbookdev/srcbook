@@ -1,6 +1,7 @@
 import z from 'zod';
 import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells.js';
 import { TsServerDiagnosticSchema } from './tsserver.js';
+import { UIComponentSchema, UIEventSchema } from './ui.js';
 
 // A _message_ over websockets
 export const WebSocketMessageSchema = z.tuple([
@@ -120,4 +121,16 @@ export const TsConfigUpdatePayloadSchema = z.object({
 
 export const TsConfigUpdatedPayloadSchema = z.object({
   source: z.string(),
+});
+
+export const UIComponentPayloadSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+  component: UIComponentSchema,
+});
+
+export const UIEventPayloadSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
+  event: UIEventSchema,
 });

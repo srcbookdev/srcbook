@@ -34,6 +34,7 @@ import type {
   AiGenerateCellPayloadType,
   TsConfigUpdatePayloadType,
   AiFixDiagnosticsPayloadType,
+  UIEventPayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -57,6 +58,8 @@ import {
   TsConfigUpdatePayloadSchema,
   TsConfigUpdatedPayloadSchema,
   TsServerCellSuggestionsPayloadSchema,
+  UIComponentPayloadSchema,
+  UIEventPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -194,10 +197,31 @@ async function tsxExec({ session, cell, secrets }: ExecRequestType) {
       env: secrets,
       entry: pathToCodeFile(session.dir, cell.filename),
       stdout(data) {
-        wss.broadcast(`session:${session.id}`, 'cell:output', {
-          cellId: cell.id,
-          output: { type: 'stdout', data: data.toString('utf8') },
-        });
+        const stdout = [];
+        const components = [];
+
+        for (const line of data.toString('utf8').split('\n')) {
+          if (line.startsWith('@srcbook/ui:component ')) {
+            components.push(JSON.parse(line.slice(22)));
+          } else if (line.length > 0) {
+            stdout.push(line);
+          }
+        }
+
+        for (const component of components) {
+          wss.broadcast(`session:${session.id}`, 'ui:component', {
+            sessionId: session.id,
+            cellId: cell.id,
+            component: component,
+          });
+        }
+
+        if (stdout.length > 0) {
+          wss.broadcast(`session:${session.id}`, 'cell:output', {
+            cellId: cell.id,
+            output: { type: 'stdout', data: stdout.join('\n') },
+          });
+        }
       },
       stderr(data) {
         wss.broadcast(`session:${session.id}`, 'cell:output', {
@@ -682,6 +706,14 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
   });
 }
 
+function uiEvent(payload: UIEventPayloadType) {
+  processes.send(
+    payload.sessionId,
+    payload.cellId,
+    '@srcbook/ui:event ' + JSON.stringify(payload.event) + '\n',
+  );
+}
+
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
@@ -697,6 +729,7 @@ wss
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
   .incoming('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
   .incoming('tsconfig.json:update', TsConfigUpdatePayloadSchema, tsconfigUpdate)
+  .incoming('ui:event', UIEventPayloadSchema, uiEvent)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
@@ -704,6 +737,7 @@ wss
   .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
   .outgoing('tsserver:cell:diagnostics', TsServerCellDiagnosticsPayloadSchema)
   .outgoing('tsserver:cell:suggestions', TsServerCellSuggestionsPayloadSchema)
-  .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema);
+  .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema)
+  .outgoing('ui:component', UIComponentPayloadSchema);
 
 export default wss;

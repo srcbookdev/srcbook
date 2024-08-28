@@ -11,6 +11,8 @@ import {
   CodeCellType,
   TitleCellType,
   TsServerCellSuggestionsPayloadType,
+  UIComponentType,
+  UIComponentPayloadType,
 } from '@srcbook/shared';
 import { loadSession, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
@@ -236,13 +238,16 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
             />
 
             {cell.type === 'code' && (
-              <CodeCell
-                cell={cell}
-                session={session}
-                channel={channel}
-                updateCellOnServer={updateCellOnServer}
-                onDeleteCell={onDeleteCell}
-              />
+              <>
+                <CodeCell
+                  cell={cell}
+                  session={session}
+                  channel={channel}
+                  updateCellOnServer={updateCellOnServer}
+                  onDeleteCell={onDeleteCell}
+                />
+                <CellUI cell={cell} session={session} channel={channel} />
+              </>
             )}
 
             {cell.type === 'markdown' && (
@@ -274,6 +279,96 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         />
       </div>
     </>
+  );
+}
+
+function CellUI(props: { cell: CellType; session: SessionType; channel: SessionChannel }) {
+  const { cell, session, channel } = props;
+
+  const [components, setComponents] = useState<UIComponentType[]>([]);
+
+  useEffect(() => {
+    function onComponent(payload: UIComponentPayloadType) {
+      if (cell.id === payload.cellId) {
+        setComponents([payload.component]);
+      }
+    }
+
+    channel.on('ui:component', onComponent);
+
+    return () => channel.off('ui:component', onComponent);
+  }, []);
+
+  return (
+    <div className="flex flex-col">
+      {components.map((component) => {
+        if (component.type === 'text') {
+          return (
+            <Input
+              key={component.id}
+              cell={cell}
+              session={session}
+              channel={channel}
+              component={component}
+            />
+          );
+        } else {
+          throw new Error(`component with type ${component.type} is not supported`);
+        }
+      })}
+    </div>
+  );
+}
+
+function Input(props: {
+  cell: CellType;
+  session: SessionType;
+  channel: SessionChannel;
+  component: UIComponentType;
+}) {
+  const { cell, session, channel, component } = props;
+
+  const [value, setValue] = useState(component.value ?? '');
+
+  function submit() {
+    if (value.trim() === '') {
+      return;
+    }
+
+    channel.push('ui:event', {
+      sessionId: session.id,
+      cellId: cell.id,
+      event: {
+        type: 'submit',
+        target: {
+          id: component.id,
+          value: value,
+        },
+      },
+    });
+
+    setValue('');
+  }
+
+  return (
+    <div className="flex flex-col">
+      <label htmlFor={component.id} className="text-sm text-tertiary-foreground">
+        {component.label}
+      </label>
+      <input
+        id={component.id}
+        className="h-12 p-2 mt-2 border rounded-md resize-none bg-background text-foreground"
+        value={value}
+        onChange={(e) => {
+          console.log(e);
+          setValue(e.currentTarget.value);
+        }}
+        placeholder={component.placeholder}
+      />
+      <div className="flex justify-end mt-2">
+        <Button onClick={submit}>Submit</Button>
+      </div>
+    </div>
   );
 }
 

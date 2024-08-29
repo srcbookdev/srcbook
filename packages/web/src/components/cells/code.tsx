@@ -7,19 +7,8 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import {
-  Info,
-  Play,
-  Trash2,
-  Sparkles,
-  X,
-  MessageCircleWarning,
-  LoaderCircle,
-  Maximize,
-  Minimize,
-} from 'lucide-react';
-import TextareaAutosize from 'react-textarea-autosize';
-import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
+import { Info, Play, Trash2, Sparkles, LoaderCircle, Maximize, Minimize } from 'lucide-react';
+
 import {
   CellType,
   CodeCellType,

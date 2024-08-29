@@ -25,7 +25,6 @@ import { useDebouncedCallback } from 'use-debounce';
 import { AiPromptInput } from '../ai-prompt-input';
 import { SessionChannel } from '../../clients/websocket';
 import { SessionType } from '../../types';
-import { stat } from 'fs';
 
 const DEBOUNCE_DELAY = 500;
 type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting';

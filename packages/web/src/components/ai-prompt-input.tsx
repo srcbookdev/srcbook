@@ -1,4 +1,3 @@
-import React from 'react';
 import { Sparkles, MessageCircleWarning, X } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from '@/components/ui/button';

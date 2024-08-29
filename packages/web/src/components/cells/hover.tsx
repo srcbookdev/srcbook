@@ -4,9 +4,10 @@ import { Extension, hoverTooltip } from '@uiw/react-codemirror';
 export interface HoverInfo {
   start: number;
   end: number;
-  quickInfo: { displayParts: { cn: string; text: string }[] };
+  quickInfo: { displayParts: { kind: string; text: string }[] };
 }
 
+/** Hover extension for TS server information */
 export function hoverExtension(cell: CodeCellType): Extension {
   return hoverTooltip((view, pos, side) => {
     const { from, to, text } = view.state.doc.lineAt(pos);
@@ -24,15 +25,15 @@ export function hoverExtension(cell: CodeCellType): Extension {
       quickInfo: {
         displayParts: [
           {
-            cn: 'text-green-300',
+            kind: 'comment',
             text: `Cell: ${cell.filename}`,
           },
           {
-            cn: 'block',
+            kind: 'block',
             text: '',
           },
           {
-            cn: '',
+            kind: 'var',
             text: 'export function a(): number',
           },
         ],
@@ -58,7 +59,7 @@ function tooltipRenderer(info: HoverInfo) {
   if (info.quickInfo?.displayParts) {
     for (const part of info.quickInfo.displayParts) {
       const span = div.appendChild(document.createElement('span'));
-      span.className = part.cn;
+      span.className = `quick-info-${part.kind}`;
       span.innerText = part.text;
     }
   }

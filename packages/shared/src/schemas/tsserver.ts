@@ -20,3 +20,40 @@ export const TsServerSuggestionSchema = z.object({
   start: TsServerLocationSchema,
   end: TsServerLocationSchema,
 });
+
+export const TsServerQuickInfoRequestSchema = z.object({
+  location: TsServerLocationSchema,
+});
+
+export const TsServerQuickInfoResponseSchema = z.object({
+  kind: z.string(),
+  kindModifiers: z.string(),
+  start: TsServerLocationSchema,
+  end: TsServerLocationSchema,
+  displayString: z.string(),
+  documentation: z.union([
+    z.string(),
+    z.array(
+      z.object({
+        text: z.string(),
+        kind: z.string(),
+      }),
+    ),
+  ]),
+  tags: z.array(
+    z.object({
+      name: z.string(),
+      text: z
+        .union([
+          z.string(),
+          z.array(
+            z.object({
+              text: z.string(),
+              kind: z.string(),
+            }),
+          ),
+        ])
+        .optional(),
+    }),
+  ),
+});

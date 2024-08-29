@@ -192,7 +192,10 @@ export default function MarkdownCell(props: {
       )}
     >
       <div
-        className={cn('p-1 w-full hidden group-hover/cell:flex items-center justify-between z-10')}
+        className={cn(
+          'p-1 w-full flex items-center justify-between z-10',
+          status === 'view' ? 'hidden group-hover/cell:flex' : '',
+        )}
       >
         <div className="flex items-center gap-2">
           <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
@@ -215,10 +218,6 @@ export default function MarkdownCell(props: {
           )}
           {status === 'edit' && cellMode === 'off' && (
             <>
-              <Button variant="secondary" onClick={() => setStatus('view')}>
-                Cancel
-              </Button>
-              <Button onClick={onSave}>Save</Button>
               <Button
                 variant="icon"
                 size="icon"
@@ -227,6 +226,10 @@ export default function MarkdownCell(props: {
               >
                 <Sparkles size={16} />
               </Button>
+              <Button variant="secondary" onClick={() => setStatus('view')}>
+                Cancel
+              </Button>
+              <Button onClick={onSave}>Save</Button>
             </>
           )}
           {cellMode === 'prompting' && (

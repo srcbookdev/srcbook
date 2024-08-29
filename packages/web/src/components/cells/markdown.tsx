@@ -31,6 +31,18 @@ type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting';
 
 marked.use({ gfm: true });
 
+function getValidationError(text: string) {
+  const tokens = marked.lexer(text);
+  const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
+  const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
+
+  if (hasH1 || hasH6) {
+    return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
+  }
+
+  return null;
+}
+
 export default function MarkdownCell(props: {
   session: SessionType;
   channel: SessionChannel;
@@ -46,8 +58,8 @@ export default function MarkdownCell(props: {
   const [text, setText] = useState(cell.text);
   const [error, setError] = useState<string | null>(null);
   const [cellMode, setCellMode] = useState<CellModeType>('off');
-  const [prompt, setPrompt] = useState('');
-  const [newText, setnewText] = useState('');
+  const [prompt, setPrompt] = useState<string>('');
+  const [newText, setNewText] = useState<string>('');
   const { aiEnabled } = useSettings();
 
   useHotkeys(
@@ -99,7 +111,7 @@ export default function MarkdownCell(props: {
   useEffect(() => {
     function callback(payload: AiGeneratedCellPayloadType) {
       if (payload.cellId !== cell.id) return;
-      setnewText(payload.output);
+      setNewText(payload.output);
       setCellMode('reviewing');
     }
     channel.on('ai:generated', callback);
@@ -108,21 +120,8 @@ export default function MarkdownCell(props: {
 
   const updateCellOnServerDebounced = useDebouncedCallback(updateCellOnServer, DEBOUNCE_DELAY);
 
-  function getValidationError(text: string) {
-    const tokens = marked.lexer(text);
-    const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
-    const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
-
-    if (hasH1 || hasH6) {
-      return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
-    }
-
-    return null;
-  }
-
   function onSave() {
     const error = getValidationError(newText);
-
     setError(error);
 
     if (error === null) {
@@ -143,17 +142,19 @@ export default function MarkdownCell(props: {
   }
 
   function onAcceptDiff() {
-    setText(newText);
-    updateCellOnClient({ ...cell, text: newText });
-    updateCellOnServerDebounced(cell, { text: newText });
-    setPrompt('');
     onSave();
+    setPrompt('');
     setCellMode('off');
   }
 
   function onRevertDiff() {
     setCellMode('prompting');
-    setnewText('');
+    setNewText('');
+  }
+
+  function onCancel() {
+    setStatus('view');
+    setError(null);
   }
   function DiffEditor({ original, modified }: { original: string; modified: string }) {
     const { codeTheme } = useTheme();
@@ -223,7 +224,7 @@ export default function MarkdownCell(props: {
               >
                 <Sparkles size={16} />
               </Button>
-              <Button variant="secondary" onClick={() => setStatus('view')}>
+              <Button variant="secondary" onClick={onCancel}>
                 Cancel
               </Button>
               <Button onClick={onSave}>Save</Button>
@@ -267,7 +268,7 @@ export default function MarkdownCell(props: {
       ) : (
         <>
           {error && (
-            <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
+            <div className="flex items-center gap-2 mt-2 px-3 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
               <CircleAlert size={16} />
               <p className="text-xs">{error}</p>
             </div>
@@ -280,7 +281,7 @@ export default function MarkdownCell(props: {
               basicSetup={{ lineNumbers: false, foldGutter: false }}
               extensions={[markdown(), keyMap, EditorView.lineWrapping]}
               onChange={(newText) => {
-                setnewText(newText);
+                setNewText(newText);
               }}
             />
           </div>

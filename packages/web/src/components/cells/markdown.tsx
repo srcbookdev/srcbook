@@ -99,8 +99,6 @@ export default function MarkdownCell(props: {
   useEffect(() => {
     function callback(payload: AiGeneratedCellPayloadType) {
       if (payload.cellId !== cell.id) return;
-      // We move to the "review" stage of the generation process:
-      console.log('payload', payload);
       setnewText(payload.output);
       setCellMode('reviewing');
     }

@@ -25,6 +25,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { AiPromptInput } from '../ai-prompt-input';
 import { SessionChannel } from '../../clients/websocket';
 import { SessionType } from '../../types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 const DEBOUNCE_DELAY = 500;
 type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting';
@@ -216,14 +217,21 @@ export default function MarkdownCell(props: {
           )}
           {status === 'edit' && cellMode === 'off' && (
             <>
-              <Button
-                variant="icon"
-                size="icon"
-                disabled={cellMode !== 'off'}
-                onClick={() => setCellMode('prompting')}
-              >
-                <Sparkles size={16} />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="icon"
+                      size="icon"
+                      disabled={cellMode !== 'off'}
+                      onClick={() => setCellMode('prompting')}
+                    >
+                      <Sparkles size={16} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit cell using AI</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Button variant="secondary" onClick={onCancel}>
                 Cancel
               </Button>

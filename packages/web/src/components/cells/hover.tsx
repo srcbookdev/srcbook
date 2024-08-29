@@ -1,6 +1,7 @@
 import {
   CodeCellType,
   TsServerQuickInfoRequestPayloadType,
+  TsServerQuickInfoResponsePayloadType,
   TsServerQuickInfoResponseType,
 } from '@srcbook/shared';
 import { Extension, hoverTooltip } from '@uiw/react-codemirror';
@@ -14,12 +15,7 @@ export interface HoverInfo {
 }
 
 /** Hover extension for TS server information */
-export function hoverExtension(
-  sessionId: string,
-  cell: CodeCellType,
-  channel: SessionChannel,
-): Extension {
-  // @ts-expect-error -- breaking so meany rules
+export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionChannel): Extension {
   return hoverTooltip(async (view, pos, side) => {
     const { from, to, text } = view.state.doc.lineAt(pos);
     let start = pos,
@@ -40,48 +36,62 @@ export function hoverExtension(
 
     channel.push('tsserver:cell:quickinfo:request', request);
 
-    // eslint-disable-next-line
-    let response: any;
+    let response: TsServerQuickInfoResponsePayloadType | null = null;
     channel.on('tsserver:cell:quickinfo:response', (payload) => {
       response = payload;
-      localStorage.setItem('quickinfo', JSON.stringify(response.response));
-      console.log(response);
     });
 
     // Wait for the response
     while (!response) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
 
     const hoverInfo = {
       start,
       end,
-      quickInfo: JSON.parse(localStorage.getItem('quickinfo') ?? '{}'),
+      // @ts-expect-error -- this is not a never just some async magic
+      quickInfo: response.response,
     };
 
-    console.log('QUICK INFO', hoverInfo);
-
     return {
-      pos: start,
-      end: end,
-      create: () => tooltipRenderer(hoverInfo),
-      above: true,
+      pos: hoverInfo.start,
+      end: hoverInfo.end,
+      create: () => hoverRenderer(hoverInfo, view),
     };
   });
 }
 
-function tooltipRenderer(info: HoverInfo) {
-  const div = document.createElement('div');
+import { EditorView, TooltipView } from '@uiw/react-codemirror';
+
+export type TooltipRenderer = (arg0: HoverInfo, editorView: EditorView) => TooltipView;
+
+export const hoverRenderer: TooltipRenderer = (info: HoverInfo) => {
+  const dom = document.createElement('div');
   if (info.quickInfo.documentation) {
     for (const part of info.quickInfo.documentation) {
-      const span = div.appendChild(document.createElement('span'));
+      const span = dom.appendChild(document.createElement('span'));
       if (typeof part === 'string') {
         span.innerText = part;
       } else {
-        span.className = `quick-info-${part.kind}`;
+        // TODO: Add styling for each kind
         span.innerText = part.text;
       }
     }
   }
-  return div;
-}
+  // Add other quick info fields
+  if (info.quickInfo.displayString) {
+    const displayDiv = dom.appendChild(document.createElement('div'));
+    displayDiv.innerText = info.quickInfo.displayString;
+  }
+
+  if (info.quickInfo.kind) {
+    const kindDiv = dom.appendChild(document.createElement('div'));
+    kindDiv.innerText = `Kind: ${info.quickInfo.kind}`;
+  }
+
+  if (info.quickInfo.kindModifiers) {
+    const modifiersDiv = dom.appendChild(document.createElement('div'));
+    modifiersDiv.innerText = `Modifiers: ${info.quickInfo.kindModifiers}`;
+  }
+  return { dom };
+};

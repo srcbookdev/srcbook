@@ -43,7 +43,7 @@ import { EditorView } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
-import { hoverExtension } from './hover';
+import { tsHover } from './hover';
 import { mapTsServerLocationToCM } from './util';
 
 const DEBOUNCE_DELAY = 500;
@@ -647,7 +647,7 @@ function CodeEditor({
 
   let extensions = [
     javascript({ typescript: true }),
-    hoverExtension(session.id, cell, channel),
+    tsHover(session.id, cell, channel),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
   ];

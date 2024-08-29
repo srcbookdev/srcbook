@@ -687,7 +687,6 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
 }
 
 async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
-  console.log('TSSERVER QUICK INFO');
   const session = await findSession(payload.sessionId);
 
   if (!session) {
@@ -708,8 +707,6 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
 
   const filename = cell.filename;
 
-  console.log('FILENAME', filename);
-
   const tsserverResponse = await tsserver.quickinfo({
     file: pathToCodeFile(session.dir, filename),
     line: payload.request.location.line,
@@ -718,7 +715,7 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
 
   const body = tsserverResponse.body;
   if (!body) {
-    throw new Error('No quick info found');
+    return null;
   }
 
   const response: TsServerQuickInfoResponseType = {

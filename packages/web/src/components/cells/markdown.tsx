@@ -3,29 +3,75 @@ import { marked } from 'marked';
 import Markdown from 'marked-react';
 import CodeMirror, { keymap, Prec, EditorView } from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
-import { CircleAlert, Trash2, Pencil } from 'lucide-react';
-import { CellType, MarkdownCellType, MarkdownCellUpdateAttrsType } from '@srcbook/shared';
+
+import { CircleAlert, Trash2, Pencil, Sparkles, LoaderCircle } from 'lucide-react';
+import {
+  AiGeneratedCellPayloadType,
+  CellType,
+  MarkdownCellType,
+  MarkdownCellUpdateAttrsType,
+} from '@srcbook/shared';
 import { cn } from '@/lib/utils';
+import { EditorState } from '@codemirror/state';
 import { Button } from '@/components/ui/button';
+import { unifiedMergeView } from '@codemirror/merge';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import useTheme from '@/components/use-theme';
 import { useCells } from '../use-cell';
+import { useSettings } from '@/components/use-settings';
+
+import { useHotkeys } from 'react-hotkeys-hook';
+import { useDebouncedCallback } from 'use-debounce';
+import { AiPromptInput } from '../ai-prompt-input';
+import { SessionChannel } from '../../clients/websocket';
+import { SessionType } from '../../types';
+import { stat } from 'fs';
+
+const DEBOUNCE_DELAY = 500;
+type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting';
 
 marked.use({ gfm: true });
 
 export default function MarkdownCell(props: {
+  session: SessionType;
+  channel: SessionChannel;
   cell: MarkdownCellType;
   updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
   const { codeTheme } = useTheme();
   const { updateCell: updateCellOnClient } = useCells();
-  const { cell, updateCellOnServer, onDeleteCell } = props;
+  const { cell, updateCellOnServer, onDeleteCell, channel, session } = props;
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
   const [text, setText] = useState(cell.text);
   const [error, setError] = useState<string | null>(null);
+  const [cellMode, setCellMode] = useState<CellModeType>('off');
+  const [prompt, setPrompt] = useState('');
+  const [newText, setnewText] = useState('');
+  const { aiEnabled } = useSettings();
 
+  useHotkeys(
+    'mod+enter',
+    () => {
+      if (!prompt) return;
+      if (cellMode !== 'prompting') return;
+      if (!aiEnabled) return;
+      generate();
+    },
+    { enableOnFormTags: ['textarea'] },
+  );
+
+  useHotkeys(
+    'escape',
+    () => {
+      if (cellMode === 'prompting') {
+        setCellMode('off');
+        setPrompt('');
+      }
+    },
+    { enableOnFormTags: ['textarea'] },
+  );
   useEffect(() => {
     if (status === 'edit') {
       setText(cell.text);
@@ -51,6 +97,20 @@ export default function MarkdownCell(props: {
     ]),
   );
 
+  useEffect(() => {
+    function callback(payload: AiGeneratedCellPayloadType) {
+      if (payload.cellId !== cell.id) return;
+      // We move to the "review" stage of the generation process:
+      console.log('payload', payload);
+      setnewText(payload.output);
+      setCellMode('reviewing');
+    }
+    channel.on('ai:generated', callback);
+    return () => channel.off('ai:generated', callback);
+  }, [cell.id, channel]);
+
+  const updateCellOnServerDebounced = useDebouncedCallback(updateCellOnServer, DEBOUNCE_DELAY);
+
   function getValidationError(text: string) {
     const tokens = marked.lexer(text);
     const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
@@ -64,16 +124,61 @@ export default function MarkdownCell(props: {
   }
 
   function onSave() {
-    const error = getValidationError(text);
+    const error = getValidationError(newText);
 
     setError(error);
 
     if (error === null) {
-      updateCellOnClient({ ...cell, text });
-      updateCellOnServer(cell, { text });
+      updateCellOnClient({ ...cell, text: newText });
+      updateCellOnServerDebounced(cell, { text: newText });
       setStatus('view');
       return true;
     }
+  }
+
+  function generate() {
+    channel.push('ai:generate', {
+      sessionId: session.id,
+      cellId: cell.id,
+      prompt,
+    });
+    setCellMode('generating');
+  }
+
+  function onAcceptDiff() {
+    setText(newText);
+    updateCellOnClient({ ...cell, text: newText });
+    updateCellOnServerDebounced(cell, { text: newText });
+    setPrompt('');
+    onSave();
+    setCellMode('off');
+  }
+
+  function onRevertDiff() {
+    setCellMode('prompting');
+    setnewText('');
+  }
+  function DiffEditor({ original, modified }: { original: string; modified: string }) {
+    const { codeTheme } = useTheme();
+
+    return (
+      <div className="flex flex-col">
+        <CodeMirror
+          value={modified}
+          theme={codeTheme}
+          extensions={[
+            markdown(),
+            EditorView.editable.of(false),
+            EditorState.readOnly.of(true),
+            unifiedMergeView({
+              original: original,
+              mergeControls: false,
+              highlightChanges: false,
+            }),
+          ]}
+        />
+      </div>
+    );
   }
 
   return (
@@ -86,31 +191,78 @@ export default function MarkdownCell(props: {
         error && 'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30',
       )}
     >
-      {status === 'view' ? (
-        <div className="flex flex-col">
-          <div className="p-1 w-full hidden group-hover/cell:flex items-center justify-between z-10">
-            <div className="flex items-center gap-2">
-              <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
-              <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-                <Button variant="secondary" size="icon" className="border-transparent">
-                  <Trash2 size={16} />
-                </Button>
-              </DeleteCellWithConfirmation>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="secondary"
-                size="icon"
-                className="border-transparent"
-                onClick={() => setStatus('edit')}
-              >
-                <Pencil size={16} />
+      <div
+        className={cn('p-1 w-full hidden group-hover/cell:flex items-center justify-between z-10')}
+      >
+        <div className="flex items-center gap-2">
+          <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
+          <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
+            <Button variant="secondary" size="icon" className="border-transparent">
+              <Trash2 size={16} />
+            </Button>
+          </DeleteCellWithConfirmation>
+        </div>
+        <div className="flex items-center gap-1">
+          {status === 'view' && (
+            <Button
+              variant="secondary"
+              size="icon"
+              className="border-transparent"
+              onClick={() => setStatus('edit')}
+            >
+              <Pencil size={16} />
+            </Button>
+          )}
+          {status === 'edit' && cellMode === 'off' && (
+            <>
+              <Button variant="secondary" onClick={() => setStatus('view')}>
+                Cancel
               </Button>
+              <Button onClick={onSave}>Save</Button>
+              <Button
+                variant="icon"
+                size="icon"
+                disabled={cellMode !== 'off'}
+                onClick={() => setCellMode('prompting')}
+              >
+                <Sparkles size={16} />
+              </Button>
+            </>
+          )}
+          {cellMode === 'prompting' && (
+            <Button variant="default" onClick={generate} disabled={!aiEnabled}>
+              Generate
+            </Button>
+          )}
+          {cellMode === 'generating' && (
+            <Button variant="ai" size="default-with-icon" className="disabled:opacity-100" disabled>
+              <LoaderCircle size={16} className="animate-spin" /> Generating
+            </Button>
+          )}
+          {cellMode === 'reviewing' && (
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={onRevertDiff}>
+                Revert
+              </Button>
+              <Button onClick={onAcceptDiff}>Accept</Button>
             </div>
-          </div>
-          <div className="sb-prose px-3 pt-10 group-hover/cell:pt-0">
-            <Markdown>{cell.text}</Markdown>
-          </div>
+          )}
+        </div>
+      </div>
+      {cellMode === 'reviewing' && <DiffEditor original={cell.text} modified={newText} />}
+
+      {['prompting', 'generating'].includes(cellMode) && (
+        <AiPromptInput
+          prompt={prompt}
+          setPrompt={setPrompt}
+          onClose={() => setCellMode('off')}
+          aiEnabled={aiEnabled}
+        />
+      )}
+
+      {status === 'view' ? (
+        <div className="sb-prose px-3 pt-10 group-hover/cell:pt-0">
+          <Markdown>{cell.text}</Markdown>
         </div>
       ) : (
         <>
@@ -120,35 +272,17 @@ export default function MarkdownCell(props: {
               <p className="text-xs">{error}</p>
             </div>
           )}
-          <div className="flex flex-col">
-            <div className="p-1 w-full flex items-center justify-between z-10">
-              <div className="flex items-center gap-2">
-                <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
-                <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-                  <Button variant="secondary" size="icon" className="border-transparent">
-                    <Trash2 size={16} />
-                  </Button>
-                </DeleteCellWithConfirmation>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="secondary" onClick={() => setStatus('view')}>
-                  Cancel
-                </Button>
-
-                <Button onClick={onSave}>Save</Button>
-              </div>
-            </div>
-
-            <div className="px-3">
-              <CodeMirror
-                theme={codeTheme}
-                indentWithTab={false}
-                value={text}
-                basicSetup={{ lineNumbers: false, foldGutter: false }}
-                extensions={[markdown(), keyMap, EditorView.lineWrapping]}
-                onChange={setText}
-              />
-            </div>
+          <div className="px-3">
+            <CodeMirror
+              theme={codeTheme}
+              indentWithTab={false}
+              value={text}
+              basicSetup={{ lineNumbers: false, foldGutter: false }}
+              extensions={[markdown(), keyMap, EditorView.lineWrapping]}
+              onChange={(newText) => {
+                setnewText(newText);
+              }}
+            />
           </div>
         </>
       )}

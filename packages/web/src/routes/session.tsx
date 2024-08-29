@@ -247,6 +247,8 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
 
             {cell.type === 'markdown' && (
               <MarkdownCell
+                session={session}
+                channel={channel}
                 cell={cell}
                 updateCellOnServer={updateCellOnServer}
                 onDeleteCell={onDeleteCell}

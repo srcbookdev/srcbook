@@ -44,6 +44,7 @@ import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
 import { hoverExtension } from './hover';
+import { mapTsServerLocationToCM } from './util';
 
 const DEBOUNCE_DELAY = 500;
 type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
@@ -230,6 +231,8 @@ export default function CodeCell(props: {
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
                 <div className={cn(cellMode !== 'off' && 'opacity-50')}>
                   <CodeEditor
+                    channel={channel}
+                    session={session}
                     cell={cell}
                     runCell={runCell}
                     updateCellOnServer={updateCellOnServer}
@@ -294,6 +297,8 @@ export default function CodeCell(props: {
             <>
               <div className={cn(cellMode !== 'off' && 'opacity-50')}>
                 <CodeEditor
+                  channel={channel}
+                  session={session}
                   cell={cell}
                   runCell={runCell}
                   updateCellOnServer={updateCellOnServer}
@@ -583,22 +588,9 @@ function tsDiagnosticMessage(diagnostic: TsServerDiagnosticType): string {
 function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: string): Diagnostic {
   const message = tsDiagnosticMessage(diagnostic);
 
-  // parse conversion TS server is {line, offset} to CodeMirror {from, to} in absolute chars
   return {
-    from: Math.min(
-      code.length - 1,
-      code
-        .split('\n')
-        .slice(0, diagnostic.start.line - 1)
-        .join('\n').length + diagnostic.start.offset,
-    ),
-    to: Math.min(
-      code.length - 1,
-      code
-        .split('\n')
-        .slice(0, diagnostic.end.line - 1)
-        .join('\n').length + diagnostic.end.offset,
-    ),
+    from: mapTsServerLocationToCM(code, diagnostic.start.line, diagnostic.start.offset),
+    to: mapTsServerLocationToCM(code, diagnostic.end.line, diagnostic.end.offset),
     message: message,
     severity: tsCategoryToSeverity(diagnostic),
   };
@@ -625,12 +617,16 @@ function tsLinter(
 }
 
 function CodeEditor({
+  channel,
   cell,
+  session,
   runCell,
   updateCellOnServer,
   readOnly,
 }: {
+  channel: SessionChannel;
   cell: CodeCellType;
+  session: SessionType;
   runCell: () => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   readOnly: boolean;
@@ -651,7 +647,7 @@ function CodeEditor({
 
   let extensions = [
     javascript({ typescript: true }),
-    hoverExtension(cell),
+    hoverExtension(session.id, cell, channel),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
   ];

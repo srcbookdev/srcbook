@@ -124,8 +124,6 @@ export const TsServerQuickInfoRequestPayloadSchema = z.object({
 });
 
 export const TsServerQuickInfoResponsePayloadSchema = z.object({
-  cellId: z.string(),
-  sessionId: z.string(),
   response: TsServerQuickInfoResponseSchema,
 });
 

@@ -67,7 +67,7 @@ import WebSocketServer from './ws-client.mjs';
 import { filenameFromPath, pathToCodeFile } from '../srcbook/path.mjs';
 import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
-import type { TsServerQuickInfoResponsePayloadType } from '@srcbook/shared';
+import type { TsServerQuickInfoResponseType } from '@srcbook/shared';
 
 const wss = new WebSocketServer();
 
@@ -687,6 +687,7 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
 }
 
 async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
+  console.log('TSSERVER QUICK INFO');
   const session = await findSession(payload.sessionId);
 
   if (!session) {
@@ -707,6 +708,8 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
 
   const filename = cell.filename;
 
+  console.log('FILENAME', filename);
+
   const tsserverResponse = await tsserver.quickinfo({
     file: pathToCodeFile(session.dir, filename),
     line: payload.request.location.line,
@@ -718,10 +721,8 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
     throw new Error('No quick info found');
   }
 
-  const response: TsServerQuickInfoResponsePayloadType = {
-    sessionId: payload.sessionId,
-    cellId: payload.cellId,
-    response: body,
+  const response: TsServerQuickInfoResponseType = {
+    ...body,
   };
 
   wss.broadcast(`session:${session.id}`, 'tsserver:cell:quickinfo:response', {

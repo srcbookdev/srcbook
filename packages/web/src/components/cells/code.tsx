@@ -43,6 +43,7 @@ import { EditorView } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
+import { hoverExtension } from './hover';
 
 const DEBOUNCE_DELAY = 500;
 type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
@@ -650,7 +651,7 @@ function CodeEditor({
 
   let extensions = [
     javascript({ typescript: true }),
-    // wordHoverExtension,
+    hoverExtension(cell),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
   ];

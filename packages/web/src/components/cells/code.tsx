@@ -581,23 +581,18 @@ function tsDiagnosticMessage(diagnostic: TsServerDiagnosticType): string {
 
 function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: string): Diagnostic {
   const message = tsDiagnosticMessage(diagnostic);
-
-  // parse conversion TS server is {line, offset} to CodeMirror {from, to} in absolute chars
+  const lines = code.split('\n');
+  const startOffset =
+    lines.slice(0, diagnostic.start.line - 1).reduce((sum, line) => sum + line.length + 1, 0) +
+    diagnostic.start.offset -
+    1;
+  const endOffset =
+    lines.slice(0, diagnostic.end.line - 1).reduce((sum, line) => sum + line.length + 1, 0) +
+    diagnostic.end.offset -
+    1;
   return {
-    from: Math.min(
-      code.length - 1,
-      code
-        .split('\n')
-        .slice(0, diagnostic.start.line - 1)
-        .join('\n').length + diagnostic.start.offset,
-    ),
-    to: Math.min(
-      code.length - 1,
-      code
-        .split('\n')
-        .slice(0, diagnostic.end.line - 1)
-        .join('\n').length + diagnostic.end.offset,
-    ),
+    from: Math.min(code.length - 1, startOffset),
+    to: Math.min(code.length - 1, endOffset),
     message: message,
     severity: tsCategoryToSeverity(diagnostic),
   };

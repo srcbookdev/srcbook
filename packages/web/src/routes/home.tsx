@@ -88,30 +88,6 @@ export default function Home() {
       />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
-      {examples.length > 0 && (
-        <div className="mb-11">
-          <h4 className="h4 mb-6">Library</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {examples.map((example) => (
-              <MainCTACard
-                key={example.id}
-                srcbook={example}
-                onClick={() => openExampleSrcbook(example)}
-              />
-            ))}
-          </div>
-
-          <a href="https://hub.srcbook.com" target="_blank">
-            <div className="flex gap-2 items-center mt-6 hover:-translate-y-0.5 transition-all">
-              <p className="px-2">
-                See more examples in <span className="underline font-medium">the hub</span>
-              </p>
-              <ExternalLink size={16} className="text-muted-foreground" />
-            </div>
-          </a>
-        </div>
-      )}
-
       <div className="mb-16">
         <h4 className="h4 mx-auto my-6">New Srcbook</h4>
         <div className="grid grid-cols-2 sm:flex gap-6">
@@ -139,6 +115,30 @@ export default function Home() {
                 />
               ))}
           </div>
+        </div>
+      )}
+
+      {examples.length > 0 && (
+        <div className="mb-11">
+          <h4 className="h4 mb-6">Library</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {examples.map((example) => (
+              <MainCTACard
+                key={example.id}
+                srcbook={example}
+                onClick={() => openExampleSrcbook(example)}
+              />
+            ))}
+          </div>
+
+          <a href="https://hub.srcbook.com" target="_blank">
+            <div className="flex gap-2 items-center mt-6 hover:-translate-y-0.5 transition-all">
+              <p className="px-2">
+                See more examples in <span className="underline font-medium">the hub</span>
+              </p>
+              <ExternalLink size={16} className="text-muted-foreground" />
+            </div>
+          </a>
         </div>
       )}
     </div>

@@ -30,6 +30,8 @@ import InstallPackageModal from '@/components/install-package-modal';
 import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
+import { BaseComponent } from '@srcbook/ui-sdk';
+import { UIApp } from '@/components/ui-app-renderer';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: session }] = await Promise.all([
@@ -92,6 +94,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
 
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [uiComponent, setUiComponent] = useState<BaseComponent | null>(null);
 
   useHotkeys('mod+;', () => {
     if (!showSettings) {
@@ -113,15 +116,14 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     });
   }
 
-  // Dummy code for now to immediately respond to await_response events
+  // For now, we only support one component at a time, so simply replace
+  //
   useEffect(() => {
     const callback = (payload: IoAwaitResponsePayloadType) => {
-      console.log('ui:io:await_response', payload);
-      channel.push('ui:io:response', {
-        sessionId: session.id,
-        type: 'dummy',
-        value: 'my super value',
-        componentId: payload.componentId,
+      setUiComponent({
+        id: payload.componentId,
+        type: payload.componentType,
+        props: payload.props,
       });
     };
 
@@ -243,6 +245,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
       <div className="px-[72px] xl:pl-[100px] pb-28">
         <TitleCell cell={titleCell as TitleCellType} updateCellOnServer={updateCellOnServer} />
+        {uiComponent && <UIApp channel={channel} session={session} component={uiComponent} />}
 
         {cells.map((cell, idx) => (
           <div key={cell.id}>

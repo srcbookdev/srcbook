@@ -41,6 +41,8 @@ const IncomingSessionEvents = {
   'ai:generated': AiGeneratedCellPayloadSchema,
   'tsconfig.json:updated': TsConfigUpdatedPayloadSchema,
   'ui:io:await_response': IoAwaitResponsePayloadSchema,
+  // We dont listen to this, but if we dont declare it, it prints warnings.
+  'ui:io:response': IoResponsePayloadSchema,
 };
 
 const OutgoingSessionEvents = {

@@ -124,7 +124,6 @@ export const TsConfigUpdatedPayloadSchema = z.object({
 
 export const IoAwaitResponsePayloadSchema = z.object({
   sessionId: z.string(),
-  type: z.string(),
   componentId: z.string(),
   componentType: z.string(),
   props: z.record(z.string(), z.any()),
@@ -132,7 +131,7 @@ export const IoAwaitResponsePayloadSchema = z.object({
 
 export const IoResponsePayloadSchema = z.object({
   sessionId: z.string(),
-  type: z.string(),
+  componentType: z.string(),
   componentId: z.string(),
   value: z.any(),
 });

@@ -245,7 +245,6 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
       <div className="px-[72px] xl:pl-[100px] pb-28">
         <TitleCell cell={titleCell as TitleCellType} updateCellOnServer={updateCellOnServer} />
-        {uiComponent && <UIApp channel={channel} session={session} component={uiComponent} />}
 
         {cells.map((cell, idx) => (
           <div key={cell.id}>
@@ -293,6 +292,11 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
           createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
           className={cn('h-14', cells.length === 0 && 'opacity-100')}
         />
+        {uiComponent && (
+          <div className="border rounded p-4 space-y-4">
+            <UIApp channel={channel} session={session} component={uiComponent} />
+          </div>
+        )}
       </div>
     </>
   );

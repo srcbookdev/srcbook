@@ -17,9 +17,11 @@ const ComponentRenderer = ({ component, onUpdate }: Props) => {
   switch (component.type) {
     case 'INPUT_TEXT':
       return (
-        <div>
-          <label>{component.props.label}</label>
-          <Input onChange={(e) => setInputValue(e.target.value)} />
+        <div className="space-y-2">
+          <div>
+            <label>{component.props.label}</label>
+            <Input onChange={(e) => setInputValue(e.target.value)} />
+          </div>
           <Button onClick={() => onUpdate(inputValue)}>Submit</Button>
         </div>
       );

@@ -67,7 +67,6 @@ import WebSocketServer from './ws-client.mjs';
 import { filenameFromPath, pathToCodeFile } from '../srcbook/path.mjs';
 import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
-import type { TsServerQuickInfoResponseType } from '@srcbook/shared';
 
 const wss = new WebSocketServer();
 
@@ -718,12 +717,10 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
     return null;
   }
 
-  const response: TsServerQuickInfoResponseType = {
-    ...body,
-  };
-
   wss.broadcast(`session:${session.id}`, 'tsserver:cell:quickinfo:response', {
-    response,
+    response: {
+      ...body,
+    },
   });
 }
 

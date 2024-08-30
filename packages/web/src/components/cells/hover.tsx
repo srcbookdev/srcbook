@@ -17,6 +17,10 @@ export interface HoverInfo {
 /** Hover extension for TS server information */
 export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionChannel): Extension {
   return hoverTooltip(async (view, pos, side) => {
+    if (cell.language !== 'typescript') {
+      return null; // bail early if not typescript
+    }
+
     const { from, to, text } = view.state.doc.lineAt(pos);
     let start = pos,
       end = pos;
@@ -45,6 +49,8 @@ export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionC
     while (!response) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
+
+    channel.off('tsserver:cell:quickinfo:response', response);
 
     const hoverInfo = {
       start,

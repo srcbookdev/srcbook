@@ -40,14 +40,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Lint
-        run: pnpm check-format
-
       - name: Build
         run: pnpm build
 
-      - name: Lint
-        run: pnpm check-format
+      - name: Lint & Check
+        run: pnpm lint && pnpm check-format
 
       - name: Test
         run: pnpm test

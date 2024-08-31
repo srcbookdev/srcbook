@@ -21,6 +21,7 @@ import {
 } from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export async function loader() {
   const [{ result: config }, { result: srcbooks }, { result: examples }] = await Promise.all([
@@ -75,7 +76,7 @@ export default function Home() {
   }
 
   return (
-    <div className="divide-y divide-border">
+    <div className="divide-y divide-border space-y-8 pb-10">
       <DeleteSrcbookModal
         open={showDelete}
         onOpenChange={setShowDelete}
@@ -88,31 +89,7 @@ export default function Home() {
       />
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
-      {examples.length > 0 && (
-        <div className="mb-11">
-          <h4 className="h4 mb-6">Library</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {examples.map((example) => (
-              <MainCTACard
-                key={example.id}
-                srcbook={example}
-                onClick={() => openExampleSrcbook(example)}
-              />
-            ))}
-          </div>
-
-          <a href="https://hub.srcbook.com" target="_blank">
-            <div className="flex gap-2 items-center mt-6 hover:-translate-y-0.5 transition-all">
-              <p className="px-2">
-                See more examples in <span className="underline font-medium">the hub</span>
-              </p>
-              <ExternalLink size={16} className="text-muted-foreground" />
-            </div>
-          </a>
-        </div>
-      )}
-
-      <div className="mb-16">
+      <div>
         <h4 className="h4 mx-auto my-6">New Srcbook</h4>
         <div className="grid grid-cols-2 sm:flex gap-6">
           <CreateSrcbookButton defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
@@ -122,7 +99,7 @@ export default function Home() {
       </div>
 
       {srcbooks.length > 0 && (
-        <div className="mb-16">
+        <div>
           <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {srcbooks
@@ -138,6 +115,30 @@ export default function Home() {
                   onDelete={() => onDeleteSrcbook(srcbook)}
                 />
               ))}
+          </div>
+        </div>
+      )}
+
+      {examples.length > 0 && (
+        <div>
+          <h4 className="h4 my-6">Explore</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {examples.map((example) => (
+              <MainCTACard
+                key={example.id}
+                srcbook={example}
+                onClick={() => openExampleSrcbook(example)}
+              />
+            ))}
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <a href="https://hub.srcbook.com" target="_blank">
+              <Button size="lg" variant="secondary">
+                <span className="mr-1.5">Explore all in the Hub</span>
+                <ExternalLink size={16} />
+              </Button>
+            </a>
           </div>
         </div>
       )}

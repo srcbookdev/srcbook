@@ -1,13 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import {
-  DepsValidateResponsePayloadType,
-  PackageJsonCellType,
-  PackageJsonCellUpdateAttrsType,
-} from '@srcbook/shared';
+import { PackageJsonCellType, PackageJsonCellUpdateAttrsType } from '@srcbook/shared';
 import { SessionType, OutputType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
 import { useCells } from './use-cell';
-import { toast } from 'sonner';
 import useEffectOnce from './use-effect-once';
 
 function getValidationError(source: string) {
@@ -27,6 +22,7 @@ export interface PackageJsonContextValue {
   validationError: string | null;
   outdated: boolean;
   installing: boolean;
+  failed: boolean;
   output: OutputType[];
 }
 
@@ -52,7 +48,7 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
 
   const cell = cells.find((cell) => cell.type === 'package.json') as PackageJsonCellType;
 
-  // outdated means package.json is out of date nad needs to install deps.
+  // outdated means package.json is out of date and needs to install deps.
   const [outdated, setOutdated] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -75,19 +71,8 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
   );
 
   useEffect(() => {
-    const callback = (payload: DepsValidateResponsePayloadType) => {
-      const { packages } = payload;
+    const callback = () => {
       setOutdated(true);
-      const msg = packages
-        ? `Missing dependencies: ${packages.join(', ')}`
-        : 'Packages need to be installed';
-      toast.warning(msg, {
-        duration: 10000,
-        action: {
-          label: 'Install',
-          onClick: () => npmInstall(packages),
-        },
-      });
     };
 
     channel.on('deps:validate:response', callback);
@@ -122,6 +107,7 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
     validationError,
     outdated,
     installing: cell.status === 'running',
+    failed: cell.status === 'failed',
   };
 
   return <PackageJsonContext.Provider value={context}>{children}</PackageJsonContext.Provider>;

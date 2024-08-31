@@ -1,11 +1,8 @@
 export function mapTsServerLocationToCM(code: string, line: number, offset: number): number {
-  return Math.min(
-    code.length - 1,
-    code
-      .split('\n')
-      .slice(0, line - 1)
-      .join('\n').length + offset,
-  );
+  const lines = code.split('\n');
+  const startOffset =
+    lines.slice(0, line - 1).reduce((sum, line) => sum + line.length + 1, 0) + offset - 1;
+  return Math.min(code.length - 1, startOffset);
 }
 
 export function mapCMLocationToTsServer(

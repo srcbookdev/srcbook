@@ -17,7 +17,7 @@ export const PackageJsonCellSchema = z.object({
   type: z.literal('package.json'),
   source: z.string(),
   filename: z.literal('package.json'),
-  status: z.enum(['idle', 'running']),
+  status: z.enum(['idle', 'running', 'failed']),
 });
 
 export const CodeCellSchema = z.object({

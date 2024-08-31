@@ -12,5 +12,13 @@ module.exports = {
   plugins: ['react-refresh', 'prettier', 'jest'],
   rules: {
     'prettier/prettier': 'error',
+    '@typescript-eslint/no-unused-vars': [
+      'warn', // or "error"
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
   },
 };

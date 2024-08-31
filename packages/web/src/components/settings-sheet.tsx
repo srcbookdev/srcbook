@@ -2,10 +2,20 @@ import { useEffect, useState } from 'react';
 import { useSettings } from '@/components/use-settings';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { SessionType } from '@/types';
+import { OutputType, SessionType } from '@/types';
 import { TitleCellType, TsConfigUpdatedPayloadType } from '@srcbook/shared';
 import { useCells } from './use-cell';
-import { ChevronRight, X, Info, LoaderCircle, Play } from 'lucide-react';
+import {
+  ChevronRight,
+  X,
+  Info,
+  LoaderCircle,
+  Play,
+  PanelBottomOpen,
+  PanelBottomClose,
+  CopyIcon,
+  CheckIcon,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
@@ -83,7 +93,8 @@ export function SettingsSheet({
 
 function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => void }) {
   const { codeTheme } = useTheme();
-  const { source, onChangeSource, validationError, npmInstall, installing } = usePackageJson();
+  const { source, onChangeSource, validationError, npmInstall, installing, output, failed } =
+    usePackageJson();
 
   const [open, setOpen] = useState(true);
 
@@ -92,16 +103,15 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
     return true;
   }
 
+  const hasOutput = output.length > 0;
+
   return (
     <div>
       <CollapsibleContainer
         open={open}
         setOpen={setOpen}
         title="package.json"
-        className={cn({
-          'border-error': validationError !== null,
-          'border-run': installing,
-        })}
+        className={cn({ 'border-run': installing })}
       >
         <div className="pt-1 pb-3 px-3">
           <CodeMirror
@@ -116,6 +126,8 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
           />
         </div>
         {validationError !== null && <Error error={validationError} />}
+        {failed && <Error error="Failed to install dependencies" />}
+        {hasOutput && <OutputContainer output={output} />}
       </CollapsibleContainer>
       {open && (
         <div className="flex justify-end items-center gap-2 pt-1">
@@ -140,6 +152,43 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function OutputContainer(props: { output: OutputType[] }) {
+  const [show, setShow] = useState(true);
+  const [copyIcon, setCopyIcon] = useState<'copy' | 'copied'>('copy');
+
+  const output = props.output
+    .map(({ data }) => data)
+    .join('')
+    .trim();
+
+  function onCopy() {
+    navigator.clipboard.writeText(output);
+    setCopyIcon('copied');
+    setTimeout(() => setCopyIcon('copy'), 1500);
+  }
+
+  return (
+    <div className="divide-y border-border font-mono text-sm">
+      <div className="border-t border-border px-3 py-2 flex items-center justify-between bg-muted text-medium text-tertiary-foreground">
+        <h5 className="leading-none">Logs</h5>
+        <div className="flex items-center gap-6">
+          <button
+            className="hover:text-secondary-hover"
+            onClick={onCopy}
+            disabled={copyIcon === 'copied'}
+          >
+            {copyIcon === 'copy' ? <CopyIcon size={18} /> : <CheckIcon size={18} />}
+          </button>
+          <button className="hover:text-secondary-hover" onClick={() => setShow(!show)}>
+            {show ? <PanelBottomOpen size={18} /> : <PanelBottomClose size={18} />}
+          </button>
+        </div>
+      </div>
+      {show && <div className="p-3 overflow-scroll whitespace-pre text-[13px]">{output}</div>}
     </div>
   );
 }

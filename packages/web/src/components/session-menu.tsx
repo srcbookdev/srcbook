@@ -74,7 +74,7 @@ export default function SessionMenu({
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
 
-  const { installing: installingDependencies } = usePackageJson();
+  const { installing: installingDependencies, failed: dependencyInstallFailed } = usePackageJson();
 
   const { cells: allCells } = useCells();
 
@@ -127,6 +127,7 @@ export default function SessionMenu({
               <Settings size={16} />
             )}
             Settings
+            {dependencyInstallFailed && <span className="text-error">(1)</span>}
           </button>
           <button
             onClick={() => setShowSave(true)}

@@ -262,12 +262,13 @@ async function depsInstall(payload: DepsInstallPayloadType) {
           output: { type: 'stderr', data: data.toString('utf8') },
         });
       },
-      async onExit() {
+      async onExit(exitCode) {
         const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
+
         const updatedCell: PackageJsonCellType = {
           ...cell,
           source: updatedJsonSource,
-          status: 'idle',
+          status: exitCode === 0 ? 'idle' : 'failed',
         };
 
         const updatedSession = await updateSession(

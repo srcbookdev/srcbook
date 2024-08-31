@@ -87,7 +87,12 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     setTsServerSuggestions,
   } = useCells();
 
-  const { installing: installingDependencies } = usePackageJson();
+  const {
+    npmInstall,
+    failed: dependencyInstallFailed,
+    outdated: dependenciesOutdated,
+    installing: installingDependencies,
+  } = usePackageJson();
 
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -198,18 +203,50 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   }
 
   // TOOD: We need to stop treating titles and package.json as cells.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [titleCell, _packageJsonCell, ...remainingCells] = allCells;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
 
   useEffect(() => {
-    if (installingDependencies && !depsInstallModalOpen) {
-      const toastId = toast.loading('Installing dependencies...');
-      return () => toast.dismiss(toastId);
-    } else {
-      return () => {};
+    let result: () => void = () => {};
+
+    if (depsInstallModalOpen || showSettings) {
+      return result;
     }
-  }, [installingDependencies, depsInstallModalOpen]);
+
+    if (installingDependencies) {
+      const toastId = toast.loading('Installing dependencies...');
+      result = () => toast.dismiss(toastId);
+    } else if (dependencyInstallFailed) {
+      const toastId = toast.error('Failed to install dependencies', {
+        duration: 10000,
+        action: {
+          label: 'Try again',
+          onClick: () => {
+            setShowSettings(true);
+            setTimeout(npmInstall, 100);
+          },
+        },
+      });
+      result = () => toast.dismiss(toastId);
+    } else if (dependenciesOutdated) {
+      toast.warning('Packages need to be installed', {
+        duration: 10000,
+        action: {
+          label: 'Install',
+          onClick: () => npmInstall(),
+        },
+      });
+    }
+
+    return result;
+  }, [
+    dependenciesOutdated,
+    installingDependencies,
+    dependencyInstallFailed,
+    showSettings,
+    depsInstallModalOpen,
+    npmInstall,
+  ]);
 
   return (
     <>

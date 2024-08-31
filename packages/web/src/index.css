@@ -5,6 +5,13 @@
 @tailwind utilities;
 
 @layer base {
+  .cm-tooltip {
+    background-color: transparent !important;
+    border: transparent !important;
+  }
+}
+
+@layer base {
   :root {
     --sb-core-0: 0 0% 100%;
     --sb-core-10: 210 33% 99%;

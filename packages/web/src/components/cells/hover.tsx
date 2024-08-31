@@ -45,7 +45,6 @@ export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionC
       response = payload;
     });
 
-    // Wait for the response
     while (!response) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
@@ -74,32 +73,47 @@ export type TooltipRenderer = (arg0: HoverInfo, editorView: EditorView) => Toolt
 export const hoverRenderer: TooltipRenderer = (info: HoverInfo) => {
   console.log(info);
   const dom = document.createElement('div');
-  dom.className = 'p-3 bg-background border border-border max-w-96 max-h-64 overflow-y-auto';
+  dom.className =
+    'p-2 space-y-3 bg-background border border-border max-w-lg max-h-64 text-xs overflow-auto rounded-md relative';
 
   if (info.quickInfo.displayString) {
-    const displayDiv = dom.appendChild(document.createElement('div'));
-    displayDiv.innerText = info.quickInfo.displayString;
+    const displaySpan = dom.appendChild(document.createElement('span'));
+    displaySpan.innerText = info.quickInfo.displayString;
   }
 
   if (info.quickInfo.documentation) {
-    for (const part of info.quickInfo.documentation) {
+    dom.appendChild(document.createElement('br'));
+    if (typeof info.quickInfo.documentation === 'string') {
       const span = dom.appendChild(document.createElement('span'));
-      span.className = 'text-sb-core-50 pt-2';
-      if (typeof part === 'string') {
-        span.innerText = part;
-      } else {
-        span.innerText = part.text + ' kind ' + part.kind;
+      span.className = 'text-tertiary-foreground pt-2';
+      span.innerText = info.quickInfo.documentation;
+    } else {
+      for (const part of info.quickInfo.documentation) {
+        const span = dom.appendChild(document.createElement('span'));
+        span.className = 'text-tertiary-foreground pt-2';
+        if (typeof part === 'string') {
+          span.innerText = part;
+        } else {
+          span.innerText = part.text + ' kind ' + part.kind;
+        }
       }
     }
   }
 
-  if (info.quickInfo.tags) {
+  if (info.quickInfo.tags.length > 0) {
     const tagsDiv = dom.appendChild(document.createElement('div'));
     tagsDiv.className = 'pt-2';
     for (const part of info.quickInfo.tags) {
+      const nameSpan = tagsDiv.appendChild(document.createElement('span'));
+      nameSpan.className = 'italic';
+      nameSpan.innerText = part.name === 'example' ? '@example' : `@${part.name} - `;
+      if (part.name === 'example') {
+        tagsDiv.appendChild(document.createElement('br'));
+      }
+
       const span = tagsDiv.appendChild(document.createElement('span'));
       tagsDiv.appendChild(document.createElement('br'));
-      span.className = 'text-sb-core-50';
+      span.className = 'text-tertiary-foreground';
       if (typeof part === 'string') {
         span.innerText = part;
       } else {
@@ -111,6 +125,8 @@ export const hoverRenderer: TooltipRenderer = (info: HoverInfo) => {
       }
     }
   }
+
+  console.log(dom.children);
 
   return { dom };
 };

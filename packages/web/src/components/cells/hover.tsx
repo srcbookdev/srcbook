@@ -74,7 +74,7 @@ export const hoverRenderer: TooltipRenderer = (info: HoverInfo) => {
   console.log(info);
   const dom = document.createElement('div');
   dom.className =
-    'p-2 space-y-3 bg-background border border-border max-w-lg max-h-64 text-xs overflow-auto rounded-md relative';
+    'p-2 space-y-3 bg-background border border-border max-w-lg max-h-64 text-xs overflow-auto rounded-t-md last:rounded-b-md relative';
 
   if (info.quickInfo.displayString) {
     const displaySpan = dom.appendChild(document.createElement('span'));

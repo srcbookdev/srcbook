@@ -593,6 +593,14 @@ function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: strin
     to: mapTsServerLocationToCM(code, diagnostic.end.line, diagnostic.end.offset),
     message: message,
     severity: tsCategoryToSeverity(diagnostic),
+    renderMessage: () => {
+      const dom = document.createElement('div');
+      dom.className =
+        'p-2 space-y-3 bg-background bor border border-border max-w-lg max-h-64 text-xs overflow-auto rounded-b-md relative';
+      dom.innerText = message;
+
+      return dom;
+    },
   };
 }
 

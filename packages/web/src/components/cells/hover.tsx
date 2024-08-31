@@ -72,32 +72,45 @@ import { EditorView, TooltipView } from '@uiw/react-codemirror';
 export type TooltipRenderer = (arg0: HoverInfo, editorView: EditorView) => TooltipView;
 
 export const hoverRenderer: TooltipRenderer = (info: HoverInfo) => {
+  console.log(info);
   const dom = document.createElement('div');
-  if (info.quickInfo.documentation) {
-    for (const part of info.quickInfo.documentation) {
-      const span = dom.appendChild(document.createElement('span'));
-      if (typeof part === 'string') {
-        span.innerText = part;
-      } else {
-        // TODO: Add styling for each kind
-        span.innerText = part.text;
-      }
-    }
-  }
-  // Add other quick info fields
+  dom.className = 'p-3 bg-background border border-border max-w-96 max-h-64 overflow-y-auto';
+
   if (info.quickInfo.displayString) {
     const displayDiv = dom.appendChild(document.createElement('div'));
     displayDiv.innerText = info.quickInfo.displayString;
   }
 
-  if (info.quickInfo.kind) {
-    const kindDiv = dom.appendChild(document.createElement('div'));
-    kindDiv.innerText = `Kind: ${info.quickInfo.kind}`;
+  if (info.quickInfo.documentation) {
+    for (const part of info.quickInfo.documentation) {
+      const span = dom.appendChild(document.createElement('span'));
+      span.className = 'text-sb-core-50 pt-2';
+      if (typeof part === 'string') {
+        span.innerText = part;
+      } else {
+        span.innerText = part.text + ' kind ' + part.kind;
+      }
+    }
   }
 
-  if (info.quickInfo.kindModifiers) {
-    const modifiersDiv = dom.appendChild(document.createElement('div'));
-    modifiersDiv.innerText = `Modifiers: ${info.quickInfo.kindModifiers}`;
+  if (info.quickInfo.tags) {
+    const tagsDiv = dom.appendChild(document.createElement('div'));
+    tagsDiv.className = 'pt-2';
+    for (const part of info.quickInfo.tags) {
+      const span = tagsDiv.appendChild(document.createElement('span'));
+      tagsDiv.appendChild(document.createElement('br'));
+      span.className = 'text-sb-core-50';
+      if (typeof part === 'string') {
+        span.innerText = part;
+      } else {
+        if (typeof part.text === 'string') {
+          span.innerText = part.text;
+        } else if (part.text !== undefined) {
+          span.innerText = part.text.map((text) => text.text).join('');
+        }
+      }
+    }
   }
+
   return { dom };
 };

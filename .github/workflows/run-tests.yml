@@ -43,7 +43,7 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Lint
+      - name: Lint & Check
         run: pnpm lint && pnpm check-format
 
       - name: Test

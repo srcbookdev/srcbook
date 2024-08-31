@@ -203,7 +203,6 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   }
 
   // TOOD: We need to stop treating titles and package.json as cells.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [titleCell, _packageJsonCell, ...remainingCells] = allCells;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
 

@@ -91,6 +91,7 @@ From the root level:
 
 From the relevant package directory:
 
+- update the CHANELOG.md in the root directory
 - bump the version in the package.json, commit and push the changes. Example: `git commit -m "Release srcbook version 0.0.1-alpha.10`
 - `pnpm publish`
 - push git tags & add release notes to GitHub

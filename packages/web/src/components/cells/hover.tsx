@@ -87,10 +87,12 @@ function Tooltip({
         <>
           <br />
           {typeof hoverInfo.documentation === 'string' ? (
-            <span className="text-tertiary-foreground pt-2">{hoverInfo.documentation}</span>
+            <span className="text-tertiary-foreground pt-2 whitespace-pre-wrap">
+              {hoverInfo.documentation}
+            </span>
           ) : (
             hoverInfo.documentation.map((part, index) => (
-              <span key={index} className="text-tertiary-foreground pt-2">
+              <span key={index} className="text-tertiary-foreground pt-2 whitespace-pre-wrap">
                 {typeof part === 'string' ? part : `${part.text} kind ${part.kind}`}
               </span>
             ))
@@ -99,21 +101,21 @@ function Tooltip({
       )}
       {hoverInfo.tags.length > 0 && (
         <div className="pt-2">
-          {hoverInfo.tags.map((part) => (
-            <>
+          {hoverInfo.tags.map((part, index) => (
+            <span key={part.name + index.toString()}>
               <span className="italic">
                 {part.name === 'example' ? '@example' : `@${part.name} - `}
               </span>
               {part.name === 'example' && <br />}
-              <span className="text-tertiary-foreground">
+              <span className="text-tertiary-foreground whitespace-pre-wrap">
                 {typeof part === 'string'
                   ? part
                   : typeof part.text === 'string'
                     ? part.text
-                    : part.text?.map((text) => text.text).join('')}
+                    : part.text?.map((text) => text.text).join('\n')}
               </span>
               <br />
-            </>
+            </span>
           ))}
         </div>
       )}

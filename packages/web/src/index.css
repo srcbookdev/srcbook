@@ -5,23 +5,6 @@
 @tailwind utilities;
 
 @layer base {
-  .cm-tooltip {
-    background-color: hsl(var(--background)) !important;
-    border-color: hsl(var(--border)) !important;
-    border-width: 1px !important;
-    border-radius: 0.375rem !important;
-    overflow: hidden !important;
-  }
-  .cm-diagnostic {
-    margin-left: 0 !important;
-    padding: 0 !important;
-  }
-  .cm-tooltip-section:not(:first-child) {
-    border-top: 0 !important;
-  }
-}
-
-@layer base {
   :root {
     --sb-core-0: 0 0% 100%;
     --sb-core-10: 210 33% 99%;
@@ -408,4 +391,19 @@
   font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
     'Liberation Mono', 'Courier New', 'monospace';
   font-size: 14px;
+}
+
+.cm-tooltip {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+  border-width: 1px !important;
+  border-radius: 0.375rem !important;
+  overflow: hidden !important;
+}
+.cm-diagnostic {
+  margin-left: 0 !important;
+  padding: 0 !important;
+}
+.cm-tooltip-section:not(:first-child) {
+  border-top: 0 !important;
 }

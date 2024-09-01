@@ -1,5 +1,13 @@
 # Changelog
 
+### 0.0.1-alpha.18
+
+- Add TS-Server on-hover functionality to editor
+- Add output to package.json cell in settings [#205](https://github.com/srcbookdev/srcbook/issues/205)
+- Improved home page layout
+- Limit title length [#207](https://github.com/srcbookdev/srcbook/issues/207)
+- UI tweaks & minor bug fixes
+
 ### 0.0.1-alpha.17
 
 - Overhaul monorepo tooling [#201](https://github.com/srcbookdev/srcbook/pull/201)

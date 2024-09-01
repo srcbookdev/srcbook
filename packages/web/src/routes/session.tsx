@@ -29,6 +29,7 @@ import InstallPackageModal from '@/components/install-package-modal';
 import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
+import * as React from 'react';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: session }] = await Promise.all([
@@ -264,7 +265,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         <TitleCell cell={titleCell as TitleCellType} updateCellOnServer={updateCellOnServer} />
 
         {cells.map((cell, idx) => (
-          <div key={cell.id}>
+          <React.Fragment key={cell.id}>
             <InsertCellDivider
               language={session.language}
               createCodeCell={() => createNewCell('code', idx + 2)}
@@ -298,7 +299,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
                 onSuccess={insertGeneratedCells}
               />
             )}
-          </div>
+          </React.Fragment>
         ))}
 
         {/* There is always an insert cell divider after the last cell */}

@@ -19,6 +19,7 @@ export function EditableH1(props: {
   text: string;
   className?: string;
   onUpdated: (text: string) => void;
+  id: string;
 }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -39,9 +40,10 @@ export function EditableH1(props: {
   }
 
   return (
-    <div>
+    <>
       <h1
         className={cn(className, props.className)}
+        id={props.id}
         ref={ref}
         contentEditable
         suppressContentEditableWarning={true}
@@ -86,6 +88,6 @@ export function EditableH1(props: {
         {props.text}
       </h1>
       {error && <span className="text-error pt-3 text-sm font-medium">{error}</span>}
-    </div>
+    </>
   );
 }

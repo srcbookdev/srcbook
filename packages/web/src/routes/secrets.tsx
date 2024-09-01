@@ -108,29 +108,27 @@ function SecretsTable(props: {
 
   return (
     Object.keys(sortedSecrets).length > 0 && (
-      <div className="relative w-full overflow-auto">
-        <table className="w-full space-y-2">
-          <thead>
-            <tr className="text-sm text-tertiary-foreground">
-              <th className="h-10 pl-3 text-left align-middle">Name</th>
-              <th className="h-10 pl-3 text-left align-middle">Value</th>
-              <th className="h-10 pl-3 text-right align-middle w-[52px]"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedSecrets.map(([name, value]) => (
-              <SecretRow
-                key={name}
-                name={name}
-                value={value}
-                onUpdate={onUpdate}
-                onDelete={onDelete}
-                setError={props.setError}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <table className="relative overflow-auto w-full space-y-2">
+        <thead>
+          <tr className="text-sm text-tertiary-foreground">
+            <th className="h-10 pl-3 text-left align-middle">Name</th>
+            <th className="h-10 pl-3 text-left align-middle">Value</th>
+            <th className="h-10 pl-3 text-right align-middle w-[52px]"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedSecrets.map(([name, value]) => (
+            <SecretRow
+              key={name}
+              name={name}
+              value={value}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              setError={props.setError}
+            />
+          ))}
+        </tbody>
+      </table>
     )
   );
 }

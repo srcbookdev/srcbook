@@ -187,7 +187,7 @@ export default function CodeCell(props: {
   }
 
   return (
-    <div id={`cell-${props.cell.id}`}>
+    <>
       <Dialog open={fullscreen} onOpenChange={setFullscreen}>
         <DialogContent
           className={cn(
@@ -253,66 +253,64 @@ export default function CodeCell(props: {
           )}
         </DialogContent>
       </Dialog>
+      <div
+        className={cn(
+          'border rounded-md group relative group/cell',
+          cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+          (cellMode === 'generating' || cellMode === 'fixing') &&
+            'ring-1 ring-ai-ring border-ai-ring',
+          cell.status !== 'running' &&
+            cellMode !== 'generating' &&
+            cellMode !== 'fixing' &&
+            'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
+        )}
+        id={`cell-${props.cell.id}`}
+      >
+        <Header
+          cell={cell}
+          runCell={runCell}
+          stopCell={stopCell}
+          onDeleteCell={onDeleteCell}
+          generate={generate}
+          cellMode={cellMode}
+          setCellMode={setCellMode}
+          prompt={prompt}
+          setPrompt={setPrompt}
+          updateFilename={updateFilename}
+          filenameError={filenameError}
+          setFilenameError={setFilenameError}
+          fullscreen={fullscreen}
+          setFullscreen={setFullscreen}
+          setShowStdio={setShowStdio}
+          onAccept={onAcceptDiff}
+          onRevert={onRevertDiff}
+        />
 
-      <div className="relative group/cell" id={`cell-${props.cell.id}`}>
-        <div
-          className={cn(
-            'border rounded-md group',
-            cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-            (cellMode === 'generating' || cellMode === 'fixing') &&
-              'ring-1 ring-ai-ring border-ai-ring',
-            cell.status !== 'running' &&
-              cellMode !== 'generating' &&
-              cellMode !== 'fixing' &&
-              'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
-          )}
-        >
-          <Header
-            cell={cell}
-            runCell={runCell}
-            stopCell={stopCell}
-            onDeleteCell={onDeleteCell}
-            generate={generate}
-            cellMode={cellMode}
-            setCellMode={setCellMode}
-            prompt={prompt}
-            setPrompt={setPrompt}
-            updateFilename={updateFilename}
-            filenameError={filenameError}
-            setFilenameError={setFilenameError}
-            fullscreen={fullscreen}
-            setFullscreen={setFullscreen}
-            setShowStdio={setShowStdio}
-            onAccept={onAcceptDiff}
-            onRevert={onRevertDiff}
-          />
+        {cellMode === 'reviewing' ? (
+          <DiffEditor original={cell.source} modified={newSource} />
+        ) : (
+          <>
+            <CodeEditor
+              className={cn(cellMode !== 'off' && 'opacity-50')}
+              cell={cell}
+              runCell={runCell}
+              updateCellOnServer={updateCellOnServer}
+              readOnly={['generating', 'prompting'].includes(cellMode)}
+            />
 
-          {cellMode === 'reviewing' ? (
-            <DiffEditor original={cell.source} modified={newSource} />
-          ) : (
-            <>
-              <div className={cn(cellMode !== 'off' && 'opacity-50')}>
-                <CodeEditor
-                  cell={cell}
-                  runCell={runCell}
-                  updateCellOnServer={updateCellOnServer}
-                  readOnly={['generating', 'prompting'].includes(cellMode)}
-                />
-              </div>
-              <CellOutput
-                cell={cell}
-                show={showStdio}
-                setShow={setShowStdio}
-                fixDiagnostics={aiFixDiagnostics}
-                cellMode={cellMode}
-                fullscreen={fullscreen}
-                setFullscreen={setFullscreen}
-              />
-            </>
-          )}
-        </div>
+            <CellOutput
+              cell={cell}
+              show={showStdio}
+              setShow={setShowStdio}
+              fixDiagnostics={aiFixDiagnostics}
+              cellMode={cellMode}
+              fullscreen={fullscreen}
+              setFullscreen={setFullscreen}
+            />
+          </>
+        )}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -619,11 +617,13 @@ function tsLinter(
 }
 
 function CodeEditor({
+  className,
   cell,
   runCell,
   updateCellOnServer,
   readOnly,
 }: {
+  className?: string;
   cell: CodeCellType;
   runCell: () => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
@@ -655,6 +655,7 @@ function CodeEditor({
 
   return (
     <CodeMirror
+      className={className}
       value={cell.source}
       theme={codeTheme}
       extensions={extensions}
@@ -670,22 +671,21 @@ function DiffEditor({ original, modified }: { original: string; modified: string
   const { codeTheme } = useTheme();
 
   return (
-    <div className="flex flex-col">
-      <CodeMirror
-        value={modified}
-        theme={codeTheme}
-        extensions={[
-          javascript({ typescript: true }),
-          EditorView.editable.of(false),
-          EditorState.readOnly.of(true),
-          unifiedMergeView({
-            original: original,
-            mergeControls: false,
-            highlightChanges: false,
-          }),
-        ]}
-      />
-    </div>
+    <CodeMirror
+      className="flex flex-col"
+      value={modified}
+      theme={codeTheme}
+      extensions={[
+        javascript({ typescript: true }),
+        EditorView.editable.of(false),
+        EditorState.readOnly.of(true),
+        unifiedMergeView({
+          original: original,
+          mergeControls: false,
+          highlightChanges: false,
+        }),
+      ]}
+    />
   );
 }
 

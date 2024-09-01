@@ -15,8 +15,11 @@ export default function TitleCell(props: {
   }
 
   return (
-    <div id={`cell-${cell.id}`} className="mb-4">
-      <EditableH1 text={cell.text} className="title" onUpdated={updateCell} />
-    </div>
+    <EditableH1
+      text={cell.text}
+      id={`cell-title-${cell.id}`}
+      className="title mb-4"
+      onUpdated={updateCell}
+    />
   );
 }

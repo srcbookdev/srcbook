@@ -81,7 +81,7 @@ function Settings() {
     model !== aiModel;
 
   return (
-    <div>
+    <>
       <h4 className="h4 mx-auto mb-6">Settings</h4>
       <div className="space-y-10">
         <div>
@@ -212,7 +212,7 @@ function Settings() {
           <DirPicker dirname={baseDir} entries={entries} cta="Change" />
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -286,14 +286,12 @@ const TestAiButton = () => {
   return (
     <>
       {state === 'idle' && (
-        <div>
-          <button
-            className="flex items-center gap-2 bg-secondary text-secondary-foreground border border-border hover:bg-muted hover:text-secondary-hover rounded-sm text-sm font-medium px-3 py-1"
-            onClick={check}
-          >
-            Test AI config
-          </button>
-        </div>
+        <button
+          className="flex items-center gap-2 bg-secondary text-secondary-foreground border border-border hover:bg-muted hover:text-secondary-hover rounded-sm text-sm font-medium px-3 py-1"
+          onClick={check}
+        >
+          Test AI config
+        </button>
       )}
       {state === 'loading' && (
         <div className="flex items-center gap-2 bg-secondary text-secondary-foreground border border-border hover:bg-muted hover:text-secondary-hover rounded-sm text-sm font-medium px-3 py-1">

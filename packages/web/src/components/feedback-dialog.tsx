@@ -27,9 +27,9 @@ export default function FeedbackDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Share Feedback</DialogTitle>
-          <DialogDescription asChild>
-            <div className="pt-4 flex flex-col gap-2">
-              <p>
+          <DialogDescription asChild className="pt-4 flex flex-col gap-2">
+            <>
+              <p className="text-tertiary-foreground">
                 We're always looking to improve Srcbook and your feedback is invaluable.
                 <br />
                 You can open a public{' '}
@@ -65,7 +65,7 @@ export default function FeedbackDialog({
               >
                 Send
               </Button>
-            </div>
+            </>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

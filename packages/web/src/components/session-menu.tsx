@@ -88,33 +88,31 @@ export default function SessionMenu({
 
   const InnerMenu = () => {
     return (
-      <div className="bg-background space-y-8 text-sm">
-        <div className="max-w-60 text-tertiary-foreground pr-10">
-          {cells.map((cell) => {
-            const isRunningCell = cell.type === 'code' && cell.status === 'running';
-            return (
-              <div
-                key={cell.id}
-                className={cn(
-                  'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer',
-                  isRunningCell
-                    ? 'text-run border-l-run font-medium'
-                    : 'hover:border-l-foreground hover:text-foreground',
-                )}
+      <div className="bg-background text-sm max-w-60 text-tertiary-foreground pr-10">
+        {cells.map((cell) => {
+          const isRunningCell = cell.type === 'code' && cell.status === 'running';
+          return (
+            <div
+              key={cell.id}
+              className={cn(
+                'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer',
+                isRunningCell
+                  ? 'text-run border-l-run font-medium'
+                  : 'hover:border-l-foreground hover:text-foreground',
+              )}
+            >
+              {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
+              <p
+                className="truncate"
+                onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
               >
-                {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
-                <p
-                  className="truncate"
-                  onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
-                >
-                  {tocFromCell(cell)}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+                {tocFromCell(cell)}
+              </p>
+            </div>
+          );
+        })}
         {/** actions menus */}
-        <div className="space-y-1.5 text-tertiary-foreground">
+        <div className="space-y-1.5 pt-4 text-tertiary-foreground">
           <button
             className={cn('flex items-center gap-2 hover:text-foreground cursor-pointer', {
               'text-run hover:text-run font-medium': installingDependencies,
@@ -185,7 +183,7 @@ export default function SessionMenu({
                 </div>
               </NavigationMenuTrigger>
 
-              <NavigationMenuContent className="">
+              <NavigationMenuContent>
                 <div className="p-6">
                   <InnerMenu />
                 </div>

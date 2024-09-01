@@ -113,18 +113,17 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
         title="package.json"
         className={cn({ 'border-run': installing })}
       >
-        <div className="pt-1 pb-3 px-3">
-          <CodeMirror
-            value={source}
-            theme={codeTheme}
-            extensions={[
-              json(),
-              Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
-            ]}
-            onChange={onChangeSource}
-            basicSetup={{ lineNumbers: false, foldGutter: false }}
-          />
-        </div>
+        <CodeMirror
+          className="pt-1 pb-3 px-3"
+          value={source}
+          theme={codeTheme}
+          extensions={[
+            json(),
+            Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+          ]}
+          onChange={onChangeSource}
+          basicSetup={{ lineNumbers: false, foldGutter: false }}
+        />
         {validationError !== null && <Error error={validationError} />}
         {failed && <Error error="Failed to install dependencies" />}
         {hasOutput && <OutputContainer output={output} />}
@@ -219,16 +218,15 @@ function TsconfigJson({ channel }: { channel: SessionChannel }) {
         title="tsconfig.json"
         className={cn({ 'border-error': validationError !== null })}
       >
-        <div className="pt-1 pb-3 px-3 relative">
-          <CodeMirror
-            value={source}
-            theme={codeTheme}
-            extensions={[json()]}
-            onChange={onChangeSource}
-            basicSetup={{ lineNumbers: false, foldGutter: false }}
-          />
-          {saved && <p className="absolute right-1 bottom-1 text-xs text-foreground/80">Saved!</p>}
-        </div>
+        <CodeMirror
+          className="pt-1 pb-3 px-3 relative"
+          value={source}
+          theme={codeTheme}
+          extensions={[json()]}
+          onChange={onChangeSource}
+          basicSetup={{ lineNumbers: false, foldGutter: false }}
+        />
+        {saved && <p className="absolute right-1 bottom-1 text-xs text-foreground/80">Saved!</p>}
         {validationError !== null && <Error error={validationError} />}
       </CollapsibleContainer>
     </div>
@@ -240,7 +238,7 @@ function Error(props: { error: string | null }) {
     <div className="px-1.5 pb-1.5">
       <div className="bg-error text-error-foreground text-sm font-medium py-2 pl-[10px] pr-3 flex items-start gap-1.5 rounded-sm">
         <div className="shrink-0 mt-0.5">
-          <Info size={16} />
+          <Info size={16} className="shrink-0 mt-0.5" />
         </div>
         <p>{props.error}</p>
       </div>

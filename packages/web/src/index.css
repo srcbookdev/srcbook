@@ -7,7 +7,10 @@
 @layer base {
   .cm-tooltip {
     background-color: transparent !important;
-    border: transparent !important;
+    border-color: hsl(var(--border)) !important;
+    border-width: 1px !important;
+    border-radius: 0.375rem !important;
+    overflow: hidden !important;
   }
   .cm-diagnostic {
     margin-left: 0 !important;

@@ -595,8 +595,7 @@ function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: strin
     severity: tsCategoryToSeverity(diagnostic),
     renderMessage: () => {
       const dom = document.createElement('div');
-      dom.className =
-        'p-2 space-y-3 bg-background bor border border-border max-w-lg max-h-64 text-xs overflow-auto rounded-b-md relative';
+      dom.className = 'p-2 space-y-3 bg-background border-t max-w-lg max-h-64 text-xs relative';
       dom.innerText = message;
 
       return dom;

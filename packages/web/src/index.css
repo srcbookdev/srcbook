@@ -396,12 +396,15 @@
 .cm-tooltip {
   background-color: hsl(var(--background)) !important;
   border-color: hsl(var(--border)) !important;
-  border-width: 1px !important;
-  border-radius: 0.375rem !important;
-  overflow: hidden !important;
+  border-width: 1px;
+  border-radius: 0.1875rem;
+  overflow: hidden;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 .cm-diagnostic {
-  margin-left: 0 !important;
+  margin-left: 0;
   padding: 0 !important;
 }
 .cm-tooltip-section:not(:first-child) {

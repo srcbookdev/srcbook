@@ -84,8 +84,7 @@ function Tooltip({
     <div className="p-2 space-y-3 max-w-lg max-h-64 text-xs overflow-auto relative">
       {hoverInfo.displayString && <span>{hoverInfo.displayString}</span>}
       {hoverInfo.documentation && (
-        <>
-          <br />
+        <div>
           {typeof hoverInfo.documentation === 'string' ? (
             <span className="text-tertiary-foreground pt-2 whitespace-pre-wrap">
               {hoverInfo.documentation}
@@ -97,10 +96,10 @@ function Tooltip({
               </span>
             ))
           )}
-        </>
+        </div>
       )}
       {hoverInfo.tags.length > 0 && (
-        <div className="pt-2">
+        <div>
           {hoverInfo.tags.map((part, index) => (
             <span key={part.name + index.toString()}>
               <span className="italic">

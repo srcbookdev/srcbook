@@ -6,7 +6,7 @@
 
 @layer base {
   .cm-tooltip {
-    background-color: transparent !important;
+    background-color: hsl(var(--background)) !important;
     border-color: hsl(var(--border)) !important;
     border-width: 1px !important;
     border-radius: 0.375rem !important;

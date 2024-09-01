@@ -81,7 +81,7 @@ function Tooltip({
   if (!hoverInfo) return null;
 
   return (
-    <div className="p-2 space-y-3 bg-background max-w-lg max-h-64 text-xs overflow-auto relative">
+    <div className="p-2 space-y-3 max-w-lg max-h-64 text-xs overflow-auto relative">
       {hoverInfo.displayString && <span>{hoverInfo.displayString}</span>}
       {hoverInfo.documentation && (
         <>

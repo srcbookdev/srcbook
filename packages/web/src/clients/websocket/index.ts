@@ -20,6 +20,8 @@ import {
   TsConfigUpdatedPayloadSchema,
   AiFixDiagnosticsPayloadSchema,
   TsServerCellSuggestionsPayloadSchema,
+  TsServerQuickInfoRequestPayloadSchema,
+  TsServerQuickInfoResponsePayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -36,6 +38,7 @@ const IncomingSessionEvents = {
   'deps:validate:response': DepsValidateResponsePayloadSchema,
   'tsserver:cell:diagnostics': TsServerCellDiagnosticsPayloadSchema,
   'tsserver:cell:suggestions': TsServerCellSuggestionsPayloadSchema,
+  'tsserver:cell:quickinfo:response': TsServerQuickInfoResponsePayloadSchema,
   'ai:generated': AiGeneratedCellPayloadSchema,
   'tsconfig.json:updated': TsConfigUpdatedPayloadSchema,
 };
@@ -53,6 +56,7 @@ const OutgoingSessionEvents = {
   'deps:validate': DepsValidatePayloadSchema,
   'tsserver:start': TsServerStartPayloadSchema,
   'tsserver:stop': TsServerStopPayloadSchema,
+  'tsserver:cell:quickinfo:request': TsServerQuickInfoRequestPayloadSchema,
   'tsconfig.json:update': TsConfigUpdatePayloadSchema,
 };
 

@@ -43,6 +43,8 @@ import { EditorView } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
+import { tsHover } from './hover';
+import { mapTsServerLocationToCM } from './util';
 
 const DEBOUNCE_DELAY = 500;
 type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
@@ -229,6 +231,8 @@ export default function CodeCell(props: {
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
                 <div className={cn(cellMode !== 'off' && 'opacity-50')}>
                   <CodeEditor
+                    channel={channel}
+                    session={session}
                     cell={cell}
                     runCell={runCell}
                     updateCellOnServer={updateCellOnServer}
@@ -293,6 +297,8 @@ export default function CodeCell(props: {
             <>
               <div className={cn(cellMode !== 'off' && 'opacity-50')}>
                 <CodeEditor
+                  channel={channel}
+                  session={session}
                   cell={cell}
                   runCell={runCell}
                   updateCellOnServer={updateCellOnServer}
@@ -581,20 +587,19 @@ function tsDiagnosticMessage(diagnostic: TsServerDiagnosticType): string {
 
 function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: string): Diagnostic {
   const message = tsDiagnosticMessage(diagnostic);
-  const lines = code.split('\n');
-  const startOffset =
-    lines.slice(0, diagnostic.start.line - 1).reduce((sum, line) => sum + line.length + 1, 0) +
-    diagnostic.start.offset -
-    1;
-  const endOffset =
-    lines.slice(0, diagnostic.end.line - 1).reduce((sum, line) => sum + line.length + 1, 0) +
-    diagnostic.end.offset -
-    1;
+
   return {
-    from: Math.min(code.length - 1, startOffset),
-    to: Math.min(code.length - 1, endOffset),
+    from: mapTsServerLocationToCM(code, diagnostic.start.line, diagnostic.start.offset),
+    to: mapTsServerLocationToCM(code, diagnostic.end.line, diagnostic.end.offset),
     message: message,
     severity: tsCategoryToSeverity(diagnostic),
+    renderMessage: () => {
+      const dom = document.createElement('div');
+      dom.className = 'p-2 space-y-3 border-t max-w-lg max-h-64 text-xs relative';
+      dom.innerText = message;
+
+      return dom;
+    },
   };
 }
 
@@ -619,12 +624,16 @@ function tsLinter(
 }
 
 function CodeEditor({
+  channel,
   cell,
+  session,
   runCell,
   updateCellOnServer,
   readOnly,
 }: {
+  channel: SessionChannel;
   cell: CodeCellType;
+  session: SessionType;
   runCell: () => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   readOnly: boolean;
@@ -645,7 +654,7 @@ function CodeEditor({
 
   let extensions = [
     javascript({ typescript: true }),
-    // wordHoverExtension,
+    tsHover(session.id, cell, channel),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
   ];

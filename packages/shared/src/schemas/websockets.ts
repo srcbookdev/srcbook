@@ -1,6 +1,10 @@
 import z from 'zod';
 import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells.js';
-import { TsServerDiagnosticSchema } from './tsserver.js';
+import {
+  TsServerDiagnosticSchema,
+  TsServerQuickInfoRequestSchema,
+  TsServerQuickInfoResponseSchema,
+} from './tsserver.js';
 
 // A _message_ over websockets
 export const WebSocketMessageSchema = z.tuple([
@@ -111,6 +115,16 @@ export const TsServerCellDiagnosticsPayloadSchema = z.object({
 export const TsServerCellSuggestionsPayloadSchema = z.object({
   cellId: z.string(),
   diagnostics: z.array(TsServerDiagnosticSchema),
+});
+
+export const TsServerQuickInfoRequestPayloadSchema = z.object({
+  cellId: z.string(),
+  sessionId: z.string(),
+  request: TsServerQuickInfoRequestSchema,
+});
+
+export const TsServerQuickInfoResponsePayloadSchema = z.object({
+  response: TsServerQuickInfoResponseSchema,
 });
 
 export const TsConfigUpdatePayloadSchema = z.object({

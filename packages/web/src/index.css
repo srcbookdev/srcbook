@@ -16,18 +16,6 @@
     margin-left: 0 !important;
     padding: 0 !important;
   }
-  .cm-diagnostic-error {
-    border-left: 0 !important;
-  }
-  .cm-diagnostic-info {
-    border-left: 0 !important;
-  }
-  .cm-diagnostic-warning {
-    border-left: 0 !important;
-  }
-  .cm-diagnostic-suggestion {
-    border-left: 0 !important;
-  }
   .cm-tooltip-section:not(:first-child) {
     border-top: 0 !important;
   }

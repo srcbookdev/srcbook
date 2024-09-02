@@ -69,13 +69,10 @@ function Tooltip({
 
     function callback(payload: TsServerQuickInfoResponsePayloadType) {
       setHoverInfo(payload.response);
+      channel.off('tsserver:cell:quickinfo:response', callback);
     }
 
     channel.on('tsserver:cell:quickinfo:response', callback);
-
-    return () => {
-      channel.off('tsserver:cell:quickinfo:response', callback);
-    };
   }, [cell, channel, pos, sessionId]);
 
   if (!hoverInfo) return null;

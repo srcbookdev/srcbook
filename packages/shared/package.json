@@ -6,6 +6,7 @@
   "scripts": {
     "prebuild": "rm -rf ./dist",
     "build": "tsc",
+    "dev": "tsc --watch --project .",
     "check-types": "tsc",
     "prepublishOnly": "npm run build"
   },

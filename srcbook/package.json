@@ -3,10 +3,12 @@
   "version": "0.0.1-alpha.18",
   "description": "TypeScript notebooks",
   "type": "module",
-  "bin": "./bin/cli.mjs",
+  "bin": "./dist/bin/cli.mjs",
   "scripts": {
-    "start": "./bin/cli.mjs start",
+    "start": "node ./dist/bin/cli.mjs start",
     "depcheck": "depcheck",
+    "prebuild": "rm -rf ./dist",
+    "build": "tsc",
     "prepublishOnly": "pnpm run --workspace-root build",
     "preversion": "pnpm run build",
     "postversion": "git push && git push --tags"
@@ -14,8 +16,8 @@
   "dependencies": {
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/openai": "catalog:",
-    "@srcbook/shared": "workspace:^",
-    "@srcbook/api": "workspace:^",
+    "@srcbook/api": "*",
+    "@srcbook/shared": "*",
     "ai": "^3.2.16",
     "better-sqlite3": "^11.0.0",
     "chalk": "^5.3.0",
@@ -31,7 +33,8 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21"
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.5.2"
   },
   "engines": {
     "node": ">=18"

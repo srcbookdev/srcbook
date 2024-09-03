@@ -21,8 +21,8 @@ export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionC
     let start = pos;
     let end = pos;
 
-    while (start > from && /\w/.test(text[start - from - 1])) start--;
-    while (end < to && /\w/.test(text[end - from])) end++;
+    while (start > from && /\w/.test(text[start - from - 1] ?? '')) start--;
+    while (end < to && /\w/.test(text[end - from] ?? '')) end++;
 
     return {
       pos: start,

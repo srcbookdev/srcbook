@@ -188,6 +188,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   async function insertGeneratedCells(idx: number, cells: Array<CodeCellType | MarkdownCellType>) {
     for (let i = 0; i < cells.length; i++) {
       const cell = cells[i];
+      if (!cell) continue;
       const insertIdx = idx + i;
       let newCell;
       switch (cell.type) {

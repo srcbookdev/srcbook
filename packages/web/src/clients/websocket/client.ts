@@ -33,7 +33,7 @@ export default class WebSocketClient {
 
   on(topic: string, callback: (event: string, payload: Record<string, any>) => void) {
     this.callbacks[topic] = this.callbacks[topic] || [];
-    this.callbacks[topic].push(callback);
+    this.callbacks[topic]?.push(callback);
   }
 
   off(topic: string, callback: (event: string, payload: Record<string, any>) => void) {

@@ -132,7 +132,11 @@ export async function exportSrcmdFile(session: SessionType, destinationPath: str
 }
 
 export async function findSession(id: string): Promise<SessionType> {
-  return sessions[id];
+  if (!sessions[id]) {
+    throw new Error(`Session with id ${id} not found`);
+  }
+  // explicitly known that a session exists here
+  return sessions[id] as SessionType;
 }
 
 type UpdateResultType =

@@ -10,6 +10,7 @@
 import readline from 'node:readline';
 import http from 'node:http';
 import express from 'express';
+// @ts-ignore
 import { WebSocketServer as WsWebSocketServer } from 'ws';
 import { wss, app, posthog } from '@srcbook/api';
 import chalk from 'chalk';
@@ -54,6 +55,7 @@ const { name, version } = getPackageJson();
 
 server.listen(port, () => {
   console.log(`${name}@${version} running at ${url}`);
+  // @ts-ignore
   process.send('{"type":"init"}');
 });
 

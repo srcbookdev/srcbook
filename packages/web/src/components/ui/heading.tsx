@@ -51,7 +51,7 @@ export function EditableH1(props: {
           if (result.success) {
             props.onUpdated(result.data.text);
           } else {
-            setError(result.error.errors[0].message);
+            setError(result.error.errors[0]?.message ?? 'Unknown error');
             if (ref.current) {
               ref.current.innerText = props.text;
             }
@@ -67,7 +67,7 @@ export function EditableH1(props: {
               text: ref.current.innerText + e.key,
             });
             if (result.error) {
-              setError(result.error.errors[0].message);
+              setError(result.error.errors[0]?.message ?? 'Unknown error');
               e.preventDefault();
               return false;
             }

@@ -82,12 +82,12 @@ function getContentByteLength(buffer: Uint8Array): { start: number; byteLength: 
       return null;
     }
 
-    if (buffer[i] === CARRIAGE_RETURN_CHAR_CODE) {
+    if (buffer[i] === CARRIAGE_RETURN_CHAR_CODE || buffer[i] === undefined) {
       break;
     }
 
     // If the character is not a number (codes 48-57), the data in the buffer is invalid.
-    if (buffer[i] < 48 || buffer[i] > 57) {
+    if ((buffer[i] as number) < 48 || (buffer[i] as number) > 57) {
       throw new Error(
         `Unexpected byte '${buffer[i]}' in Content-Length header. Expected a number between 0 and 9 (byte values 48-57).`,
       );

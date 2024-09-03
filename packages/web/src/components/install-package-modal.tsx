@@ -27,11 +27,11 @@ function getSelected(results: NPMPackageType[], selectedName: string, type: 'nex
   const len = results.length;
 
   if (selectedIdx < 0) {
-    return results[len - 1].name;
+    return results[len - 1]?.name ?? null;
   } else if (selectedIdx >= len) {
-    return results[0].name;
+    return results[0]?.name ?? null;
   } else {
-    return results[selectedIdx].name;
+    return results[selectedIdx]?.name ?? null;
   }
 }
 

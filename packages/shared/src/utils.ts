@@ -1,5 +1,5 @@
 import { base32hexnopad } from '@scure/base';
-import type { CodeLanguageType } from './types/cells.js';
+import type { CodeLanguageType } from './types/cells';
 import * as crypto from 'crypto';
 
 export function isBrowser(): boolean {

@@ -1,10 +1,10 @@
 import z from 'zod';
-import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells.js';
+import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells';
 import {
   TsServerDiagnosticSchema,
   TsServerQuickInfoRequestSchema,
   TsServerQuickInfoResponseSchema,
-} from './tsserver.js';
+} from './tsserver';
 
 // A _message_ over websockets
 export const WebSocketMessageSchema = z.tuple([

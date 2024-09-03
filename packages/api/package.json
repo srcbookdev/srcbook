@@ -12,6 +12,7 @@
     "test": "vitest",
     "prebuild": "rm -rf ./dist",
     "build": "tsc && cp -R ./drizzle ./dist/drizzle && cp -R ./srcbook/examples ./dist/srcbook/examples && cp -R ./prompts ./dist/prompts",
+    "lint": "eslint . --max-warnings 0",
     "check-types": "tsc",
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",

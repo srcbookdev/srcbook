@@ -90,7 +90,7 @@ export default function Home() {
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
       <div>
-        <h4 className="h4 mx-auto my-6">New Srcbook</h4>
+        <h4 className="h4 mx-auto mb-6">New Srcbook</h4>
         <div className="grid grid-cols-2 sm:flex gap-6">
           <CreateSrcbookButton defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
           <GenerateSrcbookButton onClick={() => setShowGenSrcbookModal(true)} />
@@ -100,7 +100,7 @@ export default function Home() {
 
       {srcbooks.length > 0 && (
         <div>
-          <h4 className="h4 mx-auto my-6">Recent Srcbooks</h4>
+          <h4 className="h4 mx-auto mt-8 mb-6">Recent Srcbooks</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {srcbooks
               .sort((a, b) => b.openedAt - a.openedAt)
@@ -121,7 +121,7 @@ export default function Home() {
 
       {examples.length > 0 && (
         <div>
-          <h4 className="h4 my-6">Explore</h4>
+          <h4 className="h4 mt-8 mb-6">Explore</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {examples.map((example) => (
               <MainCTACard

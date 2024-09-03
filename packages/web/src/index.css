@@ -394,19 +394,19 @@
 }
 
 .cm-tooltip {
-  background-color: hsl(var(--background)) !important;
-  border-color: hsl(var(--border)) !important;
-  border-width: 1px;
-  border-radius: 0.1875rem;
-  overflow: hidden;
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  @apply overflow-hidden;
+  @apply !bg-background;
+  @apply border;
+  @apply rounded-sm;
+  @apply shadow-md;
+  @apply !border-border;
 }
+
 .cm-diagnostic {
-  margin-left: 0;
-  padding: 0 !important;
+  @apply ml-0;
+  @apply !p-0;
 }
+
 .cm-tooltip-section:not(:first-child) {
-  border-top: 0 !important;
+  @apply !border-t-0;
 }

@@ -4,14 +4,22 @@ import {
   TsServerQuickInfoResponsePayloadType,
   TsServerQuickInfoResponseType,
 } from '@srcbook/shared';
-import { Extension, hoverTooltip } from '@uiw/react-codemirror';
+import { Extension, hoverTooltip, EditorView, EditorState } from '@uiw/react-codemirror';
 import { mapCMLocationToTsServer } from './util';
 import { SessionChannel } from '@/clients/websocket';
 import { createRoot } from 'react-dom/client';
 import { useEffect, useState } from 'react';
+import { javascript } from '@codemirror/lang-javascript';
+import { parse } from 'marked';
+import { type ThemeExtensionType } from '@/components/use-theme';
 
 /** Hover extension for TS server information */
-export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionChannel): Extension {
+export function tsHover(
+  sessionId: string,
+  cell: CodeCellType,
+  channel: SessionChannel,
+  codeTheme: ThemeExtensionType,
+): Extension {
   return hoverTooltip(async (view, pos) => {
     if (cell.language !== 'typescript') {
       return null; // bail early if not typescript
@@ -27,13 +35,49 @@ export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionC
     return {
       pos: start,
       end: end,
-      create: () =>
-        hoverRenderer({
-          sessionId,
-          cell,
-          channel,
-          pos,
-        }),
+      create: () => {
+        let innerView: EditorView | null = null;
+
+        function callback(payload: TsServerQuickInfoResponsePayloadType) {
+          innerView = new EditorView({
+            doc: payload.response.displayString,
+            extensions: [
+              javascript({ typescript: true }),
+              EditorState.readOnly.of(true),
+              codeTheme,
+            ],
+          });
+
+          tooltipView.dom.appendChild(innerView.dom);
+
+          const documentation = payload.response.documentation;
+          if (typeof documentation === 'string') {
+            const div = document.createElement('div');
+            div.className = 'p-2 sb-prose text-tertiary-foreground';
+            div.innerHTML = parse(documentation) as string;
+            tooltipView.dom.appendChild(div);
+          }
+        }
+
+        const tooltipView = {
+          dom: document.createElement('div'),
+          mount() {
+            const request: TsServerQuickInfoRequestPayloadType = {
+              sessionId: sessionId,
+              cellId: cell.id,
+              request: { location: mapCMLocationToTsServer(cell.source, pos) },
+            };
+            channel.on('tsserver:cell:quickinfo:response', callback);
+            channel.push('tsserver:cell:quickinfo:request', request);
+          },
+          destroy() {
+            channel.off('tsserver:cell:quickinfo:response', callback);
+            innerView?.destroy();
+          },
+        };
+
+        return tooltipView;
+      },
     };
   });
 }

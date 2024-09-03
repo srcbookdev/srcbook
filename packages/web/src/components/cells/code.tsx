@@ -654,7 +654,7 @@ function CodeEditor({
 
   let extensions = [
     javascript({ typescript: true }),
-    tsHover(session.id, cell, channel),
+    tsHover(session.id, cell, channel, codeTheme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
   ];

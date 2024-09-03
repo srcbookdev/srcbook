@@ -28,6 +28,8 @@ function updateClass(theme: ThemeType) {
   }
 }
 
+export type ThemeExtensionType = typeof srcbookDark;
+
 export default function useTheme() {
   const [theme, _setTheme] = useState<ThemeType>(getTheme());
 

@@ -3,7 +3,7 @@
   "version": "0.0.1-alpha.18",
   "description": "TypeScript notebooks",
   "type": "module",
-  "bin": "./bin/cli.mjs",
+  "bin": "./dist/bin/cli.mjs",
   "scripts": {
     "start": "node ./dist/bin/cli.mjs start",
     "depcheck": "depcheck",

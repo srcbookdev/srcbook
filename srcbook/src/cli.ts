@@ -1,16 +1,16 @@
 import { spawn } from 'node:child_process';
 import { Command } from 'commander';
-import { pathTo, getPackageJson, isPortAvailable } from './utils.mjs';
+import { pathTo, getPackageJson, isPortAvailable } from './utils';
 import open from 'open';
 
-function openInBrowser(url) {
+function openInBrowser(url: string) {
   open(url).then(
     () => {},
     () => {},
   );
 }
 
-function startServer(port, callback) {
+function startServer(port: string, callback: () => void) {
   const server = spawn('node', [pathTo('src', 'server.mjs')], {
     // Inherit stdio configurations from CLI (parent) process and allow IPC
     stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
@@ -27,7 +27,7 @@ function startServer(port, callback) {
   });
 
   // Listen to messages sent from the server (child) process
-  server.on('message', (data) => {
+  server.on('message', (data: string) => {
     const message = JSON.parse(data);
     if (message.type === 'init') {
       callback();
@@ -78,7 +78,7 @@ export default function program() {
   program.parse();
 }
 
-async function doImport(specifier, port) {
+async function doImport(specifier: string, port: string) {
   const filepath = specifier.endsWith('.src.md') ? specifier : `${specifier}.src.md`;
   const srcbookUrl = `https://hub.srcbook.com/srcbooks/${filepath}`;
 
@@ -96,7 +96,7 @@ async function doImport(specifier, port) {
   openInBrowser(`http://localhost:${port}/srcbooks/${sessionId}`);
 }
 
-async function importSrcbook(srcmd, port, srcbookUrl) {
+async function importSrcbook(srcmd: string, port: string, srcbookUrl: string) {
   const importResponse = await fetch(`http://localhost:${port}/api/import`, {
     method: 'POST',
     headers: {

@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const ROOT_PATH = path.join(__dirname, '../');
 
-export function pathTo(...paths) {
+export function pathTo(...paths: string[]) {
   return path.join(ROOT_PATH, ...paths);
 }
 
@@ -17,11 +17,12 @@ export function getPackageJson() {
   return JSON.parse(packageJson);
 }
 
-export function isPortAvailable(host, port) {
+export function isPortAvailable(host: string, port: number) {
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
 
     client.once('error', (err) => {
+      // @ts-ignore
       if (err.code === 'ECONNREFUSED') {
         resolve(false); // Port is not in use
       } else {
@@ -34,6 +35,6 @@ export function isPortAvailable(host, port) {
       resolve(true); // Port is in use
     });
 
-    client.connect(port, host);
+    client.connect(port, host, () => {});
   });
 }

@@ -1,0 +1,10 @@
+{
+  "extends": "@srcbook/configs/ts/base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "outDir": "dist"
+  },
+  "include": ["src", "bin", "tests"],
+  "exclude": ["node_modules", "dist"]
+}

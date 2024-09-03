@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { srcbookLight, srcbookDark } from '@/lib/code-theme';
 
 export type ThemeType = 'light' | 'dark';
-export type CodeThemeType = typeof srcbookLight | typeof srcbookDark;
+export type CodeThemeType = typeof srcbookLight  ;
 
 export function getTheme(): ThemeType {
   const theme = localStorage.getItem('sb:theme');

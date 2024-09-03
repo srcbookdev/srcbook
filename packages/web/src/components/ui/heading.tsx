@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
-
-import { cn } from '@/lib/utils';
 import { TitleCellUpdateAttrsSchema } from '@srcbook/shared';
+import { cn } from '@/lib/utils';
 
 const className =
   'flex w-full break-all whitespace-normal rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
@@ -42,9 +41,7 @@ export function EditableH1(props: {
     <div>
       <h1
         className={cn(className, props.className)}
-        ref={ref}
         contentEditable
-        suppressContentEditableWarning={true}
         onBlur={(e) => {
           const result = TitleCellUpdateAttrsSchema.safeParse({ text: e.currentTarget.innerHTML });
 
@@ -82,10 +79,12 @@ export function EditableH1(props: {
             ref.current.blur();
           }
         }}
+        ref={ref}
+        suppressContentEditableWarning
       >
         {props.text}
       </h1>
-      {error && <span className="text-error pt-3 text-sm font-medium">{error}</span>}
+      {error ? <span className="text-error pt-3 text-sm font-medium">{error}</span> : null}
     </div>
   );
 }

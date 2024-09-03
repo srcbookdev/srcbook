@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { type CodeCellType, type MarkdownCellType } from '@srcbook/shared';
-import { generateCells } from '@/lib/server';
 import { CircleAlert, Trash2, Sparkles } from 'lucide-react';
-import { GenerateAICellType, SessionType } from '@/types';
+import { generateCells } from '@/lib/server';
+import type { GenerateAICellType, SessionType } from '@/types';
 import { useCells } from '@/components/use-cell';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ export default function GenerateAiCell(props: {
   cell: GenerateAICellType;
   insertIdx: number;
   session: SessionType;
-  onSuccess: (idx: number, cells: Array<CodeCellType | MarkdownCellType>) => void;
+  onSuccess: (idx: number, cells: (CodeCellType | MarkdownCellType)[]) => void;
 }) {
   const { cell, insertIdx, session, onSuccess } = props;
   const [state, setState] = useState<'idle' | 'loading'>('idle');
@@ -39,7 +39,7 @@ export default function GenerateAiCell(props: {
     setState('loading');
     const { result, error } = await generateCells(session.id, {
       query: prompt,
-      insertIdx: insertIdx,
+      insertIdx,
     });
     setState('idle');
     if (error) {
@@ -54,7 +54,6 @@ export default function GenerateAiCell(props: {
 
   return (
     <div
-      id={`cell-${cell.id}`}
       className={cn(
         'group/cell relative w-full rounded-md border border-border transition-all',
         state === 'loading'
@@ -63,16 +62,17 @@ export default function GenerateAiCell(props: {
         error &&
           'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30 focus-within:border-sb-red-30 focus-within:ring-sb-red-30',
       )}
+      id={`cell-${cell.id}`}
     >
       <div className="flex flex-col">
         <div className="p-1 w-full flex items-center justify-between z-10">
           <div className="flex items-center gap-2">
             <h5 className="pl-4 text-sm font-mono font-bold">Generate with AI</h5>
             <Button
-              variant="secondary"
-              size="icon"
               className="border-secondary hover:border-muted"
-              onClick={() => removeCell(cell)}
+              onClick={() => { removeCell(cell); }}
+              size="icon"
+              variant="secondary"
             >
               <Trash2 size={16} />
             </Button>
@@ -90,30 +90,28 @@ export default function GenerateAiCell(props: {
         </div>
 
         <div className={cn('flex items-start', error && 'border-b')}>
-          <Sparkles size={16} className="m-2.5" />
+          <Sparkles className="m-2.5" size={16} />
 
           <textarea
-            value={prompt}
             autoFocus
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Write a prompt..."
             className="flex min-h-[80px] bg-transparent w-full rounded-sm px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none pl-0"
+            onChange={(e) => { setPrompt(e.target.value); }}
+            placeholder="Write a prompt..."
+            value={prompt}
           />
         </div>
 
-        {error && (
-          <div className="flex items-center gap-2 m-2 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm justify-center">
+        {error ? <div className="flex items-center gap-2 m-2 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm justify-center">
             <CircleAlert size={16} />
             <p className="text-xs line-clamp-1 ">{error}</p>
-          </div>
-        )}
+          </div> : null}
 
         {!aiEnabled && (
           <div className="flex items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm p-1 m-3">
             <p className="px-2">API key required</p>
             <button
               className="border border-sb-yellow-70 rounded-sm px-2 py-1 hover:border-sb-yellow-80 animate-all"
-              onClick={() => navigate('/settings')}
+              onClick={() => { navigate('/settings'); }}
             >
               Settings
             </button>

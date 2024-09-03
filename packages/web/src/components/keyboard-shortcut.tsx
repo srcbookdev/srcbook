@@ -13,9 +13,9 @@ const getPlatform = () => {
     return 'windows';
   } else if (platform.includes('linux') || userAgent.includes('linux')) {
     return 'linux';
-  } else {
+  } 
     return 'other';
-  }
+  
 };
 
 const keyMappings: Record<KeyType, Record<Platform, string>> = {
@@ -45,9 +45,9 @@ export default function Shortcut({ keys }: { keys: string[] }) {
       return getPlatformSpecificKey('mod');
     } else if (key === 'alt') {
       return getPlatformSpecificKey('alt');
-    } else {
+    } 
       return key;
-    }
+    
   });
   return (
     <>

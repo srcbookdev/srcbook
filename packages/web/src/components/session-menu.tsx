@@ -1,9 +1,7 @@
 import { marked } from 'marked';
-import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import type { Tokens } from 'marked';
 import { useState } from 'react';
-import { SessionChannel } from '@/clients/websocket';
 import {
   Upload,
   Trash2,
@@ -14,8 +12,9 @@ import {
   LoaderCircle,
   Keyboard,
 } from 'lucide-react';
-import type { SessionType } from '../types';
 import type { CodeCellType, MarkdownCellType, TitleCellType } from '@srcbook/shared';
+import type { SessionChannel } from '@/clients/websocket';
+import { cn } from '@/lib/utils';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import FeedbackDialog from '@/components/feedback-dialog';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
@@ -27,17 +26,18 @@ import {
   NavigationMenuItem,
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
+import type { SessionType } from '../types';
 import { useCells } from './use-cell';
 import { SettingsSheet } from './settings-sheet';
 import { usePackageJson } from './use-package-json';
 
-type Props = {
+interface Props {
   session: SessionType;
   showSettings: boolean;
   setShowSettings: (value: boolean) => void;
   openDepsInstallModal: () => void;
   channel: SessionChannel;
-};
+}
 
 marked.use({ gfm: true });
 
@@ -80,13 +80,13 @@ export default function SessionMenu({
 
   const cells = allCells.filter((cell) => {
     return cell.type === 'title' || cell.type === 'markdown' || cell.type === 'code';
-  }) as Array<TitleCellType | CodeCellType | MarkdownCellType>;
+  }) as (TitleCellType | CodeCellType | MarkdownCellType)[];
 
   // The key '?' is buggy, so we use 'Slash' with 'shift' modifier.
   // This assumes qwerty layout.
-  useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
+  useHotkeys('shift+Slash', () => { setShowShortcuts(!showShortcuts); });
 
-  const InnerMenu = () => {
+  function InnerMenu() {
     return (
       <div className="bg-background space-y-8 text-sm">
         <div className="max-w-60 text-tertiary-foreground pr-10">
@@ -94,15 +94,15 @@ export default function SessionMenu({
             const isRunningCell = cell.type === 'code' && cell.status === 'running';
             return (
               <div
-                key={cell.id}
                 className={cn(
                   'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer',
                   isRunningCell
                     ? 'text-run border-l-run font-medium'
                     : 'hover:border-l-foreground hover:text-foreground',
                 )}
+                key={cell.id}
               >
-                {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
+                {isRunningCell ? <Circle className="text-run" size={14} strokeWidth={3} /> : null}
                 <p
                   className="truncate"
                   onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
@@ -119,40 +119,40 @@ export default function SessionMenu({
             className={cn('flex items-center gap-2 hover:text-foreground cursor-pointer', {
               'text-run hover:text-run font-medium': installingDependencies,
             })}
-            onClick={() => setShowSettings(true)}
+            onClick={() => { setShowSettings(true); }}
           >
             {installingDependencies ? (
-              <LoaderCircle size={16} className="animate-spin" />
+              <LoaderCircle className="animate-spin" size={16} />
             ) : (
               <Settings size={16} />
             )}
             Settings
-            {dependencyInstallFailed && <span className="text-error">(1)</span>}
+            {dependencyInstallFailed ? <span className="text-error">(1)</span> : null}
           </button>
           <button
-            onClick={() => setShowSave(true)}
             className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+            onClick={() => { setShowSave(true); }}
           >
             <Upload size={16} />
             Export
           </button>
           <button
-            onClick={() => setShowDelete(true)}
             className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+            onClick={() => { setShowDelete(true); }}
           >
             <Trash2 size={16} />
             Delete
           </button>
           <button
-            onClick={() => setShowShortcuts(true)}
             className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+            onClick={() => { setShowShortcuts(true); }}
           >
             <Keyboard size={16} />
             Shortcuts
           </button>
           <button
-            onClick={() => setShowFeedback(true)}
             className="flex items-center gap-2 hover:text-foreground cursor-pointer"
+            onClick={() => { setShowFeedback(true); }}
           >
             <MessageCircleMore size={16} />
             Feedback
@@ -160,20 +160,20 @@ export default function SessionMenu({
         </div>
       </div>
     );
-  };
+  }
 
   return (
     <>
-      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-      <FeedbackDialog open={showFeedback} onOpenChange={setShowFeedback} />
-      <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={session} />
-      <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={session} />
+      <KeyboardShortcutsDialog onOpenChange={setShowShortcuts} open={showShortcuts} />
+      <FeedbackDialog onOpenChange={setShowFeedback} open={showFeedback} />
+      <DeleteSrcbookModal onOpenChange={setShowDelete} open={showDelete} session={session} />
+      <ExportSrcbookModal onOpenChange={setShowSave} open={showSave} session={session} />
       <SettingsSheet
-        open={showSettings}
+        channel={channel}
         onOpenChange={setShowSettings}
+        open={showSettings}
         openDepsInstallModal={openDepsInstallModal}
         session={session}
-        channel={channel}
       />
       <div className="fixed xl:hidden top-[100px] left-6 group z-20">
         <NavigationMenu>

@@ -2,7 +2,8 @@
  * @name srcbook
  */
 import { tags as t } from '@lezer/highlight';
-import { createTheme, CreateThemeOptions } from '@uiw/codemirror-themes';
+import type { CreateThemeOptions } from '@uiw/codemirror-themes';
+import { createTheme } from '@uiw/codemirror-themes';
 
 export const defaultSettingsSrcbookLight: CreateThemeOptions['settings'] = {
   background: 'var(--backround)',
@@ -20,7 +21,7 @@ export const defaultSettingsSrcbookLight: CreateThemeOptions['settings'] = {
 export const srcbookLightInit = (options?: Partial<CreateThemeOptions>) => {
   const { theme = 'light', settings = {}, styles = [] } = options || {};
   return createTheme({
-    theme: theme,
+    theme,
     settings: {
       ...defaultSettingsSrcbookLight,
       ...settings,
@@ -63,7 +64,7 @@ export const defaultSettingsSrcbookDark: CreateThemeOptions['settings'] = {
 export const srcbookDarkInit = (options?: Partial<CreateThemeOptions>) => {
   const { theme = 'dark', settings = {}, styles = [] } = options || {};
   return createTheme({
-    theme: theme,
+    theme,
     settings: {
       ...defaultSettingsSrcbookDark,
       ...settings,

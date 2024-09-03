@@ -1,4 +1,4 @@
-import { TitleCellType, TitleCellUpdateAttrsType } from '@srcbook/shared';
+import type { TitleCellType, TitleCellUpdateAttrsType } from '@srcbook/shared';
 import { EditableH1 } from '../ui/heading';
 import { useCells } from '../use-cell';
 
@@ -15,8 +15,8 @@ export default function TitleCell(props: {
   }
 
   return (
-    <div id={`cell-${cell.id}`} className="mb-4">
-      <EditableH1 text={cell.text} className="title" onUpdated={updateCell} />
+    <div className="mb-4" id={`cell-${cell.id}`}>
+      <EditableH1 className="title" onUpdated={updateCell} text={cell.text} />
     </div>
   );
 }

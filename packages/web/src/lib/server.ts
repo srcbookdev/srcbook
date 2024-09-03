@@ -4,7 +4,7 @@ import type {
   MarkdownCellType,
   CodeCellType,
 } from '@srcbook/shared';
-import { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
+import type { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
 import SRCBOOK_CONFIG from '@/config';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
@@ -19,7 +19,7 @@ export interface DiskResponseType {
 }
 
 export async function disk(request?: DiskRequestType): Promise<DiskResponseType> {
-  const response = await fetch(API_BASE_URL + '/disk', {
+  const response = await fetch(`${API_BASE_URL  }/disk`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -47,7 +47,7 @@ interface CreateSrcbookResponseType {
 export async function createSrcbook(
   request: CreateSrcbookRequestType,
 ): Promise<CreateSrcbookResponseType> {
-  const response = await fetch(API_BASE_URL + '/srcbooks', {
+  const response = await fetch(`${API_BASE_URL  }/srcbooks`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -62,7 +62,7 @@ export async function createSrcbook(
 }
 
 export async function deleteSrcbook(request: { id: string }) {
-  const response = await fetch(API_BASE_URL + '/srcbooks/' + request.id, {
+  const response = await fetch(`${API_BASE_URL  }/srcbooks/${  request.id}`, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json' },
   });
@@ -86,7 +86,7 @@ interface ImportSrcbookResponseType {
 export async function importSrcbook(
   request: ImportSrcbookRequestType,
 ): Promise<ImportSrcbookResponseType> {
-  const response = await fetch(API_BASE_URL + '/import', {
+  const response = await fetch(`${API_BASE_URL  }/import`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -100,7 +100,7 @@ export async function importSrcbook(
   return response.json();
 }
 
-type GenerateSrcbookRequestType = { query: string };
+interface GenerateSrcbookRequestType { query: string }
 type GenerateSrcbookResponseType =
   | { error: false; result: { dir: string } }
   | { error: true; result: string };
@@ -108,7 +108,7 @@ type GenerateSrcbookResponseType =
 export async function generateSrcbook(
   request: GenerateSrcbookRequestType,
 ): Promise<GenerateSrcbookResponseType> {
-  const response = await fetch(API_BASE_URL + '/generate', {
+  const response = await fetch(`${API_BASE_URL  }/generate`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -122,15 +122,15 @@ export async function generateSrcbook(
   return response.json();
 }
 
-type GenerateCellsRequestType = { insertIdx: number; query: string };
+interface GenerateCellsRequestType { insertIdx: number; query: string }
 type GenerateCellsResponseType =
   | { error: true; result: string }
-  | { error: false; result: Array<CodeCellType | MarkdownCellType> };
+  | { error: false; result: (CodeCellType | MarkdownCellType)[] };
 export async function generateCells(
   sessionId: string,
   request: GenerateCellsRequestType,
 ): Promise<GenerateCellsResponseType> {
-  const response = await fetch(API_BASE_URL + '/sessions/' + sessionId + '/generate_cells', {
+  const response = await fetch(`${API_BASE_URL  }/sessions/${  sessionId  }/generate_cells`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -156,7 +156,7 @@ interface CreateSessionResponseType {
 export async function createSession(
   request: CreateSessionRequestType,
 ): Promise<CreateSessionResponseType> {
-  const response = await fetch(API_BASE_URL + '/sessions', {
+  const response = await fetch(`${API_BASE_URL  }/sessions`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -182,7 +182,7 @@ interface LoadSessionResponseType {
 export async function loadSession(
   request: LoadSessionRequestType,
 ): Promise<LoadSessionResponseType> {
-  const response = await fetch(API_BASE_URL + '/sessions/' + request.id, {
+  const response = await fetch(`${API_BASE_URL  }/sessions/${  request.id}`, {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -196,7 +196,7 @@ export async function loadSession(
 }
 
 export async function loadSessions(): Promise<{ error: boolean; result: SessionType[] }> {
-  const response = await fetch(API_BASE_URL + '/sessions', {
+  const response = await fetch(`${API_BASE_URL  }/sessions`, {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -215,7 +215,7 @@ interface ExportSrcmdFileRequestType {
 }
 
 export async function exportSrcmdFile(sessionId: string, request: ExportSrcmdFileRequestType) {
-  const response = await fetch(API_BASE_URL + '/sessions/' + sessionId + '/export', {
+  const response = await fetch(`${API_BASE_URL  }/sessions/${  sessionId  }/export`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -241,7 +241,7 @@ interface EditConfigRequestType {
 }
 
 export async function getConfig() {
-  const response = await fetch(API_BASE_URL + '/settings', {
+  const response = await fetch(`${API_BASE_URL  }/settings`, {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -254,7 +254,7 @@ export async function getConfig() {
 }
 
 export async function updateConfig(request: EditConfigRequestType) {
-  const response = await fetch(API_BASE_URL + '/settings', {
+  const response = await fetch(`${API_BASE_URL  }/settings`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -268,7 +268,7 @@ export async function updateConfig(request: EditConfigRequestType) {
 
 // Secret management
 export async function getSecrets() {
-  const response = await fetch(API_BASE_URL + '/secrets', {
+  const response = await fetch(`${API_BASE_URL  }/secrets`, {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -286,7 +286,7 @@ interface CreateSecretRequestType {
 }
 
 export async function createSecret(request: CreateSecretRequestType) {
-  const response = await fetch(API_BASE_URL + '/secrets', {
+  const response = await fetch(`${API_BASE_URL  }/secrets`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -304,7 +304,7 @@ interface UpdateSecretRequestType {
   value: string;
 }
 export async function updateSecret(request: UpdateSecretRequestType) {
-  const response = await fetch(API_BASE_URL + '/secrets/' + request.previousName, {
+  const response = await fetch(`${API_BASE_URL  }/secrets/${  request.previousName}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request),
@@ -320,7 +320,7 @@ interface DeleteSecretRequestType {
   name: string;
 }
 export async function deleteSecret(request: DeleteSecretRequestType) {
-  const response = await fetch(API_BASE_URL + '/secrets/' + request.name, {
+  const response = await fetch(`${API_BASE_URL  }/secrets/${  request.name}`, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json' },
   });
@@ -352,12 +352,12 @@ export async function searchNpmPackages(query: string, size: number) {
   return response.json();
 }
 
-type SrcbookExamplesResponse = {
+interface SrcbookExamplesResponse {
   result: ExampleSrcbookType[];
-};
+}
 
 export async function loadSrcbookExamples(): Promise<SrcbookExamplesResponse> {
-  const response = await fetch(API_BASE_URL + '/examples', {
+  const response = await fetch(`${API_BASE_URL  }/examples`, {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });
@@ -370,13 +370,13 @@ export async function loadSrcbookExamples(): Promise<SrcbookExamplesResponse> {
   return response.json();
 }
 
-type FeedbackRequestType = {
+interface FeedbackRequestType {
   feedback: string;
   email: string;
-};
+}
 
 export async function sendFeedback({ feedback, email }: FeedbackRequestType) {
-  const response = await fetch(API_BASE_URL + '/feedback', {
+  const response = await fetch(`${API_BASE_URL  }/feedback`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ feedback, email }),
@@ -388,7 +388,7 @@ export async function sendFeedback({ feedback, email }: FeedbackRequestType) {
 }
 
 export async function aiHealthcheck() {
-  const response = await fetch(API_BASE_URL + '/ai/healthcheck', {
+  const response = await fetch(`${API_BASE_URL  }/ai/healthcheck`, {
     method: 'GET',
     headers: { 'content-type': 'application/json' },
   });

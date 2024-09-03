@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { PackageJsonCellType, PackageJsonCellUpdateAttrsType } from '@srcbook/shared';
-import { SessionType, OutputType } from '@/types';
-import { SessionChannel } from '@/clients/websocket';
+import type { PackageJsonCellType, PackageJsonCellUpdateAttrsType } from '@srcbook/shared';
+import type { SessionType, OutputType } from '@/types';
+import type { SessionChannel } from '@/clients/websocket';
 import { useCells } from './use-cell';
 import useEffectOnce from './use-effect-once';
 
@@ -28,11 +28,11 @@ export interface PackageJsonContextValue {
 
 const PackageJsonContext = createContext<PackageJsonContextValue | undefined>(undefined);
 
-type ProviderPropsType = {
+interface ProviderPropsType {
   session: SessionType;
   channel: SessionChannel;
   children: React.ReactNode;
-};
+}
 
 /**
  * An interface for working with package.json.
@@ -76,7 +76,7 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
     };
 
     channel.on('deps:validate:response', callback);
-    return () => channel.off('deps:validate:response', callback);
+    return () => { channel.off('deps:validate:response', callback); };
   }, [channel, npmInstall]);
 
   function updateCellOnServer(updates: PackageJsonCellUpdateAttrsType) {

@@ -1,10 +1,10 @@
 import { NavLink, useLoaderData } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
-import { SrcbookLogo } from './components/logos';
-import useTheme from './components/use-theme';
 import { SettingsProvider } from '@/components/use-settings';
 import { type SettingsType } from '@/types';
 import { getConfig } from '@/lib/server';
+import useTheme from './components/use-theme';
+import { SrcbookLogo } from './components/logos';
 
 export async function loader() {
   const { result: config } = await getConfig();
@@ -32,24 +32,24 @@ export default function Layout(props: { children: React.ReactNode }) {
               </li>
               <li>
                 <NavLink
-                  to="/"
                   className="font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
+                  to="/"
                 >
                   Home
                 </NavLink>
               </li>
               <li>
                 <NavLink
-                  to="/secrets"
                   className="font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
+                  to="/secrets"
                 >
                   Secrets
                 </NavLink>
               </li>
               <li>
                 <NavLink
-                  to="/settings"
                   className="font-semibold text-tertiary-foreground visited:text-tertiary-foreground hover:text-foreground transition-colors"
+                  to="/settings"
                 >
                   Settings
                 </NavLink>
@@ -59,8 +59,8 @@ export default function Layout(props: { children: React.ReactNode }) {
           {process.env.NODE_ENV !== 'production' && (
             <div className="pr-3">
               <button
-                onClick={toggleTheme}
                 className="border-none outline-none text-muted-foreground hover:text-foreground font-semibold transition-colors"
+                onClick={toggleTheme}
               >
                 {theme === 'light' ? '(DEV) Dark mode' : '(DEV) Light mode'}
               </button>
@@ -73,7 +73,7 @@ export default function Layout(props: { children: React.ReactNode }) {
           </div>
         </SettingsProvider>
       </div>
-      <Toaster position="top-right" offset="20px" closeButton />
+      <Toaster closeButton offset="20px" position="top-right" />
     </>
   );
 }

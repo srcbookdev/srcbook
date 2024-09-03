@@ -4,7 +4,7 @@ import Markdown from 'marked-react';
 import CodeMirror, { keymap, Prec, EditorView } from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { CircleAlert, Trash2, Pencil } from 'lucide-react';
-import { CellType, MarkdownCellType, MarkdownCellUpdateAttrsType } from '@srcbook/shared';
+import type { CellType, MarkdownCellType, MarkdownCellUpdateAttrsType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
@@ -53,8 +53,8 @@ export default function MarkdownCell(props: {
 
   function getValidationError(text: string) {
     const tokens = marked.lexer(text);
-    const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
-    const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
+    const hasH1 = tokens.some((token) => token.type === 'heading' && token.depth === 1);
+    const hasH6 = tokens.some((token) => token.type === 'heading' && token.depth === 6);
 
     if (hasH1 || hasH6) {
       return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
@@ -78,31 +78,31 @@ export default function MarkdownCell(props: {
 
   return (
     <div
-      id={`cell-${cell.id}`}
-      onDoubleClick={() => setStatus('edit')}
       className={cn(
         'group/cell relative w-full rounded-md border border-transparent hover:border-border transition-all',
         status === 'edit' && 'ring-1 ring-ring border-ring hover:border-ring',
         error && 'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30',
       )}
+      id={`cell-${cell.id}`}
+      onDoubleClick={() => { setStatus('edit'); }}
     >
       {status === 'view' ? (
         <div className="flex flex-col">
           <div className="p-1 w-full hidden group-hover/cell:flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
               <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
-              <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-                <Button variant="secondary" size="icon" className="border-transparent">
+              <DeleteCellWithConfirmation onDeleteCell={() => { onDeleteCell(cell); }}>
+                <Button className="border-transparent" size="icon" variant="secondary">
                   <Trash2 size={16} />
                 </Button>
               </DeleteCellWithConfirmation>
             </div>
             <div className="flex items-center gap-1">
               <Button
-                variant="secondary"
-                size="icon"
                 className="border-transparent"
-                onClick={() => setStatus('edit')}
+                onClick={() => { setStatus('edit'); }}
+                size="icon"
+                variant="secondary"
               >
                 <Pencil size={16} />
               </Button>
@@ -114,24 +114,22 @@ export default function MarkdownCell(props: {
         </div>
       ) : (
         <>
-          {error && (
-            <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
+          {error ? <div className="flex items-center gap-2 absolute bottom-1 right-1 px-2.5 py-2 text-sb-red-80 bg-sb-red-30 rounded-sm">
               <CircleAlert size={16} />
               <p className="text-xs">{error}</p>
-            </div>
-          )}
+            </div> : null}
           <div className="flex flex-col">
             <div className="p-1 w-full flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
-                <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-                  <Button variant="secondary" size="icon" className="border-transparent">
+                <DeleteCellWithConfirmation onDeleteCell={() => { onDeleteCell(cell); }}>
+                  <Button className="border-transparent" size="icon" variant="secondary">
                     <Trash2 size={16} />
                   </Button>
                 </DeleteCellWithConfirmation>
               </div>
               <div className="flex items-center gap-1">
-                <Button variant="secondary" onClick={() => setStatus('view')}>
+                <Button onClick={() => { setStatus('view'); }} variant="secondary">
                   Cancel
                 </Button>
 
@@ -141,12 +139,12 @@ export default function MarkdownCell(props: {
 
             <div className="px-3">
               <CodeMirror
-                theme={codeTheme}
-                indentWithTab={false}
-                value={text}
                 basicSetup={{ lineNumbers: false, foldGutter: false }}
                 extensions={[markdown(), keyMap, EditorView.lineWrapping]}
+                indentWithTab={false}
                 onChange={setText}
+                theme={codeTheme}
+                value={text}
               />
             </div>
           </div>

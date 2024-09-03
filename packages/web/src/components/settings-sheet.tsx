@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useSettings } from '@/components/use-settings';
 import { useNavigate } from 'react-router-dom';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { OutputType, SessionType } from '@/types';
-import { TitleCellType, TsConfigUpdatedPayloadType } from '@srcbook/shared';
-import { useCells } from './use-cell';
+import type { TitleCellType, TsConfigUpdatedPayloadType } from '@srcbook/shared';
 import {
   ChevronRight,
   X,
@@ -16,23 +12,27 @@ import {
   CopyIcon,
   CheckIcon,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
+import { cn } from '@/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import type { OutputType, SessionType } from '@/types';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useSettings } from '@/components/use-settings';
+import type { SessionChannel } from '@/clients/websocket';
+import { useCells } from './use-cell';
 import useTheme from './use-theme';
-import { SessionChannel } from '@/clients/websocket';
 import { Button } from './ui/button';
 import { usePackageJson } from './use-package-json';
 import { useTsconfigJson } from './use-tsconfig-json';
 
-type PropsType = {
+interface PropsType {
   session: SessionType;
   open: boolean;
   onOpenChange: (value: boolean) => void;
   openDepsInstallModal: () => void;
   channel: SessionChannel;
-};
+}
 
 export function SettingsSheet({
   session,
@@ -49,14 +49,13 @@ export function SettingsSheet({
   const title = cells.find((cell) => cell.type === 'title') as TitleCellType;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="pt-12 overflow-y-scroll">
+    <Sheet onOpenChange={onOpenChange} open={open}>
+      <SheetContent className="pt-12 overflow-y-scroll" side="left">
         <SheetHeader>
-          {showAiNudge && (
-            <div className="relative flex flex-col px-3 py-3.5 border border-ai-border bg-ai text-ai-foreground rounded-sm text-sm">
+          {showAiNudge ? <div className="relative flex flex-col px-3 py-3.5 border border-ai-border bg-ai text-ai-foreground rounded-sm text-sm">
               <div
                 className="absolute top-2 right-2 cursor-pointer text-sb-purple-60"
-                onClick={() => setShowAiNudge(false)}
+                onClick={() => { setShowAiNudge(false); }}
               >
                 <X size={16} />
               </div>
@@ -65,15 +64,14 @@ export function SettingsSheet({
                 AI features not enabled. To enable them, set up in{' '}
                 <a
                   className="font-medium underline cursor-pointer"
-                  onClick={() => navigate('/settings')}
+                  onClick={() => { navigate('/settings'); }}
                 >
                   {' '}
                   global settings
                 </a>
                 .
               </p>
-            </div>
-          )}
+            </div> : null}
           <SheetTitle className="font-bold">Settings</SheetTitle>
         </SheetHeader>
         <div className="text-foreground mt-2 space-y-6">
@@ -108,50 +106,48 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
   return (
     <div>
       <CollapsibleContainer
+        className={cn({ 'border-run': installing })}
         open={open}
         setOpen={setOpen}
         title="package.json"
-        className={cn({ 'border-run': installing })}
       >
         <div className="pt-1 pb-3 px-3">
           <CodeMirror
-            value={source}
-            theme={codeTheme}
+            basicSetup={{ lineNumbers: false, foldGutter: false }}
             extensions={[
               json(),
               Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
             ]}
             onChange={onChangeSource}
-            basicSetup={{ lineNumbers: false, foldGutter: false }}
+            theme={codeTheme}
+            value={source}
           />
         </div>
         {validationError !== null && <Error error={validationError} />}
-        {failed && <Error error="Failed to install dependencies" />}
-        {hasOutput && <OutputContainer output={output} />}
+        {failed ? <Error error="Failed to install dependencies" /> : null}
+        {hasOutput ? <OutputContainer output={output} /> : null}
       </CollapsibleContainer>
-      {open && (
-        <div className="flex justify-end items-center gap-2 pt-1">
-          <Button variant="secondary" onClick={openDepsInstallModal}>
+      {open ? <div className="flex justify-end items-center gap-2 pt-1">
+          <Button onClick={openDepsInstallModal} variant="secondary">
             Add package
           </Button>
           {installing ? (
-            <Button variant="run" size="default-with-icon" disabled>
-              <LoaderCircle size={16} className="animate-spin" />
+            <Button disabled size="default-with-icon" variant="run">
+              <LoaderCircle className="animate-spin" size={16} />
               Installing
             </Button>
           ) : (
             <Button
-              size="default-with-icon"
-              onClick={() => npmInstall()}
-              disabled={installing || validationError !== null}
               className="font-mono"
+              disabled={installing || validationError !== null}
+              onClick={() => { npmInstall(); }}
+              size="default-with-icon"
             >
               <Play size={16} />
               npm install
             </Button>
           )}
-        </div>
-      )}
+        </div> : null}
     </div>
   );
 }
@@ -168,7 +164,7 @@ function OutputContainer(props: { output: OutputType[] }) {
   function onCopy() {
     navigator.clipboard.writeText(output);
     setCopyIcon('copied');
-    setTimeout(() => setCopyIcon('copy'), 1500);
+    setTimeout(() => { setCopyIcon('copy'); }, 1500);
   }
 
   return (
@@ -178,17 +174,17 @@ function OutputContainer(props: { output: OutputType[] }) {
         <div className="flex items-center gap-6">
           <button
             className="hover:text-secondary-hover"
-            onClick={onCopy}
             disabled={copyIcon === 'copied'}
+            onClick={onCopy}
           >
             {copyIcon === 'copy' ? <CopyIcon size={18} /> : <CheckIcon size={18} />}
           </button>
-          <button className="hover:text-secondary-hover" onClick={() => setShow(!show)}>
+          <button className="hover:text-secondary-hover" onClick={() => { setShow(!show); }}>
             {show ? <PanelBottomOpen size={18} /> : <PanelBottomClose size={18} />}
           </button>
         </div>
       </div>
-      {show && <div className="p-3 overflow-scroll whitespace-pre text-[13px]">{output}</div>}
+      {show ? <div className="p-3 overflow-scroll whitespace-pre text-[13px]">{output}</div> : null}
     </div>
   );
 }
@@ -203,31 +199,31 @@ function TsconfigJson({ channel }: { channel: SessionChannel }) {
     if (!channel) return;
     const callback = (_payload: TsConfigUpdatedPayloadType) => {
       setSaved(true);
-      setTimeout(() => setSaved(false), 20000);
+      setTimeout(() => { setSaved(false); }, 20000);
     };
 
     channel.on('tsconfig.json:updated', callback);
 
-    return () => channel.off('tsconfig.json:updated', callback);
+    return () => { channel.off('tsconfig.json:updated', callback); };
   }, [channel, setSaved]);
 
   return (
     <div>
       <CollapsibleContainer
+        className={cn({ 'border-error': validationError !== null })}
         open={open}
         setOpen={setOpen}
         title="tsconfig.json"
-        className={cn({ 'border-error': validationError !== null })}
       >
         <div className="pt-1 pb-3 px-3 relative">
           <CodeMirror
-            value={source}
-            theme={codeTheme}
+            basicSetup={{ lineNumbers: false, foldGutter: false }}
             extensions={[json()]}
             onChange={onChangeSource}
-            basicSetup={{ lineNumbers: false, foldGutter: false }}
+            theme={codeTheme}
+            value={source}
           />
-          {saved && <p className="absolute right-1 bottom-1 text-xs text-foreground/80">Saved!</p>}
+          {saved ? <p className="absolute right-1 bottom-1 text-xs text-foreground/80">Saved!</p> : null}
         </div>
         {validationError !== null && <Error error={validationError} />}
       </CollapsibleContainer>
@@ -258,7 +254,7 @@ function CollapsibleContainer(props: {
   const { open, setOpen, title, children } = props;
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible onOpenChange={setOpen} open={open}>
       <div className={cn('w-full border rounded-sm', props.className)}>
         <CollapsibleTrigger className="block w-full">
           <div className="p-3 flex items-center justify-between">

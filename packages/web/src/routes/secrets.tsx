@@ -1,12 +1,11 @@
 import { useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { cn } from '@/lib/utils.ts';
-import { getSecrets } from '@/lib/server';
 import { Info, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Form, useLoaderData, useRevalidator } from 'react-router-dom';
+import { cn } from '@/lib/utils.ts';
+import { getSecrets, updateSecret, createSecret, deleteSecret } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { updateSecret, createSecret, deleteSecret } from '@/lib/server';
 import {
   Dialog,
   DialogContent,
@@ -20,21 +19,21 @@ async function loader() {
   return { secrets: result };
 }
 
-function isValidSecretName(name: string) {
+function isValidSecretName(name: string): boolean {
   return /^[A-Z0-9_]+$/.test(name);
 }
 
-function Secrets() {
+function Secrets(): JSX.Element {
   const { secrets } = useLoaderData() as { secrets: Record<string, string> };
 
-  const [error, _setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- hmmm
   const timeoutRef = useRef<any>(null);
 
-  function setError(message: string | null, clearAfter: number | null = null) {
+  function errorSetter(message: string | null, clearAfter: number | null = null) {
     if (message === null) {
-      _setError(null);
+      setError(null);
       return;
     }
 
@@ -42,11 +41,11 @@ function Secrets() {
       clearTimeout(timeoutRef.current);
     }
 
-    _setError(message);
+    setError(message);
 
     if (clearAfter) {
       timeoutRef.current = setTimeout(() => {
-        _setError(null);
+        setError(null);
       }, clearAfter);
     }
   }
@@ -61,19 +60,19 @@ function Secrets() {
       </p>
 
       <div className="mt-12 space-y-6">
-        <NewSecretForm setError={setError} />
-        {error && <ErrorMessage message={error} />}
-        <SecretsTable secrets={secrets} setError={setError} />
+        <NewSecretForm setError={errorSetter} />
+        {error ? <ErrorMessage message={error} /> : null}
+        <SecretsTable secrets={secrets} setError={errorSetter} />
       </div>
     </>
   );
 }
 
-function ErrorMessage(props: { message: string }) {
+function ErrorMessage(props: { message: string }): JSX.Element {
   return (
     <div className="w-full flex items-center justify-center">
       <p className="text-sm max-w-md flex items-center gap-1.5 pl-[10px] pr-3 py-2 bg-error text-error-foreground font-medium rounded-sm">
-        <Info size={16} className="shrink-0" />
+        <Info className="shrink-0" size={16} />
         {props.message}
       </p>
     </div>
@@ -83,10 +82,10 @@ function ErrorMessage(props: { message: string }) {
 function SecretsTable(props: {
   secrets: Record<string, string>;
   setError: (message: string | null, clearAfter?: number | null) => void;
-}) {
+}): JSX.Element | false {
   const revalidator = useRevalidator();
 
-  async function onUpdate(name: string, updatedName: string, updatedValue: string) {
+  async function onUpdate(name: string, updatedName: string, updatedValue: string): Promise<void> {
     // TODO handle errors
     await updateSecret({
       previousName: name,
@@ -97,7 +96,7 @@ function SecretsTable(props: {
     revalidator.revalidate();
   }
 
-  async function onDelete(name: string) {
+  async function onDelete(name: string): Promise<void> {
     await deleteSecret({ name });
     revalidator.revalidate();
   }
@@ -114,7 +113,7 @@ function SecretsTable(props: {
             <tr className="text-sm text-tertiary-foreground">
               <th className="h-10 pl-3 text-left align-middle">Name</th>
               <th className="h-10 pl-3 text-left align-middle">Value</th>
-              <th className="h-10 pl-3 text-right align-middle w-[52px]"></th>
+              <th className="h-10 pl-3 text-right align-middle w-[52px]" />
             </tr>
           </thead>
           <tbody>
@@ -122,10 +121,18 @@ function SecretsTable(props: {
               <SecretRow
                 key={name}
                 name={name}
-                value={value}
-                onUpdate={onUpdate}
-                onDelete={onDelete}
+                onDelete={() => {
+                  void (async () => {
+                    await onDelete(name);
+                  })();
+                }}
+                onUpdate={(newName) => {
+                  void (async () => {
+                    await onUpdate(name, newName, value);
+                  })();
+                }}
                 setError={props.setError}
+                value={value}
               />
             ))}
           </tbody>
@@ -141,7 +148,7 @@ function SecretRow(props: {
   onUpdate: (name: string, updatedName: string, updatedValue: string) => void;
   onDelete: (name: string) => void;
   setError: (message: string | null, clearAfter?: number | null) => void;
-}) {
+}): JSX.Element {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(props.name);
   const [value, setValue] = useState(props.value);
@@ -152,7 +159,7 @@ function SecretRow(props: {
   const [hovering, setHovering] = useState(false);
   const [show, setShow] = useState(false);
 
-  function onNameKeydown(e: React.KeyboardEvent<HTMLInputElement>) {
+  function onNameKeydown(e: React.KeyboardEvent<HTMLInputElement>): void {
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
@@ -169,7 +176,7 @@ function SecretRow(props: {
     }
   }
 
-  function onPasswordKeydown(e: React.KeyboardEvent<HTMLInputElement>) {
+  function onPasswordKeydown(e: React.KeyboardEvent<HTMLInputElement>): void {
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
@@ -186,7 +193,7 @@ function SecretRow(props: {
     }
   }
 
-  function onBlur() {
+  function onBlur(): void {
     if (isValidSecretName(name)) {
       props.onUpdate(props.name, name, value);
     } else {
@@ -201,10 +208,14 @@ function SecretRow(props: {
   return (
     <tr
       className="transition-all group"
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
+      onMouseEnter={() => {
+        setHovering(true);
+      }}
+      onMouseLeave={() => {
+        setHovering(false);
+      }}
     >
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog onOpenChange={setOpen} open={open}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -213,14 +224,19 @@ function SecretRow(props: {
             <DialogDescription>Are you sure you want to delete this secret?</DialogDescription>
             <div className="flex w-full justify-end items-center gap-2 pt-4 bg-background">
               <Button
-                variant="secondary"
                 onClick={() => {
                   setOpen(false);
                 }}
+                variant="secondary"
               >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={() => props.onDelete(name)}>
+              <Button
+                onClick={() => {
+                  props.onDelete(name);
+                }}
+                variant="destructive"
+              >
                 Delete
               </Button>
             </div>
@@ -229,49 +245,62 @@ function SecretRow(props: {
       </Dialog>
       <td className="h-10 pr-3 text-left align-middle lg:w-[434px]">
         <Input
+          autoComplete="off"
+          className="border-transparent group-hover:border-border group-focus-within:border-border"
+          onBlur={onBlur}
+          onChange={(e) => {
+            setName(e.currentTarget.value.toUpperCase());
+          }}
+          onKeyDown={onNameKeydown}
           ref={nameRef}
           value={name}
-          onKeyDown={onNameKeydown}
-          onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
-          autoComplete="off"
-          onBlur={onBlur}
-          className="border-transparent group-hover:border-border group-focus-within:border-border"
         />
       </td>
       <td className="h-10 text-left align-middle relative">
         <Input
-          ref={passwordRef}
-          type={show ? 'text' : 'password'}
           autoComplete="off"
-          value={value}
-          onKeyDown={onPasswordKeydown}
-          onChange={(e) => setValue(e.currentTarget.value)}
-          required
-          onBlur={onBlur}
           className="border-transparent group-hover:border-border group-focus-within:border-border pr-8"
+          onBlur={onBlur}
+          onChange={(e) => {
+            setValue(e.currentTarget.value);
+          }}
+          onKeyDown={onPasswordKeydown}
+          ref={passwordRef}
+          required
+          type={show ? 'text' : 'password'}
+          value={value}
         />
         {show ? (
           <EyeOff
-            size={14}
             className={cn(
               'absolute right-3 top-3 cursor-pointer opacity-80 bg-background',
               !hovering && 'hidden',
             )}
-            onClick={() => setShow(false)}
+            onClick={() => {
+              setShow(false);
+            }}
+            size={14}
           />
         ) : (
           <Eye
-            size={14}
             className={cn(
               'absolute right-3 top-3 cursor-pointer opacity-80 bg-background',
               !hovering && 'hidden',
             )}
-            onClick={() => setShow(true)}
+            onClick={() => {
+              setShow(true);
+            }}
+            size={14}
           />
         )}
       </td>
       <td className="h-10 pl-3 text-right align-middle w-[52px]">
-        <Button variant="icon" onClick={() => setOpen(true)}>
+        <Button
+          onClick={() => {
+            setOpen(true);
+          }}
+          variant="icon"
+        >
           <Trash2 size={18} />
         </Button>
       </td>
@@ -281,11 +310,13 @@ function SecretRow(props: {
 
 function NewSecretForm(props: {
   setError: (message: string | null, clearAfter?: number | null) => void;
-}) {
+}): JSX.Element {
   useHotkeys(
     'mod+enter',
     () => {
-      onSubmit();
+      void (async () => {
+        await onSubmit();
+      })();
     },
     { enableOnFormTags: ['input'] },
   );
@@ -295,7 +326,7 @@ function NewSecretForm(props: {
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
 
-  async function onSubmit(e?: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e?: React.FormEvent<HTMLFormElement>): Promise<void> {
     if (e) {
       e.preventDefault();
     }
@@ -315,28 +346,32 @@ function NewSecretForm(props: {
   }
 
   return (
-    <Form method="post" className="flex items-center gap-3" onSubmit={onSubmit}>
+    <Form className="flex items-center gap-3" method="post" onSubmit={onSubmit}>
       <Input
-        type="text"
+        autoComplete="off"
         name="name"
-        required
-        autoComplete="off"
+        onChange={(e) => {
+          setName(e.currentTarget.value.toUpperCase());
+        }}
         placeholder="SECRET_NAME"
+        required
+        type="text"
         value={name}
-        onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
       />
 
       <Input
-        type="text"
-        name="value"
-        required
         autoComplete="off"
+        name="value"
+        onChange={(e) => {
+          setValue(e.currentTarget.value);
+        }}
         placeholder="secret-value"
+        required
+        type="text"
         value={value}
-        onChange={(e) => setValue(e.currentTarget.value)}
       />
 
-      <Button type="submit" disabled={!name || !value}>
+      <Button disabled={!name || !value} type="submit">
         Create
       </Button>
     </Form>

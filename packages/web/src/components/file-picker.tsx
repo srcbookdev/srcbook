@@ -2,10 +2,10 @@ import { Form } from 'react-router-dom';
 import { useRef, useState } from 'react';
 import { FileCode, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { DiskResponseType, disk } from '@/lib/server';
+import type { DiskResponseType } from '@/lib/server';
+import { disk } from '@/lib/server';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-
 import type { FsObjectResultType, FsObjectType } from '@/types';
 import useEffectOnce from './use-effect-once';
 
@@ -53,32 +53,36 @@ export function FilePicker(props: {
     <div className="space-y-4 w-full">
       <div className="flex items-center space-x-2 w-full">
         <Input
-          value={selected?.path || dirname}
+          className="pointer-events-none"
           name="srcmdpath"
           readOnly
           tabIndex={-1}
-          className="pointer-events-none"
+          value={selected?.path || dirname}
         />
         <Button
-          type="button"
           disabled={selected === null || submitting}
           onClick={createSrcbookFromSrcmdFile}
+          type="button"
         >
           {props.cta}
         </Button>
       </div>
 
-      <FsEntrySelect entries={entries} selected={selected} onChange={onChange} />
+      <FsEntrySelect entries={entries} onChange={onChange} selected={selected} />
     </div>
   );
 }
 
-export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta: string }) {
+export function DirPicker(props: {
+  dirname: string;
+  entries: FsObjectType[];
+  cta: string;
+}): JSX.Element {
   const [dirname, setDirname] = useState(props.dirname);
   const [entries, setEntries] = useState(props.entries.filter((entry) => entry.isDirectory));
   const [selected, setSelected] = useState<null | FsObjectType>(null);
 
-  async function onChange(entry: FsObjectType) {
+  async function onChange(entry: FsObjectType): Promise<void> {
     setSelected(entry);
     const { result } = await disk({ dirname: entry.path });
     setDirname(result.dirname);
@@ -86,15 +90,23 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
   }
 
   return (
-    <div className="space-y-4 mt-4 w-full">
-      <Form method="post" className="flex items-center space-x-2 w-full">
-        <Input value={dirname} name="path" readOnly tabIndex={-1} className="pointer-events-none" />
-        <Button type="submit" disabled={selected === null}>
+    <div className="space-y-4 mt-4 w-full" id="dir-picker">
+      <Form className="flex items-center space-x-2 w-full" method="post">
+        <Input className="pointer-events-none" name="path" readOnly tabIndex={-1} value={dirname} />
+        <Button disabled={selected === null} type="submit">
           {props.cta}
         </Button>
       </Form>
 
-      <FsEntrySelect entries={entries} selected={selected} onChange={onChange} />
+      <FsEntrySelect
+        entries={entries}
+        onChange={(entry) => {
+          void (async () => {
+            await onChange(entry);
+          })();
+        }}
+        selected={selected}
+      />
     </div>
   );
 }
@@ -107,13 +119,13 @@ function FsEntrySelect({
   entries: FsObjectType[];
   selected: FsObjectType | null;
   onChange: (entry: FsObjectType) => void;
-}) {
+}): JSX.Element {
   return (
     <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-3 max-h-96 overflow-y-scroll bg-muted border p-2 rounded-sm">
       {entries.map((entry) => (
         <FsEntryItem
-          key={entry.path}
           entry={entry}
+          key={entry.path}
           onClick={onChange}
           selected={selected !== null && selected.path === entry.path}
         />
@@ -132,7 +144,7 @@ function FsEntryItem({
   selected: boolean;
   disabled?: boolean;
   onClick: (entry: FsObjectType) => void;
-}) {
+}): JSX.Element {
   const Icon = entry.isDirectory ? Folder : FileCode;
 
   let classes: string;
@@ -150,7 +162,10 @@ function FsEntryItem({
       <button
         className={cn('my-0.5 py-2 px-1 rounded w-full flex items-center cursor-pointer', classes)}
         disabled={disabled}
-        onClick={() => onClick(entry)}
+        onClick={() => {
+          onClick(entry);
+        }}
+        type="button"
       >
         <Icon size={16} />
         <span className="ml-1.5 truncate">{entry.basename}</span>
@@ -162,28 +177,32 @@ function FsEntryItem({
 export function ExportLocationPicker(props: {
   title: string;
   onSave: (directory: string, path: string) => void;
-}) {
+}): JSX.Element {
   const filenameRef = useRef<HTMLInputElement | null>(null);
-  function toValidFilename(s: string) {
+  function toValidFilename(s: string): string {
     return s
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
   }
-  const [filename, setFilename] = useState(toValidFilename(props.title) + '.src.md');
+  const [filename, setFilename] = useState(`${toValidFilename(props.title)}.src.md`);
   const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
 
-  function onDiskResponse({ result }: DiskResponseType) {
+  function onDiskResponse({ result }: DiskResponseType): void {
     setFsResult(result);
   }
 
   useEffectOnce(() => {
-    disk().then(onDiskResponse);
+    void (async () => {
+      await disk().then(onDiskResponse);
+    })();
 
     const el = filenameRef.current;
     if (el) {
-      setTimeout(() => el.setSelectionRange(0, el.value.length - '.src.md'.length), 5);
+      setTimeout(() => {
+        el.setSelectionRange(0, el.value.length - '.src.md'.length);
+      }, 5);
     }
   });
 
@@ -193,19 +212,22 @@ export function ExportLocationPicker(props: {
     <div className="space-y-4 w-full">
       <div className="space-y-1.5">
         <Input
-          ref={filenameRef}
           className="mb-2"
           defaultValue={filename}
-          onChange={(e) => setFilename(e.currentTarget.value.trimEnd())}
+          onChange={(e) => {
+            setFilename(e.currentTarget.value.trimEnd());
+          }}
+          ref={filenameRef}
         />
       </div>
 
       <FsEntrySelect
         entries={fsResult.entries}
-        selected={null}
         onChange={(entry) => {
           if (entry.isDirectory) {
-            disk({ dirname: entry.path }).then(onDiskResponse);
+            void (async () => {
+              await disk({ dirname: entry.path }).then(onDiskResponse);
+            })();
           } else {
             setFilename(entry.basename);
             const el = filenameRef.current;
@@ -214,6 +236,7 @@ export function ExportLocationPicker(props: {
             }
           }
         }}
+        selected={null}
       />
 
       <div className="flex items-center justify-between">
@@ -221,10 +244,12 @@ export function ExportLocationPicker(props: {
           {fsResult.dirname}/<span className="font-bold">{filename}</span>
         </div>
         <Button
+          disabled={!validFilename}
+          onClick={() => {
+            props.onSave(fsResult.dirname, filename);
+          }}
           tabIndex={2}
           variant="default"
-          disabled={!validFilename}
-          onClick={() => props.onSave(fsResult.dirname, filename)}
         >
           Save
         </Button>

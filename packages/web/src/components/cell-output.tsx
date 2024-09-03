@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { useSettings } from '@/components/use-settings';
 import { Ban, Maximize, Minimize, PanelBottomClose, PanelBottomOpen, Sparkles } from 'lucide-react';
-import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcbook/shared';
+import type { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcbook/shared';
+import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
 import { useCells } from '@/components/use-cell';
-import { OutputType, StdoutOutputType, StderrOutputType } from '@/types';
+import type { OutputType, StdoutOutputType, StderrOutputType } from '@/types';
 import { Button } from './ui/button';
 
-type PropsType = {
+interface PropsType {
   cell: CodeCellType | PackageJsonCellType;
   show: boolean;
   setShow: (show: boolean) => void;
@@ -16,7 +16,7 @@ type PropsType = {
   cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
   setFullscreen: (fullscreen: boolean) => void;
   fullscreen: boolean;
-};
+}
 
 export function CellOutput({
   cell,
@@ -41,11 +41,11 @@ export function CellOutput({
   return (
     <div className={cn('font-mono text-sm', fullscreen && !show && 'border-b')}>
       <Tabs
-        value={activeTab}
-        onValueChange={(value) =>
-          setActiveTab(value as 'stdout' | 'stderr' | 'problems' | 'warnings')
-        }
         defaultValue="stdout"
+        onValueChange={(value) =>
+          { setActiveTab(value as 'stdout' | 'stderr' | 'problems' | 'warnings'); }
+        }
+        value={activeTab}
       >
         <div
           className={cn(
@@ -56,22 +56,22 @@ export function CellOutput({
         >
           <TabsList className={cn('h-full', !show && '')}>
             <TabsTrigger
-              onClick={() => setShow(true)}
-              value="stdout"
               className={cn(
                 !show &&
                   'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
               )}
+              onClick={() => { setShow(true); }}
+              value="stdout"
             >
               stdout
             </TabsTrigger>
             <TabsTrigger
-              onClick={() => setShow(true)}
-              value="stderr"
               className={cn(
                 !show &&
                   'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
               )}
+              onClick={() => { setShow(true); }}
+              value="stderr"
             >
               {stderr.length > 0 ? (
                 <>
@@ -83,12 +83,12 @@ export function CellOutput({
             </TabsTrigger>
             {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsTrigger
-                onClick={() => setShow(true)}
-                value="problems"
                 className={cn(
                   !show &&
                     'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
                 )}
+                onClick={() => { setShow(true); }}
+                value="problems"
               >
                 {diagnostics.length > 0 ? (
                   <>
@@ -101,12 +101,12 @@ export function CellOutput({
             )}
             {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsTrigger
-                onClick={() => setShow(true)}
-                value="warnings"
                 className={cn(
                   !show &&
                     'border-transparent data-[state=active]:border-transparent data-[state=active]:text-tertiary-foreground mb-0',
                 )}
+                onClick={() => { setShow(true); }}
+                value="warnings"
               >
                 {suggestions.length > 0 ? (
                   <>
@@ -131,21 +131,20 @@ export function CellOutput({
               className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
               disabled={activeTab === 'problems' || activeTab === 'warnings'}
               onClick={() =>
-                clearOutput(
+                { clearOutput(
                   cell.id,
                   activeTab === 'problems' || activeTab === 'warnings' ? undefined : activeTab,
-                )
+                ); }
               }
             >
               <Ban size={16} />
             </button>
-            <button className="hover:text-secondary-hover" onClick={() => setShow(!show)}>
+            <button className="hover:text-secondary-hover" onClick={() => { setShow(!show); }}>
               {show ? <PanelBottomOpen size={20} /> : <PanelBottomClose size={20} />}
             </button>
           </div>
         </div>
-        {show && (
-          <div
+        {show ? <div
             className={cn(
               'p-2 flex flex-col-reverse overflow-scroll whitespace-pre-wrap text-[13px]',
               !fullscreen && 'max-h-96',
@@ -154,29 +153,28 @@ export function CellOutput({
             <TabsContent className="mt-0" value="stdout">
               <Stdout stdout={stdout} />
             </TabsContent>
-            <TabsContent value="stderr" className="mt-0">
+            <TabsContent className="mt-0" value="stderr">
               <Stderr stderr={stderr} />
             </TabsContent>
             {cell.type === 'code' && cell.language === 'typescript' && (
-              <TabsContent value="problems" className="mt-0">
+              <TabsContent className="mt-0" value="problems">
                 <TsServerDiagnostics
+                  cellMode={cellMode}
                   diagnostics={diagnostics}
                   fixDiagnostics={fixDiagnostics}
-                  cellMode={cellMode}
                 />
               </TabsContent>
             )}
             {cell.type === 'code' && cell.language === 'typescript' && (
-              <TabsContent value="warnings" className="mt-0">
+              <TabsContent className="mt-0" value="warnings">
                 <TsServerSuggestions
-                  suggestions={suggestions}
-                  fixSuggestions={fixDiagnostics} // fixDiagnostics works for both diagnostics and suggestions
                   cellMode={cellMode}
+                  fixSuggestions={fixDiagnostics} // fixDiagnostics works for both diagnostics and suggestions
+                  suggestions={suggestions}
                 />
               </TabsContent>
             )}
-          </div>
-        )}
+          </div> : null}
       </Tabs>
     </div>
   );
@@ -226,17 +224,15 @@ function TsServerDiagnostics({
   ) : (
     <div className="flex flex-col w-full">
       <p>{formattedDiagnostics}</p>
-      {aiEnabled && cellMode !== 'fixing' && (
-        <Button
-          variant="ai"
+      {aiEnabled && cellMode !== 'fixing' ? <Button
           className="self-start flex items-center gap-2 px-2.5 py-2 font-sans h-7 mt-3"
-          onClick={() => fixDiagnostics(formattedDiagnostics)}
           disabled={cellMode === 'generating'}
+          onClick={() => { fixDiagnostics(formattedDiagnostics); }}
+          variant="ai"
         >
           <Sparkles size={16} />
           <p>Fix with AI</p>
-        </Button>
-      )}
+        </Button> : null}
     </div>
   );
 }
@@ -257,17 +253,15 @@ function TsServerSuggestions({
   ) : (
     <div className="flex flex-col w-full">
       <p>{formattedSuggestions}</p>
-      {aiEnabled && cellMode !== 'fixing' && (
-        <Button
-          variant="ai"
+      {aiEnabled && cellMode !== 'fixing' ? <Button
           className="self-start flex items-center gap-2 px-2.5 py-2 font-sans h-7 mt-3"
-          onClick={() => fixSuggestions(formattedSuggestions)}
           disabled={cellMode === 'generating'}
+          onClick={() => { fixSuggestions(formattedSuggestions); }}
+          variant="ai"
         >
           <Sparkles size={16} />
           <p>Fix with AI</p>
-        </Button>
-      )}
+        </Button> : null}
     </div>
   );
 }

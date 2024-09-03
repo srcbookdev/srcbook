@@ -18,7 +18,7 @@ export default function DeleteCellWithConfirmationModal({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -28,14 +28,14 @@ export default function DeleteCellWithConfirmationModal({
           </DialogDescription>
           <div className="flex w-full justify-end items-center gap-2 pt-4 bg-background">
             <Button
-              variant="secondary"
               onClick={() => {
                 setOpen(false);
               }}
+              variant="secondary"
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={() => onDeleteCell()}>
+            <Button onClick={() => { onDeleteCell(); }} variant="destructive">
               Delete
             </Button>
           </div>

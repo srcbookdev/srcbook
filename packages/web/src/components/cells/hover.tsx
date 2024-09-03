@@ -1,14 +1,15 @@
-import {
+import type {
   CodeCellType,
   TsServerQuickInfoRequestPayloadType,
   TsServerQuickInfoResponsePayloadType,
   TsServerQuickInfoResponseType,
 } from '@srcbook/shared';
-import { Extension, hoverTooltip } from '@uiw/react-codemirror';
-import { mapCMLocationToTsServer } from './util';
-import { SessionChannel } from '@/clients/websocket';
+import type { Extension} from '@uiw/react-codemirror';
+import { hoverTooltip } from '@uiw/react-codemirror';
 import { createRoot } from 'react-dom/client';
 import { useEffect, useState } from 'react';
+import type { SessionChannel } from '@/clients/websocket';
+import { mapCMLocationToTsServer } from './util';
 
 /** Hover extension for TS server information */
 export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionChannel): Extension {
@@ -26,7 +27,7 @@ export function tsHover(sessionId: string, cell: CodeCellType, channel: SessionC
 
     return {
       pos: start,
-      end: end,
+      end,
       create: () =>
         hoverRenderer({
           sessionId,
@@ -60,7 +61,7 @@ function Tooltip({
     const tsServerPosition = mapCMLocationToTsServer(cell.source, pos);
 
     const request: TsServerQuickInfoRequestPayloadType = {
-      sessionId: sessionId,
+      sessionId,
       cellId: cell.id,
       request: { location: tsServerPosition },
     };
@@ -79,22 +80,20 @@ function Tooltip({
 
   return (
     <div className="p-2 space-y-3 max-w-lg max-h-64 text-xs overflow-auto relative">
-      {hoverInfo.displayString && <span>{hoverInfo.displayString}</span>}
-      {hoverInfo.documentation && (
-        <div>
+      {hoverInfo.displayString ? <span>{hoverInfo.displayString}</span> : null}
+      {hoverInfo.documentation ? <div>
           {typeof hoverInfo.documentation === 'string' ? (
             <span className="text-tertiary-foreground pt-2 whitespace-pre-wrap">
               {hoverInfo.documentation}
             </span>
           ) : (
             hoverInfo.documentation.map((part, index) => (
-              <span key={index} className="text-tertiary-foreground pt-2 whitespace-pre-wrap">
+              <span className="text-tertiary-foreground pt-2 whitespace-pre-wrap" key={index}>
                 {typeof part === 'string' ? part : `${part.text} kind ${part.kind}`}
               </span>
             ))
           )}
-        </div>
-      )}
+        </div> : null}
       {hoverInfo.tags.length > 0 && (
         <div>
           {hoverInfo.tags.map((part, index) => (
@@ -133,7 +132,7 @@ export const hoverRenderer = ({
   const dom = document.createElement('div');
 
   const root = createRoot(dom);
-  root.render(<Tooltip sessionId={sessionId} cell={cell} channel={channel} pos={pos} />);
+  root.render(<Tooltip cell={cell} channel={channel} pos={pos} sessionId={sessionId} />);
 
   return { dom };
 };

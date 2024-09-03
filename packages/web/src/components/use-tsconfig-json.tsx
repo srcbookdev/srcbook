@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import { SessionType } from '@/types';
-import { SessionChannel } from '@/clients/websocket';
+import type { SessionType } from '@/types';
+import type { SessionChannel } from '@/clients/websocket';
 
 function getValidationError(source: string) {
   try {
@@ -20,11 +20,11 @@ export interface TsConfigContextValue {
 
 const TsConfigContext = createContext<TsConfigContextValue | undefined>(undefined);
 
-type ProviderPropsType = {
+interface ProviderPropsType {
   session: SessionType;
   channel: SessionChannel;
   children: React.ReactNode;
-};
+}
 
 /**
  * An interface for working with tsconfig.json.

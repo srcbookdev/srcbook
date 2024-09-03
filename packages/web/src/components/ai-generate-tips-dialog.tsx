@@ -10,7 +10,7 @@ import {
 export default function AiGenerateTipsDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="w-[640px] max-w-[640px]">
         <DialogHeader>

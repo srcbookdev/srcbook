@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { CircleCheck, Loader2, CircleX } from 'lucide-react';
+import { getDefaultModel } from '@srcbook/shared';
+import type { AiProviderType, CodeLanguageType } from '@srcbook/shared';
+import { useLoaderData } from 'react-router-dom';
 import { disk, updateConfig, aiHealthcheck } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
-import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
-import type { SettingsType, FsObjectResultType } from '@/types';
-import { useLoaderData } from 'react-router-dom';
+import type { SettingsType, FsObjectResultType, FsObjectType } from '@/types';
 import { DirPicker } from '@/components/file-picker';
 import {
   Select,
@@ -18,7 +19,7 @@ import useTheme from '@/components/use-theme';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 
-async function loader() {
+async function loader(): Promise<{ dirname: string; entries: FsObjectType[] }> {
   const { result: diskResult } = await disk({});
 
   return {
@@ -26,14 +27,13 @@ async function loader() {
   };
 }
 
-async function action({ request }: { request: Request }) {
+async function action({ request }: { request: Request }): Promise<void> {
   const formData = await request.formData();
   const baseDir = formData.get('path') as string | undefined;
   await updateConfig({ baseDir });
-  return null;
 }
 
-function Settings() {
+function Settings(): JSX.Element {
   const { entries, baseDir } = useLoaderData() as SettingsType & FsObjectResultType;
   const {
     aiProvider,
@@ -50,14 +50,18 @@ function Settings() {
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
 
-  const updateDefaultLanguage = (value: CodeLanguageType) => {
-    updateConfigContext({ defaultLanguage: value });
+  const updateDefaultLanguage = (value: CodeLanguageType): void => {
+    void (async () => {
+      await updateConfigContext({ defaultLanguage: value });
+    })();
   };
 
-  const setAiProvider = (provider: AiProviderType) => {
-    const model = getDefaultModel(provider);
-    setModel(model);
-    updateConfigContext({ aiProvider: provider, aiModel: model });
+  const setAiProvider = (provider: AiProviderType): void => {
+    const defaultModel = getDefaultModel(provider);
+    setModel(defaultModel);
+    void (async () => {
+      await updateConfigContext({ aiProvider: provider, aiModel: defaultModel });
+    })();
   };
 
   const { theme, toggleTheme } = useTheme();
@@ -86,22 +90,22 @@ function Settings() {
       <div className="space-y-10">
         <div>
           <h2 className="text-xl pb-2">Theme</h2>
-          <label className="opacity-70 text-sm">
+          <label className="opacity-70 text-sm" htmlFor="theme-switch">
             Select light or dark mode for the Srcbook app.
           </label>
           <div className="flex items-center gap-2 mt-4">
-            <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-            <label>Dark mode</label>
+            <Switch checked={theme === 'dark'} id="theme-switch" onCheckedChange={toggleTheme} />
+            <label htmlFor="theme-switch">Dark mode</label>
           </div>
         </div>
 
         <div>
           <h2 className="text-xl pb-2">Default Language</h2>
-          <label className="opacity-70 block pb-4 text-sm">
+          <label className="opacity-70 block pb-4 text-sm" htmlFor="language-selector">
             The default language to use when creating new Srcbooks.
           </label>
           <Select onValueChange={updateDefaultLanguage}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" id="language-selector">
               <SelectValue placeholder={defaultLanguage} />
             </SelectTrigger>
             <SelectContent>
@@ -114,8 +118,9 @@ function Settings() {
         <div>
           <h2 className="text-xl pb-2">AI</h2>
           <div className="flex flex-col">
-            <label className="opacity-70 text-sm pb-4">
-              Select your preferred LLM and enter your credentials to use Srcbook's AI features.
+            <label className="opacity-70 text-sm pb-4" htmlFor="ai-model-selector">
+              Select your preferred LLM and enter your credentials to use Srcbook&apos;s AI
+              features.
             </label>
             <div className="flex items-center justify-between w-full mb-2 min-h-10">
               <div className="flex items-center gap-2">
@@ -130,11 +135,14 @@ function Settings() {
                   </SelectContent>
                 </Select>
                 <Input
-                  name="aiModel"
                   className="w-[200px]"
+                  id="ai-model-selector"
+                  name="aiModel"
+                  onChange={(e) => {
+                    setModel(e.target.value);
+                  }}
                   placeholder="AI model"
                   value={model}
-                  onChange={(e) => setModel(e.target.value)}
                 />
               </div>
               <AiInfoBanner />
@@ -144,15 +152,21 @@ function Settings() {
               <div className="flex gap-2">
                 <Input
                   name="openaiKey"
+                  onChange={(e) => {
+                    setOpenaiKey(e.target.value);
+                  }}
                   placeholder="openAI API key"
                   type="password"
                   value={openaiKey}
-                  onChange={(e) => setOpenaiKey(e.target.value)}
                 />
                 <Button
                   className="px-5"
-                  onClick={() => updateConfigContext({ openaiKey, aiModel: model })}
                   disabled={!openaiKeySaveEnabled}
+                  onClick={() => {
+                    void (async () => {
+                      await updateConfigContext({ openaiKey, aiModel: model });
+                    })();
+                  }}
                 >
                   Save
                 </Button>
@@ -163,15 +177,21 @@ function Settings() {
               <div className="flex gap-2">
                 <Input
                   name="anthropicKey"
+                  onChange={(e) => {
+                    setAnthropicKey(e.target.value);
+                  }}
                   placeholder="anthropic API key"
                   type="password"
                   value={anthropicKey}
-                  onChange={(e) => setAnthropicKey(e.target.value)}
                 />
                 <Button
                   className="px-5"
-                  onClick={() => updateConfigContext({ anthropicKey, aiModel: model })}
                   disabled={!anthropicKeySaveEnabled}
+                  onClick={() => {
+                    void (async () => {
+                      await updateConfigContext({ anthropicKey, aiModel: model });
+                    })();
+                  }}
                 >
                   Save
                 </Button>
@@ -187,14 +207,20 @@ function Settings() {
                 <div className="flex gap-2">
                   <Input
                     name="baseUrl"
+                    onChange={(e) => {
+                      setBaseUrl(e.target.value);
+                    }}
                     placeholder="http://localhost:11434/v1"
                     value={baseUrl}
-                    onChange={(e) => setBaseUrl(e.target.value)}
                   />
                   <Button
                     className="px-5"
-                    onClick={() => updateConfigContext({ aiBaseUrl: baseUrl, aiModel: model })}
                     disabled={!customModelSaveEnabled}
+                    onClick={() => {
+                      void (async () => {
+                        await updateConfigContext({ aiBaseUrl: baseUrl, aiModel: model });
+                      })();
+                    }}
                   >
                     Save
                   </Button>
@@ -206,26 +232,31 @@ function Settings() {
 
         <div>
           <h2 className="text-xl pb-2">Base Directory</h2>
-          <label className="opacity-70 text-sm">
+          <label className="opacity-70 text-sm" htmlFor="dir-picker">
             The default directory to look for Srcbooks when importing.
           </label>
-          <DirPicker dirname={baseDir} entries={entries} cta="Change" />
+          <DirPicker cta="Change" dirname={baseDir} entries={entries} />
         </div>
       </div>
     </div>
   );
 }
 
-function AiInfoBanner() {
+function AiInfoBanner(): JSX.Element {
   const { aiEnabled, aiProvider } = useSettings();
 
-  const fragments = (provider: AiProviderType) => {
+  const fragments = (provider: AiProviderType): JSX.Element => {
     switch (provider) {
       case 'openai':
         return (
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
             <p>API key required</p>
-            <a href="https://platform.openai.com/api-keys" target="_blank" className="underline">
+            <a
+              className="underline"
+              href="https://platform.openai.com/api-keys"
+              rel="noopener"
+              target="_blank"
+            >
               Go to {aiProvider}
             </a>
           </div>
@@ -236,9 +267,10 @@ function AiInfoBanner() {
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
             <p>API key required</p>
             <a
-              href="https://console.anthropic.com/settings/keys"
-              target="_blank"
               className="underline"
+              href="https://console.anthropic.com/settings/keys"
+              rel="noopener"
+              target="_blank"
             >
               Go to {aiProvider}
             </a>
@@ -261,18 +293,22 @@ function AiInfoBanner() {
   );
 }
 
-const TestAiButton = () => {
+function TestAiButton(): JSX.Element {
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const TIMEOUT = 2500;
   useEffect(() => {
     if (state === 'success' || state === 'error') {
-      const timeout = setTimeout(() => setState('idle'), TIMEOUT);
-      return () => clearTimeout(timeout);
+      const timeout = setTimeout(() => {
+        setState('idle');
+      }, TIMEOUT);
+      return () => {
+        clearTimeout(timeout);
+      };
     }
   }, [state]);
 
-  const check = () => {
+  const check = (): void => {
     setState('loading');
     aiHealthcheck()
       .then((res) => {
@@ -290,6 +326,7 @@ const TestAiButton = () => {
           <button
             className="flex items-center gap-2 bg-secondary text-secondary-foreground border border-border hover:bg-muted hover:text-secondary-hover rounded-sm text-sm font-medium px-3 py-1"
             onClick={check}
+            type="button"
           >
             Test AI config
           </button>
@@ -297,7 +334,7 @@ const TestAiButton = () => {
       )}
       {state === 'loading' && (
         <div className="flex items-center gap-2 bg-secondary text-secondary-foreground border border-border hover:bg-muted hover:text-secondary-hover rounded-sm text-sm font-medium px-3 py-1">
-          <Loader2 size={16} className="animate-spin" />
+          <Loader2 className="animate-spin" size={16} />
           <p>Testing</p>
         </div>
       )}
@@ -315,7 +352,7 @@ const TestAiButton = () => {
       )}
     </>
   );
-};
+}
 
 Settings.loader = loader;
 Settings.action = action;

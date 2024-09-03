@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
-import {
+import type {
   CellType,
   CellOutputPayloadType,
   CellUpdatedPayloadType,
@@ -12,6 +12,8 @@ import {
   TitleCellType,
   TsServerCellSuggestionsPayloadType,
 } from '@srcbook/shared';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { toast } from 'sonner';
 import { loadSession, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
 import TitleCell from '@/components/cells/title';
@@ -24,10 +26,8 @@ import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import useEffectOnce from '@/components/use-effect-once';
 import { cn } from '@/lib/utils';
-import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
 import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
-import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
 
 async function loader({ params }: LoaderFunctionArgs) {
@@ -39,7 +39,7 @@ async function loader({ params }: LoaderFunctionArgs) {
   return { config, session };
 }
 
-function SessionPage() {
+function SessionPage(): JSX.Element {
   const { session, config } = useLoaderData() as { session: SessionType; config: SettingsType };
 
   const channelRef = useRef(SessionChannel.create(session.id));
@@ -63,16 +63,20 @@ function SessionPage() {
 
   return (
     <CellsProvider initialCells={session.cells}>
-      <PackageJsonProvider session={session} channel={channel}>
-        <TsConfigProvider session={session} channel={channel}>
-          <Session session={session} channel={channelRef.current} config={config} />
+      <PackageJsonProvider channel={channel} session={session}>
+        <TsConfigProvider channel={channel} session={session}>
+          <Session channel={channelRef.current} config={config} session={session} />
         </TsConfigProvider>
       </PackageJsonProvider>
     </CellsProvider>
   );
 }
 
-function Session(props: { session: SessionType; channel: SessionChannel; config: SettingsType }) {
+function Session(props: {
+  session: SessionType;
+  channel: SessionChannel;
+  config: SettingsType;
+}): JSX.Element {
   const { session, channel } = props;
 
   const {
@@ -103,7 +107,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     }
   });
 
-  async function onDeleteCell(cell: CellType | GenerateAICellType) {
+  function onDeleteCell(cell: CellType | GenerateAICellType): void {
     if (cell.type !== 'code' && cell.type !== 'markdown') {
       throw new Error(`Cannot delete cell of type '${cell.type}'`);
     }
@@ -118,46 +122,54 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   }
 
   useEffect(() => {
-    const callback = (payload: CellOutputPayloadType) => {
+    const callback = (payload: CellOutputPayloadType): void => {
       setOutput(payload.cellId, payload.output);
     };
 
     channel.on('cell:output', callback);
 
-    return () => channel.off('cell:output', callback);
+    return () => {
+      channel.off('cell:output', callback);
+    };
   }, [channel, setOutput]);
 
   useEffect(() => {
-    const callback = (payload: TsServerCellDiagnosticsPayloadType) => {
+    const callback = (payload: TsServerCellDiagnosticsPayloadType): void => {
       setTsServerDiagnostics(payload.cellId, payload.diagnostics);
     };
 
     channel.on('tsserver:cell:diagnostics', callback);
 
-    return () => channel.off('tsserver:cell:diagnostics', callback);
+    return () => {
+      channel.off('tsserver:cell:diagnostics', callback);
+    };
   }, [channel, setTsServerDiagnostics]);
 
   useEffect(() => {
-    const callback = (payload: TsServerCellSuggestionsPayloadType) => {
+    const callback = (payload: TsServerCellSuggestionsPayloadType): void => {
       setTsServerSuggestions(payload.cellId, payload.diagnostics);
     };
 
     channel.on('tsserver:cell:suggestions', callback);
 
-    return () => channel.off('tsserver:cell:suggestions', callback);
+    return () => {
+      channel.off('tsserver:cell:suggestions', callback);
+    };
   }, [channel, setTsServerSuggestions]);
 
   useEffect(() => {
-    const callback = (payload: CellUpdatedPayloadType) => {
+    const callback = (payload: CellUpdatedPayloadType): void => {
       updateCell(payload.cell);
     };
 
     channel.on('cell:updated', callback);
 
-    return () => channel.off('cell:updated', callback);
+    return () => {
+      channel.off('cell:updated', callback);
+    };
   }, [channel, updateCell]);
 
-  function updateCellOnServer(cell: CellType, updates: CellUpdateAttrsType) {
+  function updateCellOnServer(cell: CellType, updates: CellUpdateAttrsType): void {
     channel.push('cell:update', {
       sessionId: session.id,
       cellId: cell.id,
@@ -165,7 +177,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     });
   }
 
-  async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
+  function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number): void {
     // First, create the cell on client.
     // Then, push state to server, _only_ for code or markdown cells. AI generation is a client side only cell.
     // TODO: Handle potential errors (eg, rollback optimistic client creation if there are errors)
@@ -185,7 +197,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     }
   }
 
-  async function insertGeneratedCells(idx: number, cells: Array<CodeCellType | MarkdownCellType>) {
+  function insertGeneratedCells(idx: number, cells: (CodeCellType | MarkdownCellType)[]): void {
     for (let i = 0; i < cells.length; i++) {
       const cell = cells[i];
       if (!cell) continue;
@@ -234,7 +246,9 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         duration: 10000,
         action: {
           label: 'Install',
-          onClick: () => npmInstall(),
+          onClick: () => {
+            npmInstall();
+          },
         },
       });
     }
@@ -251,13 +265,15 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
 
   return (
     <>
-      <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+      <PackageInstallModal onOpenChange={setDepsInstallModalOpen} open={depsInstallModalOpen} />
       <SessionMenu
-        showSettings={showSettings}
-        setShowSettings={setShowSettings}
-        session={session}
-        openDepsInstallModal={() => setDepsInstallModalOpen(true)}
         channel={channel}
+        openDepsInstallModal={() => {
+          setDepsInstallModalOpen(true);
+        }}
+        session={session}
+        setShowSettings={setShowSettings}
+        showSettings={showSettings}
       />
 
       {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
@@ -267,36 +283,46 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         {cells.map((cell, idx) => (
           <div key={cell.id}>
             <InsertCellDivider
+              createCodeCell={() => {
+                createNewCell('code', idx + 2);
+              }}
+              createGenerateAiCodeCell={() => {
+                createNewCell('generate-ai', idx + 2);
+              }}
+              createMarkdownCell={() => {
+                createNewCell('markdown', idx + 2);
+              }}
               language={session.language}
-              createCodeCell={() => createNewCell('code', idx + 2)}
-              createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-              createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
             />
 
             {cell.type === 'code' && (
               <CodeCell
                 cell={cell}
-                session={session}
                 channel={channel}
+                onDeleteCell={() => {
+                  onDeleteCell(cell);
+                }}
+                session={session}
                 updateCellOnServer={updateCellOnServer}
-                onDeleteCell={onDeleteCell}
               />
             )}
 
             {cell.type === 'markdown' && (
               <MarkdownCell
                 cell={cell}
+                onDeleteCell={() => {
+                  onDeleteCell(cell);
+                }}
                 updateCellOnServer={updateCellOnServer}
-                onDeleteCell={onDeleteCell}
               />
             )}
 
             {cell.type === 'generate-ai' && (
               <GenerateAiCell
                 cell={cell}
-                session={session}
                 insertIdx={idx + 2}
                 onSuccess={insertGeneratedCells}
+                session={session}
               />
             )}
           </div>
@@ -304,11 +330,17 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
 
         {/* There is always an insert cell divider after the last cell */}
         <InsertCellDivider
-          language={session.language}
-          createCodeCell={() => createNewCell('code', allCells.length)}
-          createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-          createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
           className={cn('h-14', cells.length === 0 && 'opacity-100')}
+          createCodeCell={() => {
+            createNewCell('code', allCells.length);
+          }}
+          createGenerateAiCodeCell={() => {
+            createNewCell('generate-ai', allCells.length);
+          }}
+          createMarkdownCell={() => {
+            createNewCell('markdown', allCells.length);
+          }}
+          language={session.language}
         />
       </div>
     </>
@@ -321,7 +353,7 @@ function InsertCellDivider(props: {
   createGenerateAiCodeCell: () => void;
   language: CodeLanguageType;
   className?: string;
-}) {
+}): JSX.Element {
   return (
     <div
       className={cn(
@@ -330,29 +362,29 @@ function InsertCellDivider(props: {
       )}
     >
       <div className="h-full px-3 flex flex-col justify-center">
-        <div className="w-full h-[1px] bg-border"></div>
+        <div className="w-full h-[1px] bg-border" />
       </div>
 
       <div className="absolute top-0 w-full h-full flex items-center justify-center">
         <div className="flex mr-4 border rounded-md bg-background shadow">
           <Button
-            variant="secondary"
             className="border-none rounded-md rounded-r-none"
             onClick={props.createCodeCell}
+            variant="secondary"
           >
             {props.language === 'javascript' ? 'JavaScript' : 'TypeScript'}
           </Button>
           <Button
-            variant="secondary"
             className="border-none rounded-md rounded-l-none"
             onClick={props.createMarkdownCell}
+            variant="secondary"
           >
             Markdown
           </Button>
           <Button
-            variant="secondary"
             className="border-none rounded-md rounded-l-none"
             onClick={props.createGenerateAiCodeCell}
+            variant="secondary"
           >
             Generate with AI
           </Button>
@@ -362,7 +394,10 @@ function InsertCellDivider(props: {
   );
 }
 
-function PackageInstallModal(props: { open: boolean; onOpenChange: (value: boolean) => void }) {
+function PackageInstallModal(props: {
+  open: boolean;
+  onOpenChange: (value: boolean) => void;
+}): JSX.Element {
   const { open, onOpenChange } = props;
 
   useHotkeys('mod+i', () => {

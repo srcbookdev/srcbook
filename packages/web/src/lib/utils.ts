@@ -1,8 +1,8 @@
 import type * as React from 'react';
-import type { SessionType } from '../types';
 import type { CellType, TitleCellType } from '@srcbook/shared';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { SessionType } from '../types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 // Taken from https://github.com/gregberge/react-merge-refs/blob/main/src/index.tsx
 export function mergeRefs<T>(
-  refs: Array<React.MutableRefObject<T> | React.LegacyRef<T> | undefined | null>,
+  refs: (React.MutableRefObject<T> | React.LegacyRef<T> | undefined | null)[],
 ): React.RefCallback<T> {
   return (value) => {
     refs.forEach((ref) => {
@@ -25,5 +25,5 @@ export function mergeRefs<T>(
 
 export function getTitleForSession(session: SessionType) {
   const titleCell = session.cells.find((cell: CellType) => cell.type === 'title') as TitleCellType;
-  return titleCell?.text;
+  return titleCell.text;
 }

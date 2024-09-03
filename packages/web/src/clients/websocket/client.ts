@@ -17,7 +17,7 @@ export default class WebSocketClient {
 
   private queue: { topic: string; event: string; payload: Record<string, any> }[] = [];
 
-  private callbacks: Record<string, Array<(event: string, payload: Record<string, any>) => void>> =
+  private callbacks: Record<string, ((event: string, payload: Record<string, any>) => void)[]> =
     {};
 
   private currentRetry = 0;
@@ -106,7 +106,7 @@ export default class WebSocketClient {
     this.flush();
   };
 
-  private onMessage = (event: MessageEvent<any>) => {
+  private onMessage = (event: MessageEvent) => {
     if (event.type === 'message') {
       this.handleIncomingMessage(event.data);
     } else {

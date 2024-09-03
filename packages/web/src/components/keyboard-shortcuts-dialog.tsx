@@ -26,24 +26,24 @@ export default function KeyboardShortcutsDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Keyboard Shortcuts</DialogTitle>
           <DialogDescription asChild>
             <div>
               <h5 className="font-semibold pt-4 pb-2">Global</h5>
-              <ShortcutRow keys={['?']} description="show this dialog" />
-              <ShortcutRow keys={['mod', ';']} description="open Srcbook settings" />
-              <ShortcutRow keys={['mod', 'i']} description="open NPM package install modal" />
+              <ShortcutRow description="show this dialog" keys={['?']} />
+              <ShortcutRow description="open Srcbook settings" keys={['mod', ';']} />
+              <ShortcutRow description="open NPM package install modal" keys={['mod', 'i']} />
               <h5 className="font-semibold pt-6 pb-2">Markdown edit</h5>
-              <ShortcutRow keys={['esc']} description="switch back to preview mode" />
-              <ShortcutRow keys={['mod', '↵']} description="switch back to preview mode" />
+              <ShortcutRow description="switch back to preview mode" keys={['esc']} />
+              <ShortcutRow description="switch back to preview mode" keys={['mod', '↵']} />
               <h5 className="font-semibold pt-6 pb-2">Code cell edit</h5>
-              <ShortcutRow keys={['mod', '↵']} description="run cell" />
-              <ShortcutRow keys={['mod', '/']} description="toggle lines comment" />
-              <ShortcutRow keys={['alt', '↑']} description="move lines up" />
-              <ShortcutRow keys={['alt', '↓']} description="move lines down" />
+              <ShortcutRow description="run cell" keys={['mod', '↵']} />
+              <ShortcutRow description="toggle lines comment" keys={['mod', '/']} />
+              <ShortcutRow description="move lines up" keys={['alt', '↑']} />
+              <ShortcutRow description="move lines down" keys={['alt', '↓']} />
             </div>
           </DialogDescription>
         </DialogHeader>

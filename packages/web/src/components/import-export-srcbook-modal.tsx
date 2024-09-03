@@ -1,7 +1,8 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createSession, disk, exportSrcmdFile, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
-import { FsObjectResultType, FsObjectType, SessionType } from '@/types';
-import { useState } from 'react';
+import type { FsObjectResultType, FsObjectType, SessionType } from '@/types';
 import { ExportLocationPicker, FilePicker } from '@/components/file-picker';
 import {
   Dialog,
@@ -11,7 +12,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import useEffectOnce from './use-effect-once';
-import { useNavigate } from 'react-router-dom';
 
 export function ImportSrcbookModal({
   open,
@@ -19,17 +19,20 @@ export function ImportSrcbookModal({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}) {
+}): JSX.Element {
   const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
   useEffectOnce(() => {
-    disk().then((response) => setFsResult(response.result));
+    void (async () => {
+      const response = await disk();
+      setFsResult(response.result);
+    })();
   });
 
-  async function onChange(entry: FsObjectType) {
+  async function onChange(entry: FsObjectType): Promise<void> {
     setError(null);
 
     if (entry.basename.length > 44) {
@@ -51,11 +54,11 @@ export function ImportSrcbookModal({
       return;
     }
 
-    return navigate(`/srcbooks/${result.id}`);
+    navigate(`/srcbooks/${result.id}`);
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Open Srcbook</DialogTitle>
@@ -66,12 +69,16 @@ export function ImportSrcbookModal({
           </DialogDescription>
         </DialogHeader>
         <FilePicker
+          cta="Open"
           dirname={fsResult.dirname}
           entries={fsResult.entries}
-          cta="Open"
-          onChange={onChange}
+          onChange={(entry) => {
+            void (async () => {
+              await onChange(entry);
+            })();
+          }}
         />
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
       </DialogContent>
     </Dialog>
   );
@@ -85,22 +92,24 @@ export function ExportSrcbookModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   session: SessionType;
-}) {
+}): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   async function onSave(directory: string, filename: string) {
     try {
-      exportSrcmdFile(session.id, { directory, filename });
+      await exportSrcmdFile(session.id, { directory, filename });
       onOpenChange(false);
     } catch (error) {
       console.error(error);
       setError('Something went wrong. Please try again.');
-      setTimeout(() => setError(null), 3000);
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Save to file</DialogTitle>
@@ -111,8 +120,15 @@ export function ExportSrcbookModal({
             </p>
           </DialogDescription>
         </DialogHeader>
-        <ExportLocationPicker onSave={onSave} title={getTitleForSession(session)} />
-        {error && <p className="text-destructive-foreground">{error}</p>}
+        <ExportLocationPicker
+          onSave={(directory, filename) => {
+            void (async () => {
+              await onSave(directory, filename);
+            })();
+          }}
+          title={getTitleForSession(session)}
+        />
+        {error ? <p className="text-destructive-foreground">{error}</p> : null}
       </DialogContent>
     </Dialog>
   );

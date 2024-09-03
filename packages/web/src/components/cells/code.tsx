@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
   Info,
   Play,
@@ -19,8 +15,7 @@ import {
   Minimize,
 } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
-import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
-import {
+import type {
   CellType,
   CodeCellType,
   CodeCellUpdateAttrsType,
@@ -28,21 +23,26 @@ import {
   AiGeneratedCellPayloadType,
   TsServerDiagnosticType,
 } from '@srcbook/shared';
-import { useSettings } from '@/components/use-settings';
-import { cn } from '@/lib/utils';
-import { SessionType } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
-import { SessionChannel } from '@/clients/websocket';
-import { useCells } from '@/components/use-cell';
-import { CellOutput } from '@/components/cell-output';
-import useTheme from '@/components/use-theme';
 import { useDebouncedCallback } from 'use-debounce';
 import { EditorView } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import Shortcut from '@/components/keyboard-shortcut';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
+import { useSettings } from '@/components/use-settings';
+import { cn } from '@/lib/utils';
+import type { SessionType } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
+import type { SessionChannel } from '@/clients/websocket';
+import { useCells } from '@/components/use-cell';
+import { CellOutput } from '@/components/cell-output';
+import useTheme from '@/components/use-theme';
 import { tsHover } from './hover';
 import { mapTsServerLocationToCM } from './util';
 
@@ -94,7 +94,7 @@ export default function CodeCell(props: {
 
   function setFilenameError(error: string | null) {
     _setFilenameError(error);
-    setTimeout(() => _setFilenameError(null), 3000);
+    setTimeout(() => { _setFilenameError(null); }, 3000);
   }
 
   useEffect(() => {
@@ -112,7 +112,7 @@ export default function CodeCell(props: {
 
     channel.on('cell:error', callback);
 
-    return () => channel.off('cell:error', callback);
+    return () => { channel.off('cell:error', callback); };
   }, [cell.id, channel]);
 
   function updateFilename(filename: string) {
@@ -132,7 +132,7 @@ export default function CodeCell(props: {
       setCellMode('reviewing');
     }
     channel.on('ai:generated', callback);
-    return () => channel.off('ai:generated', callback);
+    return () => { channel.off('ai:generated', callback); };
   }, [cell.id, channel]);
 
   const generate = () => {
@@ -190,7 +190,7 @@ export default function CodeCell(props: {
 
   return (
     <div id={`cell-${props.cell.id}`}>
-      <Dialog open={fullscreen} onOpenChange={setFullscreen}>
+      <Dialog onOpenChange={setFullscreen} open={fullscreen}>
         <DialogContent
           className={cn(
             `w-[95vw] h-[95vh] max-w-none p-0 group flex flex-col`,
@@ -206,51 +206,51 @@ export default function CodeCell(props: {
         >
           <Header
             cell={cell}
-            runCell={runCell}
-            stopCell={stopCell}
-            onDeleteCell={onDeleteCell}
-            generate={generate}
             cellMode={cellMode}
-            setCellMode={setCellMode}
-            prompt={prompt}
-            setPrompt={setPrompt}
-            updateFilename={updateFilename}
             filenameError={filenameError}
-            setFilenameError={setFilenameError}
             fullscreen={fullscreen}
-            setFullscreen={setFullscreen}
-            setShowStdio={setShowStdio}
+            generate={generate}
             onAccept={onAcceptDiff}
+            onDeleteCell={onDeleteCell}
             onRevert={onRevertDiff}
+            prompt={prompt}
+            runCell={runCell}
+            setCellMode={setCellMode}
+            setFilenameError={setFilenameError}
+            setFullscreen={setFullscreen}
+            setPrompt={setPrompt}
+            setShowStdio={setShowStdio}
+            stopCell={stopCell}
+            updateFilename={updateFilename}
           />
 
           {cellMode === 'reviewing' ? (
-            <DiffEditor original={cell.source} modified={newSource} />
+            <DiffEditor modified={newSource} original={cell.source} />
           ) : (
             <ResizablePanelGroup direction="vertical">
-              <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
+              <ResizablePanel defaultSize={60} style={{ overflow: 'scroll' }}>
                 <div className={cn(cellMode !== 'off' && 'opacity-50')}>
                   <CodeEditor
-                    channel={channel}
-                    session={session}
                     cell={cell}
-                    runCell={runCell}
-                    updateCellOnServer={updateCellOnServer}
+                    channel={channel}
                     readOnly={['generating', 'prompting', 'fixing'].includes(cellMode)}
+                    runCell={runCell}
+                    session={session}
+                    updateCellOnServer={updateCellOnServer}
                   />
                 </div>
               </ResizablePanel>
 
-              <ResizableHandle withHandle className="border-none" />
+              <ResizableHandle className="border-none" withHandle />
               <ResizablePanel defaultSize={40} style={{ overflow: 'scroll' }}>
                 <CellOutput
                   cell={cell}
-                  show={showStdio}
-                  setShow={setShowStdio}
+                  cellMode={cellMode}
+                  fixDiagnostics={aiFixDiagnostics}
                   fullscreen={fullscreen}
                   setFullscreen={setFullscreen}
-                  fixDiagnostics={aiFixDiagnostics}
-                  cellMode={cellMode}
+                  setShow={setShowStdio}
+                  show={showStdio}
                 />
               </ResizablePanel>
             </ResizablePanelGroup>
@@ -273,46 +273,46 @@ export default function CodeCell(props: {
         >
           <Header
             cell={cell}
-            runCell={runCell}
-            stopCell={stopCell}
-            onDeleteCell={onDeleteCell}
-            generate={generate}
             cellMode={cellMode}
-            setCellMode={setCellMode}
-            prompt={prompt}
-            setPrompt={setPrompt}
-            updateFilename={updateFilename}
             filenameError={filenameError}
-            setFilenameError={setFilenameError}
             fullscreen={fullscreen}
-            setFullscreen={setFullscreen}
-            setShowStdio={setShowStdio}
+            generate={generate}
             onAccept={onAcceptDiff}
+            onDeleteCell={onDeleteCell}
             onRevert={onRevertDiff}
+            prompt={prompt}
+            runCell={runCell}
+            setCellMode={setCellMode}
+            setFilenameError={setFilenameError}
+            setFullscreen={setFullscreen}
+            setPrompt={setPrompt}
+            setShowStdio={setShowStdio}
+            stopCell={stopCell}
+            updateFilename={updateFilename}
           />
 
           {cellMode === 'reviewing' ? (
-            <DiffEditor original={cell.source} modified={newSource} />
+            <DiffEditor modified={newSource} original={cell.source} />
           ) : (
             <>
               <div className={cn(cellMode !== 'off' && 'opacity-50')}>
                 <CodeEditor
-                  channel={channel}
-                  session={session}
                   cell={cell}
-                  runCell={runCell}
-                  updateCellOnServer={updateCellOnServer}
+                  channel={channel}
                   readOnly={['generating', 'prompting'].includes(cellMode)}
+                  runCell={runCell}
+                  session={session}
+                  updateCellOnServer={updateCellOnServer}
                 />
               </div>
               <CellOutput
                 cell={cell}
-                show={showStdio}
-                setShow={setShowStdio}
-                fixDiagnostics={aiFixDiagnostics}
                 cellMode={cellMode}
+                fixDiagnostics={aiFixDiagnostics}
                 fullscreen={fullscreen}
                 setFullscreen={setFullscreen}
+                setShow={setShowStdio}
+                show={showStdio}
               />
             </>
           )}
@@ -367,24 +367,22 @@ function Header(props: {
       <div className="p-1 flex items-center justify-between gap-2">
         <div className={cn('flex items-center gap-1', cellMode !== 'off' && 'opacity-50')}>
           <FilenameInput
-            filename={cell.filename}
-            onUpdate={updateFilename}
-            onChange={() => setFilenameError(null)}
             className={cn(
               'w-[200px] font-mono font-semibold text-xs transition-colors px-2',
               filenameError
                 ? 'border-error'
                 : 'border-transparent hover:border-input group-hover:border-input ',
             )}
+            filename={cell.filename}
+            onChange={() => { setFilenameError(null); }}
+            onUpdate={updateFilename}
           />
-          {filenameError && (
-            <div className="bg-error text-error-foreground flex items-center rounded-sm border border-transparent px-[10px] py-2 text-sm leading-none font-medium">
-              <Info size={14} className="mr-1.5" />
+          {filenameError ? <div className="bg-error text-error-foreground flex items-center rounded-sm border border-transparent px-[10px] py-2 text-sm leading-none font-medium">
+              <Info className="mr-1.5" size={14} />
               Invalid filename
-            </div>
-          )}
-          <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-            <Button className="hidden group-hover:flex" variant="icon" size="icon" tabIndex={1}>
+            </div> : null}
+          <DeleteCellWithConfirmation onDeleteCell={() => { onDeleteCell(cell); }}>
+            <Button className="hidden group-hover:flex" size="icon" tabIndex={1} variant="icon">
               <Trash2 size={16} />
             </Button>
           </DeleteCellWithConfirmation>
@@ -406,15 +404,15 @@ function Header(props: {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant="icon"
                     className="w-8 px-0"
-                    size="icon"
                     onClick={() => {
                       // Open stdout drawer in fullscreen mode.
                       if (!fullscreen) setShowStdio(true);
                       setFullscreen(!fullscreen);
                     }}
+                    size="icon"
                     tabIndex={1}
+                    variant="icon"
                   >
                     {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
                   </Button>
@@ -428,11 +426,11 @@ function Header(props: {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant="icon"
-                    size="icon"
                     disabled={cellMode !== 'off'}
-                    onClick={() => setCellMode('prompting')}
+                    onClick={() => { setCellMode('prompting'); }}
+                    size="icon"
                     tabIndex={1}
+                    variant="icon"
                   >
                     <Sparkles size={16} />
                   </Button>
@@ -442,35 +440,35 @@ function Header(props: {
             </TooltipProvider>
           </div>
           {cellMode === 'prompting' && (
-            <Button variant="default" onClick={generate} tabIndex={1} disabled={!aiEnabled}>
+            <Button disabled={!aiEnabled} onClick={generate} tabIndex={1} variant="default">
               Generate
             </Button>
           )}
           {cellMode === 'generating' && (
             <Button
-              variant="ai"
-              size="default-with-icon"
               className="disabled:opacity-100"
               disabled
+              size="default-with-icon"
               tabIndex={1}
+              variant="ai"
             >
-              <LoaderCircle size={16} className="animate-spin" /> Generating
+              <LoaderCircle className="animate-spin" size={16} /> Generating
             </Button>
           )}
           {cellMode === 'fixing' && (
             <Button
-              variant="ai"
-              size="default-with-icon"
               className="disabled:opacity-100"
               disabled
+              size="default-with-icon"
               tabIndex={1}
+              variant="ai"
             >
-              <LoaderCircle size={16} className="animate-spin" /> Fixing...
+              <LoaderCircle className="animate-spin" size={16} /> Fixing...
             </Button>
           )}
           {cellMode === 'reviewing' && (
             <div className="flex items-center gap-2">
-              <Button variant="secondary" onClick={props.onRevert}>
+              <Button onClick={props.onRevert} variant="secondary">
                 Revert
               </Button>
               <Button onClick={props.onAccept}>Accept</Button>
@@ -479,15 +477,15 @@ function Header(props: {
           {cellMode === 'off' && (
             <>
               {cell.status === 'running' && (
-                <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
-                  <LoaderCircle size={16} className="animate-spin" /> Stop
+                <Button onClick={stopCell} size="default-with-icon" tabIndex={1} variant="run">
+                  <LoaderCircle className="animate-spin" size={16} /> Stop
                 </Button>
               )}
               {cell.status === 'idle' && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button size="default-with-icon" onClick={runCell} tabIndex={1}>
+                      <Button onClick={runCell} size="default-with-icon" tabIndex={1}>
                         <Play size={16} />
                         Run
                       </Button>
@@ -506,13 +504,13 @@ function Header(props: {
         <div className="flex flex-col gap-1.5">
           <div className="flex items-start justify-between px-1">
             <div className="flex items-start flex-grow">
-              <Sparkles size={16} className="m-2.5" />
+              <Sparkles className="m-2.5" size={16} />
               <TextareaAutosize
-                className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
                 autoFocus
+                className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
+                onChange={(e) => { setPrompt(e.target.value); }}
                 placeholder="Ask the AI to edit this cell..."
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
               />
             </div>
             <div className="flex items-center gap-1">
@@ -522,12 +520,12 @@ function Header(props: {
                 </Button>
               </AiGenerateTipsDialog>
               <Button
-                size="icon"
-                variant="icon"
                 onClick={() => {
                   setCellMode('off');
                   setPrompt('');
                 }}
+                size="icon"
+                variant="icon"
               >
                 <X size={16} />
               </Button>
@@ -539,7 +537,7 @@ function Header(props: {
               <p>API key required</p>
               <a
                 className="font-medium underline cursor-pointer"
-                onClick={() => navigate('/settings')}
+                onClick={() => { navigate('/settings'); }}
               >
                 Settings
               </a>
@@ -575,7 +573,7 @@ function tsCategoryToSeverity(
 function isDiagnosticWithLocation(
   diagnostic: TsServerDiagnosticType,
 ): diagnostic is TsServerDiagnosticType {
-  return !!(typeof diagnostic.start.line === 'number' && typeof diagnostic.end.line === 'number');
+  return Boolean(typeof diagnostic.start.line === 'number' && typeof diagnostic.end.line === 'number');
 }
 
 function tsDiagnosticMessage(diagnostic: TsServerDiagnosticType): string {
@@ -591,7 +589,7 @@ function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: strin
   return {
     from: mapTsServerLocationToCM(code, diagnostic.start.line, diagnostic.start.offset),
     to: mapTsServerLocationToCM(code, diagnostic.end.line, diagnostic.end.offset),
-    message: message,
+    message,
     severity: tsCategoryToSeverity(diagnostic),
     renderMessage: () => {
       const dom = document.createElement('div');
@@ -664,13 +662,13 @@ function CodeEditor({
 
   return (
     <CodeMirror
-      value={cell.source}
-      theme={codeTheme}
       extensions={extensions}
       onChange={(source) => {
         updateCellOnClient({ ...cell, source });
         updateCellOnServerDebounced(cell, { source });
       }}
+      theme={codeTheme}
+      value={cell.source}
     />
   );
 }
@@ -681,18 +679,18 @@ function DiffEditor({ original, modified }: { original: string; modified: string
   return (
     <div className="flex flex-col">
       <CodeMirror
-        value={modified}
-        theme={codeTheme}
         extensions={[
           javascript({ typescript: true }),
           EditorView.editable.of(false),
           EditorState.readOnly.of(true),
           unifiedMergeView({
-            original: original,
+            original,
             mergeControls: false,
             highlightChanges: false,
           }),
         ]}
+        theme={codeTheme}
+        value={modified}
       />
     </div>
   );
@@ -733,16 +731,16 @@ function FilenameInput(props: {
 
   return (
     <Input
-      required
-      ref={inputRef}
-      value={filename}
+      className={props.className}
       onBlur={submit}
-      onKeyDown={blurOnEnter}
       onChange={(e) => {
         setFilename(e.target.value);
         onChange(e);
       }}
-      className={props.className}
+      onKeyDown={blurOnEnter}
+      ref={inputRef}
+      required
+      value={filename}
     />
   );
 }

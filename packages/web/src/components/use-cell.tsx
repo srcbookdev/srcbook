@@ -1,16 +1,17 @@
-import { createContext, useCallback, useContext, ReactNode, useRef, useReducer } from 'react';
-import {
+import type { ReactNode} from 'react';
+import { createContext, useCallback, useContext, useRef, useReducer } from 'react';
+import type {
   CellType,
   CodeCellType,
   CodeLanguageType,
   MarkdownCellType,
   TsServerDiagnosticType,
-  TsServerSuggestionType,
+  TsServerSuggestionType} from '@srcbook/shared';
+import {
   getDefaultExtensionForLanguage,
-} from '@srcbook/shared';
-import { GenerateAICellType, OutputType } from '@/types';
+ randomid } from '@srcbook/shared';
+import type { GenerateAICellType, OutputType } from '@/types';
 
-import { randomid } from '@srcbook/shared';
 
 type ClientCellType = CellType | GenerateAICellType;
 
@@ -85,7 +86,7 @@ interface CellsContextType {
   createMarkdownCell: (idx: number, attrs?: Partial<MarkdownCellType>) => MarkdownCellType;
   createGenerateAiCell: (idx: number) => GenerateAICellType;
   hasOutput: (id: string, type?: 'stdout' | 'stderr') => boolean;
-  getOutput: (id: string, type?: 'stdout' | 'stderr') => Array<OutputType>;
+  getOutput: (id: string, type?: 'stdout' | 'stderr') => OutputType[];
   setOutput: (id: string, output: OutputType | OutputType[]) => void;
   clearOutput: (id: string, type?: 'stdout' | 'stderr') => void;
   getTsServerDiagnostics: (id: string) => TsServerDiagnosticType[];

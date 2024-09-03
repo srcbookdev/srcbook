@@ -11,14 +11,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
 import { usePackageJson } from './use-package-json';
 
-type NPMPackageType = {
+interface NPMPackageType {
   name: string;
   version: string;
   description?: string;
-};
+}
 
 function getSelected(results: NPMPackageType[], selectedName: string, type: 'next' | 'prev') {
   const idx = results.findIndex((r) => r.name === selectedName);
@@ -30,9 +29,8 @@ function getSelected(results: NPMPackageType[], selectedName: string, type: 'nex
     return results[len - 1]?.name ?? null;
   } else if (selectedIdx >= len) {
     return results[0]?.name ?? null;
-  } else {
-    return results[selectedIdx]?.name ?? null;
   }
+  return results[selectedIdx]?.name ?? null;
 }
 
 export default function InstallPackageModal({
@@ -41,7 +39,7 @@ export default function InstallPackageModal({
 }: {
   open: boolean;
   setOpen: (val: boolean) => void;
-}) {
+}): JSX.Element {
   const [mode, setMode] = useState<'search' | 'loading' | 'success' | 'error'>('search');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<NPMPackageType[]>([]);
@@ -56,13 +54,15 @@ export default function InstallPackageModal({
     setSelectedName(null);
     searchNpmPackages(value, 6) // Modal height works best with max 6 entries
       .then((data) => {
-        const results = data.result;
-        setResults(results);
+        const packages = data.result;
+        setResults(packages);
         if (results.length > 0) {
-          setSelectedName(results[0].name);
+          setSelectedName(packages[0].name);
         }
       })
-      .catch((e) => console.error('error:', e));
+      .catch((e) => {
+        console.error('error:', e);
+      });
   }, [value]);
 
   useEffect(() => {
@@ -79,17 +79,19 @@ export default function InstallPackageModal({
 
   return (
     <Dialog
-      open={open}
       onOpenChange={(newOpen) => {
         if (!newOpen) {
           setQuery('');
           // Use a timeout to prevent flickering while it animates out
-          setTimeout(() => setMode('search'), 300);
+          setTimeout(() => {
+            setMode('search');
+          }, 300);
         } else {
           setMode('search');
         }
         setOpen(newOpen);
       }}
+      open={open}
     >
       <DialogContent
         className={cn(
@@ -128,13 +130,12 @@ export default function InstallPackageModal({
               </DialogDescription>
             </DialogHeader>
             <Input
-              placeholder="Search for a package"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              role="combobox"
-              aria-expanded={results.length > 0}
               aria-controls="npm-search-results"
+              aria-expanded={results.length > 0}
               aria-labelledby="npm-search-modal"
+              onChange={(e) => {
+                setQuery(e.target.value);
+              }}
               onKeyDown={(e) => {
                 if (selectedName === null) {
                   return;
@@ -150,13 +151,16 @@ export default function InstallPackageModal({
                   setSelectedName(getSelected(results, selectedName, 'prev'));
                 }
               }}
+              placeholder="Search for a package"
+              role="combobox"
+              value={query}
             />
             {results.length > 0 ? (
               <SearchResultsList
-                results={results}
-                selectedName={selectedName!}
-                setSelectedName={setSelectedName}
                 onSelect={addPackage}
+                results={results}
+                selectedName={selectedName ?? ''}
+                setSelectedName={setSelectedName}
               />
             ) : (
               <NoSearchResults />
@@ -180,32 +184,36 @@ function SearchResultsList(props: {
 }) {
   return (
     <ul
-      id="npm-search-results"
-      role="listbox"
       aria-label="NPM search results"
       className="overflow-y-scroll focus:border-yellow-300"
+      id="npm-search-results"
+      role="listbox"
     >
       {props.results.map((result) => {
         const selected = result.name === props.selectedName;
 
         return (
           <li
-            key={result.name}
-            role="option"
             aria-disabled="false"
             aria-selected={selected}
             className={cn(
               'px-2 py-1 rounded-sm cursor-pointer border border-transparent text-sm',
               selected && 'bg-muted border-border',
             )}
-            onClick={() => props.onSelect(result.name)}
-            onMouseEnter={() => props.setSelectedName(result.name)}
+            key={result.name}
+            onClick={() => {
+              props.onSelect(result.name);
+            }}
+            onMouseEnter={() => {
+              props.setSelectedName(result.name);
+            }}
+            role="option"
           >
             <div className="flex items-center gap-2 whitespace-nowrap">
               <strong className="truncate">{result.name}</strong>
               <span className="text-tertiary-foreground">{result.version}</span>
             </div>
-            <p title={result.description} className="mt-1 text-tertiary-foreground truncate">
+            <p className="mt-1 text-tertiary-foreground truncate" title={result.description}>
               {result.description}
             </p>
           </li>

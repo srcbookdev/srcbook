@@ -1,4 +1,4 @@
-import { CellType, CodeLanguageType, AiProviderType } from '@srcbook/shared';
+import type { CellType, CodeLanguageType, AiProviderType } from '@srcbook/shared';
 
 export interface FsObjectType {
   path: string;
@@ -12,7 +12,7 @@ export interface FsObjectResultType {
   entries: FsObjectType[];
 }
 
-export type SettingsType = {
+export interface SettingsType {
   baseDir: string;
   defaultLanguage: CodeLanguageType;
   openaiKey?: string | null;
@@ -20,21 +20,21 @@ export type SettingsType = {
   aiProvider: AiProviderType;
   aiModel: string;
   aiBaseUrl?: string | null;
-};
+}
 
-export type StdoutOutputType = { type: 'stdout'; data: string };
-export type StderrOutputType = { type: 'stderr'; data: string };
+export interface StdoutOutputType { type: 'stdout'; data: string }
+export interface StderrOutputType { type: 'stderr'; data: string }
 export type OutputType = StdoutOutputType | StderrOutputType;
 
-export type SessionType = {
+export interface SessionType {
   id: string;
   cells: CellType[];
   language: CodeLanguageType;
   'tsconfig.json'?: string;
   openedAt: number;
-};
+}
 
-export type ExampleSrcbookType = {
+export interface ExampleSrcbookType {
   id: string;
   path: string;
   title: string;
@@ -42,9 +42,9 @@ export type ExampleSrcbookType = {
   language: CodeLanguageType;
   description: string;
   tags: string[];
-};
+}
 
-export type GenerateAICellType = {
+export interface GenerateAICellType {
   id: string;
   type: 'generate-ai';
-};
+}

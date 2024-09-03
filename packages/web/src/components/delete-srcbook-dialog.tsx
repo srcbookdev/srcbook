@@ -1,8 +1,7 @@
-import { deleteSrcbook } from '@/lib/server';
 import { useNavigate } from 'react-router-dom';
-import { getTitleForSession } from '@/lib/utils';
 import { useState } from 'react';
-import type { SessionType } from '../types';
+import { getTitleForSession } from '@/lib/utils';
+import { deleteSrcbook } from '@/lib/server';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import type { SessionType } from '../types';
 
 export default function DeleteSrcbookModal({
   open,
@@ -34,12 +34,12 @@ export default function DeleteSrcbookModal({
       .catch((err: Error) => {
         console.error(err);
         setError('Something went wrong. Please try again.');
-        setTimeout(() => setError(null), 3000);
+        setTimeout(() => { setError(null); }, 3000);
       });
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Delete "{getTitleForSession(session)}"?</DialogTitle>
@@ -49,12 +49,12 @@ export default function DeleteSrcbookModal({
             </div>
           </DialogDescription>
         </DialogHeader>
-        {error && <p className="text-destructive">{error}</p>}
+        {error ? <p className="text-destructive">{error}</p> : null}
         <div className="flex justify-end space-x-2">
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button onClick={() => { onOpenChange(false); }} variant="secondary">
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onConfirmDelete}>
+          <Button onClick={onConfirmDelete} variant="destructive">
             Delete
           </Button>
         </div>

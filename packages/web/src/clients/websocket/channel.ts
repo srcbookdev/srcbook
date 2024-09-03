@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import z from 'zod';
-import WebSocketClient from '@/clients/websocket/client';
+import type z from 'zod';
+import type WebSocketClient from '@/clients/websocket/client';
 
 export default class Channel<
-  I extends Record<string, z.ZodSchema<any>>,
-  O extends Record<string, z.ZodSchema<any>>,
+  I extends Record<string, z.ZodSchema>,
+  O extends Record<string, z.ZodSchema>,
 > {
   readonly topic: string;
 
@@ -16,7 +16,7 @@ export default class Channel<
 
   private readonly client: WebSocketClient;
 
-  private readonly callbacks: Record<string, Array<(payload: Record<string, any>) => void>>;
+  private readonly callbacks: Record<string, ((payload: Record<string, any>) => void)[]>;
 
   private readonly receive: (event: string, payload: Record<string, any>) => void;
 

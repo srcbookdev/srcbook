@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-import { useRouteError } from 'react-router-dom';
+import { Link , useRouteError } from 'react-router-dom';
 
 export default function ErrorPage() {
   const error = useRouteError() as { statusText: string; message: string };
@@ -14,7 +13,7 @@ export default function ErrorPage() {
         <span className="text-destructive italic"> {error.statusText || error.message}</span>
       </p>
 
-      <Link to="/" className="text-accent underline underline-offset-2">
+      <Link className="text-accent underline underline-offset-2" to="/">
         go home
       </Link>
     </div>

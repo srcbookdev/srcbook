@@ -1,23 +1,23 @@
 import { Sparkles, Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { CodeLanguageType } from '@srcbook/shared';
-import { SrcbookLogo } from './logos';
-import { cn } from '@/lib/utils';
+import type { CodeLanguageType } from '@srcbook/shared';
 import { useState } from 'react';
-import { ExampleSrcbookType } from '@/types';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import type { ExampleSrcbookType } from '@/types';
+import { SrcbookLogo } from './logos';
 
 function LongDashedHorizontalLine(props: { className?: string }) {
   return (
     <div className={props.className}>
-      <svg width="1000" height="2" viewBox="0 -1 1000 2" xmlns="http://www.w3.org/2000/svg">
+      <svg height="2" viewBox="0 -1 1000 2" width="1000" xmlns="http://www.w3.org/2000/svg">
         <line
-          x1="0"
-          y1="0"
-          x2="1000"
-          y2="0"
           stroke="currentColor"
-          strokeWidth="1"
           strokeDasharray="8, 4"
+          strokeWidth="1"
+          x1="0"
+          x2="1000"
+          y1="0"
+          y2="0"
         />
       </svg>
     </div>
@@ -27,15 +27,15 @@ function LongDashedHorizontalLine(props: { className?: string }) {
 function LongDashedVerticalLine(props: { className?: string }) {
   return (
     <div className={props.className}>
-      <svg width="2" height="1000" viewBox="-1 0 2 1000" xmlns="http://www.w3.org/2000/svg">
+      <svg height="1000" viewBox="-1 0 2 1000" width="2" xmlns="http://www.w3.org/2000/svg">
         <line
-          x1="0"
-          y1="0"
-          x2="0"
-          y2="1000"
           stroke="currentColor"
-          strokeWidth="1"
           strokeDasharray="8, 4"
+          strokeWidth="1"
+          x1="0"
+          x2="0"
+          y1="0"
+          y2="1000"
         />
       </svg>
     </div>
@@ -51,7 +51,7 @@ export function MainCTACard(props: { srcbook: ExampleSrcbookType; onClick: () =>
       onClick={onClick}
     >
       <div className="w-full grow h-[130px] bg-sb-core-20 rounded-t-[2px] flex items-center justify-center">
-        <SrcbookLogo size={64} className="text-sb-core-40" />
+        <SrcbookLogo className="text-sb-core-40" size={64} />
       </div>
       <div className="w-full relative overflow-clip">
         <LongDashedHorizontalLine className="absolute top-[10px] text-border" />
@@ -96,11 +96,11 @@ export function CardContainer({
   return (
     <div
       {...props}
-      onClick={onClick}
       className={cn(
         'group border relative rounded-sm h-[108px] overflow-clip cursor-pointer transition-colors text-sm',
         className,
       )}
+      onClick={onClick}
     >
       <LongDashedHorizontalLine className="absolute top-[10px] text-border" />
       <LongDashedHorizontalLine className="absolute bottom-[10px] text-border" />
@@ -111,14 +111,14 @@ export function CardContainer({
   );
 }
 
-type SrcbookCardPropsType = {
+interface SrcbookCardPropsType {
   title: string;
   running: boolean;
   cellCount: number;
   language: CodeLanguageType;
   onClick: () => void;
   onDelete: () => void;
-};
+}
 
 export function SrcbookCard(props: SrcbookCardPropsType) {
   function onDelete(e: React.MouseEvent<HTMLButtonElement>) {
@@ -128,18 +128,18 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
 
   return (
     <CardContainer
-      onClick={props.onClick}
       className={cn(
         'active:translate-y-0.5',
         props.running ? 'border-run' : 'hover:border-foreground',
       )}
+      onClick={props.onClick}
     >
       <h5 className="font-semibold leading-[18px] line-clamp-2">{props.title}</h5>
       <div className="flex items-center justify-between text-tertiary-foreground">
         <div className="text-[13px] flex items-center gap-2">
           {props.running ? (
             <>
-              <Circle size={14} strokeWidth={3} className="text-run" />
+              <Circle className="text-run" size={14} strokeWidth={3} />
               <span>Running</span>
             </>
           ) : (
@@ -155,9 +155,9 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
           {props.language === 'javascript' ? 'JS' : 'TS'}
         </code>
         <button
-          type="button"
-          onClick={onDelete}
           className="hidden group-hover:block hover:text-foreground"
+          onClick={onDelete}
+          type="button"
         >
           <Trash2 size={16} />
         </button>
@@ -169,11 +169,11 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
 function BigButton(props: { onClick: () => void; className?: string; children: React.ReactNode }) {
   return (
     <button
-      onClick={props.onClick}
       className={cn(
         'w-full sm:w-[216px] sm:max-w-[216px] h-24 p-3 bg-background border rounded-sm hover:border-ring transition-all',
         props.className,
       )}
+      onClick={props.onClick}
     >
       {props.children}
     </button>
@@ -198,7 +198,7 @@ export function CreateSrcbookButton(props: {
 
   return (
     <div className="space-y-1">
-      <BigButton onClick={() => props.onSubmit(language)}>
+      <BigButton onClick={() => { props.onSubmit(language); }}>
         <div className="flex flex-col h-full items-start justify-between">
           <PlusIcon size={20} />
           <h5 className="font-medium leading-[18px]">Create Srcbook</h5>
@@ -207,24 +207,24 @@ export function CreateSrcbookButton(props: {
 
       <div className="flex border rounded-sm bg-background w-fit">
         <Button
-          title="Use JavaScript for this Srcbook"
-          variant="secondary"
           className={cn(
             'border-none rounded-r-none active:translate-y-0 text-muted-foreground bg-muted w-10',
             language === 'javascript' && 'text-foreground font-bold',
           )}
-          onClick={() => setLanguage('javascript')}
+          onClick={() => { setLanguage('javascript'); }}
+          title="Use JavaScript for this Srcbook"
+          variant="secondary"
         >
           JS
         </Button>
         <Button
-          title="Use TypeScript for this Srcbook"
-          variant="secondary"
           className={cn(
             'border-none rounded-l-none active:translate-y-0 text-muted-foreground bg-muted w-10',
             language === 'typescript' && 'text-foreground font-bold',
           )}
-          onClick={() => setLanguage('typescript')}
+          onClick={() => { setLanguage('typescript'); }}
+          title="Use TypeScript for this Srcbook"
+          variant="secondary"
         >
           TS
         </Button>
@@ -236,8 +236,8 @@ export function CreateSrcbookButton(props: {
 export function ImportSrcbookButton(props: { onClick: () => void }) {
   return (
     <BigButton
-      onClick={props.onClick}
       className="border-dashed hover:border-solid focus-within:border-foreground"
+      onClick={props.onClick}
     >
       <div className="flex flex-col h-full items-start justify-between">
         <Upload size={20} />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { sendFeedback } from '@/lib/server';
 import { toast } from 'sonner';
+import { sendFeedback } from '@/lib/server';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -23,7 +23,7 @@ export default function FeedbackDialog({
   const [email, setEmail] = useState('');
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Share Feedback</DialogTitle>
@@ -34,25 +34,26 @@ export default function FeedbackDialog({
                 <br />
                 You can open a public{' '}
                 <a
-                  href="https://github.com/srcbookdev/srcbook/issues/new"
                   className="underline font-medium"
+                  href="https://github.com/srcbookdev/srcbook/issues/new"
                 >
                   GitHub issue
                 </a>{' '}
                 or use the form below.
               </p>
               <Textarea
+                onChange={(e) => { setFeedback(e.target.value); }}
                 placeholder="Share anonymous feedback"
                 value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
               />
               <Input
+                onChange={(e) => { setEmail(e.target.value); }}
+                placeholder="Email (optional)"
                 type="text"
                 value={email}
-                placeholder="Email (optional)"
-                onChange={(e) => setEmail(e.target.value)}
               />
               <Button
+                className="self-end"
                 disabled={!feedback}
                 onClick={() => {
                   sendFeedback({ feedback, email });
@@ -61,7 +62,6 @@ export default function FeedbackDialog({
                   toast.info('Thanks for the feedback!');
                   onOpenChange(false);
                 }}
-                className="self-end"
               >
                 Send
               </Button>

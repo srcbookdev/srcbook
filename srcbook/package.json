@@ -9,6 +9,7 @@
     "depcheck": "depcheck",
     "prebuild": "rm -rf ./dist",
     "build": "tsc",
+    "lint": "eslint . --max-warnings 0",
     "prepublishOnly": "pnpm run --workspace-root build",
     "preversion": "pnpm run build",
     "postversion": "git push && git push --tags"

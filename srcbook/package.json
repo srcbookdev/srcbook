@@ -5,8 +5,9 @@
   "type": "module",
   "bin": "./bin/cli.mjs",
   "scripts": {
-    "start": "./dist/bin/cli.js start",
+    "start": "node ./dist/bin/cli.mjs start",
     "depcheck": "depcheck",
+    "prebuild": "rm -rf ./dist",
     "build": "tsc",
     "prepublishOnly": "pnpm run --workspace-root build",
     "preversion": "pnpm run build",

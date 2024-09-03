@@ -14,7 +14,7 @@ import express from 'express';
 import { WebSocketServer as WsWebSocketServer } from 'ws';
 import { wss, app, posthog } from '@srcbook/api';
 import chalk from 'chalk';
-import { pathTo, getPackageJson } from './utils';
+import { pathTo, getPackageJson } from './utils.mjs';
 
 function clearScreen() {
   const repeatCount = process.stdout.rows - 2;

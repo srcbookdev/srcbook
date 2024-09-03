@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { Command } from 'commander';
-import { pathTo, getPackageJson, isPortAvailable } from './utils';
+import { pathTo, getPackageJson, isPortAvailable } from './utils.mjs';
 import open from 'open';
 
 function openInBrowser(url: string) {
@@ -11,7 +11,7 @@ function openInBrowser(url: string) {
 }
 
 function startServer(port: string, callback: () => void) {
-  const server = spawn('node', [pathTo('src', 'server.mjs')], {
+  const server = spawn('node', [pathTo('dist', 'src', 'server.mjs')], {
     // Inherit stdio configurations from CLI (parent) process and allow IPC
     stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
     env: {

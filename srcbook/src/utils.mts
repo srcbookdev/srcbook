@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const ROOT_PATH = path.join(__dirname, '../');
+const ROOT_PATH = path.join(__dirname, '../../');
 
 export function pathTo(...paths: string[]) {
   return path.join(ROOT_PATH, ...paths);

@@ -24,7 +24,7 @@ import {
   TsServerCellSuggestionsPayloadSchema,
   TsServerQuickInfoRequestPayloadSchema,
   TsServerQuickInfoResponsePayloadSchema,
-} from '../schemas/websockets.js';
+} from '../schemas/websockets';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
 export type CellStopPayloadType = z.infer<typeof CellStopPayloadSchema>;

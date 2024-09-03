@@ -13,8 +13,8 @@ export function mapCMLocationToTsServer(
   let remainingPosition = cmPosition;
   let lineIndex = 0;
 
-  while (lineIndex < lines.length && remainingPosition > lines[lineIndex].length) {
-    remainingPosition -= lines[lineIndex].length + 1; // +1 for newline character
+  while (lineIndex < lines.length && remainingPosition > (lines[lineIndex]?.length ?? 0)) {
+    remainingPosition -= (lines[lineIndex]?.length ?? 0) + 1; // +1 for newline character
     lineIndex++;
   }
 

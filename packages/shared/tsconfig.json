@@ -1,20 +1,10 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "@srcbook/configs/ts/base.json",
   "compilerOptions": {
-    "module": "nodenext",
-    "target": "es2022",
-    "moduleResolution": "nodenext",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "composite": true,
-    "sourceMap": true,
-    "declarationMap": true,
-    "outDir": "./dist",
-    "verbatimModuleSyntax": true,
-    "rootDir": "./",
-    "allowSyntheticDefaultImports": true
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "outDir": "dist"
   },
-  "include": ["./index.ts", "./src/**/*.ts"],
+  "include": ["src", "index.ts", "tests"],
   "exclude": ["node_modules", "dist"]
 }

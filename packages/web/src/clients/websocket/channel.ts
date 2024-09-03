@@ -59,7 +59,7 @@ export default class Channel<
 
   on<K extends keyof I & string>(event: K, callback: (payload: z.TypeOf<I[K]>) => void): void {
     this.callbacks[event] = this.callbacks[event] || [];
-    this.callbacks[event].push(callback);
+    this.callbacks[event]?.push(callback);
   }
 
   off<K extends keyof I & string>(event: K, callback: (payload: z.TypeOf<I[K]>) => void): void {

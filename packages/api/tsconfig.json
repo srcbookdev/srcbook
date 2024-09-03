@@ -1,23 +1,35 @@
+// {
+//   "extends": "../../tsconfig.base.json",
+//   "compilerOptions": {
+//     "module": "nodenext",
+//     "target": "es2022",
+//     "moduleResolution": "nodenext",
+//     "esModuleInterop": true,
+//     "isolatedModules": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "declaration": true,
+//     "composite": true,
+//     "sourceMap": true,
+//     "declarationMap": true,
+//     "outDir": "./dist",
+//     "noImplicitOverride": true,
+//     "rootDir": "./",
+//     "allowSyntheticDefaultImports": true,
+//     "verbatimModuleSyntax": true,
+//     "types": ["vitest/globals"]
+//   },
+//   "include": ["./**/*.mts"],
+//   "exclude": ["node_modules", "dist"]
+// }
+
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "@srcbook/configs/ts/base.json",
   "compilerOptions": {
-    "module": "nodenext",
-    "target": "es2022",
-    "moduleResolution": "nodenext",
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "composite": true,
-    "sourceMap": true,
-    "declarationMap": true,
-    "outDir": "./dist",
-    "noImplicitOverride": true,
-    "rootDir": "./",
-    "allowSyntheticDefaultImports": true,
-    "verbatimModuleSyntax": true,
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "outDir": "dist",
     "types": ["vitest/globals"]
   },
-  "include": ["./**/*.mts"],
+  "include": ["**/*.mts"],
   "exclude": ["node_modules", "dist"]
 }

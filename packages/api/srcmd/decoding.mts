@@ -93,7 +93,7 @@ function getSrcbookMetadata(tokens: TokensList) {
   }
 
   try {
-    const metadata = JSON.parse(match[1]);
+    const metadata = JSON.parse(match[1] ?? '');
 
     const filteredTokens = tokens.filter((t) => t !== srcbookMetdataToken);
 
@@ -169,7 +169,7 @@ function groupTokens(tokens: Token[]) {
   }
 
   function isLink(token: Tokens.Paragraph) {
-    return token.tokens.length === 1 && token.tokens[0].type === 'link';
+    return token.tokens.length === 1 && token.tokens[0]?.type === 'link';
   }
 
   let i = 0;
@@ -177,6 +177,7 @@ function groupTokens(tokens: Token[]) {
 
   while (i < len) {
     const token = tokens[i];
+    if (!token) continue;
 
     switch (token.type) {
       case 'heading':
@@ -217,7 +218,7 @@ function groupTokens(tokens: Token[]) {
 function validateTokenGroups(grouped: GroupedTokensType[]) {
   const errors: string[] = [];
 
-  const firstGroupIsTitle = grouped[0].type === 'title';
+  const firstGroupIsTitle = grouped[0]?.type === 'title';
   const hasOnlyOneTitle = grouped.filter((group) => group.type === 'title').length === 1;
   const invalidTitle = !(firstGroupIsTitle && hasOnlyOneTitle);
   const hasAtMostOnePackageJson =
@@ -238,8 +239,8 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
   while (i < len) {
     const group = grouped[i];
 
-    if (group.type === 'filename') {
-      if (!['code', 'code:linked'].includes(grouped[i + 1].type)) {
+    if (group?.type === 'filename') {
+      if (!['code', 'code:linked'].includes(grouped[i + 1]?.type ?? '')) {
         const raw = group.token.raw.trimEnd();
         errors.push(`h6 is reserved for code cells, but no code block followed '${raw}'`);
       } else {
@@ -262,8 +263,8 @@ function validateTokenGroupsPartial(grouped: GroupedTokensType[]) {
   while (i < len) {
     const group = grouped[i];
 
-    if (group.type === 'filename') {
-      if (!['code', 'code:linked'].includes(grouped[i + 1].type)) {
+    if (group?.type === 'filename') {
+      if (!['code', 'code:linked'].includes(grouped[i + 1]?.type ?? '')) {
         const raw = group.token.raw.trimEnd();
         errors.push(`h6 is reserved for code cells, but no code block followed '${raw}'`);
       } else {
@@ -286,9 +287,9 @@ function convertToCells(groups: GroupedTokensType[]): CellType[] {
   while (i < len) {
     const group = groups[i];
 
-    if (group.type === 'title') {
+    if (group?.type === 'title') {
       cells.push(convertTitle(group.token));
-    } else if (group.type === 'markdown') {
+    } else if (group?.type === 'markdown') {
       const hasNonSpaceTokens = group.tokens.some((token) => token.type !== 'space');
       // This shouldn't happen under most conditions, but there could be cases where there
       // is excess whitespace, causing markdown blocks that were not intentional. Thus, we
@@ -296,9 +297,9 @@ function convertToCells(groups: GroupedTokensType[]): CellType[] {
       if (hasNonSpaceTokens) {
         cells.push(convertMarkdown(group.tokens));
       }
-    } else if (group.type === 'filename') {
+    } else if (group?.type === 'filename') {
       i += 1;
-      switch (groups[i].type) {
+      switch (groups[i]?.type) {
         case 'code': {
           const codeToken = (groups[i] as CodeGroupType).token;
           const filename = group.token.text;

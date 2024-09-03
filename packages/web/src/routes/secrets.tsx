@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.ts';
 import { getSecrets } from '@/lib/server';
 import { Info, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Form, useLoaderData, useRevalidator } from 'react-router-dom';

@@ -33,8 +33,11 @@ export async function getConfig(): Promise<Config> {
   if (results.length !== 1) {
     console.warn('Expected exactly one config record, found:', results.length);
   }
-
-  return results[0];
+  if (results.length === 0) {
+    throw new Error('No config found');
+  }
+  // explicitly known that a config exists here
+  return results[0] as Config;
 }
 
 export async function updateConfig(attrs: Partial<Config>) {
@@ -55,7 +58,11 @@ export async function addSecret(name: string, value: string): Promise<Secret> {
     .values({ name, value })
     .onConflictDoUpdate({ target: secrets.name, set: { value } })
     .returning();
-  return result[0];
+  if (result.length === 0) {
+    throw new Error('No secret returned');
+  }
+  // explicitly known that a config exists here
+  return result[0] as Secret;
 }
 
 export async function removeSecret(name: string) {

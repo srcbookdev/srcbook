@@ -5,6 +5,6 @@
     "allowImportingTsExtensions": false,
     "outDir": "dist"
   },
-  "include": ["src", "index.ts", "tests"],
+  "include": ["src", "bin", "tests"],
   "exclude": ["node_modules", "dist"]
 }

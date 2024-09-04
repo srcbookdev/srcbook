@@ -34,6 +34,7 @@ import type {
   AiGenerateCellPayloadType,
   TsConfigUpdatePayloadType,
   AiFixDiagnosticsPayloadType,
+  TsServerQuickInfoRequestPayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -57,6 +58,8 @@ import {
   TsConfigUpdatePayloadSchema,
   TsConfigUpdatedPayloadSchema,
   TsServerCellSuggestionsPayloadSchema,
+  TsServerQuickInfoRequestPayloadSchema,
+  TsServerQuickInfoResponsePayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -259,12 +262,13 @@ async function depsInstall(payload: DepsInstallPayloadType) {
           output: { type: 'stderr', data: data.toString('utf8') },
         });
       },
-      async onExit() {
+      async onExit(exitCode) {
         const updatedJsonSource = await readPackageJsonContentsFromDisk(session);
+
         const updatedCell: PackageJsonCellType = {
           ...cell,
           source: updatedJsonSource,
-          status: 'idle',
+          status: exitCode === 0 ? 'idle' : 'failed',
         };
 
         const updatedSession = await updateSession(
@@ -682,6 +686,45 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
   });
 }
 
+async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  if (session.language !== 'typescript') {
+    throw new Error(`tsserver can only be used with TypeScript Srcbooks.`);
+  }
+
+  const tsserver = tsservers.has(session.id) ? tsservers.get(session.id) : createTsServer(session);
+
+  const cell = session.cells.find((c) => payload.cellId == c.id);
+
+  if (!cell || cell.type !== 'code') {
+    throw new Error(`No code cell found for cellId '${payload.cellId}'`);
+  }
+
+  const filename = cell.filename;
+
+  const tsserverResponse = await tsserver.quickinfo({
+    file: pathToCodeFile(session.dir, filename),
+    line: payload.request.location.line,
+    offset: payload.request.location.offset,
+  });
+
+  const body = tsserverResponse.body;
+  if (!body) {
+    return null;
+  }
+
+  wss.broadcast(`session:${session.id}`, 'tsserver:cell:quickinfo:response', {
+    response: {
+      ...body,
+    },
+  });
+}
+
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
@@ -697,6 +740,12 @@ wss
   .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
   .incoming('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
   .incoming('tsconfig.json:update', TsConfigUpdatePayloadSchema, tsconfigUpdate)
+  .incoming(
+    'tsserver:cell:quickinfo:request',
+    TsServerQuickInfoRequestPayloadSchema,
+    tsserverQuickInfo,
+  )
+  .outgoing('tsserver:cell:quickinfo:response', TsServerQuickInfoResponsePayloadSchema)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)

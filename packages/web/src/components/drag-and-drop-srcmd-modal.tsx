@@ -57,7 +57,7 @@ export function DragAndDropSrcmdModal(props: { children: React.ReactNode }) {
       const file = files[0];
 
       // TODO: Error handling
-      if (!file.name.endsWith('.src.md')) {
+      if (!file?.name.endsWith('.src.md')) {
         return;
       }
 

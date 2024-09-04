@@ -1,11 +1,13 @@
 {
   "name": "@srcbook/shared",
-  "version": "0.0.1-alpha.9",
+  "version": "0.0.1-alpha.10",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
     "prebuild": "rm -rf ./dist",
     "build": "tsc",
+    "dev": "tsc --watch --project .",
+    "lint": "eslint . --max-warnings 0",
     "check-types": "tsc",
     "prepublishOnly": "npm run build"
   },

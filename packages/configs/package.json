@@ -1,0 +1,12 @@
+{
+  "name": "@srcbook/configs",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "./eslint/library.js"
+  ],
+  "devDependencies": {
+    "eslint-config-turbo": "^2.1.1",
+    "eslint-config-prettier": "^9.1.0"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@srcbook/api",
-  "version": "0.0.1-alpha.2",
+  "version": "0.0.1-alpha.3",
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -12,6 +12,7 @@
     "test": "vitest",
     "prebuild": "rm -rf ./dist",
     "build": "tsc && cp -R ./drizzle ./dist/drizzle && cp -R ./srcbook/examples ./dist/srcbook/examples && cp -R ./prompts ./dist/prompts",
+    "lint": "eslint . --max-warnings 0",
     "check-types": "tsc",
     "depcheck": "depcheck",
     "generate": "drizzle-kit generate",

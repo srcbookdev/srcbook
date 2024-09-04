@@ -14,7 +14,7 @@ import {
   CodeCellUpdateAttrsSchema,
   CellUpdateAttrsSchema,
   SrcbookMetadataSchema,
-} from '../schemas/cells.js';
+} from '../schemas/cells';
 
 export type TitleCellType = z.infer<typeof TitleCellSchema>;
 export type MarkdownCellType = z.infer<typeof MarkdownCellSchema>;

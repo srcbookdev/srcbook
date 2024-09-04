@@ -17,7 +17,8 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "prettier": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@srcbook/configs": "workspace:*"
   },
   "dependencies": {
     "turbo": "^2.0.14"

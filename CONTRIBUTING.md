@@ -3,6 +3,8 @@
 - Node 18+
 - pnpm 9.5+
 
+Note: if you switch node versions during development, you may need to rebuild with `pnpm rebuild -r` due to the `better-sqlite3` native bindings.
+
 ## Development
 
 First, make sure to install dependencies:

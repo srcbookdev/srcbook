@@ -43,7 +43,7 @@ importers:
         specifier: ^2.27.8
         version: 2.27.8
       '@srcbook/configs':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:packages/configs
       '@types/node':
         specifier: 'catalog:'
@@ -321,8 +321,8 @@ importers:
         specifier: 'catalog:'
         version: 0.0.34(zod@3.23.8)
       '@srcbook/api':
-        specifier: '*'
-        version: 0.0.1-alpha.3(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.10)(@types/react@18.3.3)(openai@4.52.3)(react@18.3.1)(sswr@2.1.0(svelte@4.2.18))(svelte@4.2.18)(vue@3.4.31(typescript@5.4.5))
+        specifier: workspace:^
+        version: link:../packages/api
       '@srcbook/shared':
         specifier: workspace:^
         version: link:../packages/shared
@@ -1904,12 +1904,6 @@ packages:
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
-
-  '@srcbook/api@0.0.1-alpha.3':
-    resolution: {integrity: sha512-3jELb24IKGRGHJiD+VcOF9EpI7+fCuxUzJOiyT8HDMAmhwQxnUdtQeW1DUUQXx0xCP8HlX7hxiM/LN3ajgT/Pg==}
-
-  '@srcbook/shared@0.0.1-alpha.10':
-    resolution: {integrity: sha512-55W0MPHkTYz5P4up+xSrntxUHdtzLrp14Cy4h3R+ZvDcDLEh4UxHUcfPqHvPA1UKav+DCrb/OfWrFGAgxHxeUg==}
 
   '@swc/core-darwin-arm64@1.5.25':
     resolution: {integrity: sha512-YbD0SBgVJS2DM0vwJTU5m7+wOyCjHPBDMf3nCBJQzFZzOLzK11eRW7SzU2jhJHr9HI9sKcNFfN4lIC2Sj+4inA==}
@@ -6096,63 +6090,6 @@ snapshots:
   '@scure/base@1.1.7': {}
 
   '@sinclair/typebox@0.27.8': {}
-
-  '@srcbook/api@0.0.1-alpha.3(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.10)(@types/react@18.3.3)(openai@4.52.3)(react@18.3.1)(sswr@2.1.0(svelte@4.2.18))(svelte@4.2.18)(vue@3.4.31(typescript@5.4.5))':
-    dependencies:
-      '@ai-sdk/anthropic': 0.0.37(zod@3.23.8)
-      '@ai-sdk/openai': 0.0.34(zod@3.23.8)
-      '@srcbook/shared': 0.0.1-alpha.10
-      ai: 3.3.2(openai@4.52.3)(react@18.3.1)(sswr@2.1.0(svelte@4.2.18))(svelte@4.2.18)(vue@3.4.31(typescript@5.4.5))(zod@3.23.8)
-      better-sqlite3: 11.0.0
-      cors: 2.8.5
-      depcheck: 1.4.7
-      drizzle-orm: 0.31.2(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.10)(@types/react@18.3.3)(better-sqlite3@11.0.0)(react@18.3.1)
-      express: 4.19.2
-      marked: 12.0.2
-      posthog-node: 4.0.1
-      typescript: 5.4.5
-      ws: 8.17.0
-      zod: 3.23.8
-    transitivePeerDependencies:
-      - '@aws-sdk/client-rds-data'
-      - '@cloudflare/workers-types'
-      - '@electric-sql/pglite'
-      - '@libsql/client'
-      - '@neondatabase/serverless'
-      - '@op-engineering/op-sqlite'
-      - '@opentelemetry/api'
-      - '@planetscale/database'
-      - '@tidbcloud/serverless'
-      - '@types/better-sqlite3'
-      - '@types/pg'
-      - '@types/react'
-      - '@types/sql.js'
-      - '@vercel/postgres'
-      - '@xata.io/client'
-      - bufferutil
-      - bun-types
-      - debug
-      - expo-sqlite
-      - knex
-      - kysely
-      - mysql2
-      - openai
-      - pg
-      - postgres
-      - react
-      - solid-js
-      - sql.js
-      - sqlite3
-      - sswr
-      - supports-color
-      - svelte
-      - utf-8-validate
-      - vue
-
-  '@srcbook/shared@0.0.1-alpha.10':
-    dependencies:
-      '@scure/base': 1.1.7
-      zod: 3.23.8
 
   '@swc/core-darwin-arm64@1.5.25':
     optional: true

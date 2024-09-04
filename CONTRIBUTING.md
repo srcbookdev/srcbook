@@ -1,7 +1,7 @@
 ## Setup
 
 - Node 22+
-- pnpm 9+
+- pnpm 9.5+
 
 ## Development
 

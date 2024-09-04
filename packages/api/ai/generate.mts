@@ -6,6 +6,7 @@ import {
   type CodeCellType,
   randomid,
   type CellWithPlaceholderType,
+  type MarkdownCellType,
 } from '@srcbook/shared';
 import { type SessionType } from '../types.mjs';
 import { readFileSync } from 'node:fs';
@@ -79,17 +80,19 @@ ${diagnostics}
 };
 
 const makeGenerateCellEditSystemPrompt = (language: CodeLanguageType) => {
+  console.log(`code-updater-${language}.txt`);
   return readFileSync(Path.join(PROMPTS_DIR, `code-updater-${language}.txt`), 'utf-8');
 };
 
 const makeGenerateCellEditUserPrompt = (
   query: string,
   session: SessionType,
-  cell: CodeCellType,
+  cell: CodeCellType | MarkdownCellType,
 ) => {
+  const cellLanguage = cell.type === 'markdown' ? 'markdown' : session.language;
   // Intentionally not passing in tsconfig.json here as that doesn't need to be in the prompt.
   const inlineSrcbook = encode(
-    { cells: session.cells, language: session.language },
+    { cells: session.cells, language: cellLanguage as CodeLanguageType },
     { inline: true },
   );
 
@@ -98,7 +101,7 @@ ${inlineSrcbook}
 ==== END SRCBOOK ====
 
 ==== BEGIN CODE CELL ====
-${cell.source}
+${cell.type === 'markdown' ? (cell as MarkdownCellType).text : (cell as CodeCellType).source}
 ==== END CODE CELL ====
 
 ==== BEGIN USER REQUEST ====
@@ -180,10 +183,14 @@ export async function generateCells(
   }
 }
 
-export async function generateCellEdit(query: string, session: SessionType, cell: CodeCellType) {
+export async function generateCellEdit(
+  query: string,
+  session: SessionType,
+  cell: CodeCellType | MarkdownCellType,
+) {
   const model = await getModel();
-
-  const systemPrompt = makeGenerateCellEditSystemPrompt(session.language);
+  const cellLanguage = cell.type === 'markdown' ? 'markdown' : session.language;
+  const systemPrompt = makeGenerateCellEditSystemPrompt(cellLanguage as CodeLanguageType);
   const userPrompt = makeGenerateCellEditUserPrompt(query, session, cell);
   const result = await generateText({
     model,

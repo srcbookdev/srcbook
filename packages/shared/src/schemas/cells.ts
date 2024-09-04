@@ -22,7 +22,7 @@ export const PackageJsonCellSchema = z.object({
 
 export const CodeCellSchema = z.object({
   id: z.string(),
-  type: z.literal('code'),
+  type: z.enum(['code', 'markdown']),
   source: z.string(),
   language: z.enum(['javascript', 'typescript']),
   filename: z.string(),

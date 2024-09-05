@@ -113,7 +113,7 @@ function SessionPage() {
 }
 
 function Session(props: { session: SessionType; channel: SessionChannel; srcbooks: Array<SessionType>; config: SettingsType }) {
-  const { session, channel, srcbooks } = props;
+  const { session, channel, srcbooks, config } = props;
 
   const {
     cells: allCells,
@@ -301,6 +301,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; srcbook
       <SessionNavbar
         session={session}
         srcbooks={srcbooks}
+        baseDir={config.baseDir}
         title={titleCell.text}
       />
 

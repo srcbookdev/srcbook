@@ -13,6 +13,7 @@ type SessionNavbarProps = {
   session: SessionType;
   srcbooks: Array<SessionType>;
   title: string;
+  baseDir: string;
 };
 
 function SessionNavbar(props: SessionNavbarProps) {
@@ -23,8 +24,15 @@ function SessionNavbar(props: SessionNavbarProps) {
     navigate(`/srcbooks/${srcbook.id}`);
   }
 
-  async function onCreateSrcbook(language: CodeLanguageType) {
-    const { result } = await createSrcbook({ path: baseDir, name: 'Untitled', language: language });
+  async function onCreateSrcbook() {
+    const { result } = await createSrcbook({
+      path: props.baseDir,
+      name: 'Untitled',
+
+      // FIXME: copy the same language as the currently visible srcbook - should this be less
+      // implicit?
+      language: props.session.language,
+    });
     openSrcbook(result.path);
   }
 
@@ -96,7 +104,7 @@ function SessionNavbar(props: SessionNavbarProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={onCreateSrcbook}>
                 <PlusIcon className="mr-2 h-4 w-4" />
                 <span>Create Srcbook</span>
                 <DropdownMenuShortcut>⌘N</DropdownMenuShortcut>

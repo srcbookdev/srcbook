@@ -6,7 +6,7 @@
 <p align="center">
    <a href="https://hub.srcbook.com">Examples</a> ·
    <a href="https://discord.gg/shDEGBSe2d">Discord</a> ·
-   <a href="https://www.youtube.com/@srcbook">Youtube</a> ·
+   <a href="https://www.youtube.com/@srcbook">Youtube</a>
 <p>
 
 ## Features

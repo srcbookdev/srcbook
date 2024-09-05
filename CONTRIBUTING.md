@@ -48,7 +48,7 @@ For creating release notes whenever a change is made
 pnpm changeset
 ```
 
-then follow through the CLI, provide a clean descriptionto your changes
+then follow through the CLI, provide clean descriptions to your changes
 
 ### Finalizing the version
 

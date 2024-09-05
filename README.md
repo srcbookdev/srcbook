@@ -5,16 +5,17 @@
 </picture>
 
 
-<div align="center">
-[![npm version](https://badge.fury.io/js/srcbook.svg)](https://badge.fury.io/js/srcbook)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-</div>
+<p align="center">
+  - [![npm version](https://badge.fury.io/js/srcbook.svg)](https://badge.fury.io/js/srcbook)
+  - [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+</p>
+
 
 <p align="center">
    <a href="https://hub.srcbook.com">Examples</a> ·
    <a href="https://discord.gg/shDEGBSe2d">Discord</a> ·
    <a href="https://www.youtube.com/@srcbook">Youtube</a>
-<p>
+</p>
 
 ## Features
 

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, ReactNode, useRef, useReducer } from 'react';
+import { createContext, useCallback, useContext, ReactNode, useRef, useReducer, useEffect } from 'react';
 import {
   CellType,
   CodeCellType,
@@ -96,12 +96,23 @@ interface CellsContextType {
 
 const CellsContext = createContext<CellsContextType | undefined>(undefined);
 
-export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children: ReactNode }> = ({
-  initialCells,
+export const CellsProvider: React.FC<{ cells: ClientCellType[]; children: ReactNode }> = ({
+  cells,
   children,
 }) => {
+  // Because we use refs for our state, we need a way to trigger
+  // component re-renders when the ref state changes.
+  //
+  // https://legacy.reactjs.org/docs/hooks-faq.html#is-there-something-like-forceupdate
+  //
+  const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
+
   // Use ref to help avoid stale state bugs in closures.
-  const cellsRef = useRef<ClientCellType[]>(initialCells);
+  const cellsRef = useRef<ClientCellType[]>(cells);
+  useEffect(() => {
+    cellsRef.current = cells;
+    forceComponentRerender();
+  }, [cells]);
 
   // Use ref to help avoid stale state bugs in closures.
   const outputRef = useRef<OutputStateType>({});
@@ -111,13 +122,6 @@ export const CellsProvider: React.FC<{ initialCells: ClientCellType[]; children:
 
   // Use ref to help avoid stale state bugs in closures.
   const tsServerSuggestionsRef = useRef<TsServerStateType>({});
-
-  // Because we use refs for our state, we need a way to trigger
-  // component re-renders when the ref state changes.
-  //
-  // https://legacy.reactjs.org/docs/hooks-faq.html#is-there-something-like-forceupdate
-  //
-  const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
 
   const stableSetCells = useCallback((cells: ClientCellType[]) => {
     cellsRef.current = cells;

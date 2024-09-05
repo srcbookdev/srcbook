@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { NavLink, useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import {
   CellType,
@@ -50,29 +50,54 @@ type SessionLoaderDataType = {
 };
 
 function SessionPage() {
-  const { session, config } = useLoaderData() as { session: SessionType; config: SettingsType };
+  const { config, srcbooks, session } = useLoaderData() as SessionLoaderDataType;
+
+  // Because we use refs for our state, we need a way to trigger
+  // component re-renders when the ref state changes.
+  //
+  // https://legacy.reactjs.org/docs/hooks-faq.html#is-there-something-like-forceupdate
+  //
+  const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
 
   const channelRef = useRef(SessionChannel.create(session.id));
+  const connectedSessionIdRef = useRef<SessionType["id"] | null>(null);
+  const connectedSessionLanguageRef = useRef<SessionType["language"] | null>(null);
   const channel = channelRef.current;
 
-  useEffectOnce(() => {
+  useEffect(() => {
+    if (connectedSessionIdRef.current === session.id) {
+      return;
+    }
+
+    const oldChannel = channelRef.current;
+
+    // Disconnect from the previously connected session
+    if (connectedSessionIdRef.current) {
+      oldChannel.unsubscribe();
+
+      if (connectedSessionLanguageRef.current === 'typescript') {
+        oldChannel.push('tsserver:stop', { sessionId: session.id });
+      }
+    }
+
+    // Reconnect to the new session
+    channelRef.current = SessionChannel.create(session.id);
+    connectedSessionIdRef.current = session.id;
+    connectedSessionLanguageRef.current = session.language;
+
+    const channel = channelRef.current;
+
     channel.subscribe();
 
     if (session.language === 'typescript') {
       channel.push('tsserver:start', { sessionId: session.id });
     }
 
-    return () => {
-      channel.unsubscribe();
-
-      if (session.language === 'typescript') {
-        channel.push('tsserver:stop', { sessionId: session.id });
-      }
-    };
-  });
+    forceComponentRerender();
+  }, [session.id, session.language, forceComponentRerender]);
 
   return (
-    <CellsProvider initialCells={session.cells}>
+    <CellsProvider cells={session.cells}>
       <PackageJsonProvider session={session} channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
           <Session

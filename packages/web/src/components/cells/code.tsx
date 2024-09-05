@@ -638,7 +638,8 @@ function CodeEditor({
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   readOnly: boolean;
 }) {
-  const { codeTheme } = useTheme();
+  const { theme, codeTheme } = useTheme();
+
   const {
     updateCell: updateCellOnClient,
     getTsServerDiagnostics,
@@ -652,14 +653,16 @@ function CodeEditor({
     return true;
   }
 
-  let extensions = [
+  const extensions = [
     javascript({ typescript: true }),
-    tsHover(session.id, cell, channel),
+    tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
   ];
+
   if (readOnly) {
-    extensions = extensions.concat([EditorView.editable.of(false), EditorState.readOnly.of(true)]);
+    extensions.push(EditorView.editable.of(false));
+    extensions.push(EditorState.readOnly.of(true));
   }
 
   return (

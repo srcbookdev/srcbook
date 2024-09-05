@@ -37,6 +37,13 @@ export const TsServerJSDocSchema = z
   ])
   .optional();
 
+export const TsServerJsDocTagsSchema = z.array(
+  z.object({
+    name: z.string(),
+    text: TsServerJSDocSchema,
+  }),
+);
+
 export const TsServerQuickInfoResponseSchema = z.object({
   kind: z.string(),
   kindModifiers: z.string(),
@@ -44,10 +51,5 @@ export const TsServerQuickInfoResponseSchema = z.object({
   end: TsServerLocationSchema,
   displayString: z.string(),
   documentation: TsServerJSDocSchema,
-  tags: z.array(
-    z.object({
-      name: z.string(),
-      text: TsServerJSDocSchema,
-    }),
-  ),
+  tags: TsServerJsDocTagsSchema,
 });

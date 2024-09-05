@@ -42,6 +42,26 @@ To run a script defined in one of the packages:
 pnpm run check-types --filter=@srcbook/api
 ```
 
+## Making a changeset
+
+For creating release notes whenever a change is made
+
+```shell
+pnpm changeset
+```
+
+then follow through the CLI, provide clean descriptions to your changes
+
+### Finalizing the version
+
+The command below should clean up all files in `.changeset` into proper `CHANGELOG.md` files inside of their respective packages
+
+```shell
+pnpm changeset version
+```
+
+> Note these will also be used by the changeset action to create gh release notes in the future
+
 ## Adding a dependency
 
 To add a dependency from npm registry:

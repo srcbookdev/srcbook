@@ -15,10 +15,11 @@
     "start": "turbo start"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.8",
+    "@srcbook/configs": "workspace:^",
     "@types/node": "catalog:",
     "prettier": "catalog:",
-    "typescript": "catalog:",
-    "@srcbook/configs": "workspace:*"
+    "typescript": "catalog:"
   },
   "dependencies": {
     "turbo": "^2.0.14"

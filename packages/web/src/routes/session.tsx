@@ -57,8 +57,8 @@ function SessionPage() {
   const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
 
   const channelRef = useRef(SessionChannel.create(session.id));
-  const connectedSessionIdRef = useRef<SessionType["id"] | null>(null);
-  const connectedSessionLanguageRef = useRef<SessionType["language"] | null>(null);
+  const connectedSessionIdRef = useRef<SessionType['id'] | null>(null);
+  const connectedSessionLanguageRef = useRef<SessionType['language'] | null>(null);
   const channel = channelRef.current;
 
   useEffect(() => {
@@ -97,19 +97,19 @@ function SessionPage() {
     <CellsProvider cells={session.cells}>
       <PackageJsonProvider session={session} channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
-          <Session
-            session={session}
-            channel={channel}
-            srcbooks={srcbooks}
-            config={config}
-          />
+          <Session session={session} channel={channel} srcbooks={srcbooks} config={config} />
         </TsConfigProvider>
       </PackageJsonProvider>
     </CellsProvider>
   );
 }
 
-function Session(props: { session: SessionType; channel: SessionChannel; srcbooks: Array<SessionType>; config: SettingsType }) {
+function Session(props: {
+  session: SessionType;
+  channel: SessionChannel;
+  srcbooks: Array<SessionType>;
+  config: SettingsType;
+}) {
   const { session, channel, srcbooks, config } = props;
 
   const {

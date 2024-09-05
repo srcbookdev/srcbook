@@ -15,9 +15,7 @@ export default function Layout(props: { children: React.ReactNode }) {
 
   return (
     <>
-      <SettingsProvider config={config}>
-        {props.children}
-      </SettingsProvider>
+      <SettingsProvider config={config}>{props.children}</SettingsProvider>
 
       <Toaster position="top-right" offset="20px" closeButton />
     </>

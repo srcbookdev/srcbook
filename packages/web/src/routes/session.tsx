@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
+import { NavLink, useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import {
   CellType,
   CellOutputPayloadType,
@@ -12,7 +12,7 @@ import {
   TitleCellType,
   TsServerCellSuggestionsPayloadType,
 } from '@srcbook/shared';
-import { loadSession, getConfig } from '@/lib/server';
+import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
 import TitleCell from '@/components/cells/title';
 import MarkdownCell from '@/components/cells/markdown';
@@ -27,8 +27,11 @@ import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
 import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
+import SessionNavbar from '@/components/session-navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
+import { SrcbookLogo } from '@/components/logos';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: session }] = await Promise.all([
@@ -204,7 +207,8 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   }
 
   // TOOD: We need to stop treating titles and package.json as cells.
-  const [titleCell, _packageJsonCell, ...remainingCells] = allCells;
+  const [titleCellUncasted, _packageJsonCell, ...remainingCells] = allCells;
+  const titleCell = titleCellUncasted as TitleCellType;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
 
   useEffect(() => {
@@ -256,68 +260,76 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   ]);
 
   return (
-    <>
-      <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
-      <SessionMenu
-        showSettings={showSettings}
-        setShowSettings={setShowSettings}
+    <div className="flex flex-col">
+      <SessionNavbar
         session={session}
-        openDepsInstallModal={() => setDepsInstallModalOpen(true)}
-        channel={channel}
+        srcbooks={[]}
+        title={titleCell.text}
       />
 
-      {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
-      <div className="px-[72px] xl:pl-[100px] pb-28">
-        <TitleCell cell={titleCell as TitleCellType} updateCellOnServer={updateCellOnServer} />
-
-        {cells.map((cell, idx) => (
-          <div key={cell.id}>
-            <InsertCellDivider
-              language={session.language}
-              createCodeCell={() => createNewCell('code', idx + 2)}
-              createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-              createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
-            />
-
-            {cell.type === 'code' && (
-              <CodeCell
-                cell={cell}
-                session={session}
-                channel={channel}
-                updateCellOnServer={updateCellOnServer}
-                onDeleteCell={onDeleteCell}
-              />
-            )}
-
-            {cell.type === 'markdown' && (
-              <MarkdownCell
-                cell={cell}
-                updateCellOnServer={updateCellOnServer}
-                onDeleteCell={onDeleteCell}
-              />
-            )}
-
-            {cell.type === 'generate-ai' && (
-              <GenerateAiCell
-                cell={cell}
-                session={session}
-                insertIdx={idx + 2}
-                onSuccess={insertGeneratedCells}
-              />
-            )}
-          </div>
-        ))}
-
-        {/* There is always an insert cell divider after the last cell */}
-        <InsertCellDivider
-          language={session.language}
-          createCodeCell={() => createNewCell('code', allCells.length)}
-          createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-          createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
-          className={cn('h-14', cells.length === 0 && 'opacity-100')}
+      <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">
+        <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+        <SessionMenu
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+          session={session}
+          openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+          channel={channel}
         />
+
+        {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
+        <div className="px-[72px] pb-28">
+          <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+
+          {cells.map((cell, idx) => (
+            <div key={cell.id}>
+              <InsertCellDivider
+                language={session.language}
+                createCodeCell={() => createNewCell('code', idx + 2)}
+                createMarkdownCell={() => createNewCell('markdown', idx + 2)}
+                createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+              />
+
+              {cell.type === 'code' && (
+                <CodeCell
+                  cell={cell}
+                  session={session}
+                  channel={channel}
+                  updateCellOnServer={updateCellOnServer}
+                  onDeleteCell={onDeleteCell}
+                />
+              )}
+
+              {cell.type === 'markdown' && (
+                <MarkdownCell
+                  cell={cell}
+                  updateCellOnServer={updateCellOnServer}
+                  onDeleteCell={onDeleteCell}
+                />
+              )}
+
+              {cell.type === 'generate-ai' && (
+                <GenerateAiCell
+                  cell={cell}
+                  session={session}
+                  insertIdx={idx + 2}
+                  onSuccess={insertGeneratedCells}
+                />
+              )}
+            </div>
+          ))}
+
+          {/* There is always an insert cell divider after the last cell */}
+          <InsertCellDivider
+            language={session.language}
+            createCodeCell={() => createNewCell('code', allCells.length)}
+            createMarkdownCell={() => createNewCell('markdown', allCells.length)}
+            createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
+            className={cn('h-14', cells.length === 0 && 'opacity-100')}
+          />
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 

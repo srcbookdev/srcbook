@@ -52,7 +52,6 @@ function SessionNavbar(props: SessionNavbarProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuItem>{props.title}</DropdownMenuItem>
               {props.srcbooks
                 .sort((a, b) => b.openedAt - a.openedAt)
                 .slice(0, 6)

@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
-import { NavLink, useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
+import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import {
   CellType,
   CellOutputPayloadType,
@@ -22,16 +22,13 @@ import SessionMenu from '@/components/session-menu';
 import { Button } from '@/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
-import useEffectOnce from '@/components/use-effect-once';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
 import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
-import SessionNavbar from '@/components/session-navbar';
+import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
-import { SrcbookLogo } from '@/components/logos';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([

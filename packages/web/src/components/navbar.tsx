@@ -15,6 +15,8 @@ import { SessionType } from '@/types';
 import { SrcbookLogo } from '@/components/logos';
 import { Button } from '@/components/ui/button';
 import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
+import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
+import { ExportSrcbookModal, ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import useTheme from '@/components/use-theme';
 import {
   DropdownMenu,
@@ -24,8 +26,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { createSession, createSrcbook } from '@/lib/server';
-import DeleteSrcbookModal from './delete-srcbook-dialog';
-import { ExportSrcbookModal } from './import-export-srcbook-modal';
 
 function LightDarkModeDebugChanger() {
   const { theme, toggleTheme } = useTheme();
@@ -57,6 +57,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
   const navigate = useNavigate();
 
   const [showGenSrcbookModal, setShowGenSrcbookModal] = useState(false);
+  const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
 
@@ -85,6 +86,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
         setOpen={setShowGenSrcbookModal}
         openSrcbook={openSrcbook}
       />
+      <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={props.session} />
       <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={props.session} />
 
@@ -165,7 +167,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
                   <SparklesIcon className="mr-2 h-4 w-4" />
                   <span>Generate Srcbook</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowImportSrcbookModal(true)}>
                   <ImportIcon className="mr-2 h-4 w-4" />
                   <span>Open Srcbook</span>
                 </DropdownMenuItem>

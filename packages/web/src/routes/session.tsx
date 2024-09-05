@@ -34,13 +34,20 @@ import { SrcbookLogo } from '@/components/logos';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 async function loader({ params }: LoaderFunctionArgs) {
-  const [{ result: config }, { result: session }] = await Promise.all([
+  const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([
     getConfig(),
+    loadSessions(),
     loadSession({ id: params.id! }),
   ]);
 
-  return { config, session };
+  return { config, srcbooks, session };
 }
+
+type SessionLoaderDataType = {
+  config: SettingsType;
+  srcbooks: Array<SessionType>;
+  session: SessionType;
+};
 
 function SessionPage() {
   const { session, config } = useLoaderData() as { session: SessionType; config: SettingsType };
@@ -68,15 +75,20 @@ function SessionPage() {
     <CellsProvider initialCells={session.cells}>
       <PackageJsonProvider session={session} channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
-          <Session session={session} channel={channelRef.current} config={config} />
+          <Session
+            session={session}
+            channel={channel}
+            srcbooks={srcbooks}
+            config={config}
+          />
         </TsConfigProvider>
       </PackageJsonProvider>
     </CellsProvider>
   );
 }
 
-function Session(props: { session: SessionType; channel: SessionChannel; config: SettingsType }) {
-  const { session, channel } = props;
+function Session(props: { session: SessionType; channel: SessionChannel; srcbooks: Array<SessionType>; config: SettingsType }) {
+  const { session, channel, srcbooks } = props;
 
   const {
     cells: allCells,
@@ -263,7 +275,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     <div className="flex flex-col">
       <SessionNavbar
         session={session}
-        srcbooks={[]}
+        srcbooks={srcbooks}
         title={titleCell.text}
       />
 

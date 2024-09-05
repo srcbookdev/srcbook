@@ -38,8 +38,6 @@ export function tsHover(
         tooltipContainer.className = 'p-2 space-y-2 max-w-3xl max-h-96 overflow-scroll';
 
         function callback({ response }: TsServerQuickInfoResponsePayloadType) {
-          console.log(response);
-
           const signatureNode = formatCode(response.displayString, theme);
           tooltipContainer.appendChild(signatureNode);
 

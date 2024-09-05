@@ -12,7 +12,9 @@
     "format": "prettier --write .",
     "generate": "pnpm --filter api generate",
     "migrate": "pnpm --filter api migrate",
-    "start": "turbo start"
+    "start": "turbo start",
+    "ci:publish": "pnpm publish -r",
+    "ci:version": "pnpm changeset version"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.8",

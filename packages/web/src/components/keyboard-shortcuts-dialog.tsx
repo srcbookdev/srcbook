@@ -44,6 +44,7 @@ export default function KeyboardShortcutsDialog({
               <ShortcutRow keys={['mod', '/']} description="toggle lines comment" />
               <ShortcutRow keys={['alt', '↑']} description="move lines up" />
               <ShortcutRow keys={['alt', '↓']} description="move lines down" />
+              <ShortcutRow keys={['mod', 'shift', 'f']} description="format code" />
             </div>
           </DialogDescription>
         </DialogHeader>

@@ -11,6 +11,7 @@ import {
   removeCell,
   updateCodeCellFilename,
   addCell,
+  formatAndUpdateCodeCell,
 } from '../session.mjs';
 import { getSecrets } from '../config.mjs';
 import type { SessionType } from '../types.mjs';
@@ -25,6 +26,7 @@ import type {
   DepsValidatePayloadType,
   CellStopPayloadType,
   CellUpdatePayloadType,
+  CellFormatPayloadType,
   TsServerStartPayloadType,
   TsServerStopPayloadType,
   CellDeletePayloadType,
@@ -42,6 +44,7 @@ import {
   CellUpdatedPayloadSchema,
   CellRenamePayloadSchema,
   CellDeletePayloadSchema,
+  CellFormatPayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
   AiGenerateCellPayloadSchema,
@@ -417,6 +420,31 @@ async function cellFixDiagnostics(payload: AiFixDiagnosticsPayloadType) {
   });
 }
 
+async function cellFormat(payload: CellFormatPayloadType) {
+  const session = await findSession(payload.sessionId);
+  console.log('in');
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+  const cellBeforeUpdate = findCell(session, payload.cellId);
+
+  if (!cellBeforeUpdate || cellBeforeUpdate.type !== 'code') {
+    throw new Error(
+      `No cell exists or not a code cell for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+    );
+  }
+  const result = await formatAndUpdateCodeCell(session, cellBeforeUpdate);
+  if (!result.success) {
+    return sendCellUpdateError(session, payload.cellId, result.errors);
+  }
+
+  const cell = result.cell as CodeCellType;
+
+  wss.broadcast(`session:${session.id}`, 'cell:updated', { cell });
+
+  refreshCodeCellDiagnostics(session, cell);
+}
+
 async function cellUpdate(payload: CellUpdatePayloadType) {
   const session = await findSession(payload.sessionId);
 
@@ -431,7 +459,6 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
       `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
     );
   }
-
   const result = await updateCell(session, cellBeforeUpdate, payload.updates);
 
   if (!result.success) {
@@ -440,19 +467,7 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
 
   const cell = result.cell as CodeCellType;
 
-  if (session.language === 'typescript' && cell.type === 'code' && tsservers.has(session.id)) {
-    const tsserver = tsservers.get(session.id);
-
-    // This isn't intended for renaming, so the filenames
-    // and their resulting paths are expected to be the same
-    reopenFileInTsServer(tsserver, session, {
-      openFilename: cell.filename,
-      closeFilename: cell.filename,
-      source: cell.source,
-    });
-
-    requestAllDiagnostics(tsserver, session);
-  }
+  refreshCodeCellDiagnostics(session, cell);
 }
 
 async function cellRename(payload: CellRenamePayloadType) {
@@ -725,6 +740,21 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
   });
 }
 
+function refreshCodeCellDiagnostics(session: SessionType, cell: CodeCellType) {
+  if (session.language === 'typescript' && cell.type === 'code' && tsservers.has(session.id)) {
+    const tsserver = tsservers.get(session.id);
+
+    // This isn't intended for renaming, so the filenames
+    // and their resulting paths are expected to be the same
+    reopenFileInTsServer(tsserver, session, {
+      openFilename: cell.filename,
+      closeFilename: cell.filename,
+      source: cell.source,
+    });
+
+    requestAllDiagnostics(tsserver, session);
+  }
+}
 wss
   .channel('session:*')
   .incoming('cell:exec', CellExecPayloadSchema, cellExec)
@@ -733,6 +763,7 @@ wss
   .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
   .incoming('cell:rename', CellRenamePayloadSchema, cellRename)
   .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)
+  .incoming('cell:format', CellFormatPayloadSchema, cellFormat)
   .incoming('ai:generate', AiGenerateCellPayloadSchema, cellGenerate)
   .incoming('ai:fix_diagnostics', AiFixDiagnosticsPayloadSchema, cellFixDiagnostics)
   .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)

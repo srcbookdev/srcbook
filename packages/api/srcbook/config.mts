@@ -1,7 +1,9 @@
 export function buildJSPackageJson() {
   return {
     type: 'module',
-    dependencies: {},
+    dependencies: {
+      prettier: 'latest',
+    },
   };
 }
 
@@ -12,6 +14,7 @@ export function buildTSPackageJson() {
       tsx: 'latest',
       typescript: 'latest',
       '@types/node': 'latest',
+      prettier: 'latest',
     },
   };
 }

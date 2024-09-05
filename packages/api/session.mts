@@ -29,6 +29,7 @@ import {
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';
 import { pathToCodeFile } from './srcbook/path.mjs';
+import { exec } from 'node:child_process';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -297,6 +298,36 @@ export function updateCell(session: SessionType, cell: CellType, updates: CellUp
   }
 }
 
+export async function formatCode(filePath: string) {
+  try {
+    const command = `npx prettier --no-error-on-unmatched-pattern ${filePath}`;
+
+    return new Promise((resolve, reject) => {
+      exec(command, async (error, stdout) => {
+        if (error) {
+          console.error(`exec error: ${error}`);
+          reject(error);
+          return;
+        }
+        resolve(stdout);
+      });
+    });
+  } catch (error) {
+    console.error('Formatting error:', error);
+    throw error;
+  }
+}
+export async function formatAndUpdateCodeCell(session: SessionType, cell: CodeCellType) {
+  try {
+    const formattedCode = await formatCode(pathToCodeFile(session.dir, cell.filename));
+    return updateCodeCell(session, cell, { source: formattedCode } as { source: string });
+  } catch (error) {
+    return Promise.resolve({
+      success: false,
+      errors: [{ message: 'An error occurred formatting the code.', attribute: 'formatting' }],
+    } as UpdateResultType);
+  }
+}
 export function sessionToResponse(session: SessionType) {
   const result: Pick<SessionType, 'id' | 'cells' | 'language' | 'tsconfig.json' | 'openedAt'> = {
     id: session.id,

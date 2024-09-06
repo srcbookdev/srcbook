@@ -1,6 +1,6 @@
 {
   "name": "@srcbook/shared",
-  "version": "0.0.1-alpha.10",
+  "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {

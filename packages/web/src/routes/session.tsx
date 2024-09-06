@@ -302,7 +302,7 @@ function Session(props: {
         title={titleCell.text}
       />
 
-      <div className="w-full max-w-[936px] mx-auto px-4 lg:px-0 py-12 mt-8">
+      <div className="flex mt-12">
         <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
         <SessionMenu
           showSettings={showSettings}
@@ -313,55 +313,59 @@ function Session(props: {
         />
 
         {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
-        <div className="px-[72px] pb-28">
-          <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+        <div className="grow shrink lg:px-0 px-[72px] pb-28">
+          <div className="max-w-[800px] mx-auto my-12">
+            <div className="">
+              <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
 
-          {cells.map((cell, idx) => (
-            <div key={cell.id}>
+              {cells.map((cell, idx) => (
+                <div key={cell.id}>
+                  <InsertCellDivider
+                    language={session.language}
+                    createCodeCell={() => createNewCell('code', idx + 2)}
+                    createMarkdownCell={() => createNewCell('markdown', idx + 2)}
+                    createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+                  />
+
+                  {cell.type === 'code' && (
+                    <CodeCell
+                      cell={cell}
+                      session={session}
+                      channel={channel}
+                      updateCellOnServer={updateCellOnServer}
+                      onDeleteCell={onDeleteCell}
+                    />
+                  )}
+
+                  {cell.type === 'markdown' && (
+                    <MarkdownCell
+                      cell={cell}
+                      updateCellOnServer={updateCellOnServer}
+                      onDeleteCell={onDeleteCell}
+                    />
+                  )}
+
+                  {cell.type === 'generate-ai' && (
+                    <GenerateAiCell
+                      cell={cell}
+                      session={session}
+                      insertIdx={idx + 2}
+                      onSuccess={insertGeneratedCells}
+                    />
+                  )}
+                </div>
+              ))}
+
+              {/* There is always an insert cell divider after the last cell */}
               <InsertCellDivider
                 language={session.language}
-                createCodeCell={() => createNewCell('code', idx + 2)}
-                createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-                createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+                createCodeCell={() => createNewCell('code', allCells.length)}
+                createMarkdownCell={() => createNewCell('markdown', allCells.length)}
+                createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
+                className={cn('h-14', cells.length === 0 && 'opacity-100')}
               />
-
-              {cell.type === 'code' && (
-                <CodeCell
-                  cell={cell}
-                  session={session}
-                  channel={channel}
-                  updateCellOnServer={updateCellOnServer}
-                  onDeleteCell={onDeleteCell}
-                />
-              )}
-
-              {cell.type === 'markdown' && (
-                <MarkdownCell
-                  cell={cell}
-                  updateCellOnServer={updateCellOnServer}
-                  onDeleteCell={onDeleteCell}
-                />
-              )}
-
-              {cell.type === 'generate-ai' && (
-                <GenerateAiCell
-                  cell={cell}
-                  session={session}
-                  insertIdx={idx + 2}
-                  onSuccess={insertGeneratedCells}
-                />
-              )}
             </div>
-          ))}
-
-          {/* There is always an insert cell divider after the last cell */}
-          <InsertCellDivider
-            language={session.language}
-            createCodeCell={() => createNewCell('code', allCells.length)}
-            createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-            createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
-            className={cn('h-14', cells.length === 0 && 'opacity-100')}
-          />
+          </div>
         </div>
       </div>
     </div>

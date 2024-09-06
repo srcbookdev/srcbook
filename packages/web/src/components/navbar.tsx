@@ -104,8 +104,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                {/* FIXME: the button when unfocused and clicked nudges down slightly? What's going on there? */}
-                <Button variant="icon" className="font-normal px-1">
+                <Button variant="icon" className="font-normal px-1 active:translate-y-0">
                   <div className="flex items-center gap-1">
                     {props.title}
                     <ChevronDownIcon size={12} />
@@ -127,8 +126,6 @@ export function SessionNavbar(props: SessionNavbarProps) {
                       return null;
                     }
 
-                    // FIXME: clicking these links seems to put the app in a weird state, where
-                    // the `props.session` value / etc are for the previous srcbook
                     return (
                       <DropdownMenuItem
                         key={srcbook.id}
@@ -152,8 +149,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                {/* FIXME: the button when unfocused and clicked nudges down slightly? What's going on there? */}
-                <Button variant="icon" className="w-8 h-8 p-0">
+                <Button variant="icon" className="w-8 h-8 p-0 active:translate-y-0">
                   <PlusIcon size={18} />
                 </Button>
               </DropdownMenuTrigger>
@@ -178,10 +174,19 @@ export function SessionNavbar(props: SessionNavbarProps) {
           <LightDarkModeDebugChanger />
 
           <div className="flex items-center gap-2">
-            <Button variant="icon" size="icon" onClick={() => setShowDelete(true)}>
+            <Button
+              variant="icon"
+              size="icon"
+              onClick={() => setShowDelete(true)}
+              className="active:translate-y-0"
+            >
               <TrashIcon size={18} />
             </Button>
-            <Button variant="secondary" onClick={() => setShowSave(true)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowSave(true)}
+              className="active:translate-y-0"
+            >
               <div className="flex gap-2">
                 <ShareIcon size={16} />
                 Share
@@ -282,17 +287,17 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <a href="https://x.com/srcbookcom" target="_blank">
-            <Button variant="icon" size="icon">
+            <Button variant="icon" size="icon" className="active:translate-y-0">
               <SocialXIcon />
             </Button>
           </a>
           <a href="https://discord.gg/shDEGBSe2d" target="_blank">
-            <Button variant="icon" size="icon">
+            <Button variant="icon" size="icon" className="active:translate-y-0">
               <SocialDiscordIcon />
             </Button>
           </a>
           <a href="https://github.com/srcbookdev/srcbook" target="_blank">
-            <Button variant="icon" size="icon">
+            <Button variant="icon" size="icon" className="active:translate-y-0">
               <SocialGithubIcon />
             </Button>
           </a>

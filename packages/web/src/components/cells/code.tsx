@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
+
 import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -509,6 +511,7 @@ function Header(props: {
               <Sparkles size={16} className="m-2.5" />
               <TextareaAutosize
                 className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
+                // eslint-disable-next-line jsx-a11y/no-autofocus -- needed for action flow, should not limit accessibility
                 autoFocus
                 placeholder="Ask the AI to edit this cell..."
                 value={prompt}
@@ -537,12 +540,12 @@ function Header(props: {
           {!aiEnabled && (
             <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
               <p>API key required</p>
-              <a
+              <button
                 className="font-medium underline cursor-pointer"
                 onClick={() => navigate('/settings')}
               >
                 Settings
-              </a>
+              </button>
             </div>
           )}
         </div>

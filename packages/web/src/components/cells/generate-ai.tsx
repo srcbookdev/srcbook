@@ -94,6 +94,7 @@ export default function GenerateAiCell(props: {
 
           <textarea
             value={prompt}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- needed for action flow
             autoFocus
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Write a prompt..."

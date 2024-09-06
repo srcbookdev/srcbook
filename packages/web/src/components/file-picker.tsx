@@ -73,7 +73,12 @@ export function FilePicker(props: {
   );
 }
 
-export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta: string }) {
+export function DirPicker(props: {
+  id: string;
+  dirname: string;
+  entries: FsObjectType[];
+  cta: string;
+}) {
   const [dirname, setDirname] = useState(props.dirname);
   const [entries, setEntries] = useState(props.entries.filter((entry) => entry.isDirectory));
   const [selected, setSelected] = useState<null | FsObjectType>(null);
@@ -86,7 +91,7 @@ export function DirPicker(props: { dirname: string; entries: FsObjectType[]; cta
   }
 
   return (
-    <div className="space-y-4 mt-4 w-full">
+    <div className="space-y-4 mt-4 w-full" id={props.id}>
       <Form method="post" className="flex items-center space-x-2 w-full">
         <Input value={dirname} name="path" readOnly tabIndex={-1} className="pointer-events-none" />
         <Button type="submit" disabled={selected === null}>
@@ -221,7 +226,6 @@ export function ExportLocationPicker(props: {
           {fsResult.dirname}/<span className="font-bold">{filename}</span>
         </div>
         <Button
-          tabIndex={2}
           variant="default"
           disabled={!validFilename}
           onClick={() => props.onSave(fsResult.dirname, filename)}

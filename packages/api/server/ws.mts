@@ -423,7 +423,6 @@ async function cellFixDiagnostics(payload: AiFixDiagnosticsPayloadType) {
 
 async function cellFormat(payload: CellFormatPayloadType) {
   const session = await findSession(payload.sessionId);
-  console.log('in');
   if (!session) {
     throw new Error(`No session exists for session '${payload.sessionId}'`);
   }

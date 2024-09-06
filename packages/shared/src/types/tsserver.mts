@@ -8,7 +8,7 @@ import {
   TsServerJSDocSchema,
   TsServerJsDocTagsSchema,
   TsServerQuickInfoResponseSchema,
-} from '../schemas/tsserver.js';
+} from '../schemas/tsserver.mjs';
 
 export type TsServerLocationType = z.infer<typeof TsServerLocationSchema>;
 export type TsServerDiagnosticType = z.infer<typeof TsServerDiagnosticSchema>;

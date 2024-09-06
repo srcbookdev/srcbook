@@ -1,4 +1,4 @@
 {
-  "include": ["src", "index.ts", "tests"],
+  "include": ["index.mts", "src/**/*.mts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -35,10 +35,9 @@ export function tsHover(
       end: end,
       create: () => {
         const tooltipContainer = document.createElement('div');
-        tooltipContainer.style.display = 'none';
+        tooltipContainer.className = 'hidden';
 
         function callback({ response }: TsServerQuickInfoResponsePayloadType) {
-          tooltipContainer.style.display = '';
           tooltipContainer.className = 'p-2 space-y-2 max-w-3xl max-h-96 overflow-scroll';
           const signatureNode = formatCode(response.displayString, theme);
           tooltipContainer.appendChild(signatureNode);

@@ -90,7 +90,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={props.session} />
       <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={props.session} />
 
-      <header className="h-12 w-full flex items-center justify-between fixed bg-background z-10 border-b border-border text-sm">
+      <header className="h-12 w-full flex items-center justify-between fixed bg-background z-50 border-b border-border text-sm">
         <nav className="flex items-center justify-between px-4 flex-1">
           <div className="flex items-center gap-2">
             <NavLink to="/">
@@ -241,7 +241,7 @@ function SocialXIcon() {
 
 export function Navbar() {
   return (
-    <header className="relative h-12 w-full flex items-center justify-between fixed bg-background z-10 border-b border-border text-sm">
+    <header className="relative h-12 w-full flex items-center justify-between fixed bg-background z-50 border-b border-border text-sm">
       <nav className="flex items-center justify-between px-4 flex-1">
         <div className="flex items-center gap-6">
           <NavLink to="/">

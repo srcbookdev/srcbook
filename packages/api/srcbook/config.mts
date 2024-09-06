@@ -4,6 +4,12 @@ export function buildJSPackageJson() {
     dependencies: {
       prettier: 'latest',
     },
+    prettier: {
+      tabWidth: 2,
+      semi: true,
+      singleQuote: true,
+      printWidth: 100,
+    },
   };
 }
 
@@ -15,6 +21,12 @@ export function buildTSPackageJson() {
       typescript: 'latest',
       '@types/node': 'latest',
       prettier: 'latest',
+    },
+    prettier: {
+      tabWidth: 2,
+      semi: true,
+      singleQuote: true,
+      printWidth: 100,
     },
   };
 }

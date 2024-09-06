@@ -49,3 +49,11 @@ export type GenerateAICellType = {
   id: string;
   type: 'generate-ai';
 };
+
+export type CellModeType =
+  | 'off'
+  | 'generating'
+  | 'reviewing'
+  | 'prompting'
+  | 'fixing'
+  | 'formatting';

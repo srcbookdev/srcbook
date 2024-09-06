@@ -440,10 +440,9 @@ async function cellFormat(payload: CellFormatPayloadType) {
 
   const cell = result.cell as CodeCellType;
 
-  wss.broadcast(`session:${session.id}`, 'cell:updated', { cell });
   wss.broadcast(`session:${session.id}`, 'cell:formatted', {
-    sessionId: session.id,
     cellId: payload.cellId,
+    cell,
   });
 
   refreshCodeCellDiagnostics(session, cell);

@@ -34,7 +34,7 @@ import {
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
-import { SessionType } from '@/types';
+import { CellModeType, SessionType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
@@ -52,7 +52,6 @@ import { mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 
 const DEBOUNCE_DELAY = 500;
-type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing' | 'formatting';
 
 export default function CodeCell(props: {
   session: SessionType;
@@ -127,6 +126,7 @@ export default function CodeCell(props: {
   useEffect(() => {
     function callback(payload: CellFormattedPayloadType) {
       if (payload.cellId === cell.id) {
+        updateCellOnClient({ ...payload.cell });
         setCellMode('off');
       }
     }

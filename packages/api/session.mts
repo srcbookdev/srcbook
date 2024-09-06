@@ -300,7 +300,7 @@ export function updateCell(session: SessionType, cell: CellType, updates: CellUp
 
 export async function formatCode(filePath: string) {
   try {
-    const command = `npx prettier --no-error-on-unmatched-pattern ${filePath}`;
+    const command = `npx prettier ${filePath}`;
 
     return new Promise((resolve, reject) => {
       exec(command, async (error, stdout) => {

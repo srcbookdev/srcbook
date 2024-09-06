@@ -79,8 +79,8 @@ export const CellUpdatedPayloadSchema = z.object({
 });
 
 export const CellFormattedPayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
+  cell: CellSchema,
 });
 export const AiGeneratedCellPayloadSchema = z.object({
   cellId: z.string(),

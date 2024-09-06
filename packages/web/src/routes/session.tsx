@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import {
   CellType,
@@ -18,7 +18,7 @@ import TitleCell from '@/components/cells/title';
 import MarkdownCell from '@/components/cells/markdown';
 import GenerateAiCell from '@/components/cells/generate-ai';
 import CodeCell from '@/components/cells/code';
-import SessionMenu from '@/components/session-menu';
+import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';
 import { Button } from '@/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
@@ -132,11 +132,19 @@ function Session(props: {
   } = usePackageJson();
 
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [
+    [selectedPanelName, selectedPanelOpen],
+    setSelectedPanelNameAndOpen,
+  ] = useState<[Panel['name'], boolean]>([SESSION_MENU_PANELS[0]!.name, false]);
+
+  const isPanelOpen = useCallback(
+    (name: Panel['name']) => selectedPanelOpen && selectedPanelName === name,
+    [selectedPanelOpen, selectedPanelName],
+  );
 
   useHotkeys('mod+;', () => {
-    if (!showSettings) {
-      setShowSettings(true);
+    if (isPanelOpen("settings")) {
+      setSelectedPanelNameAndOpen(["settings", true]);
     }
   });
 
@@ -248,7 +256,7 @@ function Session(props: {
   useEffect(() => {
     let result: () => void = () => {};
 
-    if (depsInstallModalOpen || showSettings) {
+    if (depsInstallModalOpen || isPanelOpen("settings")) {
       return result;
     }
 
@@ -261,7 +269,7 @@ function Session(props: {
         action: {
           label: 'Try again',
           onClick: () => {
-            setShowSettings(true);
+            setSelectedPanelNameAndOpen(["settings", true]);
             setTimeout(npmInstall, 100);
           },
         },
@@ -288,7 +296,7 @@ function Session(props: {
     outdatedDependencies,
     installingDependencies,
     dependencyInstallFailed,
-    showSettings,
+    isPanelOpen,
     depsInstallModalOpen,
     npmInstall,
   ]);
@@ -305,66 +313,65 @@ function Session(props: {
       <div className="flex mt-12">
         <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
         <SessionMenu
-          showSettings={showSettings}
-          setShowSettings={setShowSettings}
           session={session}
+          selectedPanelName={selectedPanelName}
+          selectedPanelOpen={selectedPanelOpen}
+          onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
           openDepsInstallModal={() => setDepsInstallModalOpen(true)}
           channel={channel}
         />
 
         {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
-        <div className="grow shrink lg:px-0 px-[72px] pb-28">
-          <div className="max-w-[800px] mx-auto my-12">
-            <div className="">
-              <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+        <div className="grow shrink lg:px-0 pb-28">
+          <div className="max-w-[800px] mx-auto my-12 px-[72px]">
+            <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
 
-              {cells.map((cell, idx) => (
-                <div key={cell.id}>
-                  <InsertCellDivider
-                    language={session.language}
-                    createCodeCell={() => createNewCell('code', idx + 2)}
-                    createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-                    createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+            {cells.map((cell, idx) => (
+              <div key={cell.id}>
+                <InsertCellDivider
+                  language={session.language}
+                  createCodeCell={() => createNewCell('code', idx + 2)}
+                  createMarkdownCell={() => createNewCell('markdown', idx + 2)}
+                  createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+                />
+
+                {cell.type === 'code' && (
+                  <CodeCell
+                    cell={cell}
+                    session={session}
+                    channel={channel}
+                    updateCellOnServer={updateCellOnServer}
+                    onDeleteCell={onDeleteCell}
                   />
+                )}
 
-                  {cell.type === 'code' && (
-                    <CodeCell
-                      cell={cell}
-                      session={session}
-                      channel={channel}
-                      updateCellOnServer={updateCellOnServer}
-                      onDeleteCell={onDeleteCell}
-                    />
-                  )}
+                {cell.type === 'markdown' && (
+                  <MarkdownCell
+                    cell={cell}
+                    updateCellOnServer={updateCellOnServer}
+                    onDeleteCell={onDeleteCell}
+                  />
+                )}
 
-                  {cell.type === 'markdown' && (
-                    <MarkdownCell
-                      cell={cell}
-                      updateCellOnServer={updateCellOnServer}
-                      onDeleteCell={onDeleteCell}
-                    />
-                  )}
+                {cell.type === 'generate-ai' && (
+                  <GenerateAiCell
+                    cell={cell}
+                    session={session}
+                    insertIdx={idx + 2}
+                    onSuccess={insertGeneratedCells}
+                  />
+                )}
+              </div>
+            ))}
 
-                  {cell.type === 'generate-ai' && (
-                    <GenerateAiCell
-                      cell={cell}
-                      session={session}
-                      insertIdx={idx + 2}
-                      onSuccess={insertGeneratedCells}
-                    />
-                  )}
-                </div>
-              ))}
-
-              {/* There is always an insert cell divider after the last cell */}
-              <InsertCellDivider
-                language={session.language}
-                createCodeCell={() => createNewCell('code', allCells.length)}
-                createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-                createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
-                className={cn('h-14', cells.length === 0 && 'opacity-100')}
-              />
-            </div>
+            {/* There is always an insert cell divider after the last cell */}
+            <InsertCellDivider
+              language={session.language}
+              createCodeCell={() => createNewCell('code', allCells.length)}
+              createMarkdownCell={() => createNewCell('markdown', allCells.length)}
+              createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
+              className={cn('h-14', cells.length === 0 && 'opacity-100')}
+            />
           </div>
         </div>
       </div>

@@ -63,6 +63,7 @@ import {
   TsServerCellSuggestionsPayloadSchema,
   TsServerQuickInfoRequestPayloadSchema,
   TsServerQuickInfoResponsePayloadSchema,
+  CellFormattedPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -441,6 +442,10 @@ async function cellFormat(payload: CellFormatPayloadType) {
   const cell = result.cell as CodeCellType;
 
   wss.broadcast(`session:${session.id}`, 'cell:updated', { cell });
+  wss.broadcast(`session:${session.id}`, 'cell:formatted', {
+    sessionId: session.id,
+    cellId: payload.cellId,
+  });
 
   refreshCodeCellDiagnostics(session, cell);
 }
@@ -778,6 +783,7 @@ wss
   )
   .outgoing('tsserver:cell:quickinfo:response', TsServerQuickInfoResponsePayloadSchema)
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
+  .outgoing('cell:formatted', CellFormattedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)
   .outgoing('cell:output', CellOutputPayloadSchema)
   .outgoing('ai:generated', AiGeneratedCellPayloadSchema)

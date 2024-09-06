@@ -28,6 +28,7 @@ import {
   CodeCellType,
   CodeCellUpdateAttrsType,
   CellErrorPayloadType,
+  CellFormattedPayloadType,
   AiGeneratedCellPayloadType,
   TsServerDiagnosticType,
 } from '@srcbook/shared';
@@ -51,7 +52,7 @@ import { mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 
 const DEBOUNCE_DELAY = 500;
-type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing' | 'formatting';
 
 export default function CodeCell(props: {
   session: SessionType;
@@ -101,7 +102,6 @@ export default function CodeCell(props: {
 
   useEffect(() => {
     function callback(payload: CellErrorPayloadType) {
-      console.log(payload);
       if (payload.cellId !== cell.id) {
         return;
       }
@@ -115,12 +115,24 @@ export default function CodeCell(props: {
       const formattingError = payload.errors.find((e) => e.attribute === 'formatting');
       if (formattingError) {
         toast.error(formattingError.message);
+        setCellMode('off');
       }
     }
 
     channel.on('cell:error', callback);
 
     return () => channel.off('cell:error', callback);
+  }, [cell.id, channel]);
+
+  useEffect(() => {
+    function callback(payload: CellFormattedPayloadType) {
+      if (payload.cellId === cell.id) {
+        setCellMode('off');
+      }
+    }
+
+    channel.on('cell:formatted', callback);
+    return () => channel.off('cell:formatted', callback);
   }, [cell.id, channel]);
 
   function updateFilename(filename: string) {
@@ -197,6 +209,7 @@ export default function CodeCell(props: {
   }
 
   function formatCell() {
+    setCellMode('formatting');
     channel.push('cell:format', {
       sessionId: session.id,
       cellId: cell.id,
@@ -252,7 +265,9 @@ export default function CodeCell(props: {
                     runCell={runCell}
                     formatCell={formatCell}
                     updateCellOnServer={updateCellOnServer}
-                    readOnly={['generating', 'prompting', 'fixing'].includes(cellMode)}
+                    readOnly={['generating', 'prompting', 'fixing', 'formatting'].includes(
+                      cellMode,
+                    )}
                   />
                 </div>
               </ResizablePanel>
@@ -320,7 +335,7 @@ export default function CodeCell(props: {
                   runCell={runCell}
                   formatCell={formatCell}
                   updateCellOnServer={updateCellOnServer}
-                  readOnly={['generating', 'prompting'].includes(cellMode)}
+                  readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
                 />
               </div>
               <CellOutput
@@ -425,15 +440,19 @@ function Header(props: {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="icon"
-                    size="icon"
-                    disabled={cellMode !== 'off'}
-                    onClick={formatCell}
-                    tabIndex={1}
-                  >
-                    <PaintbrushVertical size={16} />
-                  </Button>
+                  {cellMode === 'formatting' ? (
+                    <LoaderCircle size={16} className="animate-spin" />
+                  ) : (
+                    <Button
+                      variant="icon"
+                      size="icon"
+                      disabled={cellMode !== 'off'}
+                      onClick={formatCell}
+                      tabIndex={1}
+                    >
+                      <PaintbrushVertical size={16} />
+                    </Button>
+                  )}
                 </TooltipTrigger>
                 <TooltipContent>Format</TooltipContent>
               </Tooltip>
@@ -512,7 +531,7 @@ function Header(props: {
               <Button onClick={props.onAccept}>Accept</Button>
             </div>
           )}
-          {cellMode === 'off' && (
+          {['off', 'formatting'].includes(cellMode) && (
             <>
               {cell.status === 'running' && (
                 <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>

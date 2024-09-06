@@ -13,7 +13,7 @@ type PropsType = {
   show: boolean;
   setShow: (show: boolean) => void;
   fixDiagnostics: (diagnostics: string) => void;
-  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing' | 'formatting';
   setFullscreen: (fullscreen: boolean) => void;
   fullscreen: boolean;
 };
@@ -217,7 +217,7 @@ function TsServerDiagnostics({
 }: {
   diagnostics: TsServerDiagnosticType[];
   fixDiagnostics: (diagnostics: string) => void;
-  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing' | 'formatting';
 }) {
   const { aiEnabled } = useSettings();
   const formattedDiagnostics = diagnostics.map(formatDiagnostic).join('\n');
@@ -248,7 +248,7 @@ function TsServerSuggestions({
 }: {
   suggestions: TsServerDiagnosticType[];
   fixSuggestions: (suggestions: string) => void;
-  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing' | 'formatting';
 }) {
   const { aiEnabled } = useSettings();
   const formattedSuggestions = suggestions.map(formatDiagnostic).join('\n');

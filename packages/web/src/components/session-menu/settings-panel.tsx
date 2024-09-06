@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TitleCellType, TsConfigUpdatedPayloadType } from '@srcbook/shared';
-import {
-  X,
-  Info,
-} from 'lucide-react';
+import { X, Info } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 

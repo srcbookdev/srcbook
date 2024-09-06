@@ -132,10 +132,9 @@ function Session(props: {
   } = usePackageJson();
 
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
-  const [
-    [selectedPanelName, selectedPanelOpen],
-    setSelectedPanelNameAndOpen,
-  ] = useState<[Panel['name'], boolean]>([SESSION_MENU_PANELS[0]!.name, false]);
+  const [[selectedPanelName, selectedPanelOpen], setSelectedPanelNameAndOpen] = useState<
+    [Panel['name'], boolean]
+  >([SESSION_MENU_PANELS[0]!.name, false]);
 
   const isPanelOpen = useCallback(
     (name: Panel['name']) => selectedPanelOpen && selectedPanelName === name,
@@ -143,8 +142,8 @@ function Session(props: {
   );
 
   useHotkeys('mod+;', () => {
-    if (isPanelOpen("settings")) {
-      setSelectedPanelNameAndOpen(["settings", true]);
+    if (isPanelOpen('settings')) {
+      setSelectedPanelNameAndOpen(['settings', true]);
     }
   });
 
@@ -256,7 +255,7 @@ function Session(props: {
   useEffect(() => {
     let result: () => void = () => {};
 
-    if (depsInstallModalOpen || isPanelOpen("settings")) {
+    if (depsInstallModalOpen || isPanelOpen('settings')) {
       return result;
     }
 
@@ -269,7 +268,7 @@ function Session(props: {
         action: {
           label: 'Try again',
           onClick: () => {
-            setSelectedPanelNameAndOpen(["settings", true]);
+            setSelectedPanelNameAndOpen(['settings', true]);
             setTimeout(npmInstall, 100);
           },
         },

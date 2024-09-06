@@ -3,13 +3,7 @@ import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useMemo, useState } from 'react';
 import { SessionChannel } from '@/clients/websocket';
-import {
-  ListIcon,
-  PackageIcon,
-  SettingsIcon,
-  KeySquareIcon,
-  XIcon,
-} from 'lucide-react';
+import { ListIcon, PackageIcon, SettingsIcon, KeySquareIcon, XIcon } from 'lucide-react';
 import type { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import FeedbackDialog from '@/components/feedback-dialog';
@@ -34,13 +28,13 @@ export type SessionMenuPanelContentsProps = {
 
 export const SESSION_MENU_PANELS = [
   {
-    name: "tableOfContents" as const,
+    name: 'tableOfContents' as const,
     icon: ListIcon,
     openWidthInPx: 264,
     contents: () => <SessionMenuPanelTableOfContents />,
   },
   {
-    name: "packages" as const,
+    name: 'packages' as const,
     icon: PackageIcon,
     openWidthInPx: 480,
     contents: ({ session, openDepsInstallModal }: SessionMenuPanelContentsProps) => (
@@ -48,13 +42,13 @@ export const SESSION_MENU_PANELS = [
     ),
   },
   {
-    name: "settings" as const,
+    name: 'settings' as const,
     icon: SettingsIcon,
     openWidthInPx: 480,
     contents: (props: SessionMenuPanelContentsProps) => <SessionMenuPanelSettings {...props} />,
   },
   {
-    name: "secrets" as const,
+    name: 'secrets' as const,
     icon: KeySquareIcon,
     openWidthInPx: 480,
     contents: () => <SessionMenuPanelSecrets />,
@@ -66,7 +60,9 @@ type Props = {
   session: SessionType;
   selectedPanelName: Panel['name'];
   selectedPanelOpen: boolean;
-  onChangeSelectedPanelNameAndOpen: (old: (param: [Panel['name'], boolean]) => [Panel['name'], boolean]) => void;
+  onChangeSelectedPanelNameAndOpen: (
+    old: (param: [Panel['name'], boolean]) => [Panel['name'], boolean],
+  ) => void;
   openDepsInstallModal: () => void;
   channel: SessionChannel;
 };
@@ -112,15 +108,17 @@ function SessionMenuPanel(props: SessionMenuPanelProps) {
       {/* 2. Fixed position the panel so it doesn't scroll with the page */}
       <div
         className={cn(
-          "flex flex-col gap-6 border-r transition-all duration-100",
-          "fixed top-12 left-12 bottom-0 overflow-hidden",
-          { "border-r-0": !props.open },
+          'flex flex-col gap-6 border-r transition-all duration-100',
+          'fixed top-12 left-12 bottom-0 overflow-hidden',
+          { 'border-r-0': !props.open },
         )}
         style={{ width: props.open ? props.openWidthPx : 0 }}
       >
-        <div className={cn("absolute top-1 right-1 transition-opacity duration-100", {
-          "opacity-0": !props.open,
-        })}>
+        <div
+          className={cn('absolute top-1 right-1 transition-opacity duration-100', {
+            'opacity-0': !props.open,
+          })}
+        >
           <Button variant="icon" size="icon" onClick={props.onClose}>
             <XIcon size={16} />
           </Button>
@@ -149,7 +147,7 @@ export default function SessionMenu({
   const [showFeedback, setShowFeedback] = useState(false);
 
   const selectedPanel = useMemo(
-    () => SESSION_MENU_PANELS.find(panel => panel.name === selectedPanelName)!,
+    () => SESSION_MENU_PANELS.find((panel) => panel.name === selectedPanelName)!,
     [selectedPanelName],
   );
 
@@ -268,7 +266,7 @@ export default function SessionMenu({
       {/* The sidebar is of a certain defined pixel width whoose parent takes the space of the fixed position element: */}
       <div className="grow-0 shrink-0 w-12">
         <div className="fixed top-12 left-0 flex flex-col items-center w-12 py-4 gap-2">
-          {SESSION_MENU_PANELS.map(panel => {
+          {SESSION_MENU_PANELS.map((panel) => {
             const Icon = panel.icon;
             return (
               <Button
@@ -276,15 +274,21 @@ export default function SessionMenu({
                 variant="icon"
                 size="icon"
                 className="active:translate-y-0"
-                onClick={() => onChangeSelectedPanelNameAndOpen(([oldName, oldOpen]) => {
-                  return oldName === panel.name && oldOpen ? [oldName, false] : [panel.name, true];
-                })}
+                onClick={() =>
+                  onChangeSelectedPanelNameAndOpen(([oldName, oldOpen]) => {
+                    return oldName === panel.name && oldOpen
+                      ? [oldName, false]
+                      : [panel.name, true];
+                  })
+                }
               >
                 <Icon
                   size={18}
                   className={cn({
-                    "stroke-secondary-foreground": selectedPanelOpen && selectedPanelName === panel.name,
-                    "stroke-tertiary-foreground": !selectedPanelOpen || selectedPanelName !== panel.name,
+                    'stroke-secondary-foreground':
+                      selectedPanelOpen && selectedPanelName === panel.name,
+                    'stroke-tertiary-foreground':
+                      !selectedPanelOpen || selectedPanelName !== panel.name,
                   })}
                 />
               </Button>

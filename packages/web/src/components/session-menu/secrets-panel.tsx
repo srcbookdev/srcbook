@@ -6,7 +6,6 @@ export default function SessionMenuPanelSecrets(_props: PropsType) {
   return (
     <>
       <div>Secrets</div>
-
       TODO
     </>
   );

@@ -100,14 +100,14 @@ export default function GenerateSrcbookModal({
           <div className="w-full border-t"></div>
           <p className="font-bold">Examples</p>
           {EXAMPLES.map((example) => (
-            <div
+            <button
               onClick={() => setQuery(example)}
               className="flex w-full items-center justify-center gap-6 cursor-pointer hover:bg-muted rounded px-1.5 py-1"
               key={JSON.stringify(example)}
             >
               <Sparkles size={16} className="shrink-0" />
               <p className="grow text-sm">{example}</p>
-            </div>
+            </button>
           ))}
         </div>
       </DialogContent>

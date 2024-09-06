@@ -86,22 +86,22 @@ function Settings() {
       <div className="space-y-10">
         <div>
           <h2 className="text-xl pb-2">Theme</h2>
-          <label className="opacity-70 text-sm">
+          <label className="opacity-70 text-sm" htmlFor="theme-switch">
             Select light or dark mode for the Srcbook app.
           </label>
           <div className="flex items-center gap-2 mt-4">
-            <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-            <label>Dark mode</label>
+            <Switch id="theme-switch" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+            <label htmlFor="theme-switch">Dark mode</label>
           </div>
         </div>
 
         <div>
           <h2 className="text-xl pb-2">Default Language</h2>
-          <label className="opacity-70 block pb-4 text-sm">
+          <label className="opacity-70 block pb-4 text-sm" htmlFor="language-selector">
             The default language to use when creating new Srcbooks.
           </label>
           <Select onValueChange={updateDefaultLanguage}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger id="language-selector" className="w-[180px]">
               <SelectValue placeholder={defaultLanguage} />
             </SelectTrigger>
             <SelectContent>
@@ -114,13 +114,13 @@ function Settings() {
         <div>
           <h2 className="text-xl pb-2">AI</h2>
           <div className="flex flex-col">
-            <label className="opacity-70 text-sm pb-4">
+            <label className="opacity-70 text-sm pb-4" htmlFor="ai-provider-selector">
               Select your preferred LLM and enter your credentials to use Srcbook's AI features.
             </label>
             <div className="flex items-center justify-between w-full mb-2 min-h-10">
               <div className="flex items-center gap-2">
                 <Select onValueChange={setAiProvider}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger id="ai-provider-selector" className="w-[180px]">
                     <SelectValue placeholder={aiProvider} />
                   </SelectTrigger>
                   <SelectContent>
@@ -206,10 +206,10 @@ function Settings() {
 
         <div>
           <h2 className="text-xl pb-2">Base Directory</h2>
-          <label className="opacity-70 text-sm">
+          <label className="opacity-70 text-sm" htmlFor="base-dir-picker">
             The default directory to look for Srcbooks when importing.
           </label>
-          <DirPicker dirname={baseDir} entries={entries} cta="Change" />
+          <DirPicker id="base-dir-picker" dirname={baseDir} entries={entries} cta="Change" />
         </div>
       </div>
     </div>

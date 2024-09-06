@@ -54,22 +54,22 @@ export function SettingsSheet({
         <SheetHeader>
           {showAiNudge && (
             <div className="relative flex flex-col px-3 py-3.5 border border-ai-border bg-ai text-ai-foreground rounded-sm text-sm">
-              <div
+              <button
                 className="absolute top-2 right-2 cursor-pointer text-sb-purple-60"
                 onClick={() => setShowAiNudge(false)}
               >
                 <X size={16} />
-              </div>
+              </button>
               <h2 className="font-bold">Use AI in Srcbook</h2>
               <p>
                 AI features not enabled. To enable them, set up in{' '}
-                <a
+                <button
                   className="font-medium underline cursor-pointer"
                   onClick={() => navigate('/settings')}
                 >
                   {' '}
                   global settings
-                </a>
+                </button>
                 .
               </p>
             </div>

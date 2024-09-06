@@ -103,12 +103,12 @@ export default function SessionMenu({
                 )}
               >
                 {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
-                <p
+                <button
                   className="truncate"
                   onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
                 >
                   {tocFromCell(cell)}
-                </p>
+                </button>
               </div>
             );
           })}

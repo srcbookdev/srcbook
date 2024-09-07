@@ -27,3 +27,33 @@ export function getTitleForSession(session: SessionType) {
   const titleCell = session.cells.find((cell: CellType) => cell.type === 'title') as TitleCellType;
   return titleCell?.text;
 }
+
+/**
+ * Retrieves the subscribed email status from localStorage.
+ * @returns An object with the email and a dismissed flag.
+ */
+export function getSubscribedEmailStatus(): { email: string | null; dismissed: boolean } {
+  const storedValue = localStorage.getItem('sb:mailing-list-email');
+  if (storedValue === null) {
+    return { email: null, dismissed: false };
+  }
+  if (storedValue === 'dismissed') {
+    return { email: null, dismissed: true };
+  }
+  return { email: storedValue, dismissed: false };
+}
+
+/**
+ * Sets the subscribed email status in localStorage.
+ * @param email The email to store. Pass null to remove the stored email.
+ * @param dismissed Whether the user has dismissed the subscription popup.
+ */
+export function setSubscribedEmailStatus(email: string | null, dismissed: boolean = false): void {
+  if (email === null && dismissed) {
+    localStorage.setItem('sb:mailing-list-email', 'dismissed');
+  } else if (email === null) {
+    localStorage.removeItem('sb:mailing-list-email');
+  } else {
+    localStorage.setItem('sb:mailing-list-email', email);
+  }
+}

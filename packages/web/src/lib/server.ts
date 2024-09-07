@@ -397,3 +397,22 @@ export async function aiHealthcheck() {
   }
   return response.json();
 }
+
+export async function subscribeToMailingList(email: string) {
+  const response = await fetch(API_BASE_URL + '/subscribe', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  if (response.status === 409) {
+    return { success: false, status: 409 };
+  }
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Subscription request failed');
+  }
+
+  return response.json();
+}

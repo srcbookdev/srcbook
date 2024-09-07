@@ -93,6 +93,22 @@ function Settings() {
     ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
     model !== aiModel;
 
+  const handleSubscribe = async () => {
+    try {
+      const response = await subscribeToMailingList(email);
+      if (response.success) {
+        setSubscribedEmailStatus(email);
+        setEmailStatus({ email, dismissed: false });
+        toast.success('Subscribed successfully!');
+      } else {
+        toast.error('There was an error subscribing to the mailing list. Please try again later.');
+      }
+    } catch (error) {
+      toast.error('There was an error subscribing to the mailing list. Please try again later.');
+      console.error('Subscription error:', error);
+    }
+  };
+
   return (
     <div>
       <h4 className="h4 mx-auto mb-6">Settings</h4>
@@ -241,29 +257,7 @@ function Settings() {
               />
               <Button
                 className="px-5"
-                onClick={async () => {
-                  try {
-                    const response = await subscribeToMailingList(email);
-                    if (response.success) {
-                      setSubscribedEmailStatus(email);
-                      setEmailStatus({ email, dismissed: false });
-                      toast.success('Subscribed successfully!');
-                    } else if (response.status === 409) {
-                      toast.info('You are already subscribed to our mailing list.');
-                      setSubscribedEmailStatus(email);
-                      setEmailStatus({ email, dismissed: false });
-                    } else {
-                      toast.error(
-                        'There was an error subscribing to the mailing list. Please try again later.',
-                      );
-                    }
-                  } catch (error) {
-                    toast.error(
-                      'There was an error subscribing to the mailing list. Please try again later.',
-                    );
-                    console.error('Subscription error:', error);
-                  }
-                }}
+                onClick={handleSubscribe}
                 disabled={email === emailStatus.email}
               >
                 {email === emailStatus.email ? 'Subscribed' : 'Subscribe'}

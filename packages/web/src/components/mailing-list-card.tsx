@@ -43,9 +43,6 @@ export default function MailingListCard() {
       const response = await subscribeToMailingList(email);
       if (response.success) {
         handleSubscribe();
-      } else if (response.status === 409) {
-        toast.info('You are already subscribed to our mailing list.');
-        handleSubscribe();
       } else {
         toast.error('There was an error subscribing to the mailing list. Please try again later.');
       }

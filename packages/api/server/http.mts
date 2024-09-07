@@ -338,6 +338,24 @@ router.get('/npm/search', cors(), async (req, res) => {
   return res.json({ result: results });
 });
 
+router.options('/subscribe', cors());
+router.post('/subscribe', cors(), async (req, res) => {
+  const { email } = req.body;
+  const hubResponse = await fetch('https://hub.srcbook.com/api/subscribe', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (hubResponse.ok) {
+    return res.json({ success: true });
+  } else {
+    return res.status(hubResponse.status).json({ success: false });
+  }
+});
+
 app.use('/api', router);
 
 export default app;

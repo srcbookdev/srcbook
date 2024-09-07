@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CircleCheck, Loader2, CircleX } from 'lucide-react';
-import { disk, updateConfig, aiHealthcheck } from '@/lib/server';
+import { disk, updateConfig, aiHealthcheck, subscribeToMailingList } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
 import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
 import type { SettingsType, FsObjectResultType } from '@/types';
@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import useTheme from '@/components/use-theme';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 async function loader() {
   const { result: diskResult } = await disk({});
@@ -43,12 +44,16 @@ function Settings() {
     anthropicKey: configAnthropicKey,
     updateConfig: updateConfigContext,
     defaultLanguage,
+    subscriptionEmail,
   } = useSettings();
+
+  const isSubscribed = subscriptionEmail && subscriptionEmail !== 'dismissed';
 
   const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
+  const [email, setEmail] = useState<string>(isSubscribed ? subscriptionEmail : '');
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfigContext({ defaultLanguage: value });
@@ -79,6 +84,21 @@ function Settings() {
     (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
     ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
     model !== aiModel;
+
+  const handleSubscribe = async () => {
+    try {
+      const response = await subscribeToMailingList(email);
+      if (response.success) {
+        await updateConfigContext({ subscriptionEmail: email });
+        toast.success('Subscribed successfully!');
+      } else {
+        toast.error('There was an error subscribing to the mailing list. Please try again later.');
+      }
+    } catch (error) {
+      toast.error('There was an error subscribing to the mailing list. Please try again later.');
+      console.error('Subscription error:', error);
+    }
+  };
 
   return (
     <div>
@@ -210,6 +230,27 @@ function Settings() {
             The default directory to look for Srcbooks when importing.
           </label>
           <DirPicker id="base-dir-picker" dirname={baseDir} entries={entries} cta="Change" />
+        </div>
+        <div>
+          <h2 className="text-xl pb-2">Get product updates</h2>
+          <div>
+            <label className="opacity-70 text-sm" htmlFor="mailing-list-email">
+              Subscribe to our mailing list to get the latest updates, early access features, and
+              expert tips delivered to your inbox.
+            </label>
+            <div className="flex gap-2 mt-4">
+              <Input
+                id="mailing-list-email"
+                type="text"
+                placeholder="Your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Button className="px-5" onClick={handleSubscribe}>
+                {isSubscribed ? 'Update' : 'Subscribe'}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

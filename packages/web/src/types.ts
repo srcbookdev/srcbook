@@ -20,6 +20,7 @@ export type SettingsType = {
   aiProvider: AiProviderType;
   aiModel: string;
   aiBaseUrl?: string | null;
+  subscriptionEmail?: string | null;
 };
 
 export type StdoutOutputType = { type: 'stdout'; data: string };

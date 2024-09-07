@@ -50,6 +50,13 @@
       "when": 1723745583289,
       "tag": "0006_deprecate_ai_config",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1725736805777,
+      "tag": "0007_add_subscription_email",
+      "breakpoints": true
     }
   ]
 }

@@ -22,6 +22,7 @@ import {
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import MailingListCard from '@/components/mailing-list-card';
 
 export async function loader() {
   const [{ result: config }, { result: srcbooks }, { result: examples }] = await Promise.all([
@@ -142,6 +143,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      <MailingListCard />
     </div>
   );
 }

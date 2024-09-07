@@ -18,7 +18,6 @@ import useTheme from '@/components/use-theme';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { getSubscribedEmailStatus, setSubscribedEmailStatus } from '@/lib/utils';
 
 async function loader() {
   const { result: diskResult } = await disk({});
@@ -45,23 +44,16 @@ function Settings() {
     anthropicKey: configAnthropicKey,
     updateConfig: updateConfigContext,
     defaultLanguage,
+    subscriptionEmail,
   } = useSettings();
+
+  const isSubscribed = subscriptionEmail && subscriptionEmail !== 'dismissed';
 
   const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
-  const [email, setEmail] = useState<string>('');
-  const [emailStatus, setEmailStatus] = useState<{ email: string | null; dismissed: boolean }>({
-    email: null,
-    dismissed: false,
-  });
-
-  useEffect(() => {
-    const status = getSubscribedEmailStatus();
-    setEmailStatus(status);
-    setEmail(status.email || '');
-  }, []);
+  const [email, setEmail] = useState<string>(isSubscribed ? subscriptionEmail : '');
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfigContext({ defaultLanguage: value });
@@ -97,8 +89,7 @@ function Settings() {
     try {
       const response = await subscribeToMailingList(email);
       if (response.success) {
-        setSubscribedEmailStatus(email);
-        setEmailStatus({ email, dismissed: false });
+        await updateConfigContext({ subscriptionEmail: email });
         toast.success('Subscribed successfully!');
       } else {
         toast.error('There was an error subscribing to the mailing list. Please try again later.');
@@ -255,12 +246,8 @@ function Settings() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Button
-                className="px-5"
-                onClick={handleSubscribe}
-                disabled={email === emailStatus.email}
-              >
-                {email === emailStatus.email ? 'Subscribed' : 'Subscribe'}
+              <Button className="px-5" onClick={handleSubscribe}>
+                {isSubscribed ? 'Update' : 'Subscribe'}
               </Button>
             </div>
           </div>

@@ -238,6 +238,7 @@ interface EditConfigRequestType {
   aiBaseUrl?: string;
   aiModel?: string;
   aiProvider?: AiProviderType;
+  subscriptionEmail?: string | null;
 }
 
 export async function getConfig() {
@@ -253,7 +254,7 @@ export async function getConfig() {
   return response.json();
 }
 
-export async function updateConfig(request: EditConfigRequestType) {
+export async function updateConfig(request: EditConfigRequestType): Promise<void> {
   const response = await fetch(API_BASE_URL + '/settings', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -404,10 +405,6 @@ export async function subscribeToMailingList(email: string) {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email }),
   });
-
-  if (response.status === 409) {
-    return { success: false, status: 409 };
-  }
 
   if (!response.ok) {
     console.error(response);

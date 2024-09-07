@@ -1,39 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Mailbox } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { subscribeToMailingList } from '@/lib/server';
-import { getSubscribedEmailStatus, setSubscribedEmailStatus } from '@/lib/utils';
+import { useSettings } from '@/components/use-settings';
 
 export default function MailingListCard() {
-  const [isVisible, setIsVisible] = useState(() => {
-    const { email, dismissed } = getSubscribedEmailStatus();
-    return !email && !dismissed;
-  });
-
+  const { subscriptionEmail, updateConfig } = useSettings();
+  const [isVisible, setIsVisible] = useState(!subscriptionEmail);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
-  useEffect(() => {
-    const { email } = getSubscribedEmailStatus();
-    if (email) {
-      setEmail(email);
-      setSubscribed(true);
-    }
-  }, []);
-
-  const handleSubscribe = async () => {
-    setSubscribed(true);
-    setSubscribedEmailStatus(email);
-    setTimeout(() => {
-      setIsVisible(false);
-    }, 3000);
-  };
-
-  const handleClose = () => {
-    setSubscribedEmailStatus(null, true);
+  const handleClose = async () => {
+    await updateConfig({ subscriptionEmail: 'dismissed' });
     setIsVisible(false);
   };
 
@@ -42,7 +23,11 @@ export default function MailingListCard() {
     try {
       const response = await subscribeToMailingList(email);
       if (response.success) {
-        handleSubscribe();
+        setSubscribed(true);
+        await updateConfig({ subscriptionEmail: email });
+        setTimeout(() => {
+          setIsVisible(false);
+        }, 3000);
       } else {
         toast.error('There was an error subscribing to the mailing list. Please try again later.');
       }
@@ -69,8 +54,8 @@ export default function MailingListCard() {
             <Mailbox size={24} />
             {subscribed ? (
               <>
-                <h1 className="mt-2 text-lg font-medium">Subscribed successfully!</h1>
-                <p>Looking forward to keeping you updated.</p>
+                <h1 className="mt-2 text-lg font-medium">Thank you for subscribing!</h1>
+                <p>We'll keep you updated with the latest news and features.</p>
               </>
             ) : (
               <>
@@ -79,19 +64,17 @@ export default function MailingListCard() {
                   Get the latest updates, early access features, and expert tips delivered to your
                   inbox.
                 </p>
+                <form onSubmit={handleSubmit} className="flex gap-1 py-3">
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    className=""
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <Button type="submit">Subscribe</Button>
+                </form>
               </>
-            )}
-            {!subscribed && (
-              <form onSubmit={handleSubmit} className="flex gap-1 py-3">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  className=""
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <Button type="submit">Subscribe</Button>
-              </form>
             )}
           </div>
         </CardContent>

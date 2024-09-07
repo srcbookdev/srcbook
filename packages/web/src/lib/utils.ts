@@ -3,7 +3,6 @@ import type { SessionType } from '../types';
 import type { CellType, TitleCellType } from '@srcbook/shared';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getConfig, updateConfig } from './server';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

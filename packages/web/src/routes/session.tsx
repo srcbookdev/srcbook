@@ -90,7 +90,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   const {
     npmInstall,
     failed: dependencyInstallFailed,
-    outdated: dependenciesOutdated,
+    outdated: outdatedDependencies,
     installing: installingDependencies,
   } = usePackageJson();
 
@@ -229,19 +229,25 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         },
       });
       result = () => toast.dismiss(toastId);
-    } else if (dependenciesOutdated) {
+    } else if (outdatedDependencies) {
       toast.warning('Packages need to be installed', {
         duration: 10000,
         action: {
           label: 'Install',
-          onClick: () => npmInstall(),
+          onClick: () => {
+            // If outdatedDependencies is an array, it usually menas those packages are not present
+            // inside of package.json yet. Thus we must specifically install them by name so they are
+            // installed and added to package.json. Otherwise, we just need to install what is already
+            // listed inside of package.json.
+            Array.isArray(outdatedDependencies) ? npmInstall(outdatedDependencies) : npmInstall();
+          },
         },
       });
     }
 
     return result;
   }, [
-    dependenciesOutdated,
+    outdatedDependencies,
     installingDependencies,
     dependencyInstallFailed,
     showSettings,

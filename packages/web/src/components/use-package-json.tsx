@@ -1,5 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { PackageJsonCellType, PackageJsonCellUpdateAttrsType } from '@srcbook/shared';
+import {
+  DepsValidateResponsePayloadType,
+  PackageJsonCellType,
+  PackageJsonCellUpdateAttrsType,
+} from '@srcbook/shared';
 import { SessionType, OutputType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
 import { useCells } from './use-cell';
@@ -20,7 +24,7 @@ export interface PackageJsonContextValue {
   onChangeSource: (source: string) => void;
   npmInstall: (packages?: string[]) => void;
   validationError: string | null;
-  outdated: boolean;
+  outdated: boolean | string[];
   installing: boolean;
   failed: boolean;
   output: OutputType[];
@@ -49,7 +53,17 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
   const cell = cells.find((cell) => cell.type === 'package.json') as PackageJsonCellType;
 
   // outdated means package.json is out of date and needs to install deps.
-  const [outdated, setOutdated] = useState(false);
+  //
+  // If outdated is an array, it means the specific entries in the array are
+  // packages that are not yet listed in package.json's dependencies. In this
+  // case, we must ensure we install these packages and save them to package.json.
+  //
+  // If outdated is true, it means there are packages in package.json that need
+  // to be installed. This can happen if user created or imported a srcbook and
+  // forgot to run `npm install` or when AI adds packages to package.json.
+  //
+  const [outdated, setOutdated] = useState<boolean | string[]>(false);
+
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffectOnce(() => {
@@ -71,8 +85,9 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
   );
 
   useEffect(() => {
-    const callback = () => {
-      setOutdated(true);
+    const callback = (response: DepsValidateResponsePayloadType) => {
+      // If we receive a response at all, it means there are outdated packages.
+      setOutdated(response.packages ?? true);
     };
 
     channel.on('deps:validate:response', callback);

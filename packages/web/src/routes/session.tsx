@@ -255,7 +255,7 @@ function Session(props: {
   useEffect(() => {
     let result: () => void = () => {};
 
-    if (depsInstallModalOpen || isPanelOpen('settings')) {
+    if (depsInstallModalOpen || isPanelOpen('packages')) {
       return result;
     }
 

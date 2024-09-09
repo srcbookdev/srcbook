@@ -31,7 +31,7 @@ export const SESSION_MENU_PANELS = [
   {
     name: 'tableOfContents' as const,
     icon: ListIcon,
-    openWidthInPx: 264,
+    openWidthInPx: 312,
     contents: () => <SessionMenuPanelTableOfContents />,
   },
   {
@@ -99,6 +99,7 @@ type SessionMenuPanelProps = {
   openWidthPx: number;
   onClose: () => void;
   children: React.ReactNode;
+  sidebar?: React.ReactNode;
 };
 
 function SessionMenuPanel(props: SessionMenuPanelProps) {
@@ -133,11 +134,16 @@ function SessionMenuPanel(props: SessionMenuPanelProps) {
           <Sheet open={props.open} onOpenChange={() => props.onClose()}>
             <SheetContent
               side="left"
-              className="overflow-y-auto"
+              className="overflow-y-auto p-0"
               style={{ width: props.openWidthPx }}
               portal={false}
             >
-              {props.children}
+              <div className="flex grow shrink">
+                {props.sidebar ? (
+                  <div className="grow-0 shrink-0 w-12 h-full">{props.sidebar}</div>
+                ) : null}
+                <div className="grow shrink p-6">{props.children}</div>
+              </div>
             </SheetContent>
           </Sheet>
         </div>
@@ -180,6 +186,51 @@ function SessionMenuPanel(props: SessionMenuPanelProps) {
         </div>
       );
   }
+}
+
+type SidebarProps = {
+  selectedPanelName: Panel['name'];
+  selectedPanelOpen: boolean;
+  onChangeSelectedPanelNameAndOpen: (
+    old: (param: [Panel['name'], boolean]) => [Panel['name'], boolean],
+  ) => void;
+};
+
+function Sidebar({
+  selectedPanelName,
+  selectedPanelOpen,
+  onChangeSelectedPanelNameAndOpen,
+}: SidebarProps) {
+  return (
+    <div className="flex flex-col items-center w-12 py-4 gap-2">
+      {SESSION_MENU_PANELS.map((panel) => {
+        const Icon = panel.icon;
+        return (
+          <Button
+            key={panel.name}
+            variant="icon"
+            size="icon"
+            className="active:translate-y-0"
+            onClick={() =>
+              onChangeSelectedPanelNameAndOpen(([oldName, oldOpen]) => {
+                return oldName === panel.name && oldOpen ? [oldName, false] : [panel.name, true];
+              })
+            }
+          >
+            <Icon
+              size={18}
+              className={cn({
+                'stroke-secondary-foreground':
+                  selectedPanelOpen && selectedPanelName === panel.name,
+                'stroke-tertiary-foreground':
+                  !selectedPanelOpen || selectedPanelName !== panel.name,
+              })}
+            />
+          </Button>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function SessionMenu({
@@ -313,35 +364,12 @@ export default function SessionMenu({
 
       {/* The sidebar is of a certain defined pixel width whoose parent takes the space of the fixed position element: */}
       <div className="grow-0 shrink-0 w-12">
-        <div className="fixed top-12 left-0 flex flex-col items-center w-12 py-4 gap-2">
-          {SESSION_MENU_PANELS.map((panel) => {
-            const Icon = panel.icon;
-            return (
-              <Button
-                key={panel.name}
-                variant="icon"
-                size="icon"
-                className="active:translate-y-0"
-                onClick={() =>
-                  onChangeSelectedPanelNameAndOpen(([oldName, oldOpen]) => {
-                    return oldName === panel.name && oldOpen
-                      ? [oldName, false]
-                      : [panel.name, true];
-                  })
-                }
-              >
-                <Icon
-                  size={18}
-                  className={cn({
-                    'stroke-secondary-foreground':
-                      selectedPanelOpen && selectedPanelName === panel.name,
-                    'stroke-tertiary-foreground':
-                      !selectedPanelOpen || selectedPanelName !== panel.name,
-                  })}
-                />
-              </Button>
-            );
-          })}
+        <div className="fixed top-12 left-0 w-12">
+          <Sidebar
+            selectedPanelName={selectedPanelName}
+            selectedPanelOpen={selectedPanelOpen}
+            onChangeSelectedPanelNameAndOpen={onChangeSelectedPanelNameAndOpen}
+          />
         </div>
       </div>
 
@@ -350,6 +378,13 @@ export default function SessionMenu({
         open={selectedPanelOpen}
         openWidthPx={selectedPanel?.openWidthInPx ?? 0}
         onClose={() => onChangeSelectedPanelNameAndOpen(([name, _open]) => [name, false])}
+        sidebar={
+          <Sidebar
+            selectedPanelName={selectedPanelName}
+            selectedPanelOpen={selectedPanelOpen}
+            onChangeSelectedPanelNameAndOpen={onChangeSelectedPanelNameAndOpen}
+          />
+        }
       >
         {selectedPanel.contents(selectedPanelContentsProps)}
       </SessionMenuPanel>

@@ -133,7 +133,7 @@ export default function CodeCell(props: {
 
     channel.on('cell:formatted', callback);
     return () => channel.off('cell:formatted', callback);
-  }, [cell.id, channel]);
+  }, [cell.id, channel, updateCellOnClient]);
 
   function updateFilename(filename: string) {
     updateCellOnClient({ ...cell, filename });

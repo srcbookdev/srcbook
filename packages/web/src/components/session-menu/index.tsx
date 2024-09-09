@@ -8,15 +8,7 @@ import type { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import FeedbackDialog from '@/components/feedback-dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetOverlay,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 // import {
 //   NavigationMenu,
 //   NavigationMenuContent,
@@ -141,7 +133,7 @@ function SessionMenuPanel(props: SessionMenuPanelProps) {
           <Sheet open={props.open} onOpenChange={() => props.onClose()}>
             <SheetContent
               side="left"
-              className="pt-12 overflow-y-scroll"
+              className="overflow-y-auto"
               style={{ width: props.openWidthPx }}
               portal={false}
             >
@@ -164,7 +156,7 @@ function SessionMenuPanel(props: SessionMenuPanelProps) {
           <div
             className={cn(
               'flex flex-col gap-6 border-r transition-all duration-100 z-50',
-              'fixed top-12 left-12 bottom-0 overflow-hidden bg-background',
+              'fixed top-12 left-12 bottom-0 overflow-y-auto bg-background',
               { 'border-r-0': !props.open },
             )}
             style={{ width: props.open ? props.openWidthPx : 0 }}

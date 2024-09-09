@@ -1,21 +1,14 @@
 import { marked } from 'marked';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SessionChannel } from '@/clients/websocket';
-import { ListIcon, PackageIcon, SettingsIcon, KeySquareIcon, XIcon } from 'lucide-react';
+import { ListIcon, PackageIcon, SettingsIcon, /* KeySquareIcon, */ XIcon } from 'lucide-react';
 import type { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import FeedbackDialog from '@/components/feedback-dialog';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-// import {
-//   NavigationMenu,
-//   NavigationMenuContent,
-//   NavigationMenuList,
-//   NavigationMenuItem,
-//   NavigationMenuTrigger,
-// } from '@/components/ui/navigation-menu';
 import SessionMenuPanelTableOfContents from './table-of-contents-panel';
 import SessionMenuPanelPackages from './packages-panel';
 import SessionMenuPanelSettings from './settings-panel';
@@ -70,27 +63,6 @@ type Props = {
 };
 
 marked.use({ gfm: true });
-
-// const tocFromCell = (cell: TitleCellType | CodeCellType | MarkdownCellType) => {
-//   if (cell.type === 'title') {
-//     return cell.text;
-//   } else if (cell.type === 'code') {
-//     return cell.filename;
-//   } else if (cell.type === 'markdown') {
-//     const tokens = marked.lexer(cell.text);
-//     const heading = tokens.find((token) => token.type === 'heading') as Tokens.Heading | undefined;
-//     if (heading) {
-//       return heading.text;
-//     }
-//     const paragraph = tokens.find((token) => token.type === 'paragraph') as
-//       | Tokens.Paragraph
-//       | undefined;
-//     if (paragraph) {
-//       return paragraph.text;
-//     }
-//     return 'Markdown cell';
-//   }
-// };
 
 const SESSION_MENU_SHEET_PANEL_WIDTH_BREAKPOINT_PX = 1024;
 
@@ -254,82 +226,6 @@ export default function SessionMenu({
   // This assumes qwerty layout.
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
-  // const InnerMenu = () => {
-  //   return (
-  //     <div className="bg-background space-y-8 text-sm">
-  //       <div className="max-w-60 text-tertiary-foreground pr-10">
-  //         {cells.map((cell) => {
-  //           const isRunningCell = cell.type === 'code' && cell.status === 'running';
-  //           return (
-  //             <div
-  //               key={cell.id}
-  //               className={cn(
-  //                 'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer',
-  //                 isRunningCell
-  //                   ? 'text-run border-l-run font-medium'
-  //                   : 'hover:border-l-foreground hover:text-foreground',
-  //               )}
-  //             >
-  //               {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
-  //               <p
-  //                 className="truncate"
-  //                 onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
-  //               >
-  //                 {tocFromCell(cell)}
-  //               </p>
-  //             </div>
-  //           );
-  //         })}
-  //       </div>
-  //       {/** actions menus */}
-  //       <div className="space-y-1.5 text-tertiary-foreground">
-  //         <button
-  //           className={cn('flex items-center gap-2 hover:text-foreground cursor-pointer', {
-  //             'text-run hover:text-run font-medium': installingDependencies,
-  //           })}
-  //           onClick={() => setShowSettings(true)}
-  //         >
-  //           {installingDependencies ? (
-  //             <LoaderCircle size={16} className="animate-spin" />
-  //           ) : (
-  //             <Settings size={16} />
-  //           )}
-  //           Settings
-  //           {dependencyInstallFailed && <span className="text-error">(1)</span>}
-  //         </button>
-  //         <button
-  //           onClick={() => setShowSave(true)}
-  //           className="flex items-center gap-2 hover:text-foreground cursor-pointer"
-  //         >
-  //           <Upload size={16} />
-  //           Export
-  //         </button>
-  //         <button
-  //           onClick={() => setShowDelete(true)}
-  //           className="flex items-center gap-2 hover:text-foreground cursor-pointer"
-  //         >
-  //           <Trash2 size={16} />
-  //           Delete
-  //         </button>
-  //         <button
-  //           onClick={() => setShowShortcuts(true)}
-  //           className="flex items-center gap-2 hover:text-foreground cursor-pointer"
-  //         >
-  //           <Keyboard size={16} />
-  //           Shortcuts
-  //         </button>
-  //         <button
-  //           onClick={() => setShowFeedback(true)}
-  //           className="flex items-center gap-2 hover:text-foreground cursor-pointer"
-  //         >
-  //           <MessageCircleMore size={16} />
-  //           Feedback
-  //         </button>
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
   const selectedPanelContentsProps: SessionMenuPanelContentsProps = useMemo(
     () => ({ session, channel, openDepsInstallModal }),
     [session, channel, openDepsInstallModal],
@@ -339,28 +235,6 @@ export default function SessionMenu({
     <>
       <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
       <FeedbackDialog open={showFeedback} onOpenChange={setShowFeedback} />
-      {/* <div className="fixed xl:hidden top-[100px] left-6 group z-20"> */}
-      {/*   <NavigationMenu> */}
-      {/*     <NavigationMenuList> */}
-      {/*       <NavigationMenuItem> */}
-      {/*         <NavigationMenuTrigger> */}
-      {/*           <div className="p-2"> */}
-      {/*             <List size={24} /> */}
-      {/*           </div> */}
-      {/*         </NavigationMenuTrigger> */}
-
-      {/*         <NavigationMenuContent className=""> */}
-      {/*           <div className="p-6"> */}
-      {/*             <InnerMenu /> */}
-      {/*           </div> */}
-      {/*         </NavigationMenuContent> */}
-      {/*       </NavigationMenuItem> */}
-      {/*     </NavigationMenuList> */}
-      {/*   </NavigationMenu> */}
-      {/* </div> */}
-      {/* <div className="hidden xl:block fixed top-[72px] left-0 p-6"> */}
-      {/*   <InnerMenu /> */}
-      {/* </div> */}
 
       {/* The sidebar is of a certain defined pixel width whoose parent takes the space of the fixed position element: */}
       <div className="grow-0 shrink-0 w-12">

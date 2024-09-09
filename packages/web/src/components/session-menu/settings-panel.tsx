@@ -23,7 +23,9 @@ export default function SessionMenuPanelSettings({ session, channel }: PropsType
 
   return (
     <>
-      <div>Settings</div>
+      <div className="text-lg font-semibold leading-tight mb-4">
+        <span>Settings</span>
+      </div>
 
       {showAiNudge && (
         <div className="relative flex flex-col px-3 py-3.5 border border-ai-border bg-ai text-ai-foreground rounded-sm text-sm">

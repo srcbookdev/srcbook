@@ -29,9 +29,11 @@ export default function SessionMenuPanelPackages({ session, openDepsInstallModal
 
   return (
     <>
-      <div>Packages</div>
+      <div className="text-lg font-semibold leading-tight mb-3">
+        <span>Dependencies</span>
+      </div>
 
-      <div className="flex items-center justify-between gap-8 text-sm">
+      <div className="flex items-center justify-between gap-8 text-sm mb-5">
         <h5 className="font-medium max-w-72 truncate">{title.text}</h5>
         <p className="text-tertiary-foreground">
           {session.language === 'typescript' ? 'TypeScript' : 'JavaScript'}

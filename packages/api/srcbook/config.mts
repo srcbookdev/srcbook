@@ -1,14 +1,12 @@
 export function buildJSPackageJson() {
   return {
     type: 'module',
-    dependencies: {
+    devDependencies: {
       prettier: 'latest',
     },
     prettier: {
-      tabWidth: 2,
       semi: true,
       singleQuote: true,
-      printWidth: 100,
     },
   };
 }
@@ -20,13 +18,13 @@ export function buildTSPackageJson() {
       tsx: 'latest',
       typescript: 'latest',
       '@types/node': 'latest',
+    },
+    devDependencies: {
       prettier: 'latest',
     },
     prettier: {
-      tabWidth: 2,
       semi: true,
       singleQuote: true,
-      printWidth: 100,
     },
   };
 }

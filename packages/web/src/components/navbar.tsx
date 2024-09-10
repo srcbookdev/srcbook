@@ -159,11 +159,33 @@ export function SessionNavbar(props: SessionNavbarProps) {
                   <span>Create Srcbook</span>
                   <DropdownMenuShortcut>⌘N</DropdownMenuShortcut>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowGenSrcbookModal(true)}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    // FIXME: wrap this function calls in a setTimeout so that this runs after the
+                    // dropdown menu at least starts closing (ie, removes `pointer-events: none;`)
+                    //
+                    // Otherwise the Dialog this setState call opens and the DropdownMenu will fight
+                    // for control over the body tag styles.
+                    setTimeout(() => {
+                      setShowGenSrcbookModal(true);
+                    }, 0);
+                  }}
+                >
                   <SparklesIcon className="mr-2 h-4 w-4" />
                   <span>Generate Srcbook</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowImportSrcbookModal(true)}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    // FIXME: wrap this function calls in a setTimeout so that this runs after the
+                    // dropdown menu at least starts closing (ie, removes `pointer-events: none;`)
+                    //
+                    // Otherwise the Dialog this setState call opens and the DropdownMenu will fight
+                    // for control over the body tag styles.
+                    setTimeout(() => {
+                      setShowImportSrcbookModal(true);
+                    }, 0);
+                  }}
+                >
                   <ImportIcon className="mr-2 h-4 w-4" />
                   <span>Open Srcbook</span>
                 </DropdownMenuItem>

@@ -62,6 +62,11 @@ export function SessionNavbar(props: SessionNavbarProps) {
   const [showSave, setShowSave] = useState(false);
 
   async function openSrcbook(path: string) {
+    // When switching srcbooks, make sure all the modals are hidden
+    setShowGenSrcbookModal(false);
+    setShowImportSrcbookModal(false);
+    setShowSave(false);
+
     const { result: srcbook } = await createSession({ path });
     navigate(`/srcbooks/${srcbook.id}`);
   }

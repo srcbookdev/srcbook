@@ -3,7 +3,14 @@ import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useEffect, useMemo, useState } from 'react';
 import { SessionChannel } from '@/clients/websocket';
-import { ListIcon, MessageCircleIcon, PackageIcon, SettingsIcon, XIcon } from 'lucide-react';
+import {
+  KeyboardIcon,
+  ListIcon,
+  MessageCircleIcon,
+  PackageIcon,
+  SettingsIcon,
+  XIcon,
+} from 'lucide-react';
 import type { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import FeedbackDialog from '@/components/feedback-dialog';
@@ -110,7 +117,7 @@ function SessionMenuPanel(props: SessionMenuPanelProps) {
               style={{ width: props.openWidthPx }}
               portal={false}
             >
-              <div className="flex grow shrink">
+              <div className="flex grow shrink h-full">
                 {props.sidebar ? (
                   <div className="grow-0 shrink-0 w-12 h-full">{props.sidebar}</div>
                 ) : null}
@@ -166,41 +173,65 @@ type SidebarProps = {
   onChangeSelectedPanelNameAndOpen: (
     old: (param: [Panel['name'], boolean]) => [Panel['name'], boolean],
   ) => void;
+  onShowShortcutsModal: () => void;
+  onShowFeedbackModal: () => void;
 };
 
 function Sidebar({
   selectedPanelName,
   selectedPanelOpen,
   onChangeSelectedPanelNameAndOpen,
+  onShowShortcutsModal,
+  onShowFeedbackModal,
 }: SidebarProps) {
   return (
-    <div className="flex flex-col items-center w-12 py-4 gap-2">
-      {SESSION_MENU_PANELS.map((panel) => {
-        const Icon = panel.icon;
-        return (
-          <Button
-            key={panel.name}
-            variant="icon"
-            size="icon"
-            className="active:translate-y-0"
-            onClick={() =>
-              onChangeSelectedPanelNameAndOpen(([oldName, oldOpen]) => {
-                return oldName === panel.name && oldOpen ? [oldName, false] : [panel.name, true];
-              })
-            }
-          >
-            <Icon
-              size={18}
-              className={cn({
-                'stroke-secondary-foreground':
-                  selectedPanelOpen && selectedPanelName === panel.name,
-                'stroke-tertiary-foreground':
-                  !selectedPanelOpen || selectedPanelName !== panel.name,
-              })}
-            />
-          </Button>
-        );
-      })}
+    <div className="flex flex-col items-center justify-between w-12 h-full py-4">
+      <div className="flex flex-col items-center w-full gap-2">
+        {SESSION_MENU_PANELS.map((panel) => {
+          const Icon = panel.icon;
+          return (
+            <Button
+              key={panel.name}
+              variant="icon"
+              size="icon"
+              className="active:translate-y-0"
+              onClick={() =>
+                onChangeSelectedPanelNameAndOpen(([oldName, oldOpen]) => {
+                  return oldName === panel.name && oldOpen ? [oldName, false] : [panel.name, true];
+                })
+              }
+            >
+              <Icon
+                size={18}
+                className={cn({
+                  'stroke-secondary-foreground':
+                    selectedPanelOpen && selectedPanelName === panel.name,
+                  'stroke-tertiary-foreground':
+                    !selectedPanelOpen || selectedPanelName !== panel.name,
+                })}
+              />
+            </Button>
+          );
+        })}
+      </div>
+      <div className="flex flex-col items-center w-full gap-2">
+        <Button
+          variant="icon"
+          size="icon"
+          className="active:translate-y-0"
+          onClick={onShowShortcutsModal}
+        >
+          <KeyboardIcon size={18} className="stroke-tertiary-foreground" />
+        </Button>
+        <Button
+          variant="icon"
+          size="icon"
+          className="active:translate-y-0"
+          onClick={onShowFeedbackModal}
+        >
+          <MessageCircleIcon size={18} className="stroke-tertiary-foreground" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -214,7 +245,6 @@ export default function SessionMenu({
   channel,
 }: Props) {
   const [showShortcuts, setShowShortcuts] = useState(false);
-  // FIXME: make sure there's a way to show the feedback modal
   const [showFeedback, setShowFeedback] = useState(false);
 
   const selectedPanel = useMemo(
@@ -238,11 +268,13 @@ export default function SessionMenu({
 
       {/* The sidebar is of a certain defined pixel width whoose parent takes the space of the fixed position element: */}
       <div className="grow-0 shrink-0 w-12">
-        <div className="fixed top-12 left-0 w-12">
+        <div className="fixed top-12 left-0 bottom-0 w-12">
           <Sidebar
             selectedPanelName={selectedPanelName}
             selectedPanelOpen={selectedPanelOpen}
             onChangeSelectedPanelNameAndOpen={onChangeSelectedPanelNameAndOpen}
+            onShowShortcutsModal={() => setShowShortcuts(true)}
+            onShowFeedbackModal={() => setShowFeedback(true)}
           />
         </div>
       </div>
@@ -257,6 +289,8 @@ export default function SessionMenu({
             selectedPanelName={selectedPanelName}
             selectedPanelOpen={selectedPanelOpen}
             onChangeSelectedPanelNameAndOpen={onChangeSelectedPanelNameAndOpen}
+            onShowShortcutsModal={() => setShowShortcuts(true)}
+            onShowFeedbackModal={() => setShowFeedback(true)}
           />
         }
       >

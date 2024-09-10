@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import './index.css';
 import Layout, { loader as configLoader } from './Layout';
+import LayoutNavbar from './LayoutNavbar';
 import Home, { loader as homeLoader } from './routes/home';
 import Session from './routes/session';
 import Settings from './routes/settings';
@@ -16,7 +17,9 @@ const router = createBrowserRouter([
     element: (
       <DragAndDropSrcmdModal>
         <Layout>
-          <Home />
+          <LayoutNavbar>
+            <Home />
+          </LayoutNavbar>
         </Layout>
       </DragAndDropSrcmdModal>
     ),
@@ -40,17 +43,28 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
       },
       {
-        path: '/secrets',
-        loader: Secrets.loader,
-        element: <Secrets />,
-        errorElement: <ErrorPage />,
-      },
-      {
-        path: '/settings',
-        element: <Settings />,
-        loader: Settings.loader,
-        action: Settings.action,
-        errorElement: <ErrorPage />,
+        path: '/',
+        element: (
+          <LayoutNavbar>
+            <Outlet />
+          </LayoutNavbar>
+        ),
+        loader: configLoader,
+        children: [
+          {
+            path: '/secrets',
+            loader: Secrets.loader,
+            element: <Secrets />,
+            errorElement: <ErrorPage />,
+          },
+          {
+            path: '/settings',
+            element: <Settings />,
+            loader: Settings.loader,
+            action: Settings.action,
+            errorElement: <ErrorPage />,
+          },
+        ],
       },
     ],
   },

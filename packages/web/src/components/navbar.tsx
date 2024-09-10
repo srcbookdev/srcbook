@@ -242,24 +242,6 @@ function SocialDiscordIcon() {
   );
 }
 
-function SocialXIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
-      <g clipPath="url(#clip0_1790_16713)">
-        <path
-          fill="#8E979D"
-          d="M9.522 6.776L15.475 0h-1.41l-5.17 5.882L4.767 0H.007l6.241 8.895L.007 16h1.41l5.457-6.213L11.232 16h4.76M1.926 1.04h2.166l9.972 13.969h-2.167"
-        ></path>
-      </g>
-      <defs>
-        <clipPath id="clip0_1790_16713">
-          <path fill="#fff" d="M0 0H15.987V16H0z" transform="translate(.007)"></path>
-        </clipPath>
-      </defs>
-    </svg>
-  );
-}
-
 export function Navbar() {
   return (
     <header className="h-12 w-full flex items-center justify-between fixed bg-background z-50 border-b border-border text-sm">
@@ -307,11 +289,6 @@ export function Navbar() {
         <LightDarkModeDebugChanger />
 
         <div className="flex items-center gap-2">
-          <a href="https://x.com/srcbookcom" target="_blank">
-            <Button variant="icon" size="icon" className="active:translate-y-0">
-              <SocialXIcon />
-            </Button>
-          </a>
           <a href="https://discord.gg/shDEGBSe2d" target="_blank">
             <Button variant="icon" size="icon" className="active:translate-y-0">
               <SocialDiscordIcon />

@@ -63,7 +63,7 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
     <div>
       <CollapsibleContainer
         open={open}
-        setOpen={setOpen}
+        onChangeOpen={setOpen}
         title="package.json"
         className={cn({ 'border-run': installing })}
       >

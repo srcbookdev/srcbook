@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useEffect, useMemo, useState } from 'react';
 import { SessionChannel } from '@/clients/websocket';
-import { ListIcon, PackageIcon, SettingsIcon, /* KeySquareIcon, */ XIcon } from 'lucide-react';
+import { ListIcon, MessageCircleIcon, PackageIcon, SettingsIcon, XIcon } from 'lucide-react';
 import type { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import FeedbackDialog from '@/components/feedback-dialog';

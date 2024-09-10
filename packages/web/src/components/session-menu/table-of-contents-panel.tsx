@@ -25,7 +25,7 @@ export default function SessionMenuPanelTableOfContents(_props: PropsType) {
             <div
               key={cell.id}
               className={cn(
-                'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer',
+                'flex items-center py-1 pl-3 gap-2 border-l cursor-pointer text-sm',
                 isRunningCell
                   ? 'text-run border-l-run font-medium'
                   : 'hover:border-l-foreground hover:text-foreground',

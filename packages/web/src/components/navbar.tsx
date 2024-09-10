@@ -80,7 +80,6 @@ export function SessionNavbar(props: SessionNavbarProps) {
 
   return (
     <>
-      {/* FIXME: After closing this modal, `<body>` has `user-select: none;` on it? */}
       <GenerateSrcbookModal
         open={showGenSrcbookModal}
         setOpen={setShowGenSrcbookModal}

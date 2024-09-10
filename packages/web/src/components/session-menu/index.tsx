@@ -12,6 +12,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import SessionMenuPanelTableOfContents from './table-of-contents-panel';
 import SessionMenuPanelPackages from './packages-panel';
 import SessionMenuPanelSettings from './settings-panel';
+// import SessionMenuPanelSecrets from './secrets-panel';
 
 export type SessionMenuPanelContentsProps = {
   session: SessionType;
@@ -40,6 +41,13 @@ export const SESSION_MENU_PANELS = [
     openWidthInPx: 480,
     contents: (props: SessionMenuPanelContentsProps) => <SessionMenuPanelSettings {...props} />,
   },
+  // NOTE: re-enable this in the follow up change!
+  // {
+  //   name: 'secrets' as const,
+  //   icon: KeySquareIcon,
+  //   openWidthInPx: 480,
+  //   contents: () => <SessionMenuPanelSecrets />,
+  // },
 ];
 export type Panel = (typeof SESSION_MENU_PANELS)[0];
 

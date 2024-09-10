@@ -320,7 +320,6 @@ function Session(props: {
           channel={channel}
         />
 
-        {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
         <div className="grow shrink lg:px-0 pb-28">
           <div className="max-w-[800px] mx-auto my-12 px-[32px]">
             <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />

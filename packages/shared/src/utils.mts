@@ -1,5 +1,5 @@
 import { base32hexnopad } from '@scure/base';
-import type { CodeLanguageType } from './types/cells.mjs';
+import type { CodeEnvironmentType, CodeLanguageType } from './types/cells.mjs';
 import * as crypto from 'crypto';
 
 export function isBrowser(): boolean {
@@ -14,15 +14,15 @@ export function randomid(byteSize = 16) {
 }
 
 export function validFilename(filename: string) {
-  return /^[a-zA-Z0-9_-]+\.(js|cjs|mjs|ts|cts|mts)$/.test(filename);
+  return /^[a-zA-Z0-9_-]+\.(js|cjs|mjs|jsx|ts|cts|mts|tsx)$/.test(filename);
 }
 
 export function isJavaScriptFile(filename: string) {
-  return /\.(js|cjs|mjs)$/.test(filename);
+  return /\.(js|cjs|mjs|jsx)$/.test(filename);
 }
 
 export function isTypeScriptFile(filename: string) {
-  return /\.(ts|cts|mts)$/.test(filename);
+  return /\.(ts|cts|mts|tsx)$/.test(filename);
 }
 
 export function languageFromFilename(filename: string): CodeLanguageType {
@@ -37,23 +37,31 @@ export function languageFromFilename(filename: string): CodeLanguageType {
   }
 }
 
-export function extensionsForLanguage(language: CodeLanguageType) {
+export function extensionsForLanguage(
+  language: CodeLanguageType,
+  environment?: CodeEnvironmentType,
+) {
   switch (language) {
     case 'javascript':
-      return ['js', 'cjs', 'mjs'];
+      const jsExts = ['js', 'cjs', 'mjs'];
+      return environment === 'react' ? jsExts.concat('jsx') : jsExts;
     case 'typescript':
-      return ['ts', 'cts', 'mts'];
+      const tsExts = ['ts', 'cts', 'mts'];
+      return environment === 'react' ? tsExts.concat('tsx') : tsExts;
     default:
       throw new Error(`Unrecognized language ${language}`);
   }
 }
 
-export function getDefaultExtensionForLanguage(language: CodeLanguageType) {
+export function getDefaultExtensionForLanguage(
+  language: CodeLanguageType,
+  environment?: CodeEnvironmentType,
+) {
   switch (language) {
     case 'javascript':
-      return '.js';
+      return environment === 'react' ? '.jsx' : '.js';
     case 'typescript':
-      return '.ts';
+      return environment === 'react' ? '.tsx' : '.ts';
     default:
       throw new Error(`Unrecognized language ${language}`);
   }

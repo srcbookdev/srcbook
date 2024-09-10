@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, ReactNode, useRef, useReducer }
 import {
   CellType,
   CodeCellType,
+  CodeEnvironmentType,
   CodeLanguageType,
   MarkdownCellType,
   TsServerDiagnosticType,
@@ -9,7 +10,6 @@ import {
   getDefaultExtensionForLanguage,
 } from '@srcbook/shared';
 import { GenerateAICellType, OutputType } from '@/types';
-
 import { randomid } from '@srcbook/shared';
 
 type ClientCellType = CellType | GenerateAICellType;
@@ -18,9 +18,8 @@ type ClientCellType = CellType | GenerateAICellType;
  * Utility function to generate a unique filename for a code cell,
  * given the list of existing filenames.
  */
-function generateUniqueFilename(existingFilenames: string[], language: CodeLanguageType): string {
+function generateUniqueFilename(existingFilenames: string[], extension: string): string {
   const baseName = 'untitled';
-  const extension = getDefaultExtensionForLanguage(language);
 
   let filename = `${baseName}${extension}`;
   let counter = 1;
@@ -33,6 +32,22 @@ function generateUniqueFilename(existingFilenames: string[], language: CodeLangu
   return filename;
 }
 
+function createUniqueFilename(
+  cells: CodeCellType[],
+  language: CodeLanguageType,
+  environment?: CodeEnvironmentType,
+) {
+  const extension = getDefaultExtensionForLanguage(language, environment);
+  const defaultName = environment === 'react' ? 'main' : 'index';
+
+  return cells.length === 0
+    ? `${defaultName}${extension}`
+    : generateUniqueFilename(
+        cells.map((c) => c.filename),
+        extension,
+      );
+}
+
 function buildGenerateAiCell(): GenerateAICellType {
   return {
     id: randomid(),
@@ -40,16 +55,92 @@ function buildGenerateAiCell(): GenerateAICellType {
   };
 }
 
+function buildDefaultSource(
+  cells: CodeCellType[],
+  language: CodeLanguageType,
+  environment?: CodeEnvironmentType,
+) {
+  if (environment !== 'react') {
+    return '';
+  }
+
+  const appCell = cells.length === 0;
+
+  if (language === 'typescript' && appCell) {
+    return `import { StrictMode } from 'react'
+import { createRoot } from "react-dom/client";
+
+function App() {
+  return (
+    <div>
+      <h1>React app</h1>
+      <p>Hello from react</p>
+    </div>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+`;
+  } else if (language === 'javascript' && appCell) {
+    return `import { StrictMode } from 'react'
+import { createRoot } from "react-dom/client";
+
+function App() {
+  return (
+    <div>
+      <h1>React app</h1>
+      <p>Hello from react</p>
+    </div>
+  );
+}
+
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+`;
+  } else {
+    return `export default function Component() {
+  return <div></div>;
+}
+`;
+  }
+}
+
 function buildCodeCell(
   cells: ClientCellType[],
   language: CodeLanguageType,
   attrs: Partial<CodeCellType> = {},
 ): CodeCellType {
-  const filenames = cells.filter((c) => c.type === 'code').map((c) => (c as CodeCellType).filename);
-  const uniqueFilename = generateUniqueFilename(filenames, language);
+  const [reactCells, nodeCells] = cells.reduce(
+    ([react, rest], cell) => {
+      if (cell.type === 'code') {
+        (cell.environment === 'react' ? react : rest).push(cell);
+      }
+      return [react, rest];
+    },
+    [[] as CodeCellType[], [] as CodeCellType[]],
+  );
+
+  const uniqueFilename = createUniqueFilename(
+    attrs.environment === 'react' ? reactCells : nodeCells,
+    language,
+    attrs.environment,
+  );
+
+  const defaultSource = buildDefaultSource(
+    attrs.environment === 'react' ? reactCells : nodeCells,
+    language,
+    attrs.environment,
+  );
 
   return {
-    source: '',
+    source: defaultSource,
     filename: uniqueFilename,
     status: 'idle',
     ...attrs,
@@ -78,6 +169,11 @@ interface CellsContextType {
   removeCell: (cell: ClientCellType) => void;
   insertCellAt: (cell: ClientCellType, idx: number) => void;
   createCodeCell: (
+    idx: number,
+    language: CodeLanguageType,
+    attrs?: Partial<CodeCellType>,
+  ) => CodeCellType;
+  createReactCell: (
     idx: number,
     language: CodeLanguageType,
     attrs?: Partial<CodeCellType>,

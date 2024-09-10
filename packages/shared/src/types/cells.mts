@@ -14,6 +14,8 @@ import {
   CodeCellUpdateAttrsSchema,
   CellUpdateAttrsSchema,
   SrcbookMetadataSchema,
+  CodeLanguageSchema,
+  CodeEnvironmentSchema,
 } from '../schemas/cells.mjs';
 
 export type TitleCellType = z.infer<typeof TitleCellSchema>;
@@ -36,6 +38,7 @@ export type CellErrorType = {
   attribute?: string;
 };
 
-export type CodeLanguageType = 'javascript' | 'typescript';
+export type CodeLanguageType = z.infer<typeof CodeLanguageSchema>;
+export type CodeEnvironmentType = z.infer<typeof CodeEnvironmentSchema>;
 
 export type SrcbookMetadataType = z.infer<typeof SrcbookMetadataSchema>;

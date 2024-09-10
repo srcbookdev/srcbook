@@ -165,14 +165,17 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
     });
   }
 
-  async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
+  async function createNewCell(type: 'code' | 'react' | 'markdown' | 'generate-ai', index: number) {
     // First, create the cell on client.
     // Then, push state to server, _only_ for code or markdown cells. AI generation is a client side only cell.
     // TODO: Handle potential errors (eg, rollback optimistic client creation if there are errors)
     let cell;
     switch (type) {
       case 'code':
-        cell = createCodeCell(index, session.language);
+      case 'react':
+        cell = createCodeCell(index, session.language, {
+          environment: type === 'react' ? 'react' : undefined,
+        });
         channel.push('cell:create', { sessionId: session.id, index, cell });
         break;
       case 'markdown':
@@ -275,6 +278,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
             <InsertCellDivider
               language={session.language}
               createCodeCell={() => createNewCell('code', idx + 2)}
+              createReactCell={() => createNewCell('react', idx + 2)}
               createMarkdownCell={() => createNewCell('markdown', idx + 2)}
               createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
             />
@@ -312,6 +316,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         <InsertCellDivider
           language={session.language}
           createCodeCell={() => createNewCell('code', allCells.length)}
+          createReactCell={() => createNewCell('react', allCells.length)}
           createMarkdownCell={() => createNewCell('markdown', allCells.length)}
           createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
           className={cn('h-14', cells.length === 0 && 'opacity-100')}
@@ -323,6 +328,7 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
 
 function InsertCellDivider(props: {
   createCodeCell: () => void;
+  createReactCell: () => void;
   createMarkdownCell: () => void;
   createGenerateAiCodeCell: () => void;
   language: CodeLanguageType;
@@ -347,6 +353,13 @@ function InsertCellDivider(props: {
             onClick={props.createCodeCell}
           >
             {props.language === 'javascript' ? 'JavaScript' : 'TypeScript'}
+          </Button>
+          <Button
+            variant="secondary"
+            className="border-none rounded-md rounded-r-none"
+            onClick={props.createReactCell}
+          >
+            React
           </Button>
           <Button
             variant="secondary"

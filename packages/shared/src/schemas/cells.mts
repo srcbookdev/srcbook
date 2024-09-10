@@ -20,12 +20,16 @@ export const PackageJsonCellSchema = z.object({
   status: z.enum(['idle', 'running', 'failed']),
 });
 
+export const CodeLanguageSchema = z.enum(['javascript', 'typescript']);
+export const CodeEnvironmentSchema = z.enum(['react']);
+
 export const CodeCellSchema = z.object({
   id: z.string(),
   type: z.literal('code'),
   source: z.string(),
-  language: z.enum(['javascript', 'typescript']),
+  language: CodeLanguageSchema,
   filename: z.string(),
+  environment: CodeEnvironmentSchema.optional(),
   status: z.enum(['idle', 'running']),
 });
 
@@ -56,7 +60,7 @@ export const CellWithPlaceholderSchema = z.union([
 // i.e. <!-- srcbook:{"language": "javascript"} -->
 //
 export const SrcbookMetadataSchema = z.object({
-  language: z.enum(['javascript', 'typescript']),
+  language: CodeLanguageSchema,
   'tsconfig.json': z.optional(z.string()),
 });
 

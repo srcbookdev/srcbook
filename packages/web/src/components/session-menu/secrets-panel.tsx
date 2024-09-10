@@ -1,6 +1,6 @@
 // import { SessionMenuPanelContentsProps } from '.';
 
-type PropsType = {}; // Pick<SessionMenuPanelContentsProps, 'session' | 'openDepsInstallModal'>;
+type PropsType = Record<string, never>; // Pick<SessionMenuPanelContentsProps, 'session' | 'openDepsInstallModal'>;
 
 export default function SessionMenuPanelSecrets(_props: PropsType) {
   return (

@@ -4,7 +4,7 @@ import { Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCells } from '@/components/use-cell';
 
-type PropsType = {};
+type PropsType = Record<string, never>;
 
 export default function SessionMenuPanelTableOfContents(_props: PropsType) {
   const { cells: allCells } = useCells();
@@ -32,12 +32,12 @@ export default function SessionMenuPanelTableOfContents(_props: PropsType) {
               )}
             >
               {isRunningCell && <Circle size={14} strokeWidth={3} className="text-run" />}
-              <p
+              <button
                 className="truncate"
                 onClick={() => document.getElementById(`cell-${cell.id}`)?.scrollIntoView()}
               >
                 {tocFromCell(cell)}
-              </p>
+              </button>
             </div>
           );
         })}

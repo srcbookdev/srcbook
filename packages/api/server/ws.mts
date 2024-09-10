@@ -435,17 +435,27 @@ async function cellFormat(payload: CellFormatPayloadType) {
   }
   const result = await formatAndUpdateCodeCell(session, cellBeforeUpdate);
   if (!result.success) {
-    return sendCellUpdateError(session, payload.cellId, result.errors);
+    wss.broadcast(`session:${session.id}`, 'cell:output', {
+      cellId: payload.cellId,
+      output: { type: 'stderr', data: result.errors },
+    });
+    sendCellUpdateError(session, payload.cellId, [
+      {
+        message:
+          'An error occurred while formatting the code. Please check the "stderr" for more details.',
+        attribute: 'formatting',
+      },
+    ]);
+  } else {
+    const cell = result.cell as CodeCellType;
+
+    wss.broadcast(`session:${session.id}`, 'cell:formatted', {
+      cellId: payload.cellId,
+      cell,
+    });
+
+    refreshCodeCellDiagnostics(session, cell);
   }
-
-  const cell = result.cell as CodeCellType;
-
-  wss.broadcast(`session:${session.id}`, 'cell:formatted', {
-    cellId: payload.cellId,
-    cell,
-  });
-
-  refreshCodeCellDiagnostics(session, cell);
 }
 
 async function cellUpdate(payload: CellUpdatePayloadType) {

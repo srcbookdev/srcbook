@@ -336,10 +336,10 @@ export async function formatCode(dir: string, fileName: string) {
     const command = `npx prettier ${codeFilePath}`;
 
     return new Promise((resolve, reject) => {
-      exec(command, async (error, stdout) => {
-        if (error) {
-          console.error(`exec error: ${error}`);
-          reject(error);
+      exec(command, async (_, stdout, stderr) => {
+        if (stderr) {
+          console.error(`exec error: ${stderr}`);
+          reject(stderr);
           return;
         }
         resolve(stdout);
@@ -357,7 +357,7 @@ export async function formatAndUpdateCodeCell(session: SessionType, cell: CodeCe
   } catch (error) {
     return Promise.resolve({
       success: false,
-      errors: [{ message: 'An error occurred formatting the code.', attribute: 'formatting' }],
+      errors: error,
     } as UpdateResultType);
   }
 }

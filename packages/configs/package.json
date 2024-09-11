@@ -6,8 +6,8 @@
     "./eslint/library.js"
   ],
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
+    "@typescript-eslint/eslint-plugin": "^8.5.0",
+    "@typescript-eslint/parser": "^8.5.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-turbo": "^2.1.1",
     "eslint-plugin-jest": "^28.8.3",

@@ -19,9 +19,10 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.8",
     "@srcbook/configs": "workspace:^",
-    "@types/node": "catalog:",
+    "@types/node": "^20.14.2",
     "prettier": "^3.3.3",
-    "typescript": "catalog:"
+    "typescript": "5.6.2",
+    "eslint": "^8.57.0"
   },
   "dependencies": {
     "turbo": "^2.1.1"

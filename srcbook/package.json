@@ -15,8 +15,8 @@
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^0.0.49",
-    "@ai-sdk/openai": "^0.0.58",
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/openai": "catalog:",
     "@srcbook/api": "workspace:^",
     "@srcbook/shared": "workspace:^",
     "ai": "^3.3.33",
@@ -30,7 +30,7 @@
     "marked": "catalog:",
     "open": "^10.1.0",
     "posthog-node": "^4.2.0",
-    "ws": "^8.18.0",
+    "ws": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

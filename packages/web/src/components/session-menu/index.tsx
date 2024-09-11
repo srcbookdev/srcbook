@@ -9,6 +9,7 @@ import {
   MessageCircleIcon,
   PackageIcon,
   SettingsIcon,
+  KeySquareIcon,
   XIcon,
 } from 'lucide-react';
 import type { SessionType } from '@/types';
@@ -16,10 +17,11 @@ import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import FeedbackDialog from '@/components/feedback-dialog';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import SessionMenuPanelTableOfContents from './table-of-contents-panel';
 import SessionMenuPanelPackages from './packages-panel';
 import SessionMenuPanelSettings from './settings-panel';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import SessionMenuPanelSecrets from './secrets-panel';
 
 export type SessionMenuPanelContentsProps = {
   session: SessionType;
@@ -51,13 +53,12 @@ export const SESSION_MENU_PANELS = [
     contents: (props: SessionMenuPanelContentsProps) => <SessionMenuPanelSettings {...props} />,
     tooltipContent: 'Settings and configuration',
   },
-  // NOTE: re-enable this in the follow up change!
-  // {
-  //   name: 'secrets' as const,
-  //   icon: KeySquareIcon,
-  //   openWidthInPx: 480,
-  //   contents: () => <SessionMenuPanelSecrets />,
-  // },
+  {
+    name: 'secrets' as const,
+    icon: KeySquareIcon,
+    openWidthInPx: 480,
+    contents: () => <SessionMenuPanelSecrets />,
+  },
 ];
 export type Panel = (typeof SESSION_MENU_PANELS)[0];
 

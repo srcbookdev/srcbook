@@ -122,11 +122,13 @@ function Settings() {
           </label>
           <Select onValueChange={updateDefaultLanguage}>
             <SelectTrigger id="language-selector" className="w-[180px]">
-              <SelectValue placeholder={defaultLanguage} />
+              <SelectValue
+                placeholder={defaultLanguage.charAt(0).toUpperCase() + defaultLanguage.slice(1)}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="typescript">typescript</SelectItem>
-              <SelectItem value="javascript">javascript</SelectItem>
+              <SelectItem value="typescript">Typescript</SelectItem>
+              <SelectItem value="javascript">Javascript</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -27,11 +27,15 @@ export function EditableH1(props: {
 
   function clearError() {
     _setError(null);
-    timeoutRef.current && clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
   }
 
   function setError(error: string) {
-    timeoutRef.current && clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     _setError(error);
     timeoutRef.current = setTimeout(() => {
       _setError(null);

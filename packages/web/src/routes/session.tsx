@@ -284,7 +284,11 @@ function Session(props: {
             // inside of package.json yet. Thus we must specifically install them by name so they are
             // installed and added to package.json. Otherwise, we just need to install what is already
             // listed inside of package.json.
-            Array.isArray(outdatedDependencies) ? npmInstall(outdatedDependencies) : npmInstall();
+            if (Array.isArray(outdatedDependencies)) {
+              npmInstall(outdatedDependencies);
+            } else {
+              npmInstall();
+            }
           },
         },
       });

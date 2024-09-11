@@ -22,10 +22,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { createSession, createSrcbook } from '@/lib/server';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function LightDarkModeDebugChanger() {
   const { theme, toggleTheme } = useTheme();
@@ -100,7 +100,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
             <NavLink to="/">
               <h1 className="font-mono font-bold flex items-center space-x-[10px] pr-1">
                 <SrcbookLogo size={20} />
-                <span>Srcbooks</span>
+                <span>Srcbook</span>
               </h1>
             </NavLink>
 
@@ -134,6 +134,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
                       <DropdownMenuItem
                         key={srcbook.id}
                         onClick={() => navigate(`/srcbooks/${srcbook.id}`)}
+                        className="cursor-pointer"
                       >
                         {titleCell.text}
                       </DropdownMenuItem>
@@ -142,8 +143,8 @@ export function SessionNavbar(props: SessionNavbarProps) {
 
                 {/* FIXME: how should more than 6 entries be rendered? */}
                 {props.srcbooks.length > 6 ? (
-                  <DropdownMenuItem asChild>
-                    <Link to="/">More...</Link>
+                  <DropdownMenuItem asChild className="cursor-pointer border-t mt-2 pt-2">
+                    <Link to="/">See all</Link>
                   </DropdownMenuItem>
                 ) : null}
               </DropdownMenuContent>
@@ -158,10 +159,9 @@ export function SessionNavbar(props: SessionNavbarProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuItem onClick={onCreateSrcbook}>
+                <DropdownMenuItem onClick={onCreateSrcbook} className="cursor-pointer">
                   <PlusIcon className="mr-2 h-4 w-4" />
                   <span>Create Srcbook</span>
-                  <DropdownMenuShortcut>⌘N</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
@@ -174,6 +174,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
                       setShowGenSrcbookModal(true);
                     }, 0);
                   }}
+                  className="cursor-pointer"
                 >
                   <SparklesIcon className="mr-2 h-4 w-4" />
                   <span>Generate Srcbook</span>
@@ -189,6 +190,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
                       setShowImportSrcbookModal(true);
                     }, 0);
                   }}
+                  className="cursor-pointer"
                 >
                   <ImportIcon className="mr-2 h-4 w-4" />
                   <span>Open Srcbook</span>
@@ -200,14 +202,21 @@ export function SessionNavbar(props: SessionNavbarProps) {
           <LightDarkModeDebugChanger />
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="icon"
-              size="icon"
-              onClick={() => setShowDelete(true)}
-              className="active:translate-y-0"
-            >
-              <TrashIcon size={18} />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="icon"
+                    size="icon"
+                    onClick={() => setShowDelete(true)}
+                    className="active:translate-y-0"
+                  >
+                    <TrashIcon size={18} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete this Srcbook</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button
               variant="secondary"
               onClick={() => setShowSave(true)}
@@ -255,7 +264,7 @@ export function Navbar() {
           <NavLink to="/">
             <h1 className="font-mono font-bold flex items-center space-x-[10px]">
               <SrcbookLogo size={20} />
-              <span>Srcbooks</span>
+              <span>Srcbook</span>
             </h1>
           </NavLink>
 

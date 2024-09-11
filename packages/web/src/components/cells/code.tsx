@@ -719,7 +719,7 @@ function CodeEditor({
       keymap.of([
         { key: 'Mod-Enter', run: evaluateModEnter },
         {
-          key: 'Mod-Shift-f',
+          key: 'Shift-Alt-f',
           run: () => {
             formatCell();
             return true;

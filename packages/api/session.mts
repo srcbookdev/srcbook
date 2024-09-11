@@ -310,6 +310,7 @@ async function ensurePrettierInstalled(dir: string): Promise<boolean> {
         npmInstall({
           cwd: dir,
           packages: ['prettier'],
+          args: ['--save-dev'],
           stdout: () => {},
           stderr: (err) => console.error(err),
           onExit: (exitCode) => {

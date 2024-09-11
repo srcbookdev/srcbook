@@ -20,11 +20,11 @@
     "@changesets/cli": "^2.27.8",
     "@srcbook/configs": "workspace:^",
     "@types/node": "catalog:",
-    "prettier": "catalog:",
+    "prettier": "^3.3.3",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "turbo": "^2.0.14"
+    "turbo": "^2.1.1"
   },
   "packageManager": "pnpm@9.8.0",
   "engines": {

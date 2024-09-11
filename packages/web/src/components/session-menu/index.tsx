@@ -19,7 +19,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import SessionMenuPanelTableOfContents from './table-of-contents-panel';
 import SessionMenuPanelPackages from './packages-panel';
 import SessionMenuPanelSettings from './settings-panel';
-// import SessionMenuPanelSecrets from './secrets-panel';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export type SessionMenuPanelContentsProps = {
   session: SessionType;
@@ -33,6 +33,7 @@ export const SESSION_MENU_PANELS = [
     icon: ListIcon,
     openWidthInPx: 312,
     contents: () => <SessionMenuPanelTableOfContents />,
+    tooltipContent: 'Table of contents',
   },
   {
     name: 'packages' as const,
@@ -41,12 +42,14 @@ export const SESSION_MENU_PANELS = [
     contents: ({ session, openDepsInstallModal }: SessionMenuPanelContentsProps) => (
       <SessionMenuPanelPackages session={session} openDepsInstallModal={openDepsInstallModal} />
     ),
+    tooltipContent: 'package.json',
   },
   {
     name: 'settings' as const,
     icon: SettingsIcon,
     openWidthInPx: 480,
     contents: (props: SessionMenuPanelContentsProps) => <SessionMenuPanelSettings {...props} />,
+    tooltipContent: 'Settings and configuration',
   },
   // NOTE: re-enable this in the follow up change!
   // {
@@ -190,47 +193,70 @@ function Sidebar({
         {SESSION_MENU_PANELS.map((panel) => {
           const Icon = panel.icon;
           return (
-            <Button
-              key={panel.name}
-              variant="icon"
-              size="icon"
-              className="active:translate-y-0"
-              onClick={() =>
-                onChangeSelectedPanelNameAndOpen(([oldName, oldOpen]) => {
-                  return oldName === panel.name && oldOpen ? [oldName, false] : [panel.name, true];
-                })
-              }
-            >
-              <Icon
-                size={18}
-                className={cn({
-                  'stroke-secondary-foreground':
-                    selectedPanelOpen && selectedPanelName === panel.name,
-                  'stroke-tertiary-foreground':
-                    !selectedPanelOpen || selectedPanelName !== panel.name,
-                })}
-              />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    key={panel.name}
+                    variant="icon"
+                    size="icon"
+                    className="active:translate-y-0"
+                    onClick={() =>
+                      onChangeSelectedPanelNameAndOpen(([oldName, oldOpen]) => {
+                        return oldName === panel.name && oldOpen
+                          ? [oldName, false]
+                          : [panel.name, true];
+                      })
+                    }
+                  >
+                    <Icon
+                      size={18}
+                      className={cn({
+                        'stroke-secondary-foreground':
+                          selectedPanelOpen && selectedPanelName === panel.name,
+                        'stroke-tertiary-foreground':
+                          !selectedPanelOpen || selectedPanelName !== panel.name,
+                      })}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">{panel.tooltipContent}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           );
         })}
       </div>
       <div className="flex flex-col items-center w-full gap-2">
-        <Button
-          variant="icon"
-          size="icon"
-          className="active:translate-y-0"
-          onClick={onShowShortcutsModal}
-        >
-          <KeyboardIcon size={18} className="stroke-tertiary-foreground" />
-        </Button>
-        <Button
-          variant="icon"
-          size="icon"
-          className="active:translate-y-0"
-          onClick={onShowFeedbackModal}
-        >
-          <MessageCircleIcon size={18} className="stroke-tertiary-foreground" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="icon"
+                size="icon"
+                className="active:translate-y-0"
+                onClick={onShowShortcutsModal}
+              >
+                <KeyboardIcon size={18} className="stroke-tertiary-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Keyboard shortcuts</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="icon"
+                size="icon"
+                className="active:translate-y-0"
+                onClick={onShowFeedbackModal}
+              >
+                <MessageCircleIcon size={18} className="stroke-tertiary-foreground" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Leave feedback</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );

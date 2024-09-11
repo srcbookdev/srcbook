@@ -147,7 +147,7 @@ export function CellOutput({
         {show && (
           <div
             className={cn(
-              'p-2 flex flex-col-reverse overflow-scroll whitespace-pre-wrap text-[13px]',
+              'p-2 flex flex-col-reverse overflow-auto whitespace-pre-wrap text-[13px]',
               !fullscreen && 'max-h-96',
             )}
           >

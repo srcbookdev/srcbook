@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { TitleCellUpdateAttrsSchema } from '@srcbook/shared';
 
 const className =
-  'flex w-full break-all whitespace-normal rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
+  'flex w-full whitespace-normal rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 function isCharacterKey(e: React.KeyboardEvent<HTMLHeadingElement>) {
   return (

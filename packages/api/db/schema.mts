@@ -27,3 +27,11 @@ export const secrets = sqliteTable('secrets', {
 });
 
 export type Secret = typeof secrets.$inferSelect;
+
+export const secretsToSession = sqliteTable('secrets_to_session', {
+  id: integer('id').primaryKey(),
+  session_id: text('session_id').notNull(),
+  secret_id: integer('secret_id').notNull().references(() => secrets.id),
+});
+
+export type SecretsToSession = typeof secretsToSession.$inferSelect;

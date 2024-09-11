@@ -43,7 +43,7 @@
     "@types/ws": "^8.5.12",
     "drizzle-kit": "^0.24.2",
     "vite": "^5.4.4",
-    "vite-node": "^1.6.0",
-    "vitest": "^1.6.0"
+    "vite-node": "^2.0.5",
+    "vitest": "^2.0.5"
   }
 }

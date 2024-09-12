@@ -29,6 +29,8 @@ import {
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';
 import { pathToCodeFile } from './srcbook/path.mjs';
+import { exec } from 'node:child_process';
+import { npmInstall } from './exec.mjs';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -296,7 +298,70 @@ export function updateCell(session: SessionType, cell: CellType, updates: CellUp
       return updateCodeCell(session, cell, updates);
   }
 }
+async function ensurePrettierInstalled(dir: string): Promise<boolean> {
+  const prettierPath = Path.join(dir, 'node_modules', 'prettier');
+  try {
+    // check if prettier is installed
+    await fs.access(prettierPath);
+    return true;
+  } catch (error) {
+    return new Promise<boolean>((resolve) => {
+      try {
+        npmInstall({
+          cwd: dir,
+          packages: ['prettier'],
+          args: ['--save-dev'],
+          stdout: () => {},
+          stderr: (err) => console.error(err),
+          onExit: (exitCode) => {
+            if (exitCode === 0) {
+              resolve(true);
+            } else {
+              console.error('Failed to install Prettier:', exitCode);
+              resolve(false);
+            }
+          },
+        });
+      } catch (installError) {
+        console.error('Failed to initiate Prettier installation:', installError);
+        resolve(false);
+      }
+    });
+  }
+}
+export async function formatCode(dir: string, fileName: string) {
+  try {
+    await ensurePrettierInstalled(dir);
 
+    const codeFilePath = pathToCodeFile(dir, fileName);
+    const command = `npx prettier ${codeFilePath}`;
+
+    return new Promise((resolve, reject) => {
+      exec(command, async (_, stdout, stderr) => {
+        if (stderr) {
+          console.error(`exec error: ${stderr}`);
+          reject(stderr);
+          return;
+        }
+        resolve(stdout);
+      });
+    });
+  } catch (error) {
+    console.error('Formatting error:', error);
+    throw error;
+  }
+}
+export async function formatAndUpdateCodeCell(session: SessionType, cell: CodeCellType) {
+  try {
+    const formattedCode = await formatCode(session.dir, cell.filename);
+    return updateCodeCell(session, cell, { source: formattedCode } as { source: string });
+  } catch (error) {
+    return Promise.resolve({
+      success: false,
+      errors: error,
+    } as UpdateResultType);
+  }
+}
 export function sessionToResponse(session: SessionType) {
   const result: Pick<SessionType, 'id' | 'cells' | 'language' | 'tsconfig.json' | 'openedAt'> = {
     id: session.id,

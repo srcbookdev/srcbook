@@ -15,6 +15,7 @@ export type NodeRequestType = BaseExecRequestType & {
 
 export type NPMInstallRequestType = BaseExecRequestType & {
   packages?: Array<string>;
+  args?: Array<string>;
 };
 
 type SpawnCallRequestType = {
@@ -132,10 +133,17 @@ export function tsx(options: NodeRequestType) {
  */
 export function npmInstall(options: NPMInstallRequestType) {
   const { cwd, stdout, stderr, onExit } = options;
-
   const args = options.packages
-    ? ['install', '--include=dev', ...options.packages]
-    : ['install', '--include=dev'];
+    ? ['install', '--include=dev', ...(options.args || []), ...options.packages]
+    : ['install', '--include=dev', ...(options.args || [])];
 
-  return spawnCall({ command: 'npm', cwd, args, stdout, stderr, onExit, env: process.env });
+  return spawnCall({
+    command: 'npm',
+    cwd,
+    args,
+    stdout,
+    stderr,
+    onExit,
+    env: process.env,
+  });
 }

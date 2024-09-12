@@ -19,6 +19,7 @@ import {
   LoaderCircle,
   Maximize,
   Minimize,
+  PaintbrushVertical,
 } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
@@ -27,12 +28,13 @@ import {
   CodeCellType,
   CodeCellUpdateAttrsType,
   CellErrorPayloadType,
+  CellFormattedPayloadType,
   AiGeneratedCellPayloadType,
   TsServerDiagnosticType,
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
-import { SessionType } from '@/types';
+import { CellModeType, SessionType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
@@ -47,9 +49,9 @@ import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
 import { tsHover } from './hover';
 import { mapTsServerLocationToCM } from './util';
+import { toast } from 'sonner';
 
 const DEBOUNCE_DELAY = 500;
-type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
 
 export default function CodeCell(props: {
   session: SessionType;
@@ -66,9 +68,7 @@ export default function CodeCell(props: {
   const [prompt, setPrompt] = useState('');
   const [newSource, setNewSource] = useState('');
   const [fullscreen, setFullscreen] = useState(false);
-
   const { aiEnabled } = useSettings();
-
   useHotkeys(
     'mod+enter',
     () => {
@@ -110,12 +110,30 @@ export default function CodeCell(props: {
       if (filenameError) {
         setFilenameError(filenameError.message);
       }
+
+      const formattingError = payload.errors.find((e) => e.attribute === 'formatting');
+      if (formattingError) {
+        toast.error(formattingError.message);
+        setCellMode('off');
+      }
     }
 
     channel.on('cell:error', callback);
 
     return () => channel.off('cell:error', callback);
   }, [cell.id, channel]);
+
+  useEffect(() => {
+    function callback(payload: CellFormattedPayloadType) {
+      if (payload.cellId === cell.id) {
+        updateCellOnClient({ ...payload.cell });
+        setCellMode('off');
+      }
+    }
+
+    channel.on('cell:formatted', callback);
+    return () => channel.off('cell:formatted', callback);
+  }, [cell.id, channel, updateCellOnClient]);
 
   function updateFilename(filename: string) {
     updateCellOnClient({ ...cell, filename });
@@ -190,6 +208,13 @@ export default function CodeCell(props: {
     setCellMode('off');
   }
 
+  function formatCell() {
+    setCellMode('formatting');
+    channel.push('cell:format', {
+      sessionId: session.id,
+      cellId: cell.id,
+    });
+  }
   return (
     <div id={`cell-${props.cell.id}`}>
       <Dialog open={fullscreen} onOpenChange={setFullscreen}>
@@ -224,6 +249,7 @@ export default function CodeCell(props: {
             setShowStdio={setShowStdio}
             onAccept={onAcceptDiff}
             onRevert={onRevertDiff}
+            formatCell={formatCell}
           />
 
           {cellMode === 'reviewing' ? (
@@ -237,8 +263,11 @@ export default function CodeCell(props: {
                     session={session}
                     cell={cell}
                     runCell={runCell}
+                    formatCell={formatCell}
                     updateCellOnServer={updateCellOnServer}
-                    readOnly={['generating', 'prompting', 'fixing'].includes(cellMode)}
+                    readOnly={['generating', 'prompting', 'fixing', 'formatting'].includes(
+                      cellMode,
+                    )}
                   />
                 </div>
               </ResizablePanel>
@@ -291,6 +320,7 @@ export default function CodeCell(props: {
             setShowStdio={setShowStdio}
             onAccept={onAcceptDiff}
             onRevert={onRevertDiff}
+            formatCell={formatCell}
           />
 
           {cellMode === 'reviewing' ? (
@@ -303,8 +333,9 @@ export default function CodeCell(props: {
                   session={session}
                   cell={cell}
                   runCell={runCell}
+                  formatCell={formatCell}
                   updateCellOnServer={updateCellOnServer}
-                  readOnly={['generating', 'prompting'].includes(cellMode)}
+                  readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
                 />
               </div>
               <CellOutput
@@ -342,6 +373,7 @@ function Header(props: {
   stopCell: () => void;
   onAccept: () => void;
   onRevert: () => void;
+  formatCell: () => void;
 }) {
   const {
     cell,
@@ -359,6 +391,7 @@ function Header(props: {
     prompt,
     setPrompt,
     stopCell,
+    formatCell,
   } = props;
 
   const { aiEnabled } = useSettings();
@@ -404,6 +437,26 @@ function Header(props: {
           )}
         >
           <div className="flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {cellMode === 'formatting' ? (
+                    <LoaderCircle size={16} className="animate-spin" />
+                  ) : (
+                    <Button
+                      variant="icon"
+                      size="icon"
+                      disabled={cellMode !== 'off'}
+                      onClick={formatCell}
+                      tabIndex={1}
+                    >
+                      <PaintbrushVertical size={16} />
+                    </Button>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent>Format</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -478,7 +531,7 @@ function Header(props: {
               <Button onClick={props.onAccept}>Accept</Button>
             </div>
           )}
-          {cellMode === 'off' && (
+          {['off', 'formatting'].includes(cellMode) && (
             <>
               {cell.status === 'running' && (
                 <Button variant="run" size="default-with-icon" onClick={stopCell} tabIndex={1}>
@@ -631,6 +684,7 @@ function CodeEditor({
   cell,
   session,
   runCell,
+  formatCell,
   updateCellOnServer,
   readOnly,
 }: {
@@ -638,6 +692,7 @@ function CodeEditor({
   cell: CodeCellType;
   session: SessionType;
   runCell: () => void;
+  formatCell: () => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   readOnly: boolean;
 }) {
@@ -660,7 +715,18 @@ function CodeEditor({
     javascript({ typescript: true }),
     tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
-    Prec.highest(keymap.of([{ key: 'Mod-Enter', run: evaluateModEnter }])),
+    Prec.highest(
+      keymap.of([
+        { key: 'Mod-Enter', run: evaluateModEnter },
+        {
+          key: 'Shift-Alt-f',
+          run: () => {
+            formatCell();
+            return true;
+          },
+        },
+      ]),
+    ),
   ];
 
   if (readOnly) {

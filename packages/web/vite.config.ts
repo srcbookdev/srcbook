@@ -7,6 +7,7 @@ import chokidar from 'chokidar';
 export default defineConfig({
   plugins: [
     react(),
+    // reload on backend change
     {
       name: 'backend-watch-reload',
       configureServer(server) {

@@ -1,5 +1,12 @@
 # @srcbook/shared
 
+## 0.0.3
+
+### Patch Changes
+
+- 545699e: Add Prettier Support to Code Notebook
+- 833264c: Underlying dependency bumps for maintenence
+
 ## 0.0.2
 
 ### Patch Changes

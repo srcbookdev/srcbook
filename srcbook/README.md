@@ -37,27 +37,18 @@ Srcbook runs locally on your machine as a CLI application with a web interface.
 
 ### Installing
 
-You can install the `srcbook` application from `npm`:
+We recommend using npx to always run the latest version from npm
 
 ```bash
-npm install -g srcbook
+# Using npm
+npx srcbook@latest start
+
+# Using your pm equivalent
+pnpm dlx srcbook@latest start
 ```
 
-### Running
-
-```
-srcbook start
-```
-
-You can also run it directly using `npx`:
-
-```bash
-# Using npx
-npx srcbook start
-
-# Using pnpm
-pnpm dlx srcbook start
-```
+> You can instead use a global install with `<pkg manager> i -g srcbook`
+> and then directly call srcbook with `srcbook start`
 
 Here is the current list of commands:
 
@@ -77,22 +68,18 @@ Commands:
   help [command]                display help for command
 ```
 
-### Updating
-
-You can update `srcbook` using `npm`:
-
-```bash
-npm update -g srcbook
-```
-
 ### Uninstalling
 
 You can remove srcbook by first removing the package, and then cleaning it's local directory on disk:
 
 ```bash
-npm uninstall -g srcbook
 rm -rf ~/.srcbook
+
+# if you configured a global install
+npm uninstall -g srcbook
 ```
+
+> if you used another pm you will need to use it's specific uninstall command
 
 ## Analytics and tracking
 

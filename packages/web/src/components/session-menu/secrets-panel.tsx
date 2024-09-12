@@ -36,10 +36,74 @@ export default function SessionMenuPanelSecrets(props: PropsType) {
     run();
   }, []);
 
+  // Store a list of all secret name association changes that are in progress so that a user cannot
+  // change an already in flight association
+  const [loadingSecretNames, setLoadingSecretName] = useState<Set<string>>(new Set());
+  const onRegisterLoadingSecretName = useCallback((secretName: string) => {
+    setLoadingSecretName(old => {
+      const newSet = new Set(old)
+      newSet.add(secretName);
+      return newSet;
+    });
+  }, [setLoadingSecretName]);
+  const onDeregisterLoadingSecretName = useCallback((secretName: string) => {
+    setLoadingSecretName(old => {
+      const newSet = new Set(old)
+      newSet.delete(secretName);
+      return newSet;
+    });
+  }, [setLoadingSecretName]);
+
+  const onChangeSecretEnabled = useCallback(async (secretName: string, enabled: boolean) => {
+    onRegisterLoadingSecretName(secretName);
+
+    try {
+      if (enabled) {
+        await associateSecretWithSession(props.session.id, secretName);
+      } else {
+        await disassociateSecretWithSession(props.session.id, secretName);
+      }
+    } catch (err) {
+      onDeregisterLoadingSecretName(secretName);
+      console.error(`Error changing secret ${secretName} enabled:`, err);
+      toast.error("Error enabling/disabling secret!");
+      return;
+    }
+
+    // After changing the secret value, optimisitcally update the secrets list
+    // FIXME: maybe it would be better to just refetch?
+    setSecretsList(old => {
+      if (old.status !== 'complete') {
+        return old;
+      }
+
+      return {
+        ...old,
+        data: old.data.map(item => {
+          if (item.name === secretName) {
+            return {
+              ...item,
+              associatedWithSessionIds: enabled ? (
+                [...item.associatedWithSessionIds, props.session.id ]
+              ) : item.associatedWithSessionIds.filter(id => id !== props.session.id),
+            };
+          } else {
+            return item;
+          }
+        }),
+      };
+    });
+
+    // NOTE: add a slight delay before removing the loading state to minimize ui flicker
+    setTimeout(() => {
+      onDeregisterLoadingSecretName(secretName);
+    }, 50);
+  }, [props.session.id]);
+
   return (
     <>
-      <div>Secrets</div>
-      TODO
+      <h4 className="text-lg font-semibold leading-tight mb-2">Secrets</h4>
+      <h6 className="mb-4 text-tertiary-foreground">Available in this srcbook</h6>
 
       {secretsList.status === "idle" || secretsList.status === "loading" ? (
         <span>Loading</span>
@@ -49,9 +113,25 @@ export default function SessionMenuPanelSecrets(props: PropsType) {
       ) : null}
       {secretsList.status === "complete" ? (
         <div>
-          {Object.entries(secretsList.data).map(([secretKey, secretValue]) => (
-            <div key={secretKey}>{secretKey}: {secretValue}</div>
-          ))}
+          {secretsList.data.map(secret => {
+            const checked = secret.associatedWithSessionIds.includes(props.session.id);
+            return (
+              <div
+                className="flex items-center justify-between h-8 cursor-pointer"
+                key={secret.name}
+                onClick={() => onChangeSecretEnabled(secret.name, !checked)}
+              >
+                <span className="font-mono">{secret.name}</span>
+                <div onClick={e => e.stopPropagation()}>
+                  <Switch
+                    disabled={loadingSecretNames.has(secret.name)}
+                    checked={checked}
+                    onCheckedChange={checked => onChangeSecretEnabled(secret.name, checked)}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : null}
     </>

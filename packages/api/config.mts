@@ -82,3 +82,34 @@ export async function addSecret(name: string, value: string): Promise<Secret> {
 export async function removeSecret(name: string) {
   await db.delete(secrets).where(eq(secrets.name, name)).returning();
 }
+
+export async function associateSecretWithSession(secretName: string, sessionId: string) {
+  const result = await db.select({ id: secrets.id }).from(secrets).where(
+    eq(secrets.name, secretName),
+  ).limit(1);
+  if (result.length < 1) {
+    throw new Error(`Cannot associate '${secretName}' with ${sessionId}: cannot find secret with that name!`);
+  }
+  const secretId = result[0]!.id;
+
+  await db
+    .insert(secretsToSession)
+    .values({ secret_id: secretId, session_id: sessionId })
+    .onConflictDoNothing()
+    .returning();
+}
+
+export async function disassociateSecretWithSession(secretName: string, sessionId: string) {
+  const result = await db.select({ id: secrets.id }).from(secrets).where(
+    eq(secrets.name, secretName),
+  ).limit(1);
+  if (result.length < 1) {
+    throw new Error(`Cannot associate '${secretName}' with ${sessionId}: cannot find secret with that name!`);
+  }
+  const secretId = result[0]!.id;
+
+  await db.delete(secretsToSession).where(and(
+    eq(secretsToSession.id, secretId),
+    eq(secretsToSession.session_id, sessionId),
+  )).returning();
+}

@@ -61,6 +61,8 @@ export function SessionNavbar(props: SessionNavbarProps) {
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
 
+  const srcbooks = props.srcbooks.sort((a, b) => b.openedAt - a.openedAt).slice(0, 6);
+
   async function openSrcbook(path: string) {
     // When switching srcbooks, make sure all the modals are hidden
     setShowGenSrcbookModal(false);
@@ -106,20 +108,20 @@ export function SessionNavbar(props: SessionNavbarProps) {
 
             <span className="select-none">/</span>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="icon" className="font-normal px-1 active:translate-y-0">
-                  <div className="flex items-center gap-1">
-                    {props.title}
-                    <ChevronDownIcon size={12} />
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                {props.srcbooks
-                  .sort((a, b) => b.openedAt - a.openedAt)
-                  .slice(0, 6)
-                  .map((srcbook) => {
+            {srcbooks.length < 2 ? (
+              <span className="px-1.5">{props.title}</span>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="icon" className="font-normal px-1.5 active:translate-y-0">
+                    <div className="flex items-center gap-1">
+                      {props.title}
+                      <ChevronDownIcon size={12} />
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {srcbooks.map((srcbook) => {
                     if (srcbook.id === props.session.id) {
                       return null;
                     }
@@ -141,14 +143,15 @@ export function SessionNavbar(props: SessionNavbarProps) {
                     );
                   })}
 
-                {/* FIXME: how should more than 6 entries be rendered? */}
-                {props.srcbooks.length > 6 ? (
-                  <DropdownMenuItem asChild className="cursor-pointer border-t mt-2 pt-2">
-                    <Link to="/">See all</Link>
-                  </DropdownMenuItem>
-                ) : null}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {/* FIXME: how should more than 6 entries be rendered? */}
+                  {props.srcbooks.length > 6 ? (
+                    <DropdownMenuItem asChild className="cursor-pointer border-t mt-2 pt-2">
+                      <Link to="/">See all</Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             <div className="w-[1px] h-5 bg-border" />
 

@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm';
-import { randomid } from '@srcbook/shared';
-import { configs, type Config, secrets, type Secret } from './db/schema.mjs';
+import { eq, and, inArray } from 'drizzle-orm';
+import { type SecretWithAssociatedSessions, randomid } from '@srcbook/shared';
+import { configs, type Config, secrets, type Secret, secretsToSession } from './db/schema.mjs';
 import { db } from './db/index.mjs';
 import { HOME_DIR } from './constants.mjs';
 
@@ -44,12 +44,26 @@ export async function updateConfig(attrs: Partial<Config>) {
   return db.update(configs).set(attrs).returning();
 }
 
-export async function getSecrets(): Promise<Record<string, string>> {
-  const results = await db.select().from(secrets);
-  return results.reduce((acc: Record<string, string>, { name, value }) => {
-    acc[name] = value;
-    return acc;
-  }, {});
+export async function getSecrets(): Promise<Array<SecretWithAssociatedSessions>> {
+  const secretsResult = await db.select().from(secrets);
+  const secretsToSessionResult = await db.select()
+    .from(secretsToSession)
+    .where(
+      inArray(
+        secretsToSession.secret_id,
+        secretsResult.map(secret => secret.id),
+      ),
+    );
+
+  return secretsResult.map(secret => ({
+    name: secret.name,
+    value: secret.value,
+    associatedWithSessionIds: (
+      secretsToSessionResult
+        .filter(secretToSession => secretToSession.secret_id === secret.id)
+        .map(secretToSession => secretToSession.session_id)
+    ),
+  }));
 }
 
 export async function addSecret(name: string, value: string): Promise<Secret> {

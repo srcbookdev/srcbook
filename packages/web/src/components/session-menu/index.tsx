@@ -57,7 +57,7 @@ export const SESSION_MENU_PANELS = [
     name: 'secrets' as const,
     icon: KeySquareIcon,
     openWidthInPx: 480,
-    contents: () => <SessionMenuPanelSecrets />,
+    contents: (props: SessionMenuPanelContentsProps) => <SessionMenuPanelSecrets session={props.session} />,
   },
 ];
 export type Panel = (typeof SESSION_MENU_PANELS)[0];

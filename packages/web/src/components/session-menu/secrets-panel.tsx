@@ -1,23 +1,26 @@
 // import { SessionMenuPanelContentsProps } from '.';
 
-import { useEffect, useState } from "react";
-import { getSecrets } from "@/lib/server";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from 'sonner';
+import { type SecretWithAssociatedSessions } from '@srcbook/shared';
 
-type PropsType = Record<string, never>; // Pick<SessionMenuPanelContentsProps, 'session' | 'openDepsInstallModal'>;
+import { getSecrets, associateSecretWithSession, disassociateSecretWithSession } from "@/lib/server";
+import { Switch } from "@/components/ui/switch";
+import { SessionMenuPanelContentsProps } from ".";
 
-type SecretsList = Record<string, string>;
+type PropsType = Pick<SessionMenuPanelContentsProps, 'session'>;
 
-export default function SessionMenuPanelSecrets(_props: PropsType) {
+export default function SessionMenuPanelSecrets(props: PropsType) {
   const [secretsList, setSecretsList] = useState<
     | { status: 'idle' } 
     | { status: 'loading' }
-    | { status: 'complete', data: SecretsList }
+    | { status: 'complete', data: Array<SecretWithAssociatedSessions> }
     | { status: 'error' }
   >({ status: 'idle' });
   useEffect(() => {
     const run = async () => {
       setSecretsList({ status: 'loading' });
-      let result: SecretsList;
+      let result: Array<SecretWithAssociatedSessions>;
       try {
         result = (await getSecrets()).result;
       } catch (err) {

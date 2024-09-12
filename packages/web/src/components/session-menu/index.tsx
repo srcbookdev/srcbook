@@ -39,8 +39,8 @@ export const SESSION_MENU_PANELS = [
     name: 'packages' as const,
     icon: PackageIcon,
     openWidthInPx: 480,
-    contents: ({ session, openDepsInstallModal }: SessionMenuPanelContentsProps) => (
-      <SessionMenuPanelPackages session={session} openDepsInstallModal={openDepsInstallModal} />
+    contents: ({ openDepsInstallModal }: SessionMenuPanelContentsProps) => (
+      <SessionMenuPanelPackages openDepsInstallModal={openDepsInstallModal} />
     ),
     tooltipContent: 'package.json',
   },

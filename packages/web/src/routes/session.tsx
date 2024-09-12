@@ -142,8 +142,8 @@ function Session(props: {
   );
 
   useHotkeys('mod+;', () => {
-    if (isPanelOpen('settings')) {
-      setSelectedPanelNameAndOpen(['settings', true]);
+    if (!isPanelOpen('packages')) {
+      setSelectedPanelNameAndOpen(['packages', true]);
     }
   });
 

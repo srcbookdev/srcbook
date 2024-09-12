@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TsConfigUpdatedPayloadType } from '@srcbook/shared';
+import type { TitleCellType, TsConfigUpdatedPayloadType } from '@srcbook/shared';
 import { X, Info } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
@@ -11,20 +11,30 @@ import CollapsibleContainer from '@/components/collapsible-container';
 import useTheme from '@/components/use-theme';
 import { SessionChannel } from '@/clients/websocket';
 import { useTsconfigJson } from '@/components/use-tsconfig-json';
+import { useCells } from '@/components/use-cell';
 
-import { SessionMenuPanelContentsProps } from '.';
+import type { SessionMenuPanelContentsProps } from '.';
 
 type PropsType = Pick<SessionMenuPanelContentsProps, 'session' | 'channel'>;
 
 export default function SessionMenuPanelSettings({ session, channel }: PropsType) {
-  const { aiEnabled } = useSettings();
   const navigate = useNavigate();
+  const { aiEnabled } = useSettings();
+  const { cells } = useCells();
+
   const [showAiNudge, setShowAiNudge] = useState(!aiEnabled);
+
+  const title = cells.find((cell) => cell.type === 'title') as TitleCellType;
 
   return (
     <>
-      <div className="text-lg font-semibold leading-tight mb-4">
-        <span>Settings</span>
+      <h4 className="text-lg font-semibold leading-tight mb-4">Settings</h4>
+
+      <div className="flex items-center justify-between gap-8 text-sm mb-5">
+        <h5 className="font-medium max-w-72 truncate">{title.text}</h5>
+        <p className="text-tertiary-foreground">
+          {session.language === 'typescript' ? 'TypeScript' : 'JavaScript'}
+        </p>
       </div>
 
       {showAiNudge && (
@@ -49,9 +59,15 @@ export default function SessionMenuPanelSettings({ session, channel }: PropsType
           </p>
         </div>
       )}
-      <div className="text-foreground mt-2 space-y-6">
-        {session.language === 'typescript' && <TsconfigJson channel={channel} />}
-      </div>
+      {/* TOOD: Add more settings or handle this in a better way */}
+      {session.language === 'javascript' && (
+        <p className="text-tertiary-foreground text-lg mt-5">No additional settings</p>
+      )}
+      {session.language === 'typescript' && (
+        <div className="text-foreground mt-2 space-y-6">
+          <TsconfigJson channel={channel} />
+        </div>
+      )}
     </>
   );
 }

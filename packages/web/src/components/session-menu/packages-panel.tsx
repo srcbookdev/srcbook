@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { TitleCellType } from '@srcbook/shared';
 import { OutputType } from '@/types';
 import {
   Info,
@@ -19,27 +18,13 @@ import { Button } from '@/components/ui/button';
 import { usePackageJson } from '@/components/use-package-json';
 
 import { SessionMenuPanelContentsProps } from '.';
-import { useCells } from '@/components/use-cell';
 
-type PropsType = Pick<SessionMenuPanelContentsProps, 'session' | 'openDepsInstallModal'>;
+type PropsType = Pick<SessionMenuPanelContentsProps, 'openDepsInstallModal'>;
 
-export default function SessionMenuPanelPackages({ session, openDepsInstallModal }: PropsType) {
-  const { cells } = useCells();
-  const title = cells.find((cell) => cell.type === 'title') as TitleCellType;
-
+export default function SessionMenuPanelPackages({ openDepsInstallModal }: PropsType) {
   return (
     <>
-      <div className="text-lg font-semibold leading-tight mb-3">
-        <span>Dependencies</span>
-      </div>
-
-      <div className="flex items-center justify-between gap-8 text-sm mb-5">
-        <h5 className="font-medium max-w-72 truncate">{title.text}</h5>
-        <p className="text-tertiary-foreground">
-          {session.language === 'typescript' ? 'TypeScript' : 'JavaScript'}
-        </p>
-      </div>
-
+      <h4 className="text-lg font-semibold leading-tight mb-4">Dependencies</h4>
       <PackageJson openDepsInstallModal={openDepsInstallModal} />
     </>
   );

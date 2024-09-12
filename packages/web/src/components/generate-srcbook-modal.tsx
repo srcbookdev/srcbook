@@ -74,7 +74,6 @@ export default function GenerateSrcbookModal({
           <DialogTitle>Generate with AI</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3">
-          {!aiEnabled && <APIKeyWarning />}
           <Textarea
             placeholder="Write a prompt to create a Srcbook..."
             className="focus-visible:ring-2"
@@ -83,6 +82,7 @@ export default function GenerateSrcbookModal({
             disabled={!aiEnabled || status === 'loading'}
             onChange={(e) => setQuery(e.target.value)}
           />
+          {!aiEnabled && <APIKeyWarning />}
           <Button
             className="self-end flex items-center gap-2"
             disabled={!query || status === 'loading'}
@@ -119,7 +119,7 @@ export default function GenerateSrcbookModal({
 function APIKeyWarning() {
   return (
     <div className="flex items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-      <p>Set up an AI provider to start using AI features.</p>
+      <p>AI provider not configured.</p>
       <Link to="/settings" className="underline">
         Settings
       </Link>

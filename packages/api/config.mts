@@ -66,6 +66,15 @@ export async function getSecrets(): Promise<Array<SecretWithAssociatedSessions>>
   }));
 }
 
+export async function getSecretsAssociatedWithSession(sessionId: string): Promise<Record<string, string>> {
+  const secretsResults = await getSecrets();
+  return Object.fromEntries(
+    secretsResults
+      .filter(secret => secret.associatedWithSessionIds.includes(sessionId))
+      .map(secret => [secret.name, secret.value])
+  );
+}
+
 export async function addSecret(name: string, value: string): Promise<Secret> {
   const result = await db
     .insert(secrets)

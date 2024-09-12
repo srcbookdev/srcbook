@@ -13,7 +13,7 @@ import {
   addCell,
   formatAndUpdateCodeCell,
 } from '../session.mjs';
-import { getSecrets } from '../config.mjs';
+import { getSecretsAssociatedWithSession } from '../config.mjs';
 import type { SessionType } from '../types.mjs';
 import { node, npmInstall, tsx } from '../exec.mjs';
 import { shouldNpmInstall, missingUndeclaredDeps } from '../deps.mjs';
@@ -137,7 +137,7 @@ async function cellExec(payload: CellExecPayloadType) {
 
   nudgeMissingDeps(wss, session);
 
-  const secrets = await getSecrets();
+  const secrets = await getSecretsAssociatedWithSession(session.id);
 
   cell.status = 'running';
   wss.broadcast(`session:${session.id}`, 'cell:updated', { cell });

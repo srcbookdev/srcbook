@@ -14,8 +14,7 @@ export default defineConfig({
           ignored: /node_modules/,
           persistent: true,
         });
-        watcher.on('change', (path) => {
-          console.log(`Backend file ${path} changed. Reloading frontend...`);
+        watcher.on('change', () => {
           server.ws.send({
             type: 'full-reload',
           });

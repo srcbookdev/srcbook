@@ -19,7 +19,6 @@ import {
   LoaderCircle,
   Maximize,
   Minimize,
-  PaintbrushVertical,
 } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
@@ -50,6 +49,7 @@ import { type Diagnostic, linter } from '@codemirror/lint';
 import { tsHover } from './hover';
 import { mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
+import { PrettierLogo } from '../logos';
 
 const DEBOUNCE_DELAY = 500;
 
@@ -440,21 +440,17 @@ function Header(props: {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  {cellMode === 'formatting' ? (
-                    <LoaderCircle size={16} className="animate-spin" />
-                  ) : (
-                    <Button
-                      variant="icon"
-                      size="icon"
-                      disabled={cellMode !== 'off'}
-                      onClick={formatCell}
-                      tabIndex={1}
-                    >
-                      <PaintbrushVertical size={16} />
-                    </Button>
-                  )}
+                  <Button
+                    variant="icon"
+                    size="icon"
+                    disabled={cellMode !== 'off'}
+                    onClick={formatCell}
+                    tabIndex={1}
+                  >
+                    <PrettierLogo size={16} />
+                  </Button>
                 </TooltipTrigger>
-                <TooltipContent>Format</TooltipContent>
+                <TooltipContent>Format using Prettier</TooltipContent>
               </Tooltip>
             </TooltipProvider>
             <TooltipProvider>

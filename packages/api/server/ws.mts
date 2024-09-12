@@ -442,7 +442,7 @@ async function cellFormat(payload: CellFormatPayloadType) {
     sendCellUpdateError(session, payload.cellId, [
       {
         message:
-          'An error occurred while formatting the code. Please check the "stderr" for more details.',
+          'An error occurred while formatting the code. Please check stderr for more details.',
         attribute: 'formatting',
       },
     ]);

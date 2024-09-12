@@ -14,9 +14,7 @@ export default function SessionMenuPanelTableOfContents(_props: PropsType) {
 
   return (
     <>
-      <div className="text-lg font-semibold leading-tight mb-4">
-        <span>Table of contents</span>
-      </div>
+      <h4 className="text-lg font-semibold leading-tight mb-4">Table of contents</h4>
 
       <div className="max-w-60 text-tertiary-foreground pr-10">
         {cells.map((cell) => {

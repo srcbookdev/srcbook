@@ -193,11 +193,10 @@ function Sidebar({
         {SESSION_MENU_PANELS.map((panel) => {
           const Icon = panel.icon;
           return (
-            <TooltipProvider>
+            <TooltipProvider key={panel.name}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    key={panel.name}
                     variant="icon"
                     size="icon"
                     className="active:translate-y-0"

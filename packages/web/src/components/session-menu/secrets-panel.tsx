@@ -98,7 +98,7 @@ export default function SessionMenuPanelSecrets(props: PropsType) {
     setTimeout(() => {
       onDeregisterLoadingSecretName(secretName);
     }, 50);
-  }, [props.session.id]);
+  }, [props.session.id, onRegisterLoadingSecretName, onDeregisterLoadingSecretName]);
 
   return (
     <>
@@ -120,9 +120,10 @@ export default function SessionMenuPanelSecrets(props: PropsType) {
                 className="flex items-center justify-between h-8 cursor-pointer"
                 key={secret.name}
                 onClick={() => onChangeSecretEnabled(secret.name, !checked)}
+                aria-hidden={true}
               >
                 <span className="font-mono">{secret.name}</span>
-                <div onClick={e => e.stopPropagation()}>
+                <div onClick={e => e.stopPropagation()} aria-hidden={true}>
                   <Switch
                     disabled={loadingSecretNames.has(secret.name)}
                     checked={checked}

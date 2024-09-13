@@ -20,9 +20,8 @@ If you're ready to file a PR, remember to [add a changeset](#making-a-changeset)
 - Node 18+
 - pnpm 9.5+
 
-Note: if you switch node versions during development, you may need to rebuild with `pnpm rebuild -r` due to the `better-sqlite3` native bindings.
-
-### Development
+> [!NOTE]
+> If you switch node versions during development, you may need to rebuild with `pnpm rebuild -r` due to the `better-sqlite3` native bindings.
 
 First, make sure to install dependencies:
 
@@ -42,8 +41,6 @@ pnpm run dev
 ```
 
 Then visit http://localhost:5173
-
-_Note: make sure to run the database migrations with `pnpm run migrate` if you get a drizzle DB error._
 
 ### Running pnpm scripts
 
@@ -109,7 +106,7 @@ To create a new migration, first modify [schema.ts](./packages/api/db/schema.mts
 pnpm run generate -- --name <migration_name>
 ```
 
-To apply migrations:
+Migrations should be executed when the application starts. You can manually apply them using:
 
 ```shell
 pnpm run migrate

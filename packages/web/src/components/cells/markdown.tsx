@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { marked } from 'marked';
+import mermaid from 'mermaid';
 import Markdown from 'marked-react';
 import CodeMirror, { keymap, Prec, EditorView } from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
@@ -13,12 +14,42 @@ import { useCells } from '../use-cell';
 
 marked.use({ gfm: true });
 
+const markdownRenderer = {
+  code(snippet: React.ReactNode, lang: string) {
+    if (lang === 'mermaid') {
+      return (
+        <pre className="mermaid" key="mermaid">
+          {snippet}
+        </pre>
+      );
+    }
+
+    return (
+      <pre key="code">
+        <code>{snippet}</code>
+      </pre>
+    );
+  },
+};
+
+function getValidationError(text: string) {
+  const tokens = marked.lexer(text);
+  const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
+  const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
+
+  if (hasH1 || hasH6) {
+    return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
+  }
+
+  return null;
+}
+
 export default function MarkdownCell(props: {
   cell: MarkdownCellType;
   updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
-  const { codeTheme } = useTheme();
+  const { codeTheme, theme } = useTheme();
   const { updateCell: updateCellOnClient } = useCells();
   const { cell, updateCellOnServer, onDeleteCell } = props;
   const defaultState = cell.text ? 'view' : 'edit';
@@ -31,6 +62,18 @@ export default function MarkdownCell(props: {
       setText(cell.text);
     }
   }, [status, cell.text]);
+
+  // Initializes mermaid and updates it on theme change
+  useEffect(() => {
+    mermaid.initialize({ startOnLoad: true, theme: theme === 'dark' ? 'dark' : 'base' });
+  }, [theme]);
+
+  // Rerenders mermaid diagrams when the cell is in view mode
+  useEffect(() => {
+    if (status === 'view') {
+      mermaid.run();
+    }
+  }, [status]);
 
   const keyMap = Prec.highest(
     keymap.of([
@@ -50,18 +93,6 @@ export default function MarkdownCell(props: {
       },
     ]),
   );
-
-  function getValidationError(text: string) {
-    const tokens = marked.lexer(text);
-    const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
-    const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
-
-    if (hasH1 || hasH6) {
-      return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
-    }
-
-    return null;
-  }
 
   function onSave() {
     const error = getValidationError(text);
@@ -109,7 +140,7 @@ export default function MarkdownCell(props: {
             </div>
           </div>
           <div className="sb-prose px-3 pt-10 group-hover/cell:pt-0">
-            <Markdown>{cell.text}</Markdown>
+            <Markdown renderer={markdownRenderer}>{cell.text}</Markdown>
           </div>
         </div>
       ) : (

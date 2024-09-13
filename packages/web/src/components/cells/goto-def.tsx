@@ -4,10 +4,15 @@ import { mapCMLocationToTsServer } from './util';
 import { SessionChannel } from '@/clients/websocket';
 
 /** Hover extension for TS server information */
-export function gotoDef(sessionId: string, cell: CodeCellType, channel: SessionChannel): Extension {
+export function gotoDef(
+  sessionId: string,
+  cell: CodeCellType,
+  channel: SessionChannel,
+  enabled: boolean,
+) {
   return hoverTooltip(async (view, pos) => {
-    if (cell.language !== 'typescript') {
-      return null; // bail early if not typescript
+    if (cell.language !== 'typescript' || !enabled) {
+      return null; // bail early if not typescript or goto def is disabled
     }
 
     const { from, to, text } = view.state.doc.lineAt(pos);
@@ -26,6 +31,16 @@ export function gotoDef(sessionId: string, cell: CodeCellType, channel: SessionC
 
         function callback({ response }: TsServerDefinitionLocationResponsePayloadType) {
           console.log(response);
+          if (response === null || response === undefined) {
+            return;
+          }
+          const filename = response.file.includes('.srcbook/srcbooks')
+            ? response.file.split('/').pop() || response.file
+            : response.file;
+          const element = document.getElementById(filename);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
         }
 
         return {

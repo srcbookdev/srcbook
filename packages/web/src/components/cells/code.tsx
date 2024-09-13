@@ -258,7 +258,7 @@ export default function CodeCell(props: {
           ) : (
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
-                <div className={cn(cellMode !== 'off' && 'opacity-50')}>
+                <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
                   <CodeEditor
                     channel={channel}
                     session={session}
@@ -328,7 +328,7 @@ export default function CodeCell(props: {
             <DiffEditor original={cell.source} modified={newSource} />
           ) : (
             <>
-              <div className={cn(cellMode !== 'off' && 'opacity-50')}>
+              <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
                 <CodeEditor
                   channel={channel}
                   session={session}
@@ -694,6 +694,47 @@ function CodeEditor({
   readOnly: boolean;
 }) {
   const { theme, codeTheme } = useTheme();
+  const [gotoDefEnabled, setGotoDefEnabled] = useState(false);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+
+  const handleMouseDown = () => {
+    console.log('Mouse down!');
+    setIsMouseDown(true);
+  };
+
+  const handleMouseUp = () => {
+    console.log('Mouse up!');
+    setIsMouseDown(false);
+  };
+
+  useEffect(() => {
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  useHotkeys(
+    'mod',
+    () => {
+      if (isMouseDown) {
+        setGotoDefEnabled(true);
+        console.log('goto def enabled and mousedown true');
+      }
+    },
+    { keydown: true },
+  );
+  useHotkeys(
+    'mod',
+    () => {
+      setGotoDefEnabled(false);
+      console.log('goto def disabled');
+    },
+    { keyup: true },
+  );
 
   const {
     updateCell: updateCellOnClient,
@@ -712,7 +753,7 @@ function CodeEditor({
     javascript({ typescript: true }),
     tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
-    gotoDef(session.id, cell, channel),
+    gotoDef(session.id, cell, channel, gotoDefEnabled),
     Prec.highest(
       keymap.of([
         { key: 'Mod-Enter', run: evaluateModEnter },

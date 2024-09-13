@@ -14,11 +14,25 @@ import { useCells } from '../use-cell';
 
 marked.use({ gfm: true });
 
+const MERMAID_LIGHT_OVERRIDES = {
+  background: '#FFFFFF', // bg-background // Other colors (eg line color) are derived from this
+  primaryColor: '#FBFCFD', // bg-muted
+  primaryBorderColor: '#D8DBDD', // bg-border
+  primaryTextColor: '#38464F', // text-foreground
+};
+
+const MERMAID_DARK_OVERRIDES = {
+  background: '#20282D', // bg-background // Other colors (eg line color) are derived from this
+  primaryColor: '#293239', // bg-muted
+  primaryBorderColor: '#38464F', // bg-border
+  primaryTextColor: '#FFFFFF', // text-foreground
+};
+
 const markdownRenderer = {
   code(snippet: React.ReactNode, lang: string) {
     if (lang === 'mermaid') {
       return (
-        <pre className="mermaid" key="mermaid">
+        <pre className="mermaid !bg-background" key="mermaid">
           {snippet}
         </pre>
       );
@@ -65,7 +79,13 @@ export default function MarkdownCell(props: {
 
   // Initializes mermaid and updates it on theme change
   useEffect(() => {
-    mermaid.initialize({ startOnLoad: true, theme: theme === 'dark' ? 'dark' : 'base' });
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      fontFamily: 'IBM Plex Sans',
+      darkMode: theme === 'dark',
+      themeVariables: theme === 'dark' ? MERMAID_DARK_OVERRIDES : MERMAID_LIGHT_OVERRIDES,
+    });
   }, [theme]);
 
   // Rerenders mermaid diagrams when the cell is in view mode

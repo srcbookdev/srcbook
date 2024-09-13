@@ -119,7 +119,7 @@ export default function GenerateSrcbookModal({
 function APIKeyWarning() {
   return (
     <div className="flex items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-      <p>Set up an AI provider to start using AI features.</p>
+      <p>AI provider not configured.</p>
       <Link to="/settings" className="underline">
         Settings
       </Link>

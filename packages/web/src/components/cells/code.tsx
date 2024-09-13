@@ -447,7 +447,7 @@ function Header(props: {
                     onClick={formatCell}
                     tabIndex={1}
                   >
-                    <PrettierLogo size={16} />
+                    <PrettierLogo size={14} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Format using Prettier</TooltipContent>
@@ -588,7 +588,7 @@ function Header(props: {
 
           {!aiEnabled && (
             <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
-              <p>API key required</p>
+              <p>AI provider not configured.</p>
               <button
                 className="font-medium underline cursor-pointer"
                 onClick={() => navigate('/settings')}

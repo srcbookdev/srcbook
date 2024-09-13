@@ -203,4 +203,13 @@ export class TsServer extends EventEmitter {
       arguments: args,
     });
   }
+
+  getDefinitionLocation(args: tsserver.protocol.FileLocationRequestArgs) {
+    return this.sendWithResponsePromise<tsserver.protocol.DefinitionResponse>({
+      seq: this.seq,
+      type: 'request',
+      command: 'definition',
+      arguments: args,
+    });
+  }
 }

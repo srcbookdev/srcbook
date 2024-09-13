@@ -26,6 +26,8 @@ import {
   TsServerQuickInfoRequestPayloadSchema,
   TsServerQuickInfoResponsePayloadSchema,
   CellFormattedPayloadSchema,
+  TsServerDefinitionLocationRequestPayloadSchema,
+  TsServerDefinitionLocationResponsePayloadSchema,
 } from '../schemas/websockets.mjs';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -65,4 +67,11 @@ export type TsServerQuickInfoRequestPayloadType = z.infer<
 >;
 export type TsServerQuickInfoResponsePayloadType = z.infer<
   typeof TsServerQuickInfoResponsePayloadSchema
+>;
+
+export type TsServerDefinitionLocationRequestPayloadType = z.infer<
+  typeof TsServerDefinitionLocationRequestPayloadSchema
+>;
+export type TsServerDefinitionLocationResponsePayloadType = z.infer<
+  typeof TsServerDefinitionLocationResponsePayloadSchema
 >;

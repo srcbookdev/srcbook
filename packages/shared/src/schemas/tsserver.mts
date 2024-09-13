@@ -58,6 +58,6 @@ export const TsServerDefinitionLocationSchema = z.object({
   file: z.string(),
   start: TsServerLocationSchema,
   end: TsServerLocationSchema,
-  contextStart: TsServerLocationSchema,
-  contextEnd: TsServerLocationSchema,
+  contextStart: TsServerLocationSchema.optional(),
+  contextEnd: TsServerLocationSchema.optional(),
 });

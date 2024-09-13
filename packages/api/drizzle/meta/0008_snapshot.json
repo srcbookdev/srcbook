@@ -126,8 +126,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "secrets_to_session": {
-      "name": "secrets_to_session",
+    "secrets_to_sessions": {
+      "name": "secrets_to_sessions",
       "columns": {
         "id": {
           "name": "id",
@@ -153,9 +153,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "secrets_to_session_secret_id_secrets_id_fk": {
-          "name": "secrets_to_session_secret_id_secrets_id_fk",
-          "tableFrom": "secrets_to_session",
+        "secrets_to_sessions_secret_id_secrets_id_fk": {
+          "name": "secrets_to_sessions_secret_id_secrets_id_fk",
+          "tableFrom": "secrets_to_sessions",
           "tableTo": "secrets",
           "columnsFrom": [
             "secret_id"

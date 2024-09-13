@@ -1,4 +1,4 @@
-CREATE TABLE `secrets_to_session` (
+CREATE TABLE `secrets_to_sessions` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`session_id` text NOT NULL,
 	`secret_id` integer NOT NULL,

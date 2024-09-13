@@ -2,4 +2,4 @@
 '@srcbook/web': patch
 ---
 
-added project specific secrets
+Secrets must now be enabled per Srcbook

@@ -118,7 +118,7 @@ export async function disassociateSecretWithSession(secretName: string, sessionI
   const secretId = result[0]!.id;
 
   await db.delete(secretsToSession).where(and(
-    eq(secretsToSession.id, secretId),
+    eq(secretsToSession.secret_id, secretId),
     eq(secretsToSession.session_id, sessionId),
   )).returning();
 }

@@ -793,7 +793,7 @@ async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestP
 
   wss.broadcast(`session:${session.id}`, 'tsserver:cell:definition_location:response', {
     response: {
-      ...body,
+      ...body[0],
     },
   });
 }
@@ -835,7 +835,7 @@ wss
     tsserverQuickInfo,
   )
   .incoming(
-    'tsserver:cell:definition_location:reqeuest',
+    'tsserver:cell:definition_location:request',
     TsServerDefinitionLocationRequestPayloadSchema,
     getDefinitionLocation,
   )

@@ -50,6 +50,7 @@ import { tsHover } from './hover';
 import { mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
+import { gotoDef } from './goto-def';
 
 const DEBOUNCE_DELAY = 500;
 
@@ -711,6 +712,7 @@ function CodeEditor({
     javascript({ typescript: true }),
     tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
+    gotoDef(session.id, cell, channel),
     Prec.highest(
       keymap.of([
         { key: 'Mod-Enter', run: evaluateModEnter },

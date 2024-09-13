@@ -24,6 +24,8 @@ import {
   TsServerCellSuggestionsPayloadSchema,
   TsServerQuickInfoRequestPayloadSchema,
   TsServerQuickInfoResponsePayloadSchema,
+  TsServerDefinitionLocationResponsePayloadSchema,
+  TsServerDefinitionLocationRequestPayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -44,6 +46,7 @@ const IncomingSessionEvents = {
   'tsserver:cell:quickinfo:response': TsServerQuickInfoResponsePayloadSchema,
   'ai:generated': AiGeneratedCellPayloadSchema,
   'tsconfig.json:updated': TsConfigUpdatedPayloadSchema,
+  'tsserver:cell:definition_location:response': TsServerDefinitionLocationResponsePayloadSchema,
 };
 
 const OutgoingSessionEvents = {
@@ -62,6 +65,7 @@ const OutgoingSessionEvents = {
   'tsserver:stop': TsServerStopPayloadSchema,
   'tsserver:cell:quickinfo:request': TsServerQuickInfoRequestPayloadSchema,
   'tsconfig.json:update': TsConfigUpdatePayloadSchema,
+  'tsserver:cell:definition_location:request': TsServerDefinitionLocationRequestPayloadSchema,
 };
 
 export class SessionChannel extends Channel<

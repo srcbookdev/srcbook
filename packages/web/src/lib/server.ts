@@ -332,6 +332,28 @@ export async function deleteSecret(request: DeleteSecretRequestType) {
   return response.json();
 }
 
+export async function associateSecretWithSession(sessionId: string, secretName: string) {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/secrets/${secretName}`, {
+    method: 'PUT',
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+}
+
+export async function disassociateSecretWithSession(sessionId: string, secretName: string) {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/secrets/${secretName}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+}
+
 // NPM package search, has to happen on the server given CORS restrictions
 export async function searchNpmPackages(query: string, size: number) {
   if (query === '') {

@@ -1,15 +1,32 @@
-## Setup
+You can contribute to Srcbook in three primary ways:
+
+1. Using Srcbook! Usage leads to filing issues for bugs or feature requests.
+2. Contributing code for fixes or features.
+3. Being a Srcbook advocate.
+
+Being an advocate is highly underrated. It helps the project grow and receive more investment. The best way to do this is use Srcbook, share your Srcbooks with others, write about or present using Srcbook, etc.
+
+If you write interesting Srcbooks, share them with us and we will happily feature them on [the hub](https://hub.srcbook.com)!
+
+## Code contributions
+
+> [!TIP]
+> Before spending time writing code, consider opening an issue and clarifying desired behavior with the maintainers to ensure a smooth process. We are quick to respond!
+
+If you're ready to file a PR, remember to [add a changeset](#making-a-changeset).
+
+### Setup
 
 - Node 18+
 - pnpm 9.5+
 
 Note: if you switch node versions during development, you may need to rebuild with `pnpm rebuild -r` due to the `better-sqlite3` native bindings.
 
-## Development
+### Development
 
 First, make sure to install dependencies:
 
-```
+```shell
 pnpm install
 ```
 
@@ -28,7 +45,7 @@ Then visit http://localhost:5173
 
 _Note: make sure to run the database migrations with `pnpm run migrate` if you get a drizzle DB error._
 
-## Running pnpm scripts
+### Running pnpm scripts
 
 Similar to NPM, check top-level package.json for scripts.
 
@@ -42,27 +59,22 @@ To run a script defined in one of the packages:
 pnpm run check-types --filter=@srcbook/api
 ```
 
-## Making a changeset
+### Making a changeset
 
-For creating release notes whenever a change is made
+When you create a PR, we ask that you also create a changeset. This is part of our release process automation.
 
 ```shell
 pnpm changeset
 ```
 
-then follow through the CLI, provide clean descriptions to your changes
+This will prompt you about what has changed and whether it should be considered major/minor/patch.
 
-### Finalizing the version
+> [!IMPORTANT]  
+> Given the project is young, we are keeping all changes as minor or patch. Using patch is the safest bet for now.
 
-The command below should clean up all files in `.changeset` into proper `CHANGELOG.md` files inside of their respective packages
+Please write good changeset messages because these will appear in our changelogs.
 
-```shell
-pnpm changeset version
-```
-
-> Note these will also be used by the changeset action to create gh release notes in the future
-
-## Adding a dependency
+### Adding a dependency
 
 To add a dependency from npm registry:
 
@@ -86,7 +98,7 @@ pnpm add -D @srcbook/shared --workspace --filter api
 
 To remove a package, use `remove` instead of `add` in the commands above.
 
-## Database
+### Database
 
 The application is powered by a local sqlite3 database, that lives at `~/.srcbook/srcbook.db`. We use [drizzle](https://orm.drizzle.team/) as an orm and for migrations.
 
@@ -102,20 +114,3 @@ To apply migrations:
 ```shell
 pnpm run migrate
 ```
-
-## Releasing
-
-The package that gets published to npm is under [srcbook/](./srcbook/). Publishing `srcbook` currently assumes that you've published the latest relevant versions for `@srcbook/shared` and `@srcbook/api`. Currently, you should do all of these manually, following this checklist:
-
-From the root level:
-
-- run `pnpm run build`
-
-From the relevant package directory:
-
-- update the CHANELOG.md in the root directory
-- bump the version in the package.json, commit and push the changes. Example: `git commit -m "Release srcbook version 0.0.1-alpha.10`
-- `pnpm publish`
-- push git tags & add release notes to GitHub
-
-TODO: automate this further with semantic commits, auto-changelogs and git tag pushing.

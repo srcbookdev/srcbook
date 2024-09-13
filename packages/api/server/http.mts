@@ -247,13 +247,6 @@ router.post('/sessions/:id/export', cors(), async (req, res) => {
   }
 });
 
-router.options('/sessions/:id/secrets', cors());
-router.get('/sessions/:id/secrets', cors(), async (req, res) => {
-  const { id } = req.params;
-  const secrets = await getSecretsAssociatedWithSession(id);
-  return res.json({ result: secrets });
-});
-
 router.options('/sessions/:id/secrets/:name', cors());
 router.put('/sessions/:id/secrets/:name', cors(), async (req, res) => {
   const { id, name } = req.params;

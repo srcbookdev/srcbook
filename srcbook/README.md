@@ -16,7 +16,6 @@
 - Create, run, and share reproducible programs and ideas
 - Export to valid markdown format (.src.md)
 - AI features for exploring and iterating on ideas
-- Diagraming with [mermaid](https://mermaid.js.org) for rich annotations
 - Local execution with a web interface
 - Powered by Node.js
 - Open-source under the Apache2 license

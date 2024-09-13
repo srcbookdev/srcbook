@@ -46,32 +46,33 @@ export async function updateConfig(attrs: Partial<Config>) {
 
 export async function getSecrets(): Promise<Array<SecretWithAssociatedSessions>> {
   const secretsResult = await db.select().from(secrets);
-  const secretsToSessionResult = await db.select()
+  const secretsToSessionResult = await db
+    .select()
     .from(secretsToSession)
     .where(
       inArray(
         secretsToSession.secret_id,
-        secretsResult.map(secret => secret.id),
+        secretsResult.map((secret) => secret.id),
       ),
     );
 
-  return secretsResult.map(secret => ({
+  return secretsResult.map((secret) => ({
     name: secret.name,
     value: secret.value,
-    associatedWithSessionIds: (
-      secretsToSessionResult
-        .filter(secretToSession => secretToSession.secret_id === secret.id)
-        .map(secretToSession => secretToSession.session_id)
-    ),
+    associatedWithSessionIds: secretsToSessionResult
+      .filter((secretToSession) => secretToSession.secret_id === secret.id)
+      .map((secretToSession) => secretToSession.session_id),
   }));
 }
 
-export async function getSecretsAssociatedWithSession(sessionId: string): Promise<Record<string, string>> {
+export async function getSecretsAssociatedWithSession(
+  sessionId: string,
+): Promise<Record<string, string>> {
   const secretsResults = await getSecrets();
   return Object.fromEntries(
     secretsResults
-      .filter(secret => secret.associatedWithSessionIds.includes(sessionId))
-      .map(secret => [secret.name, secret.value])
+      .filter((secret) => secret.associatedWithSessionIds.includes(sessionId))
+      .map((secret) => [secret.name, secret.value]),
   );
 }
 
@@ -93,11 +94,15 @@ export async function removeSecret(name: string) {
 }
 
 export async function associateSecretWithSession(secretName: string, sessionId: string) {
-  const result = await db.select({ id: secrets.id }).from(secrets).where(
-    eq(secrets.name, secretName),
-  ).limit(1);
+  const result = await db
+    .select({ id: secrets.id })
+    .from(secrets)
+    .where(eq(secrets.name, secretName))
+    .limit(1);
   if (result.length < 1) {
-    throw new Error(`Cannot associate '${secretName}' with ${sessionId}: cannot find secret with that name!`);
+    throw new Error(
+      `Cannot associate '${secretName}' with ${sessionId}: cannot find secret with that name!`,
+    );
   }
   const secretId = result[0]!.id;
 
@@ -109,16 +114,22 @@ export async function associateSecretWithSession(secretName: string, sessionId: 
 }
 
 export async function disassociateSecretWithSession(secretName: string, sessionId: string) {
-  const result = await db.select({ id: secrets.id }).from(secrets).where(
-    eq(secrets.name, secretName),
-  ).limit(1);
+  const result = await db
+    .select({ id: secrets.id })
+    .from(secrets)
+    .where(eq(secrets.name, secretName))
+    .limit(1);
   if (result.length < 1) {
-    throw new Error(`Cannot associate '${secretName}' with ${sessionId}: cannot find secret with that name!`);
+    throw new Error(
+      `Cannot associate '${secretName}' with ${sessionId}: cannot find secret with that name!`,
+    );
   }
   const secretId = result[0]!.id;
 
-  await db.delete(secretsToSession).where(and(
-    eq(secretsToSession.secret_id, secretId),
-    eq(secretsToSession.session_id, sessionId),
-  )).returning();
+  await db
+    .delete(secretsToSession)
+    .where(
+      and(eq(secretsToSession.secret_id, secretId), eq(secretsToSession.session_id, sessionId)),
+    )
+    .returning();
 }

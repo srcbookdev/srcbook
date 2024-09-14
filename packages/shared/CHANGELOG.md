@@ -1,5 +1,11 @@
 # @srcbook/shared
 
+## 0.0.5
+
+### Patch Changes
+
+- 8c99a0d: Fix broken NPM package
+
 ## 0.0.4
 
 ### Patch Changes

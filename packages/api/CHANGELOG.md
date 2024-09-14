@@ -1,5 +1,13 @@
 # @srcbook/api
 
+## 0.0.5
+
+### Patch Changes
+
+- 8c99a0d: Fix broken NPM package
+- Updated dependencies [8c99a0d]
+  - @srcbook/shared@0.0.5
+
 ## 0.0.4
 
 ### Patch Changes

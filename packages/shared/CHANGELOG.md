@@ -1,5 +1,11 @@
 # @srcbook/shared
 
+## 0.0.4
+
+### Patch Changes
+
+- 9f0a632: Secrets must now be enabled per Srcbook
+
 ## 0.0.3
 
 ### Patch Changes

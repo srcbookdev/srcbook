@@ -1,5 +1,16 @@
 # @srcbook/web
 
+## 0.0.4
+
+### Patch Changes
+
+- e335100: Add support for mermaid diagrams (#282, 99b87a0)
+- 50291e5: Visual tweaks when missing AI configuration, and Prettier logo size"
+- 394d369: Secrets must now be enabled per Srcbook
+- 773ceec: Theme improvements for mermaid diagrams
+- Updated dependencies [9f0a632]
+  - @srcbook/shared@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes

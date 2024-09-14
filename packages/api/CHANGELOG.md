@@ -1,5 +1,13 @@
 # @srcbook/api
 
+## 0.0.4
+
+### Patch Changes
+
+- 9f0a632: Secrets must now be enabled per Srcbook
+- Updated dependencies [9f0a632]
+  - @srcbook/shared@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes

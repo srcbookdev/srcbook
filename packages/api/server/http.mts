@@ -29,6 +29,7 @@ import {
   removeSrcbook,
   importSrcbookFromSrcmdFile,
   importSrcbookFromSrcmdText,
+  importSrcbookFromSrcmdUrl,
 } from '../srcbook/index.mjs';
 import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
@@ -104,9 +105,12 @@ router.delete('/srcbooks/:id', cors(), async (req, res) => {
 // Import a srcbook from a .src.md file or srcmd text.
 router.options('/import', cors());
 router.post('/import', cors(), async (req, res) => {
-  const { path, text } = req.body;
+  const { path, text, url } = req.body;
 
   if (typeof path === 'string' && !isSrcmdPath(path)) {
+    return res.json({ error: true, result: 'Importing only works with .src.md files' });
+  }
+  if (typeof url === 'string' && !isSrcmdPath(url)) {
     return res.json({ error: true, result: 'Importing only works with .src.md files' });
   }
 
@@ -114,6 +118,10 @@ router.post('/import', cors(), async (req, res) => {
     if (typeof path === 'string') {
       posthog.capture({ event: 'user imported srcbook from file' });
       const srcbookDir = await importSrcbookFromSrcmdFile(path);
+      return res.json({ error: false, result: { dir: srcbookDir } });
+    } else if (typeof url === 'string') {
+      posthog.capture({ event: 'user imported srcbook from url' });
+      const srcbookDir = await importSrcbookFromSrcmdUrl(url);
       return res.json({ error: false, result: { dir: srcbookDir } });
     } else {
       posthog.capture({ event: 'user imported srcbook from text' });

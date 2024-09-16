@@ -1,8 +1,14 @@
+import { useNavigate } from 'react-router-dom';
+import { ClipboardIcon, FilesIcon, GlobeIcon, Loader2Icon } from 'lucide-react';
 import { createSession, disk, exportSrcmdFile, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
 import { FsObjectResultType, FsObjectType, SessionType } from '@/types';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
 import { ExportLocationPicker, FilePicker } from '@/components/file-picker';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +17,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import useEffectOnce from './use-effect-once';
-import { useNavigate } from 'react-router-dom';
 
 export function ImportSrcbookModal({
   open,
@@ -20,8 +25,33 @@ export function ImportSrcbookModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'file' | 'url' | 'clipboard'>('file');
+  // "file" tab:
+  const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
+
+  // "url" tab
+  const [url, setUrl] = useState('');
+  const urlInputRef = useRef<HTMLInputElement | null>(null);
+
+  // "clipboard" tab:
+  const [clipboard, setClipboard] = useState('');
+  const clipboardTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      switch (activeTab) {
+        case 'url':
+          urlInputRef.current?.focus();
+          break;
+        case 'clipboard':
+          clipboardTextareaRef.current?.focus();
+          break;
+      }
+    }, 0);
+  }, [activeTab]);
 
   const navigate = useNavigate();
 
@@ -29,10 +59,12 @@ export function ImportSrcbookModal({
     disk().then((response) => setFsResult(response.result));
   });
 
-  async function onChange(entry: FsObjectType) {
+  async function onCreateSrcbookFromFilesystem(entry: FsObjectType) {
     setError(null);
+    setLoading(true);
 
     if (entry.basename.length > 44) {
+      setLoading(false);
       setError('Srcbook title should be less than 44 characters');
       return;
     }
@@ -40,6 +72,7 @@ export function ImportSrcbookModal({
     const { error: importError, result: importResult } = await importSrcbook({ path: entry.path });
 
     if (importError) {
+      setLoading(false);
       setError('There was an error while importing this srcbook.');
       return;
     }
@@ -47,10 +80,86 @@ export function ImportSrcbookModal({
     const { error, result } = await createSession({ path: importResult.dir });
 
     if (error) {
+      setLoading(false);
       setError('There was an error while importing this srcbook.');
       return;
     }
 
+    setActiveTab('file');
+    setLoading(false);
+    onOpenChange(false);
+    return navigate(`/srcbooks/${result.id}`);
+  }
+
+  async function onCreateSrcbookFromUrl(url: string) {
+    setError(null);
+    setLoading(true);
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(url);
+    } catch (err) {
+      console.error(`Cannot parse ${url} as url:`, err);
+      setLoading(false);
+      setError(`Cannot parse ${url} as a url!`);
+      return;
+    }
+
+    const fileName = (
+      parsedUrl.pathname.length > 0 ? parsedUrl.pathname.split('/').at(-1)! : url
+    ).replace(/[^a-zA-Z0-9_-]/g, '');
+
+    if (fileName.length > 44) {
+      setLoading(false);
+      setError('Srcbook title should be less than 44 characters');
+      return;
+    }
+
+    const { error: importError, result: importResult } = await importSrcbook({ url });
+
+    if (importError) {
+      setLoading(false);
+      setError('There was an error while importing this srcbook.');
+      return;
+    }
+
+    const { error, result } = await createSession({ path: importResult.dir });
+
+    if (error) {
+      setLoading(false);
+      setError('There was an error while importing this srcbook.');
+      return;
+    }
+
+    setActiveTab('file');
+    setLoading(false);
+    onOpenChange(false);
+    return navigate(`/srcbooks/${result.id}`);
+  }
+
+  async function onCreateSrcbookFromClipboard(clipboard: string) {
+    setError(null);
+    setLoading(true);
+
+    const { error: importError, result: importResult } = await importSrcbook({ text: clipboard });
+
+    if (importError) {
+      setLoading(false);
+      setError('There was an error while importing this srcbook.');
+      return;
+    }
+
+    const { error, result } = await createSession({ path: importResult.dir });
+
+    if (error) {
+      setLoading(false);
+      setError('There was an error while importing this srcbook.');
+      return;
+    }
+
+    setActiveTab('file');
+    setLoading(false);
+    onOpenChange(false);
     return navigate(`/srcbooks/${result.id}`);
   }
 
@@ -65,12 +174,97 @@ export function ImportSrcbookModal({
             </p>
           </DialogDescription>
         </DialogHeader>
-        <FilePicker
-          dirname={fsResult.dirname}
-          entries={fsResult.entries}
-          cta="Open"
-          onChange={onChange}
-        />
+
+        <Tabs
+          value={activeTab}
+          onValueChange={(tab) => setActiveTab(tab as 'file' | 'url' | 'clipboard')}
+        >
+          <TabsList className="h-10 mb-4">
+            <TabsTrigger value="file">
+              <div className="flex items-center gap-2">
+                <FilesIcon size={18} />
+                From Filesystem
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="url">
+              <div className="flex items-center gap-2">
+                <GlobeIcon size={18} />
+                From URL
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="clipboard">
+              <div className="flex items-center gap-2">
+                <ClipboardIcon size={18} />
+                From Clipboard
+              </div>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent className="mt-0" value="file">
+            <FilePicker
+              dirname={fsResult.dirname}
+              entries={fsResult.entries}
+              cta="Open"
+              onChange={onCreateSrcbookFromFilesystem}
+            />
+          </TabsContent>
+          <TabsContent className="mt-0" value="url">
+            <div className="flex gap-2 w-full">
+              <Input
+                ref={urlInputRef}
+                value={url}
+                onChange={(event) => setUrl(event.target.value)}
+                placeholder="eg: https://example.com/my-fancy-srcbook.src.md"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onCreateSrcbookFromUrl(url);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => onCreateSrcbookFromUrl(url)}
+                disabled={url.length === 0 || loading}
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2Icon size={18} className="animate-spin" />
+                    Loading...
+                  </div>
+                ) : (
+                  'Create'
+                )}
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent className="mt-0" value="clipboard">
+            <div className="flex flex-col gap-4">
+              <Textarea
+                ref={clipboardTextareaRef}
+                value={clipboard}
+                onChange={(event) => setClipboard(event.target.value)}
+                placeholder="Paste clipboard here"
+                className="h-[128px] resize-none"
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  onClick={() => onCreateSrcbookFromClipboard(clipboard)}
+                  disabled={clipboard.length === 0 || loading}
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2Icon size={18} className="animate-spin" />
+                      Loading...
+                    </div>
+                  ) : (
+                    'Create'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </DialogContent>
     </Dialog>

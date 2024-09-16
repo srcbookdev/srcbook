@@ -80,7 +80,6 @@ ${diagnostics}
 };
 
 const makeGenerateCellEditSystemPrompt = (language: CodeLanguageType) => {
-  console.log(`code-updater-${language}.txt`);
   return readFileSync(Path.join(PROMPTS_DIR, `code-updater-${language}.txt`), 'utf-8');
 };
 
@@ -90,9 +89,15 @@ const makeGenerateCellEditUserPrompt = (
   cell: CodeCellType | MarkdownCellType,
 ) => {
   const cellLanguage = cell.type === 'markdown' ? 'markdown' : session.language;
+  const filteredCells =
+    cellLanguage === 'markdown'
+      ? session.cells.filter((cell) => !(cell.type === 'package.json'))
+      : session.cells;
+
   // Intentionally not passing in tsconfig.json here as that doesn't need to be in the prompt.
+
   const inlineSrcbook = encode(
-    { cells: session.cells, language: cellLanguage as CodeLanguageType },
+    { cells: filteredCells, language: cellLanguage as CodeLanguageType },
     { inline: true },
   );
 
@@ -100,9 +105,15 @@ const makeGenerateCellEditUserPrompt = (
 ${inlineSrcbook}
 ==== END SRCBOOK ====
 
-==== BEGIN CODE CELL ====
-${cell.type === 'markdown' ? (cell as MarkdownCellType).text : (cell as CodeCellType).source}
-==== END CODE CELL ====
+${
+  cell.type === 'code'
+    ? `==== BEGIN CODE CELL ====
+${cell.source}
+==== END CODE CELL ====`
+    : `==== BEGIN MARKDOWN CELL ====
+${cell.text}
+==== END MARKDOWN CELL ====`
+}
 
 ==== BEGIN USER REQUEST ====
 ${query}

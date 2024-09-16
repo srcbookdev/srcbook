@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
@@ -30,6 +30,7 @@ import {
   CellFormattedPayloadType,
   AiGeneratedCellPayloadType,
   TsServerDiagnosticType,
+  TsServerDefinitionLocationResponsePayloadType,
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
@@ -47,10 +48,9 @@ import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
 import { tsHover } from './hover';
-import { mapTsServerLocationToCM } from './util';
+import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
-import { gotoDef } from './goto-def';
 
 const DEBOUNCE_DELAY = 500;
 
@@ -676,6 +676,37 @@ function tsLinter(
   });
 }
 
+function gotoDefinition(
+  pos: number,
+  cell: CodeCellType,
+  session: SessionType,
+  channel: SessionChannel,
+) {
+  function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
+    channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
+    console.log(response);
+    if (response === null || response === undefined || Object.keys(response).length === 0) {
+      console.log('no response');
+      return;
+    }
+    const filename = response.file.includes('.srcbook/srcbooks')
+      ? response.file.split('/').pop() || response.file
+      : response.file;
+    const element = document.getElementById(filename);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  console.log({ location: mapCMLocationToTsServer(cell.source, pos) });
+  channel.on('tsserver:cell:definition_location:response', gotoDefCallback);
+  channel.push('tsserver:cell:definition_location:request', {
+    sessionId: session.id,
+    cellId: cell.id,
+    request: { location: mapCMLocationToTsServer(cell.source, pos) },
+  });
+}
+
 function CodeEditor({
   channel,
   cell,
@@ -694,47 +725,12 @@ function CodeEditor({
   readOnly: boolean;
 }) {
   const { theme, codeTheme } = useTheme();
-  const [gotoDefEnabled, setGotoDefEnabled] = useState(false);
-  const [isMouseDown, setIsMouseDown] = useState(false);
-
-  const handleMouseDown = () => {
-    console.log('Mouse down!');
-    setIsMouseDown(true);
-  };
-
-  const handleMouseUp = () => {
-    console.log('Mouse up!');
-    setIsMouseDown(false);
-  };
-
+  const refs = useRef<ReactCodeMirrorRef>({});
   useEffect(() => {
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
-
-  useHotkeys(
-    'mod',
-    () => {
-      if (isMouseDown) {
-        setGotoDefEnabled(true);
-        console.log('goto def enabled and mousedown true');
-      }
-    },
-    { keydown: true },
-  );
-  useHotkeys(
-    'mod',
-    () => {
-      setGotoDefEnabled(false);
-      console.log('goto def disabled');
-    },
-    { keyup: true },
-  );
+    if (refs.current?.view) console.log('EditorView:', refs.current?.view);
+    if (refs.current?.state) console.log('EditorState:', refs.current?.state);
+    if (refs.current?.editor) console.log('HTMLDivElement:', refs.current?.editor);
+  }, [refs]);
 
   const {
     updateCell: updateCellOnClient,
@@ -753,7 +749,21 @@ function CodeEditor({
     javascript({ typescript: true }),
     tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
-    gotoDef(session.id, cell, channel, gotoDefEnabled),
+    Prec.high(
+      EditorView.domEventHandlers({
+        click: (e) => {
+          const view = refs.current?.view;
+          if (view) {
+            const pos = view.posAtCoords({ x: e.pageX, y: e.pageY });
+            console.log(pos);
+            view.focus();
+            if (pos) {
+              gotoDefinition(pos, cell, session, channel);
+            }
+          }
+        },
+      }),
+    ),
     Prec.highest(
       keymap.of([
         { key: 'Mod-Enter', run: evaluateModEnter },
@@ -782,6 +792,7 @@ function CodeEditor({
         updateCellOnClient({ ...cell, source });
         updateCellOnServerDebounced(cell, { source });
       }}
+      ref={refs}
     />
   );
 }

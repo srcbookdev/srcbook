@@ -45,7 +45,10 @@ Create a package.json cell as the second cell. This should specify the dependenc
 </example>
 
 3. Markdown Cells:
-Create markdown cells to explain concepts, provide context, and guide the reader through your srcbook. Use GitHub flavored Markdown syntax. Include relevant headings, lists, and emphasis where appropriate. Do not use heading 1 (reserved for title) or heading 6 (reserved for code block headers). For example:
+Create markdown cells to explain concepts, provide context, and guide the reader through the srcbook. Use GitHub flavored Markdown syntax. Include relevant headings, lists, and emphasis where appropriate. Do not use heading 1 (reserved for title) or heading 6 (reserved for code block headers). If it would be helpful and relevant to the user's ask, you may choose to include a diagram or chart using the Mermaid diagramming and charting tool. To do so, write mermaid syntax in a code block with "mermaid" set as the language identifier.
+
+For example:
+
 <example>
 ## Introduction to websockets
 
@@ -54,6 +57,24 @@ In this srcbook, we'll explore the fundamentals of **websockets** and the ws lib
 - Basic concepts
 - Key features
 - Practical examples
+</example>
+
+Below is an example of using mermaid in a markdown cell:
+
+<example>
+A Bank account could be modeled using classes. For example:
+
+```mermaid
+---
+title: Bank example
+---
+classDiagram
+    class BankAccount
+    BankAccount : +String owner
+    BankAccount : +Bigdecimal balance
+    BankAccount : +deposit(amount)
+    BankAccount : +withdrawal(amount)
+```
 </example>
 
 4. Code Cells:

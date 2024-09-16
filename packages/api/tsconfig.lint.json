@@ -1,4 +1,4 @@
 {
-  "include": ["**/*.mts", "vite.config.ts", "drizzle.config.ts", "vite-env.d.ts"],
+  "include": ["**/*.mts", "vite.config.ts", "drizzle.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -9,7 +9,7 @@
     "isolatedModules": true,
     "useDefineForClassFields": true,
     "lib": ["es2022", "DOM", "DOM.Iterable"],
-    "module": "esnext",
+    "module": "Preserve",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
     "noUncheckedIndexedAccess": true,

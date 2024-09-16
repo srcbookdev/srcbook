@@ -8,7 +8,7 @@
     "dist/**"
   ],
   "scripts": {
-    "dev": "vite-node -w dev-server.mts",
+    "dev": "vite-node dev-server.mts",
     "test": "vitest",
     "prebuild": "rm -rf ./dist",
     "build": "tsc && cp -R ./drizzle ./dist/drizzle && cp -R ./srcbook/examples ./dist/srcbook/examples && cp -R ./prompts ./dist/prompts",

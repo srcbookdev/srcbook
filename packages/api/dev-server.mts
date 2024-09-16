@@ -20,14 +20,3 @@ process.on('SIGINT', async function () {
   server.close();
   process.exit();
 });
-if (import.meta.hot) {
-  import.meta.hot.on('vite:beforeFullReload', () => {
-    wss.close();
-    server.close();
-  });
-
-  import.meta.hot.dispose(() => {
-    wss.close();
-    server.close();
-  });
-}

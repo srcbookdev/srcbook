@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
@@ -725,6 +725,7 @@ function CodeEditor({
   readOnly: boolean;
 }) {
   const { theme, codeTheme } = useTheme();
+  const refs = useRef<ReactCodeMirrorRef>({});
 
   const {
     updateCell: updateCellOnClient,
@@ -745,11 +746,13 @@ function CodeEditor({
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.high(
       EditorView.domEventHandlers({
-        click: (e, view) => {
-          const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-          view.focus();
-          if (pos) {
-            gotoDefinition(pos, cell, session, channel);
+        click: (e) => {
+          const view = refs.current?.view;
+          if (view) {
+            const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+            if (pos) {
+              gotoDefinition(pos, cell, session, channel);
+            }
           }
         },
       }),
@@ -782,6 +785,7 @@ function CodeEditor({
         updateCellOnClient({ ...cell, source });
         updateCellOnServerDebounced(cell, { source });
       }}
+      ref={refs}
     />
   );
 }

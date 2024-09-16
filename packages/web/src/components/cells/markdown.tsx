@@ -77,18 +77,6 @@ function getValidationError(text: string) {
   return null;
 }
 
-function getValidationError(text: string) {
-  const tokens = marked.lexer(text);
-  const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
-  const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
-
-  if (hasH1 || hasH6) {
-    return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
-  }
-
-  return null;
-}
-
 export default function MarkdownCell(props: {
   session: SessionType;
   channel: SessionChannel;

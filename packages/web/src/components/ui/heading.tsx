@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { TitleCellUpdateAttrsSchema } from '@srcbook/shared';
 
 const className =
-  'flex w-full break-all whitespace-normal rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
+  'flex w-full whitespace-normal rounded-md border border-transparent bg-transparent px-1 py-1 transition-colors hover:border-input hover:shadow-sm focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 function isCharacterKey(e: React.KeyboardEvent<HTMLHeadingElement>) {
   return (
@@ -27,11 +27,15 @@ export function EditableH1(props: {
 
   function clearError() {
     _setError(null);
-    timeoutRef.current && clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
   }
 
   function setError(error: string) {
-    timeoutRef.current && clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     _setError(error);
     timeoutRef.current = setTimeout(() => {
       _setError(null);
@@ -41,6 +45,10 @@ export function EditableH1(props: {
   return (
     <div>
       <h1
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- messy fix should be reworked
+        role="textbox"
+        aria-multiline="true"
+        tabIndex={0}
         className={cn(className, props.className)}
         ref={ref}
         contentEditable

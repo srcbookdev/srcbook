@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { marked } from 'marked';
+import mermaid from 'mermaid';
 import Markdown from 'marked-react';
 import CodeMirror, { keymap, Prec, EditorView } from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
@@ -32,6 +33,50 @@ type CellModeType = 'off' | 'generating' | 'reviewing' | 'prompting';
 
 marked.use({ gfm: true });
 
+const MERMAID_LIGHT_OVERRIDES = {
+  background: '#FFFFFF', // bg-background // Other colors (eg line color) are derived from this
+  primaryColor: '#FBFCFD', // bg-muted
+  primaryBorderColor: '#D8DBDD', // bg-border
+  primaryTextColor: '#38464F', // text-foreground
+};
+
+const MERMAID_DARK_OVERRIDES = {
+  background: '#20282D', // bg-background // Other colors (eg line color) are derived from this
+  primaryColor: '#293239', // bg-muted
+  primaryBorderColor: '#38464F', // bg-border
+  primaryTextColor: '#FFFFFF', // text-foreground
+};
+
+const markdownRenderer = {
+  code(snippet: React.ReactNode, lang: string) {
+    if (lang === 'mermaid') {
+      return (
+        <pre className="mermaid !bg-background" key="mermaid">
+          {snippet}
+        </pre>
+      );
+    }
+
+    return (
+      <pre key="code">
+        <code>{snippet}</code>
+      </pre>
+    );
+  },
+};
+
+function getValidationError(text: string) {
+  const tokens = marked.lexer(text);
+  const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
+  const hasH6 = tokens?.some((token) => token.type === 'heading' && token.depth === 6);
+
+  if (hasH1 || hasH6) {
+    return 'Markdown cells cannot use h1 or h6 headings, these are reserved for srcbook.';
+  }
+
+  return null;
+}
+
 function getValidationError(text: string) {
   const tokens = marked.lexer(text);
   const hasH1 = tokens?.some((token) => token.type === 'heading' && token.depth === 1);
@@ -51,7 +96,7 @@ export default function MarkdownCell(props: {
   updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
 }) {
-  const { codeTheme } = useTheme();
+  const { codeTheme, theme } = useTheme();
   const { updateCell: updateCellOnClient } = useCells();
   const { cell, updateCellOnServer, onDeleteCell, channel, session } = props;
   const defaultState = cell.text ? 'view' : 'edit';
@@ -89,6 +134,24 @@ export default function MarkdownCell(props: {
       setText(cell.text);
     }
   }, [status, cell.text]);
+
+  // Initializes mermaid and updates it on theme change
+  useEffect(() => {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      fontFamily: 'IBM Plex Sans',
+      darkMode: theme === 'dark',
+      themeVariables: theme === 'dark' ? MERMAID_DARK_OVERRIDES : MERMAID_LIGHT_OVERRIDES,
+    });
+  }, [theme]);
+
+  // Rerenders mermaid diagrams when the cell is in view mode
+  useEffect(() => {
+    if (status === 'view') {
+      mermaid.run();
+    }
+  }, [status]);
 
   const keyMap = Prec.highest(
     keymap.of([

@@ -1,8 +1,8 @@
 {
   "name": "@srcbook/shared",
-  "version": "0.0.1-alpha.10",
+  "version": "0.0.5",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "scripts": {
     "prebuild": "rm -rf ./dist",
     "build": "tsc",
@@ -12,7 +12,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@scure/base": "^1.1.7",
+    "@scure/base": "^1.1.8",
     "zod": "catalog:"
   }
 }

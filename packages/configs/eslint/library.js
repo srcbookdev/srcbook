@@ -24,10 +24,11 @@ module.exports = {
     '.*.js',
     'node_modules/',
     'dist/',
+    'public/',
   ],
   overrides: [
     {
-      files: ['*.js?(x)', '*.ts?(x)'],
+      files: ['*.js?(x)', '*.ts?(x)', '*.mts'],
     },
   ],
 };

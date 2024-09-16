@@ -47,6 +47,14 @@ export function MainCTACard(props: { srcbook: ExampleSrcbookType; onClick: () =>
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
       className="flex flex-col items-center cursor-pointer border hover:border-foreground transition-colors active:translate-y-0.5 rounded-sm"
       onClick={onClick}
     >
@@ -95,6 +103,14 @@ export function CardContainer({
 }) {
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
       {...props}
       onClick={onClick}
       className={cn(

@@ -1,6 +1,6 @@
 {
   "name": "@srcbook/api",
-  "version": "0.0.1-alpha.3",
+  "version": "0.0.5",
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -25,27 +25,25 @@
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/openai": "catalog:",
     "@srcbook/shared": "workspace:^",
-    "ai": "^3.3.2",
-    "better-sqlite3": "^11.0.0",
+    "ai": "^3.3.33",
+    "better-sqlite3": "^11.3.0",
     "cors": "^2.8.5",
     "depcheck": "^1.4.7",
-    "drizzle-orm": "^0.31.2",
-    "express": "^4.19.2",
+    "drizzle-orm": "^0.33.0",
+    "express": "^4.20.0",
     "marked": "catalog:",
-    "posthog-node": "^4.0.1",
-    "typescript": "catalog:",
+    "posthog-node": "^4.2.0",
     "ws": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.10",
+    "@types/better-sqlite3": "^7.6.11",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/node": "catalog:",
-    "@types/ws": "^8.5.10",
-    "drizzle-kit": "^0.22.7",
-    "vite": "^5.2.11",
-    "vite-node": "^1.6.0",
-    "vitest": "^1.6.0"
+    "@types/ws": "^8.5.12",
+    "drizzle-kit": "^0.24.2",
+    "vite": "^5.4.4",
+    "vite-node": "^2.0.5",
+    "vitest": "^2.0.5"
   }
 }

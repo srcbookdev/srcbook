@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, unique } from 'drizzle-orm/sqlite-core';
 import { randomid } from '@srcbook/shared';
 
 export const configs = sqliteTable('config', {
@@ -14,6 +14,8 @@ export const configs = sqliteTable('config', {
   aiProvider: text('ai_provider').notNull().default('openai'),
   aiModel: text('ai_model').default('gpt-4o'),
   aiBaseUrl: text('ai_base_url'),
+  // Null: unset. Email: subscribed. "dismissed": dismissed the dialog.
+  subscriptionEmail: text('subscription_email'),
 });
 
 export type Config = typeof configs.$inferSelect;
@@ -25,3 +27,19 @@ export const secrets = sqliteTable('secrets', {
 });
 
 export type Secret = typeof secrets.$inferSelect;
+
+export const secretsToSession = sqliteTable(
+  'secrets_to_sessions',
+  {
+    id: integer('id').primaryKey(),
+    session_id: text('session_id').notNull(),
+    secret_id: integer('secret_id')
+      .notNull()
+      .references(() => secrets.id),
+  },
+  (t) => ({
+    unique_session_secret: unique().on(t.session_id, t.secret_id),
+  }),
+);
+
+export type SecretsToSession = typeof secretsToSession.$inferSelect;

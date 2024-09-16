@@ -5,7 +5,7 @@ import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcb
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
 import { useCells } from '@/components/use-cell';
-import { OutputType, StdoutOutputType, StderrOutputType } from '@/types';
+import { OutputType, StdoutOutputType, StderrOutputType, CellModeType } from '@/types';
 import { Button } from './ui/button';
 
 type PropsType = {
@@ -13,7 +13,7 @@ type PropsType = {
   show: boolean;
   setShow: (show: boolean) => void;
   fixDiagnostics: (diagnostics: string) => void;
-  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+  cellMode: CellModeType;
   setFullscreen: (fullscreen: boolean) => void;
   fullscreen: boolean;
 };
@@ -147,7 +147,7 @@ export function CellOutput({
         {show && (
           <div
             className={cn(
-              'p-2 flex flex-col-reverse overflow-scroll whitespace-pre-wrap text-[13px]',
+              'p-2 flex flex-col-reverse overflow-auto whitespace-pre-wrap text-[13px]',
               !fullscreen && 'max-h-96',
             )}
           >
@@ -217,7 +217,7 @@ function TsServerDiagnostics({
 }: {
   diagnostics: TsServerDiagnosticType[];
   fixDiagnostics: (diagnostics: string) => void;
-  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+  cellMode: CellModeType;
 }) {
   const { aiEnabled } = useSettings();
   const formattedDiagnostics = diagnostics.map(formatDiagnostic).join('\n');
@@ -248,7 +248,7 @@ function TsServerSuggestions({
 }: {
   suggestions: TsServerDiagnosticType[];
   fixSuggestions: (suggestions: string) => void;
-  cellMode: 'off' | 'generating' | 'reviewing' | 'prompting' | 'fixing';
+  cellMode: CellModeType;
 }) {
   const { aiEnabled } = useSettings();
   const formattedSuggestions = suggestions.map(formatDiagnostic).join('\n');

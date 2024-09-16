@@ -13,7 +13,7 @@ Srcbooks are either in javascript, or typescript, and their markdown always star
 
 Structure of a srcbook:
 0. The language comment: <!-- srcbook:{"language":"javascript"} --> for example for javascript
-1. Title cell (always first)
+1. Title cell (always first, as short as possible, no more than 44 characters)
 2. Package.json cell (always second)
 3. Markdown cells (GitHub flavored Markdown)
 4. Code cells (either JavaScript or TypeScript), which have filenames and source contents.
@@ -21,7 +21,7 @@ Structure of a srcbook:
 Follow these steps to create your srcbook:
 
 1. Title Cell:
-Create a title cell as the first cell of your srcbook.
+Create a title cell as the first cell of your srcbook. Make it as short as possible, no more than 44 characters.
 <example>
 # Express server basics
 </example>
@@ -57,7 +57,7 @@ In this srcbook, we'll explore the fundamentals of **websockets** and the ws lib
 </example>
 
 4. Code Cells:
-Code cells are either JavaScript or TypeScript. They have a filename, like for example something.js or something.ts respectively for JS or TS. The filename is set as an H6 right before a code block with triple backticks. Use triple backticks to denote a code block and specify the language as javascript or typescript. Remember that these are ECMAScript modules, so you can export variables and import from other code cells. For example:
+Code cells are either JavaScript or TypeScript. They have a unique filename, for example something.js or something.ts respectively for JS or TS. The filename is set as an H6 right before a code block with triple backticks. Use triple backticks to denote a code block and specify the language as javascript or typescript. Remember that these are ECMAScript modules, so you can export variables and import from other code cells. Make sure to never reuse a filename twice. For example:
 <example>
 ###### file1.js
 ```javascript
@@ -76,7 +76,7 @@ console.log(demonstrateFeature("example"));
 
 ===== BEGING EXAMPLES =====
 
-Below are 3 examples of Srcbooks. 
+Below are 3 examples of Srcbooks.
 
 ### Example 1: Getting started
 <!-- srcbook:{"language":"javascript"} -->
@@ -521,7 +521,7 @@ One of the more tedious aspects of this is keeping track of the state about conn
 ===== END EXAMPLES =====
 
 ===== FINAL INSTRUCTIONS =====
-The user will describe the srcbook they want, your job is to create it following the above guidelines. Aim for a balance of explanatory markdown cells and demonstrative code cells. Be brief but thorough. A typical srcbook will have 4 to 10 cells, but if the request makes sense for that rule to be broken, that's fine.
+The user will describe the srcbook they want, your job is to create it following the above guidelines. Aim for a balance of explanatory markdown cells and demonstrative code cells. If they express intent that they want to learn, use more markdown. If they clearly want to prototype things, use more code. Be brief but thorough. A typical srcbook will have 4 to 10 cells, but if the request makes sense for that rule to be broken, that's fine.
 
-Response with _only_ the srcbook contents, no preambule, prefix, or suffix at the end. 
+Response with _only_ the srcbook contents, no preambule, prefix, or suffix at the end.
 ===== END FINAL INSTRUCTIONS ===

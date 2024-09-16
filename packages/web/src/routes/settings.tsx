@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CircleCheck, Loader2, CircleX } from 'lucide-react';
-import { disk, updateConfig, aiHealthcheck } from '@/lib/server';
+import { disk, updateConfig, aiHealthcheck, subscribeToMailingList } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
 import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
 import type { SettingsType, FsObjectResultType } from '@/types';
@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import useTheme from '@/components/use-theme';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 async function loader() {
   const { result: diskResult } = await disk({});
@@ -43,12 +44,16 @@ function Settings() {
     anthropicKey: configAnthropicKey,
     updateConfig: updateConfigContext,
     defaultLanguage,
+    subscriptionEmail,
   } = useSettings();
+
+  const isSubscribed = subscriptionEmail && subscriptionEmail !== 'dismissed';
 
   const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
+  const [email, setEmail] = useState<string>(isSubscribed ? subscriptionEmail : '');
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfigContext({ defaultLanguage: value });
@@ -80,33 +85,50 @@ function Settings() {
     ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
     model !== aiModel;
 
+  const handleSubscribe = async () => {
+    try {
+      const response = await subscribeToMailingList(email);
+      if (response.success) {
+        await updateConfigContext({ subscriptionEmail: email });
+        toast.success('Subscribed successfully!');
+      } else {
+        toast.error('There was an error subscribing to the mailing list. Please try again later.');
+      }
+    } catch (error) {
+      toast.error('There was an error subscribing to the mailing list. Please try again later.');
+      console.error('Subscription error:', error);
+    }
+  };
+
   return (
     <div>
       <h4 className="h4 mx-auto mb-6">Settings</h4>
       <div className="space-y-10">
         <div>
           <h2 className="text-xl pb-2">Theme</h2>
-          <label className="opacity-70 text-sm">
+          <label className="opacity-70 text-sm" htmlFor="theme-switch">
             Select light or dark mode for the Srcbook app.
           </label>
           <div className="flex items-center gap-2 mt-4">
-            <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-            <label>Dark mode</label>
+            <Switch id="theme-switch" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+            <label htmlFor="theme-switch">Dark mode</label>
           </div>
         </div>
 
         <div>
           <h2 className="text-xl pb-2">Default Language</h2>
-          <label className="opacity-70 block pb-4 text-sm">
+          <label className="opacity-70 block pb-4 text-sm" htmlFor="language-selector">
             The default language to use when creating new Srcbooks.
           </label>
           <Select onValueChange={updateDefaultLanguage}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={defaultLanguage} />
+            <SelectTrigger id="language-selector" className="w-[180px]">
+              <SelectValue
+                placeholder={defaultLanguage === 'typescript' ? 'TypeScript' : 'JavaScript'}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="typescript">typescript</SelectItem>
-              <SelectItem value="javascript">javascript</SelectItem>
+              <SelectItem value="typescript">TypeScript</SelectItem>
+              <SelectItem value="javascript">JavaScript</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -114,13 +136,13 @@ function Settings() {
         <div>
           <h2 className="text-xl pb-2">AI</h2>
           <div className="flex flex-col">
-            <label className="opacity-70 text-sm pb-4">
+            <label className="opacity-70 text-sm pb-4" htmlFor="ai-provider-selector">
               Select your preferred LLM and enter your credentials to use Srcbook's AI features.
             </label>
             <div className="flex items-center justify-between w-full mb-2 min-h-10">
               <div className="flex items-center gap-2">
                 <Select onValueChange={setAiProvider}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger id="ai-provider-selector" className="w-[180px]">
                     <SelectValue placeholder={aiProvider} />
                   </SelectTrigger>
                   <SelectContent>
@@ -206,10 +228,31 @@ function Settings() {
 
         <div>
           <h2 className="text-xl pb-2">Base Directory</h2>
-          <label className="opacity-70 text-sm">
+          <label className="opacity-70 text-sm" htmlFor="base-dir-picker">
             The default directory to look for Srcbooks when importing.
           </label>
-          <DirPicker dirname={baseDir} entries={entries} cta="Change" />
+          <DirPicker id="base-dir-picker" dirname={baseDir} entries={entries} cta="Change" />
+        </div>
+        <div>
+          <h2 className="text-xl pb-2">Get product updates</h2>
+          <div>
+            <label className="opacity-70 text-sm" htmlFor="mailing-list-email">
+              Subscribe to our mailing list to get the latest updates, early access features, and
+              expert tips delivered to your inbox.
+            </label>
+            <div className="flex gap-2 mt-4">
+              <Input
+                id="mailing-list-email"
+                type="text"
+                placeholder="Your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Button className="px-5" onClick={handleSubscribe}>
+                {isSubscribed ? 'Update' : 'Subscribe'}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

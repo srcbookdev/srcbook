@@ -1,6 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
+    "NODE_ENV",
     "VITE_SRCBOOK_API_ORIGIN",
     "VITE_SRCBOOK_API_HOST",
     "SRCBOOK_DISABLE_ANALYTICS",
@@ -15,7 +16,8 @@
       "cache": false
     },
     "build": {
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "dependsOn": ["^build"]
     },
     "check-types": {
       "dependsOn": ["^check-types"]

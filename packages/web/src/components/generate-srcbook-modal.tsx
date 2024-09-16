@@ -84,7 +84,7 @@ export default function GenerateSrcbookModal({
             onChange={(e) => setQuery(e.target.value)}
           />
           <Button
-            className="w-fit self-end flex items-center gap-2"
+            className="self-end flex items-center gap-2"
             disabled={!query || status === 'loading'}
             onClick={generate}
           >
@@ -97,18 +97,19 @@ export default function GenerateSrcbookModal({
             )}
           </Button>
           {error !== null && <ErrorMessage type={error} onRetry={generate} />}
-          <div className="w-full border-t"></div>
-          <p className="font-bold">Examples</p>
-          {EXAMPLES.map((example) => (
-            <div
-              onClick={() => setQuery(example)}
-              className="flex w-full items-center justify-center gap-6 cursor-pointer hover:bg-muted rounded px-1.5 py-1"
-              key={JSON.stringify(example)}
-            >
-              <Sparkles size={16} className="shrink-0" />
-              <p className="grow text-sm">{example}</p>
-            </div>
-          ))}
+          <div className="border-t">
+            <p className="py-3 font-bold">Examples</p>
+            {EXAMPLES.map((example) => (
+              <button
+                onClick={() => setQuery(example)}
+                className="flex items-center justify-center gap-6 cursor-pointer hover:bg-muted rounded px-1.5 py-2"
+                key={JSON.stringify(example)}
+              >
+                <Sparkles size={16} className="shrink-0" />
+                <p className="text-sm text-left">{example}</p>
+              </button>
+            ))}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -118,7 +119,7 @@ export default function GenerateSrcbookModal({
 function APIKeyWarning() {
   return (
     <div className="flex items-center justify-between bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-      <p>Set up an AI provider to start using AI features.</p>
+      <p>AI provider not configured.</p>
       <Link to="/settings" className="underline">
         Settings
       </Link>

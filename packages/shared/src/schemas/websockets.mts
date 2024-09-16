@@ -1,10 +1,10 @@
 import z from 'zod';
-import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells';
+import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells.mjs';
 import {
   TsServerDiagnosticSchema,
   TsServerQuickInfoRequestSchema,
   TsServerQuickInfoResponseSchema,
-} from './tsserver';
+} from './tsserver.mjs';
 
 // A _message_ over websockets
 export const WebSocketMessageSchema = z.tuple([
@@ -33,6 +33,11 @@ export const CellUpdatePayloadSchema = z.object({
   sessionId: z.string(),
   cellId: z.string(),
   updates: CellUpdateAttrsSchema,
+});
+
+export const CellFormatPayloadSchema = z.object({
+  sessionId: z.string(),
+  cellId: z.string(),
 });
 
 export const AiGenerateCellPayloadSchema = z.object({
@@ -73,6 +78,10 @@ export const CellUpdatedPayloadSchema = z.object({
   cell: CellSchema,
 });
 
+export const CellFormattedPayloadSchema = z.object({
+  cellId: z.string(),
+  cell: CellSchema,
+});
 export const AiGeneratedCellPayloadSchema = z.object({
   cellId: z.string(),
   output: z.string(),

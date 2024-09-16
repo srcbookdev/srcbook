@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { cn } from '@/lib/utils.ts';
 import { getSecrets } from '@/lib/server';
+import { type SecretWithAssociatedSessions } from '@srcbook/shared';
 import { Info, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Form, useLoaderData, useRevalidator } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -25,7 +26,7 @@ function isValidSecretName(name: string) {
 }
 
 function Secrets() {
-  const { secrets } = useLoaderData() as { secrets: Record<string, string> };
+  const { secrets } = useLoaderData() as { secrets: Array<SecretWithAssociatedSessions> };
 
   const [error, _setError] = useState<string | null>(null);
 
@@ -81,7 +82,7 @@ function ErrorMessage(props: { message: string }) {
 }
 
 function SecretsTable(props: {
-  secrets: Record<string, string>;
+  secrets: Array<SecretWithAssociatedSessions>;
   setError: (message: string | null, clearAfter?: number | null) => void;
 }) {
   const revalidator = useRevalidator();
@@ -102,12 +103,12 @@ function SecretsTable(props: {
     revalidator.revalidate();
   }
 
-  const sortedSecrets = Object.entries(props.secrets).sort(([nameA], [nameB]) =>
+  const sortedSecrets = props.secrets.sort(({ name: nameA }, { name: nameB }) =>
     nameA.localeCompare(nameB),
   );
 
   return (
-    Object.keys(sortedSecrets).length > 0 && (
+    sortedSecrets.length > 0 && (
       <div className="relative w-full overflow-auto">
         <table className="w-full space-y-2">
           <thead>
@@ -118,11 +119,11 @@ function SecretsTable(props: {
             </tr>
           </thead>
           <tbody>
-            {sortedSecrets.map(([name, value]) => (
+            {sortedSecrets.map((secret) => (
               <SecretRow
-                key={name}
-                name={name}
-                value={value}
+                key={secret.name}
+                name={secret.name}
+                value={secret.value}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
                 setError={props.setError}

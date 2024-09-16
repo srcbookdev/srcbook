@@ -1,25 +1,34 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/aa3fa190-bffb-413d-6919-0adfeaae1800/public">
-  <source media="(prefers-color-scheme: light)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/733eaa72-3f6a-47f4-2560-9b9441d5ce00/public">
-  <img alt="Srcbook banner" src="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/733eaa72-3f6a-47f4-2560-9b9441d5ce00/public">
+  <source media="(prefers-color-scheme: dark)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/2d5c9dda-044b-49e2-5255-4a0be1085d00/public">
+  <source media="(prefers-color-scheme: light)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/064ebb1f-5153-4581-badd-42b42272fc00/public">
+  <img alt="Srcbook banner" src="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/064ebb1f-5153-4581-badd-42b42272fc00/public">
 </picture>
 
-[![npm version](https://badge.fury.io/js/srcbook.svg)](https://badge.fury.io/js/srcbook)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+<p align="center">
+  <a href="https://badge.fury.io/js/srcbook"><img src="https://badge.fury.io/js/srcbook.svg" alt="npm version" /></a>
+  <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 license" /></a>
+</p>
+
+<p align="center">
+  <a href="https://hub.srcbook.com">Examples</a> ·
+  <a href="https://discord.gg/shDEGBSe2d">Discord</a> ·
+  <a href="https://www.youtube.com/@srcbook">Youtube</a>
+</p>
 
 ## Features
 
 - Create, run, and share reproducible programs and ideas
 - Export to valid markdown format (.src.md)
 - AI features for exploring and iterating on ideas
+- Diagraming with [mermaid](https://mermaid.js.org) for rich annotations
 - Local execution with a web interface
 - Powered by Node.js
 - Open-source under the Apache2 license
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/7c2f1fdf-8c9a-4e5c-46eb-64a35a5c4400/public">
-  <source media="(prefers-color-scheme: light)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/08f1a7b9-2fc1-404c-6621-9f0280010600/public">
-  <img alt="Srcbook banner" src="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/08f1a7b9-2fc1-404c-6621-9f0280010600/public">
+  <source media="(prefers-color-scheme: dark)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/2a4fa0f6-ef1b-4606-c9fa-b31d61b7c300/public">
+  <source media="(prefers-color-scheme: light)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/ebfa2bfe-f805-4398-a348-0f48d4f93400/public">
+  <img alt="Example Srcbook" src="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/ebfa2bfe-f805-4398-a348-0f48d4f93400/public">
 </picture>
 
 ## FAQ
@@ -37,29 +46,20 @@ Srcbook runs locally on your machine as a CLI application with a web interface.
 
 ### Installing
 
-You can install the `srcbook` application from `npm`:
+We recommend using npx to always run the latest version from npm
 
 ```bash
-npm install -g srcbook
+# Using npm
+npx srcbook@latest start
+
+# Using your pm equivalent
+pnpm dlx srcbook@latest start
 ```
 
-### Running
+> You can instead use a global install with `<pkg manager> i -g srcbook`
+> and then directly call srcbook with `srcbook start`
 
-```
-srcbook start
-```
-
-You can also run it directly using `npx`:
-
-```bash
-# Using npx
-npx srcbook start
-
-# Using pnpm
-pnpm dlx srcbook start
-```
-
-Here is the current list of commands:
+### Current Commands
 
 ```bash
 $ srcbook -h
@@ -77,22 +77,18 @@ Commands:
   help [command]                display help for command
 ```
 
-### Updating
-
-You can update `srcbook` using `npm`:
-
-```bash
-npm update -g srcbook
-```
-
 ### Uninstalling
 
 You can remove srcbook by first removing the package, and then cleaning it's local directory on disk:
 
 ```bash
-npm uninstall -g srcbook
 rm -rf ~/.srcbook
+
+# if you configured a global install
+npm uninstall -g srcbook
 ```
+
+> if you used another pm you will need to use it's specific uninstall command
 
 ## Analytics and tracking
 

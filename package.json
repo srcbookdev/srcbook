@@ -12,16 +12,20 @@
     "format": "prettier --write .",
     "generate": "pnpm --filter api generate",
     "migrate": "pnpm --filter api migrate",
-    "start": "turbo start"
+    "start": "turbo start",
+    "ci:publish": "pnpm publish -r",
+    "ci:version": "pnpm changeset version"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
-    "prettier": "catalog:",
-    "typescript": "catalog:",
-    "@srcbook/configs": "workspace:*"
+    "@changesets/cli": "^2.27.8",
+    "@srcbook/configs": "workspace:^",
+    "@types/node": "^20.14.2",
+    "prettier": "^3.3.3",
+    "typescript": "5.6.2",
+    "eslint": "^8.57.0"
   },
   "dependencies": {
-    "turbo": "^2.0.14"
+    "turbo": "^2.1.1"
   },
   "packageManager": "pnpm@9.8.0",
   "engines": {

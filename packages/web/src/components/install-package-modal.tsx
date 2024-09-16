@@ -194,6 +194,13 @@ function SearchResultsList(props: {
             role="option"
             aria-disabled="false"
             aria-selected={selected}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                props.onSelect(result.name);
+              }
+            }}
             className={cn(
               'px-2 py-1 rounded-sm cursor-pointer border border-transparent text-sm',
               selected && 'bg-muted border-border',

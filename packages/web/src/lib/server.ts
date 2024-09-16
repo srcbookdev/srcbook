@@ -238,6 +238,7 @@ interface EditConfigRequestType {
   aiBaseUrl?: string;
   aiModel?: string;
   aiProvider?: AiProviderType;
+  subscriptionEmail?: string | null;
 }
 
 export async function getConfig() {
@@ -253,7 +254,7 @@ export async function getConfig() {
   return response.json();
 }
 
-export async function updateConfig(request: EditConfigRequestType) {
+export async function updateConfig(request: EditConfigRequestType): Promise<void> {
   const response = await fetch(API_BASE_URL + '/settings', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -331,6 +332,28 @@ export async function deleteSecret(request: DeleteSecretRequestType) {
   return response.json();
 }
 
+export async function associateSecretWithSession(sessionId: string, secretName: string) {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/secrets/${secretName}`, {
+    method: 'PUT',
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+}
+
+export async function disassociateSecretWithSession(sessionId: string, secretName: string) {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/secrets/${secretName}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+}
+
 // NPM package search, has to happen on the server given CORS restrictions
 export async function searchNpmPackages(query: string, size: number) {
   if (query === '') {
@@ -395,5 +418,20 @@ export async function aiHealthcheck() {
   if (!response.ok) {
     console.error(response);
   }
+  return response.json();
+}
+
+export async function subscribeToMailingList(email: string) {
+  const response = await fetch(API_BASE_URL + '/subscribe', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Subscription request failed');
+  }
+
   return response.json();
 }

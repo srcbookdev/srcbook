@@ -15,7 +15,15 @@ import {
 } from '../session.mjs';
 import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
 import { disk } from '../utils.mjs';
-import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
+import {
+  getConfig,
+  updateConfig,
+  getSecrets,
+  addSecret,
+  removeSecret,
+  associateSecretWithSession,
+  disassociateSecretWithSession,
+} from '../config.mjs';
 import {
   createSrcbook,
   removeSrcbook,
@@ -239,6 +247,19 @@ router.post('/sessions/:id/export', cors(), async (req, res) => {
   }
 });
 
+router.options('/sessions/:id/secrets/:name', cors());
+router.put('/sessions/:id/secrets/:name', cors(), async (req, res) => {
+  const { id, name } = req.params;
+  await associateSecretWithSession(name, id);
+  return res.status(204).end();
+});
+
+router.delete('/sessions/:id/secrets/:name', cors(), async (req, res) => {
+  const { id, name } = req.params;
+  await disassociateSecretWithSession(name, id);
+  return res.status(204).end();
+});
+
 router.options('/settings', cors());
 
 router.get('/settings', cors(), async (_req, res) => {
@@ -336,6 +357,24 @@ router.get('/npm/search', cors(), async (req, res) => {
     return { name: o.package.name, version: o.package.version, description: o.package.description };
   });
   return res.json({ result: results });
+});
+
+router.options('/subscribe', cors());
+router.post('/subscribe', cors(), async (req, res) => {
+  const { email } = req.body;
+  const hubResponse = await fetch('https://hub.srcbook.com/api/subscribe', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (hubResponse.ok) {
+    return res.json({ success: true });
+  } else {
+    return res.status(hubResponse.status).json({ success: false });
+  }
 });
 
 app.use('/api', router);

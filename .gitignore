@@ -38,3 +38,6 @@ srcbook/lib/**/*
 
 # turbo
 **/.turbo
+
+# Aide
+*.code-workspace

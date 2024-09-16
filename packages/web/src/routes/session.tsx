@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import {
   CellType,
@@ -12,68 +12,105 @@ import {
   TitleCellType,
   TsServerCellSuggestionsPayloadType,
 } from '@srcbook/shared';
-import { loadSession, getConfig } from '@/lib/server';
+import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
 import TitleCell from '@/components/cells/title';
 import MarkdownCell from '@/components/cells/markdown';
 import GenerateAiCell from '@/components/cells/generate-ai';
 import CodeCell from '@/components/cells/code';
-import SessionMenu from '@/components/session-menu';
+import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';
 import { Button } from '@/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
-import useEffectOnce from '@/components/use-effect-once';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
 import { PackageJsonProvider, usePackageJson } from '@/components/use-package-json';
+import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
 
 async function loader({ params }: LoaderFunctionArgs) {
-  const [{ result: config }, { result: session }] = await Promise.all([
+  const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([
     getConfig(),
+    loadSessions(),
     loadSession({ id: params.id! }),
   ]);
 
-  return { config, session };
+  return { config, srcbooks, session };
 }
 
+type SessionLoaderDataType = {
+  config: SettingsType;
+  srcbooks: Array<SessionType>;
+  session: SessionType;
+};
+
 function SessionPage() {
-  const { session, config } = useLoaderData() as { session: SessionType; config: SettingsType };
+  const { config, srcbooks, session } = useLoaderData() as SessionLoaderDataType;
+
+  // Because we use refs for our state, we need a way to trigger
+  // component re-renders when the ref state changes.
+  //
+  // https://legacy.reactjs.org/docs/hooks-faq.html#is-there-something-like-forceupdate
+  //
+  const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
 
   const channelRef = useRef(SessionChannel.create(session.id));
+  const connectedSessionIdRef = useRef<SessionType['id'] | null>(null);
+  const connectedSessionLanguageRef = useRef<SessionType['language'] | null>(null);
   const channel = channelRef.current;
 
-  useEffectOnce(() => {
+  useEffect(() => {
+    if (connectedSessionIdRef.current === session.id) {
+      return;
+    }
+
+    const oldChannel = channelRef.current;
+
+    // Disconnect from the previously connected session
+    if (connectedSessionIdRef.current) {
+      oldChannel.unsubscribe();
+
+      if (connectedSessionLanguageRef.current === 'typescript') {
+        oldChannel.push('tsserver:stop', { sessionId: session.id });
+      }
+    }
+
+    // Reconnect to the new session
+    channelRef.current = SessionChannel.create(session.id);
+    connectedSessionIdRef.current = session.id;
+    connectedSessionLanguageRef.current = session.language;
+
+    const channel = channelRef.current;
+
     channel.subscribe();
 
     if (session.language === 'typescript') {
       channel.push('tsserver:start', { sessionId: session.id });
     }
 
-    return () => {
-      channel.unsubscribe();
-
-      if (session.language === 'typescript') {
-        channel.push('tsserver:stop', { sessionId: session.id });
-      }
-    };
-  });
+    forceComponentRerender();
+  }, [session.id, session.language, forceComponentRerender]);
 
   return (
-    <CellsProvider initialCells={session.cells}>
+    <CellsProvider cells={session.cells}>
       <PackageJsonProvider session={session} channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
-          <Session session={session} channel={channelRef.current} config={config} />
+          <Session session={session} channel={channel} srcbooks={srcbooks} config={config} />
         </TsConfigProvider>
       </PackageJsonProvider>
     </CellsProvider>
   );
 }
 
-function Session(props: { session: SessionType; channel: SessionChannel; config: SettingsType }) {
-  const { session, channel } = props;
+function Session(props: {
+  session: SessionType;
+  channel: SessionChannel;
+  srcbooks: Array<SessionType>;
+  config: SettingsType;
+}) {
+  const { session, channel, srcbooks, config } = props;
 
   const {
     cells: allCells,
@@ -90,16 +127,23 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   const {
     npmInstall,
     failed: dependencyInstallFailed,
-    outdated: dependenciesOutdated,
+    outdated: outdatedDependencies,
     installing: installingDependencies,
   } = usePackageJson();
 
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [[selectedPanelName, selectedPanelOpen], setSelectedPanelNameAndOpen] = useState<
+    [Panel['name'], boolean]
+  >([SESSION_MENU_PANELS[0]!.name, false]);
+
+  const isPanelOpen = useCallback(
+    (name: Panel['name']) => selectedPanelOpen && selectedPanelName === name,
+    [selectedPanelOpen, selectedPanelName],
+  );
 
   useHotkeys('mod+;', () => {
-    if (!showSettings) {
-      setShowSettings(true);
+    if (!isPanelOpen('packages')) {
+      setSelectedPanelNameAndOpen(['packages', true]);
     }
   });
 
@@ -204,13 +248,14 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
   }
 
   // TOOD: We need to stop treating titles and package.json as cells.
-  const [titleCell, _packageJsonCell, ...remainingCells] = allCells;
+  const [titleCellUncasted, _packageJsonCell, ...remainingCells] = allCells;
+  const titleCell = titleCellUncasted as TitleCellType;
   const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
 
   useEffect(() => {
     let result: () => void = () => {};
 
-    if (depsInstallModalOpen || showSettings) {
+    if (depsInstallModalOpen || isPanelOpen('packages')) {
       return result;
     }
 
@@ -223,97 +268,118 @@ function Session(props: { session: SessionType; channel: SessionChannel; config:
         action: {
           label: 'Try again',
           onClick: () => {
-            setShowSettings(true);
+            setSelectedPanelNameAndOpen(['settings', true]);
             setTimeout(npmInstall, 100);
           },
         },
       });
       result = () => toast.dismiss(toastId);
-    } else if (dependenciesOutdated) {
+    } else if (outdatedDependencies) {
       toast.warning('Packages need to be installed', {
         duration: 10000,
         action: {
           label: 'Install',
-          onClick: () => npmInstall(),
+          onClick: () => {
+            // If outdatedDependencies is an array, it usually menas those packages are not present
+            // inside of package.json yet. Thus we must specifically install them by name so they are
+            // installed and added to package.json. Otherwise, we just need to install what is already
+            // listed inside of package.json.
+            if (Array.isArray(outdatedDependencies)) {
+              npmInstall(outdatedDependencies);
+            } else {
+              npmInstall();
+            }
+          },
         },
       });
     }
 
     return result;
   }, [
-    dependenciesOutdated,
+    outdatedDependencies,
     installingDependencies,
     dependencyInstallFailed,
-    showSettings,
+    isPanelOpen,
     depsInstallModalOpen,
     npmInstall,
   ]);
 
   return (
-    <>
-      <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
-      <SessionMenu
-        showSettings={showSettings}
-        setShowSettings={setShowSettings}
+    <div className="flex flex-col">
+      <SessionNavbar
         session={session}
-        openDepsInstallModal={() => setDepsInstallModalOpen(true)}
-        channel={channel}
+        srcbooks={srcbooks}
+        baseDir={config.baseDir}
+        title={titleCell.text}
       />
 
-      {/* At the xl breakpoint, the sessionMenu appears inline so we pad left to balance*/}
-      <div className="px-[72px] xl:pl-[100px] pb-28">
-        <TitleCell cell={titleCell as TitleCellType} updateCellOnServer={updateCellOnServer} />
+      <div className="flex mt-12">
+        <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+        <SessionMenu
+          session={session}
+          selectedPanelName={selectedPanelName}
+          selectedPanelOpen={selectedPanelOpen}
+          onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
+          openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+          channel={channel}
+        />
 
-        {cells.map((cell, idx) => (
-          <div key={cell.id}>
+        <div className="grow shrink lg:px-0 pb-28">
+          <div className="max-w-[800px] mx-auto my-12 px-[32px]">
+            <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+
+            {cells.map((cell, idx) => (
+              <div key={cell.id}>
+                <InsertCellDivider
+                  language={session.language}
+                  createCodeCell={() => createNewCell('code', idx + 2)}
+                  createMarkdownCell={() => createNewCell('markdown', idx + 2)}
+                  createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+                />
+
+                {cell.type === 'code' && (
+                  <CodeCell
+                    cell={cell}
+                    session={session}
+                    channel={channel}
+                    updateCellOnServer={updateCellOnServer}
+                    onDeleteCell={onDeleteCell}
+                  />
+                )}
+
+                {cell.type === 'markdown' && (
+                  <MarkdownCell
+                    session={session}
+                    channel={channel}
+                    cell={cell}
+                    updateCellOnServer={updateCellOnServer}
+                    onDeleteCell={onDeleteCell}
+                  />
+                )}
+
+                {cell.type === 'generate-ai' && (
+                  <GenerateAiCell
+                    cell={cell}
+                    session={session}
+                    insertIdx={idx + 2}
+                    onSuccess={insertGeneratedCells}
+                  />
+                )}
+              </div>
+            ))}
+
+            {/* There is always an insert cell divider after the last cell */}
             <InsertCellDivider
               language={session.language}
-              createCodeCell={() => createNewCell('code', idx + 2)}
-              createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-              createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+              createCodeCell={() => createNewCell('code', allCells.length)}
+              createMarkdownCell={() => createNewCell('markdown', allCells.length)}
+              createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
+              className={cn('h-14', cells.length === 0 && 'opacity-100')}
             />
-
-            {cell.type === 'code' && (
-              <CodeCell
-                cell={cell}
-                session={session}
-                channel={channel}
-                updateCellOnServer={updateCellOnServer}
-                onDeleteCell={onDeleteCell}
-              />
-            )}
-
-            {cell.type === 'markdown' && (
-              <MarkdownCell
-                session={session}
-                channel={channel}
-                cell={cell}
-                updateCellOnServer={updateCellOnServer}
-                onDeleteCell={onDeleteCell}
-              />
-            )}
-
-            {cell.type === 'generate-ai' && (
-              <GenerateAiCell
-                cell={cell}
-                session={session}
-                insertIdx={idx + 2}
-                onSuccess={insertGeneratedCells}
-              />
-            )}
           </div>
-        ))}
-
-        {/* There is always an insert cell divider after the last cell */}
-        <InsertCellDivider
-          language={session.language}
-          createCodeCell={() => createNewCell('code', allCells.length)}
-          createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-          createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
-          className={cn('h-14', cells.length === 0 && 'opacity-100')}
-        />
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 

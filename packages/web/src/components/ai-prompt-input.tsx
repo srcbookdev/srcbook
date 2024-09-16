@@ -39,7 +39,7 @@ export function AiPromptInput({ prompt, setPrompt, onClose, aiEnabled }: AiPromp
       </div>
       {!aiEnabled && (
         <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
-          <p>API key required</p>
+          <p>AI provider not configured.</p>
           <a className="font-medium underline cursor-pointer" onClick={() => navigate('/settings')}>
             Settings
           </a>

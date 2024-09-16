@@ -726,6 +726,7 @@ function CodeEditor({
 }) {
   const { theme, codeTheme } = useTheme();
   const refs = useRef<ReactCodeMirrorRef>({});
+  const [cmdKey, setCmdKey] = useState(false);
 
   const {
     updateCell: updateCellOnClient,
@@ -744,13 +745,24 @@ function CodeEditor({
     javascript({ typescript: true }),
     tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
-    Prec.high(
+    Prec.highest(
       EditorView.domEventHandlers({
+        keydown: (e) => {
+          if (e.key === 'Meta') {
+            setCmdKey(true);
+          }
+        },
+        keyup: (e) => {
+          if (e.key === 'Meta') {
+            setCmdKey(false);
+          }
+        },
         click: (e) => {
+          e.stopPropagation();
           const view = refs.current?.view;
           if (view) {
             const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-            if (pos) {
+            if (pos && cmdKey) {
               gotoDefinition(pos, cell, session, channel);
             }
           }

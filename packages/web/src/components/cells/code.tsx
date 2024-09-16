@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror, { keymap, Prec, ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
@@ -725,12 +725,6 @@ function CodeEditor({
   readOnly: boolean;
 }) {
   const { theme, codeTheme } = useTheme();
-  const refs = useRef<ReactCodeMirrorRef>({});
-  useEffect(() => {
-    if (refs.current?.view) console.log('EditorView:', refs.current?.view);
-    if (refs.current?.state) console.log('EditorState:', refs.current?.state);
-    if (refs.current?.editor) console.log('HTMLDivElement:', refs.current?.editor);
-  }, [refs]);
 
   const {
     updateCell: updateCellOnClient,
@@ -751,15 +745,11 @@ function CodeEditor({
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.high(
       EditorView.domEventHandlers({
-        click: (e) => {
-          const view = refs.current?.view;
-          if (view) {
-            const pos = view.posAtCoords({ x: e.pageX, y: e.pageY });
-            console.log(pos);
-            view.focus();
-            if (pos) {
-              gotoDefinition(pos, cell, session, channel);
-            }
+        click: (e, view) => {
+          const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+          view.focus();
+          if (pos) {
+            gotoDefinition(pos, cell, session, channel);
           }
         },
       }),
@@ -792,7 +782,6 @@ function CodeEditor({
         updateCellOnClient({ ...cell, source });
         updateCellOnServerDebounced(cell, { source });
       }}
-      ref={refs}
     />
   );
 }

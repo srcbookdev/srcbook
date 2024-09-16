@@ -34,7 +34,6 @@ export function encode(srcbook: SrcbookWithPlacebolderType, options: { inline: b
       }
     }),
   ];
-  console.log(encoded);
   // End every file with exactly one newline.
   return encoded.join('\n\n').trimEnd() + '\n';
 }

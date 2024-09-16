@@ -321,8 +321,10 @@ export default function MarkdownCell(props: {
       )}
 
       {status === 'view' ? (
-        <div className="sb-prose px-3 pt-10 group-hover/cell:pt-0">
-          <Markdown>{cell.text}</Markdown>
+        <div>
+          <div className="sb-prose px-3 pt-10 group-hover/cell:pt-0">
+            <Markdown renderer={markdownRenderer}>{cell.text}</Markdown>
+          </div>
         </div>
       ) : (
         <>

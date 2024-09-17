@@ -39,7 +39,11 @@ export function AiPromptInput({ prompt, setPrompt, onClose, aiEnabled }: AiPromp
       {!aiEnabled && (
         <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
           <p>AI provider not configured.</p>
-          <button className="font-medium underline cursor-pointer" onClick={navigate('/settings')}>
+          <button
+            className="font-medium underline cursor-pointer"
+            onClick={() => navigate('/settings')}
+            aria-hidden="true"
+          >
             Settings
           </button>
         </div>

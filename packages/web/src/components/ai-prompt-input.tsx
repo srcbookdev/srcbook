@@ -20,7 +20,6 @@ export function AiPromptInput({ prompt, setPrompt, onClose, aiEnabled }: AiPromp
           <Sparkles size={16} className="m-2.5" />
           <TextareaAutosize
             className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
-            autoFocus
             placeholder="Ask the AI to edit this cell..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -40,9 +39,9 @@ export function AiPromptInput({ prompt, setPrompt, onClose, aiEnabled }: AiPromp
       {!aiEnabled && (
         <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
           <p>AI provider not configured.</p>
-          <a className="font-medium underline cursor-pointer" onClick={() => navigate('/settings')}>
+          <button className="font-medium underline cursor-pointer" onClick={navigate('/settings')}>
             Settings
-          </a>
+          </button>
         </div>
       )}
     </div>

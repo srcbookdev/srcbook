@@ -67,7 +67,6 @@ router.post('/file', cors(), async (req, res) => {
 
   try {
     const content = await fs.readFile(file, 'utf8');
-
     return res.json({ error: false, result: { content } });
   } catch (e) {
     const error = e as unknown as Error;

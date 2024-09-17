@@ -8,7 +8,6 @@ import {
   createSession,
   findSession,
   deleteSessionByDirname,
-  exportSrcmdFile,
   updateSession,
   sessionToResponse,
   listSessions,
@@ -230,25 +229,6 @@ router.get('/sessions/:id', cors(), async (req, res) => {
     }
     updateSession(session, { openedAt: Date.now() }, false);
     return res.json({ error: false, result: sessionToResponse(session) });
-  } catch (e) {
-    const error = e as unknown as Error;
-    console.error(error);
-    return res.json({ error: true, result: error.stack });
-  }
-});
-
-router.options('/sessions/:id/export', cors());
-router.post('/sessions/:id/export', cors(), async (req, res) => {
-  const { directory, filename } = req.body;
-  const session = await findSession(req.params.id);
-
-  const path = Path.join(directory, filename);
-
-  posthog.capture({ event: 'user exported srcbook' });
-
-  try {
-    await exportSrcmdFile(session, path);
-    return res.json({ error: false, result: filename });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

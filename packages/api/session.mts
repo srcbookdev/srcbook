@@ -126,14 +126,6 @@ export function exportSrcmdText(session: SessionType) {
   );
 }
 
-export async function exportSrcmdFile(session: SessionType, destinationPath: string) {
-  if (await fileExists(destinationPath)) {
-    throw new Error(`Cannot export .src.md file: ${destinationPath} already exists`);
-  }
-
-  return fs.writeFile(destinationPath, exportSrcmdText(session));
-}
-
 export async function findSession(id: string): Promise<SessionType> {
   if (!sessions[id]) {
     throw new Error(`Session with id ${id} not found`);

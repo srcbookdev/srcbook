@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
@@ -30,6 +30,7 @@ import {
   CellFormattedPayloadType,
   AiGeneratedCellPayloadType,
   TsServerDiagnosticType,
+  TsServerDefinitionLocationResponsePayloadType,
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
@@ -47,7 +48,7 @@ import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
 import { tsHover } from './hover';
-import { mapTsServerLocationToCM } from './util';
+import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
 
@@ -257,7 +258,7 @@ export default function CodeCell(props: {
           ) : (
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
-                <div className={cn(cellMode !== 'off' && 'opacity-50')}>
+                <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
                   <CodeEditor
                     channel={channel}
                     session={session}
@@ -327,7 +328,7 @@ export default function CodeCell(props: {
             <DiffEditor original={cell.source} modified={newSource} />
           ) : (
             <>
-              <div className={cn(cellMode !== 'off' && 'opacity-50')}>
+              <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
                 <CodeEditor
                   channel={channel}
                   session={session}
@@ -675,6 +676,37 @@ function tsLinter(
   });
 }
 
+function gotoDefinition(
+  pos: number,
+  cell: CodeCellType,
+  session: SessionType,
+  channel: SessionChannel,
+) {
+  function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
+    channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
+    console.log(response);
+    if (response === null || response === undefined || Object.keys(response).length === 0) {
+      console.log('no response');
+      return;
+    }
+    const filename = response.file.includes('.srcbook/srcbooks')
+      ? response.file.split('/').pop() || response.file
+      : response.file;
+    const element = document.getElementById(filename);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  console.log({ location: mapCMLocationToTsServer(cell.source, pos) });
+  channel.on('tsserver:cell:definition_location:response', gotoDefCallback);
+  channel.push('tsserver:cell:definition_location:request', {
+    sessionId: session.id,
+    cellId: cell.id,
+    request: { location: mapCMLocationToTsServer(cell.source, pos) },
+  });
+}
+
 function CodeEditor({
   channel,
   cell,
@@ -693,6 +725,7 @@ function CodeEditor({
   readOnly: boolean;
 }) {
   const { theme, codeTheme } = useTheme();
+  const [cmdKey, setCmdKey] = useState(false);
 
   const {
     updateCell: updateCellOnClient,
@@ -711,6 +744,26 @@ function CodeEditor({
     javascript({ typescript: true }),
     tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
+    Prec.highest(
+      EditorView.domEventHandlers({
+        keydown: (e) => {
+          if (e.key === 'Alt') {
+            setCmdKey(true);
+          }
+        },
+        keyup: (e) => {
+          if (e.key === 'Alt') {
+            setCmdKey(false);
+          }
+        },
+        click: (e, view) => {
+          const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+          if (pos && cmdKey) {
+            gotoDefinition(pos, cell, session, channel);
+          }
+        },
+      }),
+    ),
     Prec.highest(
       keymap.of([
         { key: 'Mod-Enter', run: evaluateModEnter },

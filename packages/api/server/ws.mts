@@ -37,6 +37,7 @@ import type {
   TsConfigUpdatePayloadType,
   AiFixDiagnosticsPayloadType,
   TsServerQuickInfoRequestPayloadType,
+  TsServerDefinitionLocationRequestPayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -64,6 +65,8 @@ import {
   TsServerQuickInfoRequestPayloadSchema,
   TsServerQuickInfoResponsePayloadSchema,
   CellFormattedPayloadSchema,
+  TsServerDefinitionLocationRequestPayloadSchema,
+  TsServerDefinitionLocationResponsePayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -753,6 +756,48 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
   });
 }
 
+async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestPayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  if (session.language !== 'typescript') {
+    throw new Error(`tsserver can only be used with TypeScript Srcbooks.`);
+  }
+
+  const tsserver = tsservers.has(session.id) ? tsservers.get(session.id) : createTsServer(session);
+
+  const cell = session.cells.find((c) => payload.cellId == c.id);
+
+  if (!cell || cell.type !== 'code') {
+    throw new Error(`No code cell found for cellId '${payload.cellId}'`);
+  }
+
+  const filename = cell.filename;
+
+  const tsserverResponse = await tsserver.getDefinitionLocation({
+    file: pathToCodeFile(session.dir, filename),
+    line: payload.request.location.line,
+    offset: payload.request.location.offset,
+  });
+
+  const body = tsserverResponse.body;
+  if (!body) {
+    console.warn('No body found');
+    return null;
+  } else {
+    console.log('body:', body);
+  }
+
+  wss.broadcast(`session:${session.id}`, 'tsserver:cell:definition_location:response', {
+    response: {
+      ...body[0],
+    },
+  });
+}
+
 function refreshCodeCellDiagnostics(session: SessionType, cell: CodeCellType) {
   if (session.language === 'typescript' && cell.type === 'code' && tsservers.has(session.id)) {
     const tsserver = tsservers.get(session.id);
@@ -789,7 +834,16 @@ wss
     TsServerQuickInfoRequestPayloadSchema,
     tsserverQuickInfo,
   )
+  .incoming(
+    'tsserver:cell:definition_location:request',
+    TsServerDefinitionLocationRequestPayloadSchema,
+    getDefinitionLocation,
+  )
   .outgoing('tsserver:cell:quickinfo:response', TsServerQuickInfoResponsePayloadSchema)
+  .outgoing(
+    'tsserver:cell:definition_location:response',
+    TsServerDefinitionLocationResponsePayloadSchema,
+  )
   .outgoing('cell:updated', CellUpdatedPayloadSchema)
   .outgoing('cell:formatted', CellFormattedPayloadSchema)
   .outgoing('cell:error', CellErrorPayloadSchema)

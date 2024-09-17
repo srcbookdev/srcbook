@@ -2,13 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { ClipboardIcon, FilesIcon, GlobeIcon, Loader2Icon } from 'lucide-react';
 import { createSession, disk, exportSrcmdFile, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
-import { FsObjectResultType, FsObjectType, SessionType } from '@/types';
+import { FsObjectResultType, SessionType } from '@/types';
 import { useEffect, useRef, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
-import { ExportLocationPicker, FilePicker } from '@/components/file-picker';
+import { ExportLocationPicker } from '@/components/file-picker';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import SrcMdUploadDropZone from '@/components/srcmd-upload-drop-zone';
 import {
   Dialog,
   DialogContent,
@@ -61,17 +62,18 @@ export function ImportSrcbookModal({
     disk().then((response) => setFsResult(response.result));
   });
 
-  async function onCreateSrcbookFromFilesystem(entry: FsObjectType) {
+  async function onCreateSrcbookFromFilesystem(file: File) {
     setError(null);
     setLoading(true);
 
-    if (entry.basename.length > 44) {
+    if (file.name.length > 44) {
       setLoading(false);
       setError('Srcbook title should be less than 44 characters');
       return;
     }
 
-    const { error: importError, result: importResult } = await importSrcbook({ path: entry.path });
+    const text = await file.text();
+    const { error: importError, result: importResult } = await importSrcbook({ text });
 
     if (importError) {
       setLoading(false);
@@ -203,12 +205,7 @@ export function ImportSrcbookModal({
           </TabsList>
 
           <TabsContent className="mt-0" value="file">
-            <FilePicker
-              dirname={fsResult.dirname}
-              entries={fsResult.entries}
-              cta="Open"
-              onChange={onCreateSrcbookFromFilesystem}
-            />
+            <SrcMdUploadDropZone onDrop={onCreateSrcbookFromFilesystem} />
           </TabsContent>
           <TabsContent className="mt-0" value="url">
             <div className="flex gap-2 w-full">

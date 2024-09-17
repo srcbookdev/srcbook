@@ -725,7 +725,6 @@ function CodeEditor({
   readOnly: boolean;
 }) {
   const { theme, codeTheme } = useTheme();
-  const refs = useRef<ReactCodeMirrorRef>({});
   const [cmdKey, setCmdKey] = useState(false);
 
   const {
@@ -748,23 +747,19 @@ function CodeEditor({
     Prec.highest(
       EditorView.domEventHandlers({
         keydown: (e) => {
-          if (e.key === 'Meta') {
+          if (e.key === 'Alt') {
             setCmdKey(true);
           }
         },
         keyup: (e) => {
-          if (e.key === 'Meta') {
+          if (e.key === 'Alt') {
             setCmdKey(false);
           }
         },
-        click: (e) => {
-          e.stopPropagation();
-          const view = refs.current?.view;
-          if (view) {
-            const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-            if (pos && cmdKey) {
-              gotoDefinition(pos, cell, session, channel);
-            }
+        click: (e, view) => {
+          const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+          if (pos && cmdKey) {
+            gotoDefinition(pos, cell, session, channel);
           }
         },
       }),
@@ -797,7 +792,6 @@ function CodeEditor({
         updateCellOnClient({ ...cell, source });
         updateCellOnServerDebounced(cell, { source });
       }}
-      ref={refs}
     />
   );
 }

@@ -183,26 +183,28 @@ export function ImportSrcbookModal({
           value={activeTab}
           onValueChange={(tab) => setActiveTab(tab as 'file' | 'url' | 'clipboard')}
         >
-          <TabsList className="h-10 mb-4">
-            <TabsTrigger value="file">
-              <div className="flex items-center gap-2">
-                <FilesIcon size={18} />
-                From Filesystem
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="url">
-              <div className="flex items-center gap-2">
-                <GlobeIcon size={18} />
-                From URL
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="clipboard">
-              <div className="flex items-center gap-2">
-                <ClipboardIcon size={18} />
-                From Clipboard
-              </div>
-            </TabsTrigger>
-          </TabsList>
+          <div className="border-b mb-4">
+            <TabsList>
+              <TabsTrigger value="file">
+                <div className="flex items-center gap-2">
+                  <FilesIcon size={18} />
+                  From Filesystem
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="url">
+                <div className="flex items-center gap-2">
+                  <GlobeIcon size={18} />
+                  From URL
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="clipboard">
+                <div className="flex items-center gap-2">
+                  <ClipboardIcon size={18} />
+                  From Clipboard
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent className="mt-0" value="file">
             <SrcMdUploadDropZone onDrop={onCreateSrcbookFromFilesystem} />
@@ -243,7 +245,7 @@ export function ImportSrcbookModal({
                 value={clipboard}
                 onChange={(event) => setClipboard(event.target.value)}
                 placeholder="Paste clipboard here"
-                className="h-[128px] resize-none"
+                className="h-[112px] resize-none"
               />
               <div className="flex justify-end">
                 <Button

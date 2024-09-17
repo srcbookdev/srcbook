@@ -41,20 +41,30 @@ export function ImportSrcbookModal({
   const [clipboard, setClipboard] = useState('');
   const clipboardTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  // When changing tabs, focus the inputs on each tab
   useEffect(() => {
     setTimeout(() => {
       switch (activeTab) {
         case 'url':
-          setUrl("");
           urlInputRef.current?.focus();
           break;
         case 'clipboard':
-          setClipboard("");
           clipboardTextareaRef.current?.focus();
           break;
       }
     }, 0);
   }, [activeTab]);
+
+  // When hiding the modal, clear all inputs
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setActiveTab('file');
+    setUrl('');
+    setClipboard('');
+  }, [open]);
 
   const navigate = useNavigate();
 

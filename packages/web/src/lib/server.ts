@@ -230,6 +230,17 @@ export async function exportSrcmdFile(sessionId: string, request: ExportSrcmdFil
   return response.json();
 }
 
+export async function exportSrcmdText(sessionId: string) {
+  const response = await fetch(API_BASE_URL + '/sessions/' + sessionId + '/export-text');
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.text();
+}
+
 // Config settings
 interface EditConfigRequestType {
   baseDir?: string;

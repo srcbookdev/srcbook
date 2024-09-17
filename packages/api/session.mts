@@ -115,22 +115,23 @@ export async function updateSession(
   return updatedSession;
 }
 
+export function exportSrcmdText(session: SessionType) {
+  return encode(
+    {
+      cells: session.cells,
+      language: session.language,
+      'tsconfig.json': session['tsconfig.json'],
+    },
+    { inline: true },
+  );
+}
+
 export async function exportSrcmdFile(session: SessionType, destinationPath: string) {
   if (await fileExists(destinationPath)) {
     throw new Error(`Cannot export .src.md file: ${destinationPath} already exists`);
   }
 
-  return fs.writeFile(
-    destinationPath,
-    encode(
-      {
-        cells: session.cells,
-        language: session.language,
-        'tsconfig.json': session['tsconfig.json'],
-      },
-      { inline: true },
-    ),
-  );
+  return fs.writeFile(destinationPath, exportSrcmdText(session));
 }
 
 export async function findSession(id: string): Promise<SessionType> {

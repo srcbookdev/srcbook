@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { ClipboardIcon, FilesIcon, GlobeIcon, Loader2Icon } from 'lucide-react';
-import { createSession, disk, exportSrcmdFile, importSrcbook } from '@/lib/server';
+import { ClipboardIcon, FilesIcon, GlobeIcon, Loader2Icon, NotebookIcon } from 'lucide-react';
+import { createSession, disk, exportSrcmdText, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
 import { FsObjectResultType, SessionType } from '@/types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
 import { ExportLocationPicker } from '@/components/file-picker';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import useEffectOnce from './use-effect-once';
+import { toast } from 'sonner';
 
 export function ImportSrcbookModal({
   open,
@@ -55,7 +56,7 @@ export function ImportSrcbookModal({
     }, 0);
   }, [activeTab]);
 
-  // When hiding the modal, clear all inputs
+  // When hiding the modal, reset all controls
   useEffect(() => {
     if (!open) {
       return;
@@ -291,24 +292,96 @@ export function ExportSrcbookModal({
   onOpenChange: (open: boolean) => void;
   session: SessionType;
 }) {
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'file' | 'text'>('file');
 
-  async function onSave(directory: string, filename: string) {
-    try {
-      exportSrcmdFile(session.id, { directory, filename });
-      onOpenChange(false);
-    } catch (error) {
-      console.error(error);
-      setError('Something went wrong. Please try again.');
-      setTimeout(() => setError(null), 3000);
+  const clipboardTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const [srcbookText, setSrcbookText] = useState<
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'complete'; text: string }
+    | { status: 'error' }
+  >({ status: 'idle' });
+  useEffect(() => {
+    if (!open) {
+      return;
     }
+
+    const run = async () => {
+      setSrcbookText({ status: 'loading' });
+
+      let text;
+      try {
+        text = await exportSrcmdText(session.id);
+      } catch (error) {
+        console.error('Error export srcbook as text:', error);
+        setSrcbookText({ status: 'error' });
+        return;
+      }
+
+      setSrcbookText({ status: 'complete', text });
+    };
+    run();
+  }, [open, session.id]);
+
+  // When changing tabs, focus the inputs on each tab
+  useEffect(() => {
+    setTimeout(() => {
+      switch (activeTab) {
+        case 'text':
+          clipboardTextareaRef.current?.focus();
+          clipboardTextareaRef.current?.select();
+          break;
+      }
+    }, 0);
+  }, [activeTab]);
+
+  // When hiding the modal, reset all controls
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setActiveTab('file');
+  }, [open]);
+
+  const downloadFileName = useMemo(() => {
+    return `${getTitleForSession(session)}.src.md`;
+  }, [session]);
+
+  function onDownloadSrcbook() {
+    if (srcbookText.status !== 'complete') {
+      return;
+    }
+
+    const title = getTitleForSession(session);
+    const blob = new Blob([srcbookText.text]);
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', downloadFileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  function onCopySrcbookToClipboard() {
+    if (srcbookText.status !== 'complete') {
+      return;
+    }
+
+    onOpenChange(false);
+    navigator.clipboard.writeText(srcbookText.text);
+    toast.success('Copied to clipboard.');
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Save to file</DialogTitle>
+          <DialogTitle>Export Srcbook</DialogTitle>
           <DialogDescription asChild>
             <p>
               Export this Srcbook to a <code className="code">.src.md</code> file which is shareable
@@ -316,8 +389,54 @@ export function ExportSrcbookModal({
             </p>
           </DialogDescription>
         </DialogHeader>
-        <ExportLocationPicker onSave={onSave} title={getTitleForSession(session)} />
-        {error && <p className="text-destructive-foreground">{error}</p>}
+        {/* <ExportLocationPicker onSave={onSave} title={getTitleForSession(session)} /> */}
+
+        <Tabs value={activeTab} onValueChange={(tab) => setActiveTab(tab as 'file' | 'text')}>
+          <div className="border-b mb-4">
+            <TabsList>
+              <TabsTrigger value="file">
+                <div className="flex items-center gap-2">
+                  <FilesIcon size={18} />
+                  To Filesystem
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="text">
+                <div className="flex items-center gap-2">
+                  <NotebookIcon size={18} />
+                  To Text
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent className="mt-0" value="file">
+            <button
+              className="flex flex-col gap-4 w-full items-center justify-center h-[160px] border border-dashed rounded-md cursor-default"
+              onClick={onDownloadSrcbook}
+            >
+              <div className="flex flex-col items-center gap-2 text-tertiary-foreground">
+                <NotebookIcon size={24} />
+                <code className="text-xs">{downloadFileName}</code>
+              </div>
+              <Button>Download File</Button>
+            </button>
+          </TabsContent>
+          <TabsContent className="mt-0" value="text">
+            <div className="flex flex-col gap-4">
+              <Textarea
+                ref={clipboardTextareaRef}
+                value={srcbookText.status === 'complete' ? srcbookText.text : ''}
+                className="font-mono text-xs whitespace-pre h-[112px] resize-none"
+                readOnly
+              />
+              <div className="flex justify-end">
+                <Button type="button" onClick={onCopySrcbookToClipboard}>
+                  Copy to Clipboard
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

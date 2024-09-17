@@ -12,6 +12,7 @@ import {
   updateSession,
   sessionToResponse,
   listSessions,
+  exportSrcmdText,
 } from '../session.mjs';
 import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
 import { disk } from '../utils.mjs';
@@ -248,6 +249,24 @@ router.post('/sessions/:id/export', cors(), async (req, res) => {
   try {
     await exportSrcmdFile(session, path);
     return res.json({ error: false, result: filename });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
+router.options('/sessions/:id/export-text', cors());
+router.get('/sessions/:id/export-text', cors(), async (req, res) => {
+  const session = await findSession(req.params.id);
+
+  posthog.capture({ event: 'user exported srcbook' });
+
+  try {
+    const text = exportSrcmdText(session);
+    res.setHeader('Content-Type', 'text/markdown');
+    res.send(text).end();
+    return;
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

@@ -58,31 +58,23 @@ router.post('/disk', cors(), async (req, res) => {
   }
 });
 
-router.post(
-  '/file',
-  cors({
-    origin: ['http://localhost:5173', 'http://localhost:5713'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  }),
-  async (req, res) => {
-    console.log('request hit');
-    const { file } = req.body as {
-      file: string;
-    };
+router.options('/file', cors());
+router.post('/file', cors(), async (req, res) => {
+  console.log('request hit');
+  const { file } = req.body as {
+    file: string;
+  };
 
-    try {
-      const content = await fs.readFile(file, 'utf8');
+  try {
+    const content = await fs.readFile(file, 'utf8');
 
-      return res.json({ error: false, result: { content } });
-    } catch (e) {
-      const error = e as unknown as Error;
-      console.error(error);
-      return res.json({ error: true, result: error.stack });
-    }
-  },
-);
+    return res.json({ error: false, result: { content } });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
 
 router.options('/examples', cors());
 router.get('/examples', cors(), (_, res) => {

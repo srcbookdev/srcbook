@@ -785,10 +785,7 @@ async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestP
 
   const body = tsserverResponse.body;
   if (!body) {
-    console.warn('No body found');
     return null;
-  } else {
-    console.log('body:', body);
   }
 
   wss.broadcast(`session:${session.id}`, 'tsserver:cell:definition_location:response', {

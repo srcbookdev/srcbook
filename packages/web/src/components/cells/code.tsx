@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
 
 import { useEffect, useRef, useState } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
@@ -686,7 +686,6 @@ function gotoDefinition(
 ) {
   async function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
     channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
-    console.log(response);
     if (response === null || response === undefined || Object.keys(response).length === 0) {
       console.log('no response');
       return;
@@ -698,9 +697,7 @@ function gotoDefinition(
     if (element && local) {
       element.scrollIntoView({ behavior: 'smooth' });
     } else {
-      console.log('External at', filename);
       const file_response = await getFileContent(filename);
-      console.log('res', file_response);
       if (file_response.error) {
         console.error('Error fetching file content:', file_response.result);
       } else {
@@ -736,7 +733,6 @@ function CodeEditor({
   readOnly: boolean;
 }) {
   const { theme, codeTheme } = useTheme();
-  const [cmdKey, setCmdKey] = useState(false);
 
   const {
     updateCell: updateCellOnClient,
@@ -757,19 +753,9 @@ function CodeEditor({
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(
       EditorView.domEventHandlers({
-        keydown: (e) => {
-          if (e.key === 'Alt') {
-            setCmdKey(true);
-          }
-        },
-        keyup: (e) => {
-          if (e.key === 'Alt') {
-            setCmdKey(false);
-          }
-        },
         click: (e, view) => {
           const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-          if (pos && cmdKey) {
+          if (pos && e.altKey) {
             extensions.push(EditorView.editable.of(false));
             extensions.push(EditorState.readOnly.of(true));
 
@@ -816,7 +802,6 @@ function CodeEditor({
         }}
       />
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogTitle>Definition</DialogTitle>
         <DialogContent className="w-[80vw] h-[80vh] max-w-none p-0 overflow-scroll">
           <CodeMirror
             className="overflow-scroll focus-visible:outline-none"

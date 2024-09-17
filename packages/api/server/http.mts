@@ -59,8 +59,8 @@ router.post('/disk', cors(), async (req, res) => {
 });
 
 router.options('/file', cors());
+
 router.post('/file', cors(), async (req, res) => {
-  console.log('request hit');
   const { file } = req.body as {
     file: string;
   };

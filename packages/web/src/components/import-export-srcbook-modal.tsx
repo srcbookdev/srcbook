@@ -380,7 +380,6 @@ export function ExportSrcbookModal({
             </p>
           </DialogDescription>
         </DialogHeader>
-        {/* <ExportLocationPicker onSave={onSave} title={getTitleForSession(session)} /> */}
 
         <Tabs value={activeTab} onValueChange={(tab) => setActiveTab(tab as 'file' | 'text')}>
           <div className="border-b mb-4">

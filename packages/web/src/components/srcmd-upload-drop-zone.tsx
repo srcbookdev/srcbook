@@ -5,11 +5,11 @@ import { UploadIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-type FileUploadDropZoneProps = {
+type SrcMdUploadDropZoneProps = {
   onDrop: (uploadedFile: File) => void;
 };
 
-export default function FileUploadDropZone({ onDrop }: FileUploadDropZoneProps) {
+export default function SrcMdUploadDropZone({ onDrop }: SrcMdUploadDropZoneProps) {
   const onDropInternal = useCallback(
     (acceptedFiles: Array<File>) => {
       if (acceptedFiles.length > 1) {

@@ -15,7 +15,15 @@ import {
 } from '../session.mjs';
 import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
 import { disk } from '../utils.mjs';
-import { getConfig, updateConfig, getSecrets, addSecret, removeSecret } from '../config.mjs';
+import {
+  getConfig,
+  updateConfig,
+  getSecrets,
+  addSecret,
+  removeSecret,
+  associateSecretWithSession,
+  disassociateSecretWithSession,
+} from '../config.mjs';
 import {
   createSrcbook,
   removeSrcbook,
@@ -237,6 +245,19 @@ router.post('/sessions/:id/export', cors(), async (req, res) => {
     console.error(error);
     return res.json({ error: true, result: error.stack });
   }
+});
+
+router.options('/sessions/:id/secrets/:name', cors());
+router.put('/sessions/:id/secrets/:name', cors(), async (req, res) => {
+  const { id, name } = req.params;
+  await associateSecretWithSession(name, id);
+  return res.status(204).end();
+});
+
+router.delete('/sessions/:id/secrets/:name', cors(), async (req, res) => {
+  const { id, name } = req.params;
+  await disassociateSecretWithSession(name, id);
+  return res.status(204).end();
 });
 
 router.options('/settings', cors());

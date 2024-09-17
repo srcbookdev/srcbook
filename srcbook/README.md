@@ -1,4 +1,4 @@
-![Srcbook banner light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/733eaa72-3f6a-47f4-2560-9b9441d5ce00/public)
+![Srcbook banner light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/064ebb1f-5153-4581-badd-42b42272fc00/public)
 
 <p align="center">
   <a href="https://badge.fury.io/js/srcbook"><img src="https://badge.fury.io/js/srcbook.svg" alt="npm version" /></a>
@@ -16,11 +16,12 @@
 - Create, run, and share reproducible programs and ideas
 - Export to valid markdown format (.src.md)
 - AI features for exploring and iterating on ideas
+- Diagraming with [mermaid](https://mermaid.js.org) for rich annotations
 - Local execution with a web interface
 - Powered by Node.js
 - Open-source under the Apache2 license
 
-![Example Srcbook light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/08f1a7b9-2fc1-404c-6621-9f0280010600/public)
+![Example Srcbook light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/ebfa2bfe-f805-4398-a348-0f48d4f93400/public)
 
 ## FAQ
 

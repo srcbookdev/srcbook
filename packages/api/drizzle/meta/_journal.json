@@ -57,6 +57,20 @@
       "when": 1725736805777,
       "tag": "0007_add_subscription_email",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1726084159070,
+      "tag": "0008_add_secrets",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1726250539939,
+      "tag": "0009_secret_session_unique",
+      "breakpoints": true
     }
   ]
 }

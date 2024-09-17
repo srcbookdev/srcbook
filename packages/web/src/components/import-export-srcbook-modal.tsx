@@ -346,7 +346,6 @@ export function ExportSrcbookModal({
       return;
     }
 
-    const title = getTitleForSession(session);
     const blob = new Blob([srcbookText.text]);
 
     const url = URL.createObjectURL(blob);

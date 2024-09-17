@@ -22,7 +22,9 @@ export function encode(srcbook: SrcbookWithPlacebolderType, options: { inline: b
   const encoded = [
     encodeMetdata(srcbook),
     encodeTitleCell(titleCell),
-    ...(srcbook.language !== 'markdown' ? [encodePackageJsonCell(packageJsonCell, options)] : []),
+    ...((srcbook.language as string) !== 'markdown'
+      ? [encodePackageJsonCell(packageJsonCell, options)]
+      : []),
     ...cells.map((cell) => {
       switch (cell.type) {
         case 'code':

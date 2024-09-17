@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CircleCheck, Loader2, CircleX } from 'lucide-react';
-import { disk, updateConfig, aiHealthcheck, subscribeToMailingList } from '@/lib/server';
+import { aiHealthcheck, subscribeToMailingList } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
 import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
-import type { SettingsType, FsObjectResultType } from '@/types';
-import { useLoaderData } from 'react-router-dom';
 import {
   Select,
   SelectContent,
@@ -18,16 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-async function loader() {
-  const { result: diskResult } = await disk({});
-
-  return {
-    ...diskResult,
-  };
-}
-
 function Settings() {
-  const { entries, baseDir } = useLoaderData() as SettingsType & FsObjectResultType;
   const {
     aiProvider,
     aiModel,
@@ -345,5 +334,4 @@ const TestAiButton = () => {
   );
 };
 
-Settings.loader = loader;
 export default Settings;

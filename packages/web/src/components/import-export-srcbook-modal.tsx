@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { ClipboardIcon, FilesIcon, GlobeIcon, Loader2Icon, NotebookIcon } from 'lucide-react';
-import { createSession, disk, exportSrcmdText, importSrcbook } from '@/lib/server';
+import { toast } from 'sonner';
+import { createSession, exportSrcmdText, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
-import { FsObjectResultType, SessionType } from '@/types';
+import { SessionType } from '@/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
 import { Input } from '@/components/ui/input';
@@ -16,8 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import useEffectOnce from './use-effect-once';
-import { toast } from 'sonner';
 
 export function ImportSrcbookModal({
   open,
@@ -30,8 +29,6 @@ export function ImportSrcbookModal({
   const [error, setError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<'file' | 'url' | 'clipboard'>('file');
-  // "file" tab:
-  const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
 
   // "url" tab
   const [url, setUrl] = useState('');
@@ -67,10 +64,6 @@ export function ImportSrcbookModal({
   }, [open]);
 
   const navigate = useNavigate();
-
-  useEffectOnce(() => {
-    disk().then((response) => setFsResult(response.result));
-  });
 
   async function onCreateSrcbookFromFilesystem(file: File) {
     setError(null);

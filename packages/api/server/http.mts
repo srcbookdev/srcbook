@@ -14,7 +14,6 @@ import {
   exportSrcmdText,
 } from '../session.mjs';
 import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
-import { disk } from '../utils.mjs';
 import {
   getConfig,
   updateConfig,
@@ -41,23 +40,6 @@ const app: Application = express();
 const router = express.Router();
 
 router.use(express.json());
-
-router.options('/disk', cors());
-
-router.post('/disk', cors(), async (req, res) => {
-  let { dirname } = req.body;
-
-  try {
-    const config = await getConfig();
-    dirname = dirname || config.baseDir;
-    const entries = await disk(dirname, '.src.md');
-    return res.json({ error: false, result: { dirname, entries } });
-  } catch (e) {
-    const error = e as unknown as Error;
-    console.error(error);
-    return res.json({ error: true, result: error.stack });
-  }
-});
 
 router.options('/examples', cors());
 router.get('/examples', cors(), (_, res) => {

@@ -51,14 +51,14 @@ const markdownRenderer = {
   code(snippet: React.ReactNode, lang: string) {
     if (lang === 'mermaid') {
       return (
-        <pre className="mermaid !bg-background" key="mermaid">
+        <pre className="mermaid !bg-background" key={String(snippet)}>
           {snippet}
         </pre>
       );
     }
 
     return (
-      <pre key="code">
+      <pre key={String(snippet)}>
         <code>{snippet}</code>
       </pre>
     );
@@ -126,7 +126,7 @@ export default function MarkdownCell(props: {
   // Initializes mermaid and updates it on theme change
   useEffect(() => {
     mermaid.initialize({
-      startOnLoad: true,
+      startOnLoad: false,
       theme: 'base',
       fontFamily: 'IBM Plex Sans',
       darkMode: theme === 'dark',

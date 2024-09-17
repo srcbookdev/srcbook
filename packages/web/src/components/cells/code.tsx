@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
 
 import { useEffect, useRef, useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
@@ -51,6 +51,7 @@ import { tsHover } from './hover';
 import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
+import { getFileContent } from '@/lib/server';
 
 const DEBOUNCE_DELAY = 500;
 
@@ -681,20 +682,30 @@ function gotoDefinition(
   cell: CodeCellType,
   session: SessionType,
   channel: SessionChannel,
+  editor: (content: string) => void,
 ) {
-  function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
+  async function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
     channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
     console.log(response);
     if (response === null || response === undefined || Object.keys(response).length === 0) {
       console.log('no response');
       return;
     }
-    const filename = response.file.includes('.srcbook/srcbooks')
-      ? response.file.split('/').pop() || response.file
-      : response.file;
+    const local: boolean =
+      response.file.includes('.srcbook/srcbooks') && !response.file.includes('node_modules');
+    const filename = local ? response.file.split('/').pop() || response.file : response.file;
     const element = document.getElementById(filename);
-    if (element) {
+    if (element && local) {
       element.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      console.log('External at', filename);
+      const file_response = await getFileContent(filename);
+      console.log('res', file_response);
+      if (file_response.error) {
+        console.error('Error fetching file content:', file_response.result);
+      } else {
+        editor(file_response.result.content);
+      }
     }
   }
 
@@ -759,7 +770,10 @@ function CodeEditor({
         click: (e, view) => {
           const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
           if (pos && cmdKey) {
-            gotoDefinition(pos, cell, session, channel);
+            extensions.push(EditorView.editable.of(false));
+            extensions.push(EditorState.readOnly.of(true));
+
+            gotoDefinition(pos, cell, session, channel, openModal);
           }
         },
       }),
@@ -782,17 +796,41 @@ function CodeEditor({
     extensions.push(EditorView.editable.of(false));
     extensions.push(EditorState.readOnly.of(true));
   }
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+
+  const openModal = (content: string) => {
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
 
   return (
-    <CodeMirror
-      value={cell.source}
-      theme={codeTheme}
-      extensions={extensions}
-      onChange={(source) => {
-        updateCellOnClient({ ...cell, source });
-        updateCellOnServerDebounced(cell, { source });
-      }}
-    />
+    <>
+      <CodeMirror
+        value={cell.source}
+        theme={codeTheme}
+        extensions={extensions}
+        onChange={(source) => {
+          updateCellOnClient({ ...cell, source });
+          updateCellOnServerDebounced(cell, { source });
+        }}
+      />
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogTitle>Definition</DialogTitle>
+        <DialogContent className="w-[80vw] h-[80vh] max-w-none p-0 overflow-scroll">
+          <CodeMirror
+            className="overflow-scroll focus-visible:outline-none"
+            value={modalContent}
+            theme={codeTheme}
+            extensions={[
+              javascript({ typescript: true }),
+              EditorView.editable.of(false),
+              EditorState.readOnly.of(true),
+            ]}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

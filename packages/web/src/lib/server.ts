@@ -33,6 +33,19 @@ export async function disk(request?: DiskRequestType): Promise<DiskResponseType>
   return response.json();
 }
 
+export async function getFileContent(filename: string) {
+  const file_response = await fetch(API_BASE_URL + '/file', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      file: filename,
+    }),
+  });
+  return await file_response.json();
+}
+
 interface CreateSrcbookRequestType {
   path: string;
   name: string;

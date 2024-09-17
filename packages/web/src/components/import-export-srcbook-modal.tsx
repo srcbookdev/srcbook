@@ -44,9 +44,11 @@ export function ImportSrcbookModal({
     setTimeout(() => {
       switch (activeTab) {
         case 'url':
+          setUrl("");
           urlInputRef.current?.focus();
           break;
         case 'clipboard':
+          setClipboard("");
           clipboardTextareaRef.current?.focus();
           break;
       }

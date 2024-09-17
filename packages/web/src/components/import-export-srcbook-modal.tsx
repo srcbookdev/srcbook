@@ -5,7 +5,6 @@ import { getTitleForSession } from '@/lib/utils';
 import { FsObjectResultType, SessionType } from '@/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
-import { ExportLocationPicker } from '@/components/file-picker';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';

@@ -1,5 +1,15 @@
 # @srcbook/web
 
+## 0.0.6
+
+### Patch Changes
+
+- 98ffcb3: Improve mermaid rendering
+- 0eb51dd: Added support for goto def with Alt(Option) + Click
+- 3c912b9: b365ee5: Improved import and export behaviors to support importing from a url/clipboard, and exporting to the clipboard
+- Updated dependencies [0eb51dd]
+  - @srcbook/shared@0.0.6
+
 ## 0.0.5
 
 ### Patch Changes

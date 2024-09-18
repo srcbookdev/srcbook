@@ -1,6 +1,7 @@
 import z from 'zod';
 import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema } from './cells.mjs';
 import {
+  TsServerDefinitionLocationSchema,
   TsServerDiagnosticSchema,
   TsServerQuickInfoRequestSchema,
   TsServerQuickInfoResponseSchema,
@@ -134,6 +135,16 @@ export const TsServerQuickInfoRequestPayloadSchema = z.object({
 
 export const TsServerQuickInfoResponsePayloadSchema = z.object({
   response: TsServerQuickInfoResponseSchema,
+});
+
+export const TsServerDefinitionLocationRequestPayloadSchema = z.object({
+  cellId: z.string(),
+  sessionId: z.string(),
+  request: TsServerQuickInfoRequestSchema,
+});
+
+export const TsServerDefinitionLocationResponsePayloadSchema = z.object({
+  response: TsServerDefinitionLocationSchema,
 });
 
 export const TsConfigUpdatePayloadSchema = z.object({

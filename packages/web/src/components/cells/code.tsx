@@ -30,6 +30,7 @@ import {
   CellFormattedPayloadType,
   AiGeneratedCellPayloadType,
   TsServerDiagnosticType,
+  TsServerDefinitionLocationResponsePayloadType,
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
@@ -47,9 +48,10 @@ import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
 import { tsHover } from './hover';
-import { mapTsServerLocationToCM } from './util';
+import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
+import { getFileContent } from '@/lib/server';
 
 const DEBOUNCE_DELAY = 500;
 
@@ -257,7 +259,7 @@ export default function CodeCell(props: {
           ) : (
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
-                <div className={cn(cellMode !== 'off' && 'opacity-50')}>
+                <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
                   <CodeEditor
                     channel={channel}
                     session={session}
@@ -327,7 +329,7 @@ export default function CodeCell(props: {
             <DiffEditor original={cell.source} modified={newSource} />
           ) : (
             <>
-              <div className={cn(cellMode !== 'off' && 'opacity-50')}>
+              <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
                 <CodeEditor
                   channel={channel}
                   session={session}
@@ -675,6 +677,42 @@ function tsLinter(
   });
 }
 
+function gotoDefinition(
+  pos: number,
+  cell: CodeCellType,
+  session: SessionType,
+  channel: SessionChannel,
+  editor: (content: string) => void,
+) {
+  async function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
+    channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
+    if (response === null) {
+      console.log('no response');
+      return;
+    }
+    const file_response = await getFileContent(response.file);
+    if (file_response.result.type === 'cell') {
+      document
+        .getElementById(file_response.result.filename)
+        ?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      if (file_response.error) {
+        console.error('Error fetching file content:', file_response.result);
+      } else {
+        editor(file_response.result.content);
+      }
+    }
+  }
+
+  console.log({ location: mapCMLocationToTsServer(cell.source, pos) });
+  channel.on('tsserver:cell:definition_location:response', gotoDefCallback);
+  channel.push('tsserver:cell:definition_location:request', {
+    sessionId: session.id,
+    cellId: cell.id,
+    request: { location: mapCMLocationToTsServer(cell.source, pos) },
+  });
+}
+
 function CodeEditor({
   channel,
   cell,
@@ -712,6 +750,16 @@ function CodeEditor({
     tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
     Prec.highest(
+      EditorView.domEventHandlers({
+        click: (e, view) => {
+          const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+          if (pos && e.altKey) {
+            gotoDefinition(pos, cell, session, channel, openModal);
+          }
+        },
+      }),
+    ),
+    Prec.highest(
       keymap.of([
         { key: 'Mod-Enter', run: evaluateModEnter },
         {
@@ -729,17 +777,40 @@ function CodeEditor({
     extensions.push(EditorView.editable.of(false));
     extensions.push(EditorState.readOnly.of(true));
   }
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+
+  const openModal = (content: string) => {
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
 
   return (
-    <CodeMirror
-      value={cell.source}
-      theme={codeTheme}
-      extensions={extensions}
-      onChange={(source) => {
-        updateCellOnClient({ ...cell, source });
-        updateCellOnServerDebounced(cell, { source });
-      }}
-    />
+    <>
+      <CodeMirror
+        value={cell.source}
+        theme={codeTheme}
+        extensions={extensions}
+        onChange={(source) => {
+          updateCellOnClient({ ...cell, source });
+          updateCellOnServerDebounced(cell, { source });
+        }}
+      />
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="w-[80vw] h-[80vh] max-w-none p-0 overflow-scroll">
+          <CodeMirror
+            className="overflow-scroll focus-visible:outline-none"
+            value={modalContent}
+            theme={codeTheme}
+            extensions={[
+              javascript({ typescript: true }),
+              EditorView.editable.of(false),
+              EditorState.readOnly.of(true),
+            ]}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

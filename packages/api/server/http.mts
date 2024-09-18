@@ -41,6 +41,33 @@ const router = express.Router();
 
 router.use(express.json());
 
+router.options('/file', cors());
+
+router.post('/file', cors(), async (req, res) => {
+  const { file } = req.body as {
+    file: string;
+  };
+
+  try {
+    const content = await fs.readFile(file, 'utf8');
+    const cell = file.includes('.srcbook/srcbooks') && !file.includes('node_modules');
+    const filename = cell ? file.split('/').pop() || file : file;
+
+    return res.json({
+      error: false,
+      result: {
+        content: cell ? '' : content,
+        filename,
+        type: cell ? 'cell' : 'filepath',
+      },
+    });
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+});
+
 router.options('/examples', cors());
 router.get('/examples', cors(), (_, res) => {
   return res.json({ result: EXAMPLE_SRCBOOKS });

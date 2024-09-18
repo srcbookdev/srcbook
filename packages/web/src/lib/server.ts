@@ -9,6 +9,19 @@ import SRCBOOK_CONFIG from '@/config';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
 
+export async function getFileContent(filename: string) {
+  const file_response = await fetch(API_BASE_URL + '/file', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      file: filename,
+    }),
+  });
+  return await file_response.json();
+}
+
 interface CreateSrcbookRequestType {
   path: string;
   name: string;

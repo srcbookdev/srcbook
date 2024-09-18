@@ -7,11 +7,6 @@ export interface FsObjectType {
   isDirectory: boolean;
 }
 
-export interface FsObjectResultType {
-  dirname: string;
-  entries: FsObjectType[];
-}
-
 export type SettingsType = {
   baseDir: string;
   defaultLanguage: CodeLanguageType;

@@ -109,16 +109,6 @@ export function ImportSrcbookModal({
     setError(null);
     setLoading(true);
 
-    let parsedUrl;
-    try {
-      parsedUrl = new URL(url);
-    } catch (err) {
-      console.error(`Cannot parse ${url} as url:`, err);
-      setLoading(false);
-      setError(`Cannot parse ${url} as a url!`);
-      return;
-    }
-
     const { error: importError, result: importResult } = await importSrcbook({ url });
 
     if (importError) {

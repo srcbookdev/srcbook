@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CircleCheck, Loader2, CircleX } from 'lucide-react';
-import { disk, updateConfig, aiHealthcheck, subscribeToMailingList } from '@/lib/server';
+import { aiHealthcheck, subscribeToMailingList } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
 import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
-import type { SettingsType, FsObjectResultType } from '@/types';
-import { useLoaderData } from 'react-router-dom';
-import { DirPicker } from '@/components/file-picker';
 import {
   Select,
   SelectContent,
@@ -19,23 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-async function loader() {
-  const { result: diskResult } = await disk({});
-
-  return {
-    ...diskResult,
-  };
-}
-
-async function action({ request }: { request: Request }) {
-  const formData = await request.formData();
-  const baseDir = formData.get('path') as string | undefined;
-  await updateConfig({ baseDir });
-  return null;
-}
-
 function Settings() {
-  const { entries, baseDir } = useLoaderData() as SettingsType & FsObjectResultType;
   const {
     aiProvider,
     aiModel,
@@ -227,13 +208,6 @@ function Settings() {
         </div>
 
         <div>
-          <h2 className="text-xl pb-2">Base Directory</h2>
-          <label className="opacity-70 text-sm" htmlFor="base-dir-picker">
-            The default directory to look for Srcbooks when importing.
-          </label>
-          <DirPicker id="base-dir-picker" dirname={baseDir} entries={entries} cta="Change" />
-        </div>
-        <div>
           <h2 className="text-xl pb-2">Get product updates</h2>
           <div>
             <label className="opacity-70 text-sm" htmlFor="mailing-list-email">
@@ -360,6 +334,4 @@ const TestAiButton = () => {
   );
 };
 
-Settings.loader = loader;
-Settings.action = action;
 export default Settings;

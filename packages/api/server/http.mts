@@ -8,13 +8,12 @@ import {
   createSession,
   findSession,
   deleteSessionByDirname,
-  exportSrcmdFile,
   updateSession,
   sessionToResponse,
   listSessions,
+  exportSrcmdText,
 } from '../session.mjs';
 import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
-import { disk } from '../utils.mjs';
 import {
   getConfig,
   updateConfig,
@@ -29,6 +28,7 @@ import {
   removeSrcbook,
   importSrcbookFromSrcmdFile,
   importSrcbookFromSrcmdText,
+  importSrcbookFromSrcmdUrl,
 } from '../srcbook/index.mjs';
 import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
@@ -40,23 +40,6 @@ const app: Application = express();
 const router = express.Router();
 
 router.use(express.json());
-
-router.options('/disk', cors());
-
-router.post('/disk', cors(), async (req, res) => {
-  let { dirname } = req.body;
-
-  try {
-    const config = await getConfig();
-    dirname = dirname || config.baseDir;
-    const entries = await disk(dirname, '.src.md');
-    return res.json({ error: false, result: { dirname, entries } });
-  } catch (e) {
-    const error = e as unknown as Error;
-    console.error(error);
-    return res.json({ error: true, result: error.stack });
-  }
-});
 
 router.options('/examples', cors());
 router.get('/examples', cors(), (_, res) => {
@@ -104,7 +87,7 @@ router.delete('/srcbooks/:id', cors(), async (req, res) => {
 // Import a srcbook from a .src.md file or srcmd text.
 router.options('/import', cors());
 router.post('/import', cors(), async (req, res) => {
-  const { path, text } = req.body;
+  const { path, text, url } = req.body;
 
   if (typeof path === 'string' && !isSrcmdPath(path)) {
     return res.json({ error: true, result: 'Importing only works with .src.md files' });
@@ -114,6 +97,10 @@ router.post('/import', cors(), async (req, res) => {
     if (typeof path === 'string') {
       posthog.capture({ event: 'user imported srcbook from file' });
       const srcbookDir = await importSrcbookFromSrcmdFile(path);
+      return res.json({ error: false, result: { dir: srcbookDir } });
+    } else if (typeof url === 'string') {
+      posthog.capture({ event: 'user imported srcbook from url' });
+      const srcbookDir = await importSrcbookFromSrcmdUrl(url);
       return res.json({ error: false, result: { dir: srcbookDir } });
     } else {
       posthog.capture({ event: 'user imported srcbook from text' });
@@ -228,18 +215,17 @@ router.get('/sessions/:id', cors(), async (req, res) => {
   }
 });
 
-router.options('/sessions/:id/export', cors());
-router.post('/sessions/:id/export', cors(), async (req, res) => {
-  const { directory, filename } = req.body;
+router.options('/sessions/:id/export-text', cors());
+router.get('/sessions/:id/export-text', cors(), async (req, res) => {
   const session = await findSession(req.params.id);
-
-  const path = Path.join(directory, filename);
 
   posthog.capture({ event: 'user exported srcbook' });
 
   try {
-    await exportSrcmdFile(session, path);
-    return res.json({ error: false, result: filename });
+    const text = exportSrcmdText(session);
+    res.setHeader('Content-Type', 'text/markdown');
+    res.send(text).end();
+    return;
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

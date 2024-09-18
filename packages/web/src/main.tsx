@@ -60,8 +60,6 @@ const router = createBrowserRouter([
           {
             path: '/settings',
             element: <Settings />,
-            loader: Settings.loader,
-            action: Settings.action,
             errorElement: <ErrorPage />,
           },
         ],

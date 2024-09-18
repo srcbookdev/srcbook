@@ -4,34 +4,10 @@ import type {
   MarkdownCellType,
   CodeCellType,
 } from '@srcbook/shared';
-import { SessionType, FsObjectResultType, ExampleSrcbookType } from '@/types';
+import { SessionType, ExampleSrcbookType } from '@/types';
 import SRCBOOK_CONFIG from '@/config';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
-
-interface DiskRequestType {
-  dirname?: string;
-}
-
-export interface DiskResponseType {
-  error: boolean;
-  result: FsObjectResultType;
-}
-
-export async function disk(request?: DiskRequestType): Promise<DiskResponseType> {
-  const response = await fetch(API_BASE_URL + '/disk', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    console.error(response);
-    throw new Error('Request failed');
-  }
-
-  return response.json();
-}
 
 interface CreateSrcbookRequestType {
   path: string;
@@ -75,6 +51,7 @@ export async function deleteSrcbook(request: { id: string }) {
 
 interface ImportSrcbookRequestType {
   path?: string;
+  url?: string;
   text?: string;
 }
 
@@ -227,6 +204,17 @@ export async function exportSrcmdFile(sessionId: string, request: ExportSrcmdFil
   }
 
   return response.json();
+}
+
+export async function exportSrcmdText(sessionId: string) {
+  const response = await fetch(API_BASE_URL + '/sessions/' + sessionId + '/export-text');
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.text();
 }
 
 // Config settings

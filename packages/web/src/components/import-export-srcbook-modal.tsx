@@ -1,8 +1,23 @@
-import { createSession, disk, exportSrcmdFile, importSrcbook } from '@/lib/server';
+import { useNavigate } from 'react-router-dom';
+import {
+  FileCodeIcon,
+  FileDownIcon,
+  FileUpIcon,
+  GlobeIcon,
+  Loader2Icon,
+  NotebookIcon,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { createSession, exportSrcmdText, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
-import { FsObjectResultType, FsObjectType, SessionType } from '@/types';
-import { useState } from 'react';
-import { ExportLocationPicker, FilePicker } from '@/components/file-picker';
+import { SessionType } from '@/types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
+import { showSaveFilePicker } from '@/lib/file-system-access';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import SrcMdUploadDropZone from '@/components/srcmd-upload-drop-zone';
 import {
   Dialog,
   DialogContent,
@@ -10,8 +25,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import useEffectOnce from './use-effect-once';
-import { useNavigate } from 'react-router-dom';
 
 export function ImportSrcbookModal({
   open,
@@ -20,26 +33,61 @@ export function ImportSrcbookModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [fsResult, setFsResult] = useState<FsObjectResultType>({ dirname: '', entries: [] });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'file' | 'url' | 'clipboard'>('file');
+
+  // "url" tab
+  const [url, setUrl] = useState('');
+  const urlInputRef = useRef<HTMLInputElement | null>(null);
+
+  // "clipboard" tab:
+  const [clipboard, setClipboard] = useState('');
+  const clipboardTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // When changing tabs, focus the inputs on each tab
+  useEffect(() => {
+    setTimeout(() => {
+      switch (activeTab) {
+        case 'url':
+          urlInputRef.current?.focus();
+          break;
+        case 'clipboard':
+          clipboardTextareaRef.current?.focus();
+          break;
+      }
+    }, 0);
+  }, [activeTab]);
+
+  // When hiding the modal, reset all controls
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setActiveTab('file');
+    setUrl('');
+    setClipboard('');
+  }, [open]);
 
   const navigate = useNavigate();
 
-  useEffectOnce(() => {
-    disk().then((response) => setFsResult(response.result));
-  });
-
-  async function onChange(entry: FsObjectType) {
+  async function onCreateSrcbookFromFilesystem(file: File) {
     setError(null);
+    setLoading(true);
 
-    if (entry.basename.length > 44) {
+    if (file.name.length > 44) {
+      setLoading(false);
       setError('Srcbook title should be less than 44 characters');
       return;
     }
 
-    const { error: importError, result: importResult } = await importSrcbook({ path: entry.path });
+    const text = await file.text();
+    const { error: importError, result: importResult } = await importSrcbook({ text });
 
     if (importError) {
+      setLoading(false);
       setError('There was an error while importing this srcbook.');
       return;
     }
@@ -47,10 +95,66 @@ export function ImportSrcbookModal({
     const { error, result } = await createSession({ path: importResult.dir });
 
     if (error) {
+      setLoading(false);
       setError('There was an error while importing this srcbook.');
       return;
     }
 
+    setActiveTab('file');
+    setLoading(false);
+    onOpenChange(false);
+    return navigate(`/srcbooks/${result.id}`);
+  }
+
+  async function onCreateSrcbookFromUrl(url: string) {
+    setError(null);
+    setLoading(true);
+
+    const { error: importError, result: importResult } = await importSrcbook({ url });
+
+    if (importError) {
+      setLoading(false);
+      setError('There was an error while importing this srcbook.');
+      return;
+    }
+
+    const { error, result } = await createSession({ path: importResult.dir });
+
+    if (error) {
+      setLoading(false);
+      setError('There was an error while importing this srcbook.');
+      return;
+    }
+
+    setActiveTab('file');
+    setLoading(false);
+    onOpenChange(false);
+    return navigate(`/srcbooks/${result.id}`);
+  }
+
+  async function onCreateSrcbookFromClipboard(clipboard: string) {
+    setError(null);
+    setLoading(true);
+
+    const { error: importError, result: importResult } = await importSrcbook({ text: clipboard });
+
+    if (importError) {
+      setLoading(false);
+      setError('There was an error while importing this srcbook.');
+      return;
+    }
+
+    const { error, result } = await createSession({ path: importResult.dir });
+
+    if (error) {
+      setLoading(false);
+      setError('There was an error while importing this srcbook.');
+      return;
+    }
+
+    setActiveTab('file');
+    setLoading(false);
+    onOpenChange(false);
     return navigate(`/srcbooks/${result.id}`);
   }
 
@@ -65,12 +169,94 @@ export function ImportSrcbookModal({
             </p>
           </DialogDescription>
         </DialogHeader>
-        <FilePicker
-          dirname={fsResult.dirname}
-          entries={fsResult.entries}
-          cta="Open"
-          onChange={onChange}
-        />
+
+        <Tabs
+          value={activeTab}
+          onValueChange={(tab) => setActiveTab(tab as 'file' | 'url' | 'clipboard')}
+        >
+          <div className="border-b mb-4">
+            <TabsList>
+              <TabsTrigger value="file">
+                <div className="flex items-center gap-2">
+                  <FileUpIcon size={18} />
+                  Upload file
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="url">
+                <div className="flex items-center gap-2">
+                  <GlobeIcon size={18} />
+                  Import URL
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="clipboard">
+                <div className="flex items-center gap-2">
+                  <FileCodeIcon size={18} />
+                  Paste source
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent className="mt-0" value="file">
+            <SrcMdUploadDropZone onDrop={onCreateSrcbookFromFilesystem} />
+          </TabsContent>
+          <TabsContent className="mt-0" value="url">
+            <div className="flex gap-2 w-full">
+              <Input
+                ref={urlInputRef}
+                value={url}
+                onChange={(event) => setUrl(event.target.value)}
+                placeholder="eg: https://example.com/my-fancy-srcbook.src.md"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onCreateSrcbookFromUrl(url);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={() => onCreateSrcbookFromUrl(url)}
+                disabled={url.length === 0 || loading}
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2Icon size={18} className="animate-spin" />
+                    Loading...
+                  </div>
+                ) : (
+                  'Create'
+                )}
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent className="mt-0" value="clipboard">
+            <div className="flex flex-col gap-4">
+              <Textarea
+                ref={clipboardTextareaRef}
+                value={clipboard}
+                onChange={(event) => setClipboard(event.target.value)}
+                placeholder="Paste clipboard here"
+                className="min-h-[112px] resize-vertical"
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  onClick={() => onCreateSrcbookFromClipboard(clipboard)}
+                  disabled={clipboard.length === 0 || loading}
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2Icon size={18} className="animate-spin" />
+                      Loading...
+                    </div>
+                  ) : (
+                    'Create'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </DialogContent>
     </Dialog>
@@ -86,24 +272,127 @@ export function ExportSrcbookModal({
   onOpenChange: (open: boolean) => void;
   session: SessionType;
 }) {
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'file' | 'text'>('file');
 
-  async function onSave(directory: string, filename: string) {
-    try {
-      exportSrcmdFile(session.id, { directory, filename });
-      onOpenChange(false);
-    } catch (error) {
-      console.error(error);
-      setError('Something went wrong. Please try again.');
-      setTimeout(() => setError(null), 3000);
+  const clipboardTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const [srcbookText, setSrcbookText] = useState<
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'complete'; text: string }
+    | { status: 'error' }
+  >({ status: 'idle' });
+  useEffect(() => {
+    if (!open) {
+      return;
     }
+
+    const run = async () => {
+      setSrcbookText({ status: 'loading' });
+
+      let text;
+      try {
+        text = await exportSrcmdText(session.id);
+      } catch (error) {
+        console.error('Error export srcbook as text:', error);
+        setSrcbookText({ status: 'error' });
+        return;
+      }
+
+      setSrcbookText({ status: 'complete', text });
+    };
+    run();
+  }, [open, session.id]);
+
+  // When changing tabs, focus the inputs on each tab
+  useEffect(() => {
+    setTimeout(() => {
+      switch (activeTab) {
+        case 'text':
+          clipboardTextareaRef.current?.focus();
+          clipboardTextareaRef.current?.select();
+          break;
+      }
+    }, 0);
+  }, [activeTab]);
+
+  // When hiding the modal, reset all controls
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setActiveTab('file');
+  }, [open]);
+
+  const downloadFileName = useMemo(() => {
+    const fileNameWithoutExtension = getTitleForSession(session)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    return `${fileNameWithoutExtension}.src.md`;
+  }, [session]);
+
+  async function onDownloadSrcbook() {
+    if (srcbookText.status !== 'complete') {
+      return;
+    }
+
+    // If the file system access api is available (as of september 2024, this is only chrome), then
+    // use this rather than just downloading a file.
+    if (typeof showSaveFilePicker !== 'undefined') {
+      let fileHandle;
+      try {
+        fileHandle = await showSaveFilePicker({
+          id: 'srcbookExportFile',
+          suggestedName: downloadFileName,
+        });
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') {
+          // The user quit out of the save picker without selecting a location
+          return;
+        }
+
+        console.error('Error getting file handle:', err);
+        return;
+      }
+      const writable = await fileHandle.createWritable();
+      await writable.write(srcbookText.text);
+      await writable.close();
+
+      onOpenChange(false);
+      return;
+    }
+
+    const blob = new Blob([srcbookText.text]);
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', downloadFileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  function onCopySrcbookToClipboard() {
+    if (srcbookText.status !== 'complete') {
+      return;
+    }
+
+    onOpenChange(false);
+    navigator.clipboard.writeText(srcbookText.text);
+    toast.success('Copied to clipboard.');
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Save to file</DialogTitle>
+          <DialogTitle>Export Srcbook</DialogTitle>
           <DialogDescription asChild>
             <p>
               Export this Srcbook to a <code className="code">.src.md</code> file which is shareable
@@ -111,8 +400,52 @@ export function ExportSrcbookModal({
             </p>
           </DialogDescription>
         </DialogHeader>
-        <ExportLocationPicker onSave={onSave} title={getTitleForSession(session)} />
-        {error && <p className="text-destructive-foreground">{error}</p>}
+
+        <Tabs value={activeTab} onValueChange={(tab) => setActiveTab(tab as 'file' | 'text')}>
+          <div className="border-b mb-4">
+            <TabsList>
+              <TabsTrigger value="file">
+                <div className="flex items-center gap-2">
+                  <FileDownIcon size={18} />
+                  Download file
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="text">
+                <div className="flex items-center gap-2">
+                  <FileCodeIcon size={18} />
+                  Copy source
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent className="mt-0" value="file">
+            <div className="flex flex-col gap-4 w-full items-center justify-center h-[160px] border border-dashed rounded-md cursor-default">
+              <div className="flex flex-col items-center gap-2 text-tertiary-foreground">
+                <NotebookIcon size={24} />
+                <code className="text-xs">{downloadFileName}</code>
+              </div>
+              <Button onClick={onDownloadSrcbook}>
+                {typeof showSaveFilePicker !== 'undefined' ? 'Save File' : 'Download File'}
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent className="mt-0" value="text">
+            <div className="flex flex-col gap-4">
+              <Textarea
+                ref={clipboardTextareaRef}
+                value={srcbookText.status === 'complete' ? srcbookText.text : ''}
+                className="font-mono text-xs whitespace-pre min-h-[112px] resize-vertical"
+                readOnly
+              />
+              <div className="flex justify-end">
+                <Button type="button" onClick={onCopySrcbookToClipboard}>
+                  Copy to Clipboard
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

@@ -141,6 +141,21 @@ export async function importSrcbookFromSrcmdText(text: string, directoryBasename
 }
 
 /**
+ * Creates a srcbook directory from a url to a srcmd file.
+ */
+export async function importSrcbookFromSrcmdUrl(srcmdUrl: string, directoryBasename?: string) {
+  const srcmdResponse = await fetch(srcmdUrl);
+  if (!srcmdResponse.ok) {
+    throw new Error(
+      `Error requesting ${srcmdUrl}: ${srcmdResponse.status} ${await srcmdResponse.text()}`,
+    );
+  }
+
+  const text = await srcmdResponse.text();
+  return importSrcbookFromSrcmdText(text, directoryBasename);
+}
+
+/**
  * Creates a new srcbook.
  * Each Srcbook has a directory in ~/.srcbook/ refered to as its private directory.
  * This private directory has a randomid() private identifier.

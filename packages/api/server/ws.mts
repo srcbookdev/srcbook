@@ -789,11 +789,7 @@ async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestP
   }
 
   const res = {
-    response: body[0]
-      ? {
-          ...body[0],
-        }
-      : null,
+    response: body[0] ? body[0] : null,
   };
 
   wss.broadcast(`session:${session.id}`, 'tsserver:cell:definition_location:response', res);

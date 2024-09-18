@@ -82,27 +82,18 @@ async function doImport(specifier: string, port: string) {
   const filepath = specifier.endsWith('.src.md') ? specifier : `${specifier}.src.md`;
   const srcbookUrl = `https://hub.srcbook.com/srcbooks/${filepath}`;
 
-  const res = await fetch(srcbookUrl);
-
-  if (!res.ok || res.status !== 200) {
-    console.error(`Srcbook not found ${specifier}`);
-    process.exit(1);
-  }
-
-  const srcmd = await res.text();
-
-  const sessionId = await importSrcbook(srcmd, port, srcbookUrl);
+  const sessionId = await importSrcbook(srcbookUrl, port);
 
   openInBrowser(`http://localhost:${port}/srcbooks/${sessionId}`);
 }
 
-async function importSrcbook(srcmd: string, port: string, srcbookUrl: string) {
+async function importSrcbook(srcbookUrl: string, port: string) {
   const importResponse = await fetch(`http://localhost:${port}/api/import`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ text: srcmd }),
+    body: JSON.stringify({ url: srcbookUrl }),
   });
 
   if (!importResponse.ok || importResponse.status !== 200) {

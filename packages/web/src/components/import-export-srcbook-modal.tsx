@@ -1,5 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { ClipboardIcon, FilesIcon, GlobeIcon, Loader2Icon, NotebookIcon } from 'lucide-react';
+import {
+  FileCodeIcon,
+  FileDownIcon,
+  FileUpIcon,
+  GlobeIcon,
+  Loader2Icon,
+  NotebookIcon,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { createSession, exportSrcmdText, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
@@ -180,20 +187,20 @@ export function ImportSrcbookModal({
             <TabsList>
               <TabsTrigger value="file">
                 <div className="flex items-center gap-2">
-                  <FilesIcon size={18} />
-                  From Filesystem
+                  <FileUpIcon size={18} />
+                  Upload file
                 </div>
               </TabsTrigger>
               <TabsTrigger value="url">
                 <div className="flex items-center gap-2">
                   <GlobeIcon size={18} />
-                  From URL
+                  Import URL
                 </div>
               </TabsTrigger>
               <TabsTrigger value="clipboard">
                 <div className="flex items-center gap-2">
-                  <ClipboardIcon size={18} />
-                  From Clipboard
+                  <FileCodeIcon size={18} />
+                  Paste source
                 </div>
               </TabsTrigger>
             </TabsList>
@@ -382,14 +389,14 @@ export function ExportSrcbookModal({
             <TabsList>
               <TabsTrigger value="file">
                 <div className="flex items-center gap-2">
-                  <FilesIcon size={18} />
-                  To Filesystem
+                  <FileDownIcon size={18} />
+                  Download file
                 </div>
               </TabsTrigger>
               <TabsTrigger value="text">
                 <div className="flex items-center gap-2">
-                  <NotebookIcon size={18} />
-                  To Text
+                  <FileCodeIcon size={18} />
+                  Copy source
                 </div>
               </TabsTrigger>
             </TabsList>

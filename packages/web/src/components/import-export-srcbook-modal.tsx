@@ -400,16 +400,13 @@ export function ExportSrcbookModal({
           </div>
 
           <TabsContent className="mt-0" value="file">
-            <button
-              className="flex flex-col gap-4 w-full items-center justify-center h-[160px] border border-dashed rounded-md cursor-default"
-              onClick={onDownloadSrcbook}
-            >
+            <div className="flex flex-col gap-4 w-full items-center justify-center h-[160px] border border-dashed rounded-md cursor-default">
               <div className="flex flex-col items-center gap-2 text-tertiary-foreground">
                 <NotebookIcon size={24} />
                 <code className="text-xs">{downloadFileName}</code>
               </div>
-              <Button>Download File</Button>
-            </button>
+              <Button onClick={onDownloadSrcbook}>Download File</Button>
+            </div>
           </TabsContent>
           <TabsContent className="mt-0" value="text">
             <div className="flex flex-col gap-4">

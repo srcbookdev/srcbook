@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 
 type SrcMdUploadDropZoneProps = {
   onDrop: (uploadedFile: File) => void;
+  className?: string;
 };
 
-export default function SrcMdUploadDropZone({ onDrop }: SrcMdUploadDropZoneProps) {
+export default function SrcMdUploadDropZone({ onDrop, className }: SrcMdUploadDropZoneProps) {
   const onDropInternal = useCallback(
     (acceptedFiles: Array<File>) => {
       if (acceptedFiles.length > 1) {
@@ -35,11 +36,12 @@ export default function SrcMdUploadDropZone({ onDrop }: SrcMdUploadDropZoneProps
     <button
       {...rootProps}
       className={cn(
-        'flex flex-col gap-4 w-full items-center justify-center h-[160px] border border-dashed rounded-md',
+        'flex flex-col gap-4 w-full items-center justify-center p-6 border border-dashed rounded-md',
         'hover:bg-muted cursor-pointer',
         {
           'bg-muted': isDragActive,
         },
+        className,
         rootProps.className,
       )}
     >

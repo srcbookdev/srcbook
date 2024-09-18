@@ -1,5 +1,11 @@
 # @srcbook/shared
 
+## 0.0.6
+
+### Patch Changes
+
+- 0eb51dd: Added support for goto def with Alt(Option) + Click
+
 ## 0.0.5
 
 ### Patch Changes

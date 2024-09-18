@@ -328,7 +328,13 @@ export function ExportSrcbookModal({
   }, [open]);
 
   const downloadFileName = useMemo(() => {
-    return `${getTitleForSession(session)}.src.md`;
+    const fileNameWithoutExtension = getTitleForSession(session)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    return `${fileNameWithoutExtension}.src.md`;
   }, [session]);
 
   function onDownloadSrcbook() {

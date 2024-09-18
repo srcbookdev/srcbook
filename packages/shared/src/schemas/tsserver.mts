@@ -54,12 +54,12 @@ export const TsServerQuickInfoResponseSchema = z.object({
   tags: TsServerJsDocTagsSchema,
 });
 
-export const TsServerDefinitionLocationSchema = z
-  .object({
+export const TsServerDefinitionLocationSchema = z.nullable(
+  z.object({
     file: z.string(),
     start: TsServerLocationSchema,
     end: TsServerLocationSchema,
     contextStart: TsServerLocationSchema.optional(),
     contextEnd: TsServerLocationSchema.optional(),
-  })
-  .optional();
+  }),
+);

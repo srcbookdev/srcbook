@@ -67,7 +67,17 @@ router.post('/file', cors(), async (req, res) => {
 
   try {
     const content = await fs.readFile(file, 'utf8');
-    return res.json({ error: false, result: { content } });
+    const cell = file.includes('.srcbook/srcbooks') && !file.includes('node_modules');
+    const filename = cell ? file.split('/').pop() || file : file;
+
+    return res.json({
+      error: false,
+      result: {
+        content: cell ? '' : content,
+        filename,
+        type: cell ? 'cell' : 'filepath',
+      },
+    });
   } catch (e) {
     const error = e as unknown as Error;
     console.error(error);

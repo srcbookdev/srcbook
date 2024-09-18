@@ -788,11 +788,15 @@ async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestP
     return null;
   }
 
-  wss.broadcast(`session:${session.id}`, 'tsserver:cell:definition_location:response', {
-    response: {
-      ...body[0],
-    },
-  });
+  const res = {
+    response: body[0]
+      ? {
+          ...body[0],
+        }
+      : null,
+  };
+
+  wss.broadcast(`session:${session.id}`, 'tsserver:cell:definition_location:response', res);
 }
 
 function refreshCodeCellDiagnostics(session: SessionType, cell: CodeCellType) {

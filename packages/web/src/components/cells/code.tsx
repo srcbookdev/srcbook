@@ -686,18 +686,16 @@ function gotoDefinition(
 ) {
   async function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
     channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
-    if (response === null || response === undefined || Object.keys(response).length === 0) {
+    if (response === null) {
       console.log('no response');
       return;
     }
-    const local: boolean =
-      response.file.includes('.srcbook/srcbooks') && !response.file.includes('node_modules');
-    const filename = local ? response.file.split('/').pop() || response.file : response.file;
-    const element = document.getElementById(filename);
-    if (element && local) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    const file_response = await getFileContent(response.file);
+    if (file_response.result.type === 'cell') {
+      document
+        .getElementById(file_response.result.filename)
+        ?.scrollIntoView({ behavior: 'smooth' });
     } else {
-      const file_response = await getFileContent(filename);
       if (file_response.error) {
         console.error('Error fetching file content:', file_response.result);
       } else {
@@ -756,9 +754,6 @@ function CodeEditor({
         click: (e, view) => {
           const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
           if (pos && e.altKey) {
-            extensions.push(EditorView.editable.of(false));
-            extensions.push(EditorState.readOnly.of(true));
-
             gotoDefinition(pos, cell, session, channel, openModal);
           }
         },

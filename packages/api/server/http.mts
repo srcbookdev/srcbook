@@ -92,9 +92,6 @@ router.post('/import', cors(), async (req, res) => {
   if (typeof path === 'string' && !isSrcmdPath(path)) {
     return res.json({ error: true, result: 'Importing only works with .src.md files' });
   }
-  if (typeof url === 'string' && !isSrcmdPath(url)) {
-    return res.json({ error: true, result: 'Importing only works with .src.md files' });
-  }
 
   try {
     if (typeof path === 'string') {

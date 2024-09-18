@@ -112,16 +112,6 @@ export function ImportSrcbookModal({
       return;
     }
 
-    const fileName = (
-      parsedUrl.pathname.length > 0 ? parsedUrl.pathname.split('/').at(-1)! : url
-    ).replace(/[^a-zA-Z0-9_-]/g, '');
-
-    if (fileName.length > 44) {
-      setLoading(false);
-      setError('Srcbook title should be less than 44 characters');
-      return;
-    }
-
     const { error: importError, result: importResult } = await importSrcbook({ url });
 
     if (importError) {

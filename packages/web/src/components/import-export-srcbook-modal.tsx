@@ -238,7 +238,7 @@ export function ImportSrcbookModal({
                 value={clipboard}
                 onChange={(event) => setClipboard(event.target.value)}
                 placeholder="Paste clipboard here"
-                className="h-[112px] resize-none"
+                className="min-h-[112px] resize-vertical"
               />
               <div className="flex justify-end">
                 <Button
@@ -403,7 +403,7 @@ export function ExportSrcbookModal({
               <Textarea
                 ref={clipboardTextareaRef}
                 value={srcbookText.status === 'complete' ? srcbookText.text : ''}
-                className="font-mono text-xs whitespace-pre h-[112px] resize-none"
+                className="font-mono text-xs whitespace-pre min-h-[112px] resize-vertical"
                 readOnly
               />
               <div className="flex justify-end">

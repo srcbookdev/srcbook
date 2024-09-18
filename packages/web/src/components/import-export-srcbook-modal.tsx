@@ -77,12 +77,6 @@ export function ImportSrcbookModal({
     setError(null);
     setLoading(true);
 
-    if (file.name.length > 44) {
-      setLoading(false);
-      setError('Srcbook title should be less than 44 characters');
-      return;
-    }
-
     const text = await file.text();
     const { error: importError, result: importResult } = await importSrcbook({ text });
 
@@ -158,37 +152,41 @@ export function ImportSrcbookModal({
     return navigate(`/srcbooks/${result.id}`);
   }
 
+  function onChangeTab(tab: string) {
+    setActiveTab(tab as 'file' | 'url' | 'clipboard');
+
+    // Reset state on tab change
+    setError(null);
+    setUrl('');
+    setClipboard('');
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Open Srcbook</DialogTitle>
           <DialogDescription asChild>
-            <p>
-              Open a Srcbook by importing one from a <code className="code">.src.md</code> file.
-            </p>
+            <p>Use one of the options below to open a Srcbook.</p>
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={(tab) => setActiveTab(tab as 'file' | 'url' | 'clipboard')}
-        >
+        <Tabs value={activeTab} onValueChange={onChangeTab}>
           <div className="border-b mb-4">
             <TabsList>
-              <TabsTrigger value="file">
+              <TabsTrigger disabled={loading} value="file">
                 <div className="flex items-center gap-2">
                   <FileUpIcon size={18} />
                   Upload file
                 </div>
               </TabsTrigger>
-              <TabsTrigger value="url">
+              <TabsTrigger disabled={loading} value="url">
                 <div className="flex items-center gap-2">
                   <GlobeIcon size={18} />
                   Import URL
                 </div>
               </TabsTrigger>
-              <TabsTrigger value="clipboard">
+              <TabsTrigger disabled={loading} value="clipboard">
                 <div className="flex items-center gap-2">
                   <FileCodeIcon size={18} />
                   Paste source
@@ -198,7 +196,7 @@ export function ImportSrcbookModal({
           </div>
 
           <TabsContent className="mt-0" value="file">
-            <SrcMdUploadDropZone onDrop={onCreateSrcbookFromFilesystem} />
+            <SrcMdUploadDropZone onDrop={onCreateSrcbookFromFilesystem} className="h-[160px]" />
           </TabsContent>
           <TabsContent className="mt-0" value="url">
             <div className="flex gap-2 w-full">
@@ -206,7 +204,7 @@ export function ImportSrcbookModal({
                 ref={urlInputRef}
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
-                placeholder="eg: https://example.com/my-fancy-srcbook.src.md"
+                placeholder="https://hub.srcbook.com/srcbooks/srcbook-to-import.src.md"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     onCreateSrcbookFromUrl(url);
@@ -230,7 +228,7 @@ export function ImportSrcbookModal({
             </div>
           </TabsContent>
           <TabsContent className="mt-0" value="clipboard">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 h-[160px]">
               <Textarea
                 ref={clipboardTextareaRef}
                 value={clipboard}
@@ -358,11 +356,15 @@ export function ExportSrcbookModal({
         console.error('Error getting file handle:', err);
         return;
       }
+
       const writable = await fileHandle.createWritable();
       await writable.write(srcbookText.text);
       await writable.close();
 
       onOpenChange(false);
+
+      toast.success(`Saved ${fileHandle.name}.`, { duration: 2000 });
+
       return;
     }
 
@@ -376,6 +378,7 @@ export function ExportSrcbookModal({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    toast.success(`Saved ${downloadFileName}.`, { duration: 2000 });
   }
 
   function onCopySrcbookToClipboard() {
@@ -385,7 +388,7 @@ export function ExportSrcbookModal({
 
     onOpenChange(false);
     navigator.clipboard.writeText(srcbookText.text);
-    toast.success('Copied to clipboard.');
+    toast.success('Copied to clipboard.', { duration: 2000 });
   }
 
   return (

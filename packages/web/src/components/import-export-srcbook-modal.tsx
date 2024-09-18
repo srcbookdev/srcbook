@@ -13,6 +13,7 @@ import { getTitleForSession } from '@/lib/utils';
 import { SessionType } from '@/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/underline-flat-tabs';
+import { showSaveFilePicker } from '@/lib/file-system-access';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -334,8 +335,34 @@ export function ExportSrcbookModal({
     return `${fileNameWithoutExtension}.src.md`;
   }, [session]);
 
-  function onDownloadSrcbook() {
+  async function onDownloadSrcbook() {
     if (srcbookText.status !== 'complete') {
+      return;
+    }
+
+    // If the file system access api is available (as of september 2024, this is only chrome), then
+    // use this rather than just downloading a file.
+    if (typeof showSaveFilePicker !== 'undefined') {
+      let fileHandle;
+      try {
+        fileHandle = await showSaveFilePicker({
+          id: 'srcbookExportFile',
+          suggestedName: downloadFileName,
+        });
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') {
+          // The user quit out of the save picker without selecting a location
+          return;
+        }
+
+        console.error('Error getting file handle:', err);
+        return;
+      }
+      const writable = await fileHandle.createWritable();
+      await writable.write(srcbookText.text);
+      await writable.close();
+
+      onOpenChange(false);
       return;
     }
 
@@ -398,7 +425,9 @@ export function ExportSrcbookModal({
                 <NotebookIcon size={24} />
                 <code className="text-xs">{downloadFileName}</code>
               </div>
-              <Button onClick={onDownloadSrcbook}>Download File</Button>
+              <Button onClick={onDownloadSrcbook}>
+                {typeof showSaveFilePicker !== 'undefined' ? 'Save File' : 'Download File'}
+              </Button>
             </div>
           </TabsContent>
           <TabsContent className="mt-0" value="text">

@@ -615,12 +615,16 @@ function createTsServer(session: SessionType) {
 
   tsserver.onSemanticDiag(async (event) => {
     const eventBody = event.body;
+    if(!eventBody) return
 
     // Get most recent session state
-    const session = await findSession(sessionId);
-
-    if (!eventBody || !session) {
-      return;
+    let session;
+    try{
+      session = await findSession(sessionId);
+    } catch(e){
+      const error = e as unknown as Error
+      console.error(error);
+      return
     }
 
     const filename = filenameFromPath(eventBody.file);
@@ -639,12 +643,16 @@ function createTsServer(session: SessionType) {
 
   tsserver.onSuggestionDiag(async (event) => {
     const eventBody = event.body;
+    if(!eventBody) return
 
     // Get most recent session state
-    const session = await findSession(sessionId);
-
-    if (!eventBody || !session) {
-      return;
+    let session;
+    try{
+       session = await findSession(sessionId);
+    } catch (e){
+      const error = e as unknown as Error
+      console.error(error)
+      return
     }
 
     const filename = filenameFromPath(eventBody.file);

@@ -105,9 +105,9 @@ router.options('/srcbooks/:id', cors());
 router.delete('/srcbooks/:id', cors(), async (req, res) => {
   const { id } = req.params;
   const srcbookDir = pathToSrcbook(id);
-  await deleteSessionByDirname(srcbookDir);
   removeSrcbook(srcbookDir);
   posthog.capture({ event: 'user deleted srcbook' });
+  await deleteSessionByDirname(srcbookDir);
   return res.json({ error: false, deleted: true });
 });
 

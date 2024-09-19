@@ -27,3 +27,7 @@ export function getTitleForSession(session: SessionType) {
   const titleCell = session.cells.find((cell: CellType) => cell.type === 'title') as TitleCellType;
   return titleCell?.text;
 }
+
+export function isValidSecretName(name: string) {
+  return /^[A-Z0-9_]+$/.test(name);
+}

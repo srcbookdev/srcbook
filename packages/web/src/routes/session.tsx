@@ -29,6 +29,7 @@ import { PackageJsonProvider, usePackageJson } from '@/components/use-package-js
 import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
+// import { TsConfigProvider } from '@/components/use-session-readonly';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([
@@ -118,7 +119,7 @@ type SessionPropsBase = {
 
 type SessionProps =
   | ({ readOnly: true } & SessionPropsBase)
-  | ({ readOnly: false; channel: SessionChannel } & SessionPropsBase);
+  | ({ readOnly?: false; channel: SessionChannel } & SessionPropsBase);
 
 function Session(props: SessionProps) {
   const { session, srcbooks, config } = props;
@@ -363,21 +364,28 @@ function Session(props: SessionProps) {
 
         <div className="grow shrink lg:px-0 pb-28">
           <div className="max-w-[800px] mx-auto my-12 px-[32px]">
-            <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+            {props.readOnly ? (
+              <TitleCell readOnly cell={titleCell} />
+            ) : (
+              <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+            )}
 
             {cells.map((cell, idx) => (
               <div key={cell.id}>
-                <InsertCellDivider
-                  language={session.language}
-                  createCodeCell={() => createNewCell('code', idx + 2)}
-                  createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-                  createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
-                />
+                {props.readOnly ? (
+                  <div className="h-5" />
+                ) : (
+                  <InsertCellDivider
+                    language={session.language}
+                    createCodeCell={() => createNewCell('code', idx + 2)}
+                    createMarkdownCell={() => createNewCell('markdown', idx + 2)}
+                    createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+                  />
+                )}
 
                 {cell.type === 'code' && props.readOnly && (
                   <CodeCell readOnly cell={cell} session={session} />
                 )}
-
                 {cell.type === 'code' && !props.readOnly && (
                   <CodeCell
                     cell={cell}
@@ -388,7 +396,13 @@ function Session(props: SessionProps) {
                   />
                 )}
 
-                {cell.type === 'markdown' && (
+                {cell.type === 'markdown' && props.readOnly && (
+                  <MarkdownCell
+                    readOnly
+                    cell={cell}
+                  />
+                )}
+                {cell.type === 'markdown' && !props.readOnly && (
                   <MarkdownCell
                     cell={cell}
                     updateCellOnServer={updateCellOnServer}
@@ -396,7 +410,7 @@ function Session(props: SessionProps) {
                   />
                 )}
 
-                {cell.type === 'generate-ai' && (
+                {cell.type === 'generate-ai' && !props.readOnly && (
                   <GenerateAiCell
                     cell={cell}
                     session={session}
@@ -408,13 +422,15 @@ function Session(props: SessionProps) {
             ))}
 
             {/* There is always an insert cell divider after the last cell */}
-            <InsertCellDivider
-              language={session.language}
-              createCodeCell={() => createNewCell('code', allCells.length)}
-              createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-              createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
-              className={cn('h-14', cells.length === 0 && 'opacity-100')}
-            />
+            {!props.readOnly ? (
+              <InsertCellDivider
+                language={session.language}
+                createCodeCell={() => createNewCell('code', allCells.length)}
+                createMarkdownCell={() => createNewCell('markdown', allCells.length)}
+                createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
+                className={cn('h-14', cells.length === 0 && 'opacity-100')}
+              />
+            ) : null}
           </div>
         </div>
       </div>

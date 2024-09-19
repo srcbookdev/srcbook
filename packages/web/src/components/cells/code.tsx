@@ -72,7 +72,6 @@ type ReadOnlyProps = BaseProps & { readOnly: true };
 // type Props = RegularProps | ReadOnlyProps;
 
 export default function CodeCell(props: ReadOnlyProps | RegularProps) {
-  // const { session, cell, channel, updateCellOnServer, onDeleteCell } = props;
   const { session, cell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
@@ -293,26 +292,30 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
           )}
           hideClose
         >
-          <Header
-            cell={cell}
-            runCell={runCell}
-            stopCell={stopCell}
-            onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
-            generate={generate}
-            cellMode={cellMode}
-            setCellMode={setCellMode}
-            prompt={prompt}
-            setPrompt={setPrompt}
-            updateFilename={updateFilename}
-            filenameError={filenameError}
-            setFilenameError={setFilenameError}
-            fullscreen={fullscreen}
-            setFullscreen={setFullscreen}
-            setShowStdio={setShowStdio}
-            onAccept={onAcceptDiff}
-            onRevert={onRevertDiff}
-            formatCell={formatCell}
-          />
+          {props.readOnly ? (
+            <ReadOnlyHeader cell={cell} fullscreen={fullscreen} setFullscreen={setFullscreen} />
+          ) : (
+            <Header
+              cell={cell}
+              runCell={runCell}
+              stopCell={stopCell}
+              onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
+              generate={generate}
+              cellMode={cellMode}
+              setCellMode={setCellMode}
+              prompt={prompt}
+              setPrompt={setPrompt}
+              updateFilename={updateFilename}
+              filenameError={filenameError}
+              setFilenameError={setFilenameError}
+              fullscreen={fullscreen}
+              setFullscreen={setFullscreen}
+              setShowStdio={setShowStdio}
+              onAccept={onAcceptDiff}
+              onRevert={onRevertDiff}
+              formatCell={formatCell}
+            />
+          )}
 
           {cellMode === 'reviewing' ? (
             <DiffEditor original={cell.source} modified={newSource} />
@@ -370,26 +373,30 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
               'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
           )}
         >
-          <Header
-            cell={cell}
-            runCell={runCell}
-            stopCell={stopCell}
-            onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
-            generate={generate}
-            cellMode={cellMode}
-            setCellMode={setCellMode}
-            prompt={prompt}
-            setPrompt={setPrompt}
-            updateFilename={updateFilename}
-            filenameError={filenameError}
-            setFilenameError={setFilenameError}
-            fullscreen={fullscreen}
-            setFullscreen={setFullscreen}
-            setShowStdio={setShowStdio}
-            onAccept={onAcceptDiff}
-            onRevert={onRevertDiff}
-            formatCell={formatCell}
-          />
+          {props.readOnly ? (
+            <ReadOnlyHeader cell={cell} fullscreen={fullscreen} setFullscreen={setFullscreen} />
+          ) : (
+            <Header
+              cell={cell}
+              runCell={runCell}
+              stopCell={stopCell}
+              onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
+              generate={generate}
+              cellMode={cellMode}
+              setCellMode={setCellMode}
+              prompt={prompt}
+              setPrompt={setPrompt}
+              updateFilename={updateFilename}
+              filenameError={filenameError}
+              setFilenameError={setFilenameError}
+              fullscreen={fullscreen}
+              setFullscreen={setFullscreen}
+              setShowStdio={setShowStdio}
+              onAccept={onAcceptDiff}
+              onRevert={onRevertDiff}
+              formatCell={formatCell}
+            />
+          )}
 
           {cellMode === 'reviewing' ? (
             <DiffEditor original={cell.source} modified={newSource} />
@@ -682,6 +689,46 @@ function Header(props: {
         </div>
       )}
     </>
+  );
+}
+
+function ReadOnlyHeader(props: {
+  cell: CodeCellType;
+  fullscreen: boolean;
+  setFullscreen: (open: boolean) => void;
+}) {
+  const { cell, fullscreen, setFullscreen } = props;
+
+  return (
+    <div className="p-1 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1">
+        <span className="w-[200px] font-mono font-semibold text-xs transition-colors px-2">
+          {cell.filename}
+        </span>
+      </div>
+      <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2">
+        <div className="flex items-center gap-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="icon"
+                  className="w-8 px-0"
+                  size="icon"
+                  onClick={() => setFullscreen(!fullscreen)}
+                  tabIndex={1}
+                >
+                  {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {fullscreen ? 'Minimize back to cells view' : 'Maximize to full screen'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+    </div>
   );
 }
 

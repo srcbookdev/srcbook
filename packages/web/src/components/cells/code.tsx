@@ -1,12 +1,12 @@
 /* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
-import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
+import CodeMirror, { KeyBinding, keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
@@ -44,7 +44,7 @@ import { CellOutput } from '@/components/cell-output';
 import useTheme from '@/components/use-theme';
 import { useDebouncedCallback } from 'use-debounce';
 import { EditorView } from 'codemirror';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Extension } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
 import { tsHover } from './hover';
@@ -57,14 +57,23 @@ import { getCompletions } from './get-completions';
 
 const DEBOUNCE_DELAY = 500;
 
-export default function CodeCell(props: {
+type BaseProps = {
   session: SessionType;
   cell: CodeCellType;
+};
+
+type RegularProps = BaseProps & {
+  readOnly?: false,
   channel: SessionChannel;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
-}) {
-  const { session, cell, channel, updateCellOnServer, onDeleteCell } = props;
+};
+type ReadOnlyProps = BaseProps & { readOnly: true };
+// type Props = RegularProps | ReadOnlyProps;
+
+export default function CodeCell(props: ReadOnlyProps | RegularProps) {
+  // const { session, cell, channel, updateCellOnServer, onDeleteCell } = props;
+  const { session, cell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
   const [cellMode, setCellMode] = useState<CellModeType>('off');
@@ -104,6 +113,10 @@ export default function CodeCell(props: {
   }
 
   useEffect(() => {
+    if (props.readOnly) {
+      return;
+    }
+
     function callback(payload: CellErrorPayloadType) {
       if (payload.cellId !== cell.id) {
         return;
@@ -122,12 +135,20 @@ export default function CodeCell(props: {
       }
     }
 
-    channel.on('cell:error', callback);
+    props.channel.on('cell:error', callback);
 
-    return () => channel.off('cell:error', callback);
-  }, [cell.id, channel]);
+    return () => props.channel.off('cell:error', callback);
+  }, [
+    cell.id,
+    props.readOnly,
+    !props.readOnly ? props.channel : null,
+  ]);
 
   useEffect(() => {
+    if (props.readOnly) {
+      return;
+    }
+
     function callback(payload: CellFormattedPayloadType) {
       if (payload.cellId === cell.id) {
         updateCellOnClient({ ...payload.cell });
@@ -135,13 +156,22 @@ export default function CodeCell(props: {
       }
     }
 
-    channel.on('cell:formatted', callback);
-    return () => channel.off('cell:formatted', callback);
-  }, [cell.id, channel, updateCellOnClient]);
+    props.channel.on('cell:formatted', callback);
+    return () => props.channel.off('cell:formatted', callback);
+  }, [
+    cell.id,
+    props.readOnly,
+    !props.readOnly ? props.channel : null,
+    updateCellOnClient,
+  ]);
 
   function updateFilename(filename: string) {
+    if (props.readOnly) {
+      return;
+    }
+
     updateCellOnClient({ ...cell, filename });
-    channel.push('cell:rename', {
+    props.channel.push('cell:rename', {
       sessionId: session.id,
       cellId: cell.id,
       filename,
@@ -149,19 +179,31 @@ export default function CodeCell(props: {
   }
 
   useEffect(() => {
+    if (props.readOnly) {
+      return;
+    }
+
     function callback(payload: AiGeneratedCellPayloadType) {
       if (payload.cellId !== cell.id) return;
       // We move to the "review" stage of the generation process:
       setNewSource(payload.output);
       setCellMode('reviewing');
     }
-    channel.on('ai:generated', callback);
-    return () => channel.off('ai:generated', callback);
-  }, [cell.id, channel]);
+    props.channel.on('ai:generated', callback);
+    return () => props.channel.off('ai:generated', callback);
+  }, [
+    cell.id,
+    props.readOnly,
+    !props.readOnly ? props.channel : null,
+  ]);
 
   const generate = () => {
+    if (props.readOnly) {
+      return;
+    }
+
     setGenerationType('edit');
-    channel.push('ai:generate', {
+    props.channel.push('ai:generate', {
       sessionId: session.id,
       cellId: cell.id,
       prompt,
@@ -170,12 +212,18 @@ export default function CodeCell(props: {
   };
 
   const aiFixDiagnostics = (diagnostics: string) => {
+    if (props.readOnly) {
+      return;
+    }
     setCellMode('fixing');
     setGenerationType('fix');
-    channel.push('ai:fix_diagnostics', { sessionId: session.id, cellId: cell.id, diagnostics });
+    props.channel.push('ai:fix_diagnostics', { sessionId: session.id, cellId: cell.id, diagnostics });
   };
 
   function runCell() {
+    if (props.readOnly) {
+      return false;
+    }
     if (cell.status === 'running') {
       return false;
     }
@@ -189,7 +237,7 @@ export default function CodeCell(props: {
     // Add artificial delay to allow debounced updates to propagate
     // TODO: Handle this in a more robust way
     setTimeout(() => {
-      channel.push('cell:exec', {
+      props.channel.push('cell:exec', {
         sessionId: session.id,
         cellId: cell.id,
       });
@@ -197,7 +245,10 @@ export default function CodeCell(props: {
   }
 
   function stopCell() {
-    channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
+    if (props.readOnly) {
+      return;
+    }
+    props.channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
   }
 
   function onRevertDiff() {
@@ -206,19 +257,26 @@ export default function CodeCell(props: {
   }
 
   function onAcceptDiff() {
+    if (props.readOnly) {
+      return;
+    }
     updateCellOnClient({ ...cell, source: newSource });
-    updateCellOnServer(cell, { source: newSource });
+    props.updateCellOnServer(cell, { source: newSource });
     setPrompt('');
     setCellMode('off');
   }
 
   function formatCell() {
+    if (props.readOnly) {
+      return;
+    }
     setCellMode('formatting');
-    channel.push('cell:format', {
+    props.channel.push('cell:format', {
       sessionId: session.id,
       cellId: cell.id,
     });
   }
+
   return (
     <div id={`cell-${props.cell.id}`}>
       <Dialog open={fullscreen} onOpenChange={setFullscreen}>
@@ -239,7 +297,7 @@ export default function CodeCell(props: {
             cell={cell}
             runCell={runCell}
             stopCell={stopCell}
-            onDeleteCell={onDeleteCell}
+            onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
             generate={generate}
             cellMode={cellMode}
             setCellMode={setCellMode}
@@ -262,17 +320,23 @@ export default function CodeCell(props: {
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
                 <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
-                  <CodeEditor
-                    channel={channel}
-                    session={session}
-                    cell={cell}
-                    runCell={runCell}
-                    formatCell={formatCell}
-                    updateCellOnServer={updateCellOnServer}
-                    readOnly={['generating', 'prompting', 'fixing', 'formatting'].includes(
-                      cellMode,
-                    )}
-                  />
+                  {props.readOnly ? (
+                    <CodeEditor
+                      readOnly
+                      session={session}
+                      cell={cell}
+                    />
+                  ) : (
+                    <CodeEditor
+                      readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
+                      channel={props.channel}
+                      session={session}
+                      cell={cell}
+                      runCell={runCell}
+                      formatCell={formatCell}
+                      updateCellOnServer={props.updateCellOnServer}
+                    />
+                  )}
                 </div>
               </ResizablePanel>
 
@@ -310,7 +374,7 @@ export default function CodeCell(props: {
             cell={cell}
             runCell={runCell}
             stopCell={stopCell}
-            onDeleteCell={onDeleteCell}
+            onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
             generate={generate}
             cellMode={cellMode}
             setCellMode={setCellMode}
@@ -332,15 +396,23 @@ export default function CodeCell(props: {
           ) : (
             <>
               <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
-                <CodeEditor
-                  channel={channel}
-                  session={session}
-                  cell={cell}
-                  runCell={runCell}
-                  formatCell={formatCell}
-                  updateCellOnServer={updateCellOnServer}
-                  readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
-                />
+                {props.readOnly ? (
+                  <CodeEditor
+                    readOnly
+                    session={session}
+                    cell={cell}
+                  />
+                ) : (
+                  <CodeEditor
+                    readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
+                    channel={props.channel}
+                    session={session}
+                    cell={cell}
+                    runCell={runCell}
+                    formatCell={formatCell}
+                    updateCellOnServer={props.updateCellOnServer}
+                  />
+                )}
               </div>
               <CellOutput
                 cell={cell}
@@ -362,7 +434,7 @@ export default function CodeCell(props: {
 function Header(props: {
   cell: CodeCellType;
   runCell: () => void;
-  onDeleteCell: (cell: CellType) => void;
+  onDeleteCell: ((cell: CellType) => void) | null;
   cellMode: CellModeType;
   setCellMode: (mode: CellModeType) => void;
   updateFilename: (filename: string) => void;
@@ -422,11 +494,17 @@ function Header(props: {
               Invalid filename
             </div>
           )}
-          <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-            <Button className="hidden group-hover:flex" variant="icon" size="icon" tabIndex={1}>
+          {onDeleteCell !== null ? (
+            <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
+              <Button className="hidden group-hover:flex" variant="icon" size="icon" tabIndex={1}>
+                <Trash2 size={16} />
+              </Button>
+            </DeleteCellWithConfirmation>
+          ) : (
+            <Button className="hidden group-hover:flex" variant="icon" size="icon" disabled>
               <Trash2 size={16} />
             </Button>
-          </DeleteCellWithConfirmation>
+          )}
         </div>
         <div
           className={cn(
@@ -715,23 +793,35 @@ function gotoDefinition(
   });
 }
 
+type CodeEditorBaseProps = {
+  cell: CodeCellType;
+  session: SessionType;
+};
+type CodeEditorRegularProps = CodeEditorBaseProps & {
+  readOnly?: false;
+  channel: SessionChannel;
+  runCell: () => void;
+  formatCell: () => void;
+  updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
+};
+type CodeEditorReadOnlyProps = CodeEditorBaseProps & {
+  readOnly: true,
+  channel?: SessionChannel;
+  runCell?: () => void;
+  formatCell?: () => void;
+  updateCellOnServer?: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
+};
+type CodeEditorProps = CodeEditorRegularProps | CodeEditorReadOnlyProps;
+
 function CodeEditor({
+  readOnly,
   channel,
   cell,
   session,
   runCell,
   formatCell,
   updateCellOnServer,
-  readOnly,
-}: {
-  channel: SessionChannel;
-  cell: CodeCellType;
-  session: SessionType;
-  runCell: () => void;
-  formatCell: () => void;
-  updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
-  readOnly: boolean;
-}) {
+}: CodeEditorProps) {
   const { theme, codeTheme } = useTheme();
 
   const {
@@ -740,41 +830,73 @@ function CodeEditor({
     getTsServerSuggestions,
   } = useCells();
 
-  const updateCellOnServerDebounced = useDebouncedCallback(updateCellOnServer, DEBOUNCE_DELAY);
+  const updateCellOnServerOrNoop = useCallback<NonNullable<typeof updateCellOnServer>>((cell, attrs) => {
+    if (!updateCellOnServer) {
+      return;
+    }
+    updateCellOnServer(cell, attrs);
+  }, [updateCellOnServer]);
+  const updateCellOnServerDebounced = useDebouncedCallback(updateCellOnServerOrNoop, DEBOUNCE_DELAY);
 
-  function evaluateModEnter() {
-    runCell();
-    return true;
-  }
-
-  const extensions = [
-    javascript({ typescript: true }),
-    tsHover(session.id, cell, channel, theme),
-    tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
-    autocompletion({ override: [(context) => getCompletions(context, session.id, cell, channel)] }),
-    Prec.highest(
-      EditorView.domEventHandlers({
-        click: (e, view) => {
-          const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-          if (pos && e.altKey) {
-            gotoDefinition(pos, cell, session, channel, openModal);
-          }
-        },
-      }),
-    ),
-    Prec.highest(
-      keymap.of([
-        { key: 'Mod-Enter', run: evaluateModEnter },
-        {
-          key: 'Shift-Alt-f',
-          run: () => {
-            formatCell();
-            return true;
+  // FIXME: are the order of these extensions important? If not, the below can probably be
+  // simplified.
+  const extensions = useMemo(() => {
+    const extensions: Array<Extension> = [
+      javascript({ typescript: true }),
+    ];
+    if (typeof channel !== 'undefined') {
+      extensions.push(tsHover(session.id, cell, channel, theme));
+    }
+    extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
+    if (typeof channel !== 'undefined') {
+      extensions.push(autocompletion({
+        override: [(context) => getCompletions(context, session.id, cell, channel)]
+      }));
+    }
+    extensions.push(
+      Prec.highest(
+        EditorView.domEventHandlers({
+          click: (e, view) => {
+            const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+            if (pos && e.altKey) {
+              gotoDefinition(pos, cell, session, channel, openModal);
+            }
           },
+        }),
+      )
+    );
+
+    const keys: Array<KeyBinding> = [];
+    if (runCell) {
+      keys.push({
+        key: 'Mod-Enter',
+        run: () => {
+          runCell();
+          return true;
         },
-      ]),
-    ),
-  ];
+      });
+    }
+    if (formatCell) {
+      keys.push({
+        key: 'Shift-Alt-f',
+        run: () => {
+          formatCell();
+          return true;
+        },
+      });
+    }
+    extensions.push(Prec.highest(keymap.of(keys)));
+
+    return extensions;
+  }, [
+    session.id,
+    cell,
+    channel,
+    theme,
+    getTsServerDiagnostics,
+    getTsServerSuggestions,
+    formatCell,
+  ]);
 
   if (readOnly) {
     extensions.push(EditorView.editable.of(false));

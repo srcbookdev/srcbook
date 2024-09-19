@@ -97,20 +97,31 @@ function SessionPage() {
     <CellsProvider cells={session.cells}>
       <PackageJsonProvider session={session} channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
-          <Session session={session} channel={channel} srcbooks={srcbooks} config={config} />
+          {/* <Session */}
+          {/*   session={session} */}
+          {/*   channel={channel} */}
+          {/*   srcbooks={srcbooks} */}
+          {/*   config={config} */}
+          {/* /> */}
+          <Session readOnly session={session} srcbooks={srcbooks} config={config} />
         </TsConfigProvider>
       </PackageJsonProvider>
     </CellsProvider>
   );
 }
 
-function Session(props: {
+type SessionPropsBase = {
   session: SessionType;
-  channel: SessionChannel;
   srcbooks: Array<SessionType>;
   config: SettingsType;
-}) {
-  const { session, channel, srcbooks, config } = props;
+};
+
+type SessionProps =
+  | ({ readOnly: true } & SessionPropsBase)
+  | ({ readOnly: false; channel: SessionChannel } & SessionPropsBase);
+
+function Session(props: SessionProps) {
+  const { session, srcbooks, config } = props;
 
   const {
     cells: allCells,
@@ -148,6 +159,9 @@ function Session(props: {
   });
 
   async function onDeleteCell(cell: CellType | GenerateAICellType) {
+    if (props.readOnly) {
+      return;
+    }
     if (cell.type !== 'code' && cell.type !== 'markdown') {
       throw new Error(`Cannot delete cell of type '${cell.type}'`);
     }
@@ -155,54 +169,69 @@ function Session(props: {
     // Optimistically delete cell
     removeCell(cell);
 
-    channel.push('cell:delete', {
+    props.channel.push('cell:delete', {
       sessionId: session.id,
       cellId: cell.id,
     });
   }
 
   useEffect(() => {
+    if (props.readOnly) {
+      return;
+    }
     const callback = (payload: CellOutputPayloadType) => {
       setOutput(payload.cellId, payload.output);
     };
 
-    channel.on('cell:output', callback);
+    props.channel.on('cell:output', callback);
 
-    return () => channel.off('cell:output', callback);
-  }, [channel, setOutput]);
+    return () => props.channel.off('cell:output', callback);
+  }, [props.readOnly, !props.readOnly ? props.channel : null, setOutput]);
 
   useEffect(() => {
+    if (props.readOnly) {
+      return;
+    }
     const callback = (payload: TsServerCellDiagnosticsPayloadType) => {
       setTsServerDiagnostics(payload.cellId, payload.diagnostics);
     };
 
-    channel.on('tsserver:cell:diagnostics', callback);
+    props.channel.on('tsserver:cell:diagnostics', callback);
 
-    return () => channel.off('tsserver:cell:diagnostics', callback);
-  }, [channel, setTsServerDiagnostics]);
+    return () => props.channel.off('tsserver:cell:diagnostics', callback);
+  }, [props.readOnly, !props.readOnly ? props.channel : null, setTsServerDiagnostics]);
 
   useEffect(() => {
+    if (props.readOnly) {
+      return;
+    }
     const callback = (payload: TsServerCellSuggestionsPayloadType) => {
       setTsServerSuggestions(payload.cellId, payload.diagnostics);
     };
 
-    channel.on('tsserver:cell:suggestions', callback);
+    props.channel.on('tsserver:cell:suggestions', callback);
 
-    return () => channel.off('tsserver:cell:suggestions', callback);
-  }, [channel, setTsServerSuggestions]);
+    return () => props.channel.off('tsserver:cell:suggestions', callback);
+  }, [props.readOnly, !props.readOnly ? props.channel : null, setTsServerSuggestions]);
 
   useEffect(() => {
+    if (props.readOnly) {
+      return;
+    }
     const callback = (payload: CellUpdatedPayloadType) => {
       updateCell(payload.cell);
     };
 
-    channel.on('cell:updated', callback);
+    props.channel.on('cell:updated', callback);
 
-    return () => channel.off('cell:updated', callback);
-  }, [channel, updateCell]);
+    return () => props.channel.off('cell:updated', callback);
+  }, [props.readOnly, !props.readOnly ? props.channel : null, updateCell]);
 
   function updateCellOnServer(cell: CellType, updates: CellUpdateAttrsType) {
-    channel.push('cell:update', {
+    if (props.readOnly) {
+      return;
+    }
+    props.channel.push('cell:update', {
       sessionId: session.id,
       cellId: cell.id,
       updates,
@@ -210,6 +239,10 @@ function Session(props: {
   }
 
   async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
+    if (props.readOnly) {
+      return;
+    }
+
     // First, create the cell on client.
     // Then, push state to server, _only_ for code or markdown cells. AI generation is a client side only cell.
     // TODO: Handle potential errors (eg, rollback optimistic client creation if there are errors)
@@ -217,11 +250,11 @@ function Session(props: {
     switch (type) {
       case 'code':
         cell = createCodeCell(index, session.language);
-        channel.push('cell:create', { sessionId: session.id, index, cell });
+        props.channel.push('cell:create', { sessionId: session.id, index, cell });
         break;
       case 'markdown':
         cell = createMarkdownCell(index);
-        channel.push('cell:create', { sessionId: session.id, index, cell });
+        props.channel.push('cell:create', { sessionId: session.id, index, cell });
         break;
       case 'generate-ai':
         cell = createGenerateAiCell(index);
@@ -230,6 +263,10 @@ function Session(props: {
   }
 
   async function insertGeneratedCells(idx: number, cells: Array<CodeCellType | MarkdownCellType>) {
+    if (props.readOnly) {
+      return;
+    }
+
     for (let i = 0; i < cells.length; i++) {
       const cell = cells[i];
       if (!cell) continue;
@@ -243,7 +280,7 @@ function Session(props: {
           newCell = createMarkdownCell(insertIdx, cell);
           break;
       }
-      channel.push('cell:create', { sessionId: session.id, index: insertIdx, cell: newCell });
+      props.channel.push('cell:create', { sessionId: session.id, index: insertIdx, cell: newCell });
     }
   }
 
@@ -321,7 +358,7 @@ function Session(props: {
           selectedPanelOpen={selectedPanelOpen}
           onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
           openDepsInstallModal={() => setDepsInstallModalOpen(true)}
-          channel={channel}
+          channel={!props.readOnly ? props.channel : null}
         />
 
         <div className="grow shrink lg:px-0 pb-28">
@@ -337,11 +374,15 @@ function Session(props: {
                   createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
                 />
 
-                {cell.type === 'code' && (
+                {cell.type === 'code' && props.readOnly && (
+                  <CodeCell readOnly cell={cell} session={session} />
+                )}
+
+                {cell.type === 'code' && !props.readOnly && (
                   <CodeCell
                     cell={cell}
                     session={session}
-                    channel={channel}
+                    channel={props.channel}
                     updateCellOnServer={updateCellOnServer}
                     onDeleteCell={onDeleteCell}
                   />

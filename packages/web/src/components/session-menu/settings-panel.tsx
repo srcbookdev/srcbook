@@ -72,7 +72,7 @@ export default function SessionMenuPanelSettings({ session, channel }: PropsType
   );
 }
 
-function TsconfigJson({ channel }: { channel: SessionChannel }) {
+function TsconfigJson({ channel }: { channel: SessionChannel | null }) {
   const { codeTheme } = useTheme();
   const { source, onChangeSource, validationError } = useTsconfigJson();
   const [open, setOpen] = useState(true);

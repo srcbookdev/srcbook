@@ -25,7 +25,7 @@ import SessionMenuPanelSecrets from './secrets-panel';
 
 export type SessionMenuPanelContentsProps = {
   session: SessionType;
-  channel: SessionChannel;
+  channel: SessionChannel | null;
   openDepsInstallModal: () => void;
 };
 
@@ -72,7 +72,7 @@ type Props = {
     old: (param: [Panel['name'], boolean]) => [Panel['name'], boolean],
   ) => void;
   openDepsInstallModal: () => void;
-  channel: SessionChannel;
+  channel: SessionChannel | null;
 };
 
 marked.use({ gfm: true });

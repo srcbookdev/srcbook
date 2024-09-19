@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { cn } from '@/lib/utils.ts';
+import { cn, isValidSecretName } from '@/lib/utils.ts';
 import { getSecrets } from '@/lib/server';
 import { type SecretWithAssociatedSessions } from '@srcbook/shared';
 import { Info, Trash2, Eye, EyeOff } from 'lucide-react';
@@ -19,10 +19,6 @@ import {
 async function loader() {
   const { result } = await getSecrets();
   return { secrets: result };
-}
-
-function isValidSecretName(name: string) {
-  return /^[A-Z0-9_]+$/.test(name);
 }
 
 function Secrets() {

@@ -21,10 +21,6 @@ export const TsServerSuggestionSchema = z.object({
   end: TsServerLocationSchema,
 });
 
-export const TsServerQuickInfoRequestSchema = z.object({
-  location: TsServerLocationSchema,
-});
-
 export const TsServerJSDocSchema = z
   .union([
     z.string(),

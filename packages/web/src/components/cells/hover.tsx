@@ -60,7 +60,7 @@ export function tsHover(
             channel.push('tsserver:cell:quickinfo:request', {
               sessionId: sessionId,
               cellId: cell.id,
-              request: { location: mapCMLocationToTsServer(cell.source, pos) },
+              request: mapCMLocationToTsServer(cell.source, pos),
             });
           },
           destroy() {

@@ -36,8 +36,7 @@ import type {
   AiGenerateCellPayloadType,
   TsConfigUpdatePayloadType,
   AiFixDiagnosticsPayloadType,
-  TsServerQuickInfoRequestPayloadType,
-  TsServerDefinitionLocationRequestPayloadType,
+  TsServerCellLocationRequestPayloadType,
 } from '@srcbook/shared';
 import {
   CellErrorPayloadSchema,
@@ -62,10 +61,9 @@ import {
   TsConfigUpdatePayloadSchema,
   TsConfigUpdatedPayloadSchema,
   TsServerCellSuggestionsPayloadSchema,
-  TsServerQuickInfoRequestPayloadSchema,
+  TsServerCellLocationRequestPayloadSchema,
   TsServerQuickInfoResponsePayloadSchema,
   CellFormattedPayloadSchema,
-  TsServerDefinitionLocationRequestPayloadSchema,
   TsServerDefinitionLocationResponsePayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
@@ -717,7 +715,7 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
   });
 }
 
-async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
+async function tsserverQuickInfo(payload: TsServerCellLocationRequestPayloadType) {
   const session = await findSession(payload.sessionId);
 
   if (!session) {
@@ -740,8 +738,8 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
 
   const tsserverResponse = await tsserver.quickinfo({
     file: pathToCodeFile(session.dir, filename),
-    line: payload.request.location.line,
-    offset: payload.request.location.offset,
+    line: payload.request.line,
+    offset: payload.request.offset,
   });
 
   const body = tsserverResponse.body;
@@ -756,7 +754,7 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
   });
 }
 
-async function getCompletions(payload: TsServerDefinitionLocationRequestPayloadType) {
+async function getCompletions(payload: TsServerCellLocationRequestPayloadType) {
   const session = await findSession(payload.sessionId);
 
   if (!session) {
@@ -781,14 +779,14 @@ async function getCompletions(payload: TsServerDefinitionLocationRequestPayloadT
 
   const tsserverResponse = await tsserver.getCompletions({
     file: pathToCodeFile(session.dir, filename),
-    line: payload.request.location.line,
-    offset: payload.request.location.offset,
+    line: payload.request.line,
+    offset: payload.request.offset,
   });
 
   console.log('completions:', tsserverResponse.body);
 }
 
-async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestPayloadType) {
+async function getDefinitionLocation(payload: TsServerCellLocationRequestPayloadType) {
   const session = await findSession(payload.sessionId);
 
   if (!session) {
@@ -811,8 +809,8 @@ async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestP
 
   const tsserverResponse = await tsserver.getDefinitionLocation({
     file: pathToCodeFile(session.dir, filename),
-    line: payload.request.location.line,
-    offset: payload.request.location.offset,
+    line: payload.request.line,
+    offset: payload.request.offset,
   });
 
   const body = tsserverResponse.body;
@@ -860,17 +858,17 @@ wss
   .incoming('tsconfig.json:update', TsConfigUpdatePayloadSchema, tsconfigUpdate)
   .incoming(
     'tsserver:cell:quickinfo:request',
-    TsServerQuickInfoRequestPayloadSchema,
+    TsServerCellLocationRequestPayloadSchema,
     tsserverQuickInfo,
   )
   .incoming(
     'tsserver:cell:definition_location:request',
-    TsServerDefinitionLocationRequestPayloadSchema,
+    TsServerCellLocationRequestPayloadSchema,
     getDefinitionLocation,
   )
   .incoming(
     'tsserver:cell:completions:request',
-    TsServerDefinitionLocationRequestPayloadSchema,
+    TsServerCellLocationRequestPayloadSchema,
     getCompletions,
   )
   .outgoing('tsserver:cell:quickinfo:response', TsServerQuickInfoResponsePayloadSchema)

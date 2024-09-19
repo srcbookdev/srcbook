@@ -3,7 +3,7 @@ import { CellSchema, MarkdownCellSchema, CodeCellSchema, CellUpdateAttrsSchema }
 import {
   TsServerDefinitionLocationSchema,
   TsServerDiagnosticSchema,
-  TsServerQuickInfoRequestSchema,
+  TsServerLocationSchema,
   TsServerQuickInfoResponseSchema,
 } from './tsserver.mjs';
 
@@ -127,20 +127,14 @@ export const TsServerCellSuggestionsPayloadSchema = z.object({
   diagnostics: z.array(TsServerDiagnosticSchema),
 });
 
-export const TsServerQuickInfoRequestPayloadSchema = z.object({
+export const TsServerCellLocationRequestPayloadSchema = z.object({
   cellId: z.string(),
   sessionId: z.string(),
-  request: TsServerQuickInfoRequestSchema,
+  request: TsServerLocationSchema,
 });
 
 export const TsServerQuickInfoResponsePayloadSchema = z.object({
   response: TsServerQuickInfoResponseSchema,
-});
-
-export const TsServerDefinitionLocationRequestPayloadSchema = z.object({
-  cellId: z.string(),
-  sessionId: z.string(),
-  request: TsServerQuickInfoRequestSchema,
 });
 
 export const TsServerDefinitionLocationResponsePayloadSchema = z.object({

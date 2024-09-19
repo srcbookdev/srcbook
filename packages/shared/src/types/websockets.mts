@@ -23,10 +23,9 @@ import {
   TsConfigUpdatedPayloadSchema,
   AiFixDiagnosticsPayloadSchema,
   TsServerCellSuggestionsPayloadSchema,
-  TsServerQuickInfoRequestPayloadSchema,
+  TsServerCellLocationRequestPayloadSchema,
   TsServerQuickInfoResponsePayloadSchema,
   CellFormattedPayloadSchema,
-  TsServerDefinitionLocationRequestPayloadSchema,
   TsServerDefinitionLocationResponsePayloadSchema,
 } from '../schemas/websockets.mjs';
 
@@ -62,16 +61,13 @@ export type TsServerCellSuggestionsPayloadType = z.infer<
 export type TsConfigUpdatePayloadType = z.infer<typeof TsConfigUpdatePayloadSchema>;
 export type TsConfigUpdatedPayloadType = z.infer<typeof TsConfigUpdatedPayloadSchema>;
 
-export type TsServerQuickInfoRequestPayloadType = z.infer<
-  typeof TsServerQuickInfoRequestPayloadSchema
+export type TsServerCellLocationRequestPayloadType = z.infer<
+  typeof TsServerCellLocationRequestPayloadSchema
 >;
 export type TsServerQuickInfoResponsePayloadType = z.infer<
   typeof TsServerQuickInfoResponsePayloadSchema
 >;
 
-export type TsServerDefinitionLocationRequestPayloadType = z.infer<
-  typeof TsServerDefinitionLocationRequestPayloadSchema
->;
 export type TsServerDefinitionLocationResponsePayloadType = z.infer<
   typeof TsServerDefinitionLocationResponsePayloadSchema
 >;

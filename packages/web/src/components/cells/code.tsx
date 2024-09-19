@@ -709,7 +709,7 @@ function gotoDefinition(
   channel.push('tsserver:cell:definition_location:request', {
     sessionId: session.id,
     cellId: cell.id,
-    request: { location: mapCMLocationToTsServer(cell.source, pos) },
+    request: mapCMLocationToTsServer(cell.source, pos),
   });
 }
 

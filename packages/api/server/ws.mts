@@ -756,6 +756,38 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
   });
 }
 
+async function getCompletions(payload: TsServerDefinitionLocationRequestPayloadType) {
+  const session = await findSession(payload.sessionId);
+
+  if (!session) {
+    throw new Error(`No session exists for session '${payload.sessionId}'`);
+  }
+
+  if (session.language !== 'typescript') {
+    throw new Error(`tsserver can only be used with TypeScript Srcbooks.`);
+  }
+
+  const tsserver = tsservers.has(session.id) ? tsservers.get(session.id) : createTsServer(session);
+
+  const cell = session.cells.find((c) => payload.cellId == c.id);
+
+  if (!cell || cell.type !== 'code') {
+    throw new Error(`No code cell found for cellId '${payload.cellId}'`);
+  }
+
+  const filename = cell.filename;
+
+  console.log('getting completions');
+
+  const tsserverResponse = await tsserver.getCompletions({
+    file: pathToCodeFile(session.dir, filename),
+    line: payload.request.location.line,
+    offset: payload.request.location.offset,
+  });
+
+  console.log('completions:', tsserverResponse.body);
+}
+
 async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestPayloadType) {
   const session = await findSession(payload.sessionId);
 
@@ -835,6 +867,11 @@ wss
     'tsserver:cell:definition_location:request',
     TsServerDefinitionLocationRequestPayloadSchema,
     getDefinitionLocation,
+  )
+  .incoming(
+    'tsserver:cell:completions:request',
+    TsServerDefinitionLocationRequestPayloadSchema,
+    getCompletions,
   )
   .outgoing('tsserver:cell:quickinfo:response', TsServerQuickInfoResponsePayloadSchema)
   .outgoing(

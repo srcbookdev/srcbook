@@ -37,6 +37,8 @@ export default function SessionMenuPanelSecrets({ session }: PropsType) {
 
   useEffect(() => {
     loadSecrets();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function toggleSecret(secretName: string) {

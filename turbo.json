@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
   "globalEnv": [
     "NODE_ENV",
     "VITE_SRCBOOK_API_ORIGIN",

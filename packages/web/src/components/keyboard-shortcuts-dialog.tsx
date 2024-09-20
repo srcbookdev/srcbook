@@ -45,6 +45,7 @@ export default function KeyboardShortcutsDialog({
               <ShortcutRow keys={['alt', '↑']} description="move lines up" />
               <ShortcutRow keys={['alt', '↓']} description="move lines down" />
               <ShortcutRow keys={['shift', 'alt', 'f']} description="format code using Prettier" />
+              <ShortcutRow keys={['alt', 'click']} description="go to definition" />
             </div>
           </DialogDescription>
         </DialogHeader>

@@ -3,6 +3,7 @@ import type {
   CodeLanguageType,
   MarkdownCellType,
   CodeCellType,
+  SecretWithAssociatedSessions,
 } from '@srcbook/shared';
 import { SessionType, ExampleSrcbookType } from '@/types';
 import SRCBOOK_CONFIG from '@/config';
@@ -269,7 +270,7 @@ export async function updateConfig(request: EditConfigRequestType): Promise<void
 }
 
 // Secret management
-export async function getSecrets() {
+export async function getSecrets(): Promise<{ result: SecretWithAssociatedSessions[] }> {
   const response = await fetch(API_BASE_URL + '/secrets', {
     method: 'GET',
     headers: { 'content-type': 'application/json' },

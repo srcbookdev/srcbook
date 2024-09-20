@@ -1,151 +1,173 @@
-// import { SessionMenuPanelContentsProps } from '.';
-
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { type SecretWithAssociatedSessions } from '@srcbook/shared';
 
 import {
   getSecrets,
+  createSecret,
   associateSecretWithSession,
   disassociateSecretWithSession,
 } from '@/lib/server';
 import { Switch } from '@/components/ui/switch';
 import { SessionMenuPanelContentsProps } from '.';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { isValidSecretName } from '@/lib/utils';
 
 type PropsType = Pick<SessionMenuPanelContentsProps, 'session'>;
 
-export default function SessionMenuPanelSecrets(props: PropsType) {
-  const [secretsList, setSecretsList] = useState<
-    | { status: 'idle' }
-    | { status: 'loading' }
-    | { status: 'complete'; data: Array<SecretWithAssociatedSessions> }
-    | { status: 'error' }
-  >({ status: 'idle' });
+export default function SessionMenuPanelSecrets({ session }: PropsType) {
+  const [secrets, setSecrets] = useState<{ name: string; checked: boolean }[]>([]);
+  const [showForm, setShowForm] = useState(false);
+
+  async function loadSecrets() {
+    try {
+      const { result: secretsWithAssociations } = await getSecrets();
+
+      const secrets = secretsWithAssociations.map((s) => ({
+        name: s.name,
+        checked: s.associatedWithSessionIds.includes(session.id),
+      }));
+
+      setSecrets(secrets.reverse());
+    } catch (err) {
+      console.error('Error loading secrets', err);
+      return;
+    }
+  }
+
   useEffect(() => {
-    const run = async () => {
-      setSecretsList({ status: 'loading' });
-      let result: Array<SecretWithAssociatedSessions>;
-      try {
-        result = (await getSecrets()).result;
-      } catch (err) {
-        console.error('Error loading secrets!', err);
-        setSecretsList({ status: 'error' });
-        return;
-      }
+    loadSecrets();
 
-      setSecretsList({ status: 'complete', data: result });
-    };
-
-    // FIXME: it is possible for this to run twice in parallel?
-    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Store a list of all secret name association changes that are in progress so that a user cannot
-  // change an already in flight association
-  const [loadingSecretNames, setLoadingSecretName] = useState<Set<string>>(new Set());
-  const onRegisterLoadingSecretName = useCallback(
-    (secretName: string) => {
-      setLoadingSecretName((old) => {
-        const newSet = new Set(old);
-        newSet.add(secretName);
-        return newSet;
-      });
-    },
-    [setLoadingSecretName],
-  );
-  const onDeregisterLoadingSecretName = useCallback(
-    (secretName: string) => {
-      setLoadingSecretName((old) => {
-        const newSet = new Set(old);
-        newSet.delete(secretName);
-        return newSet;
-      });
-    },
-    [setLoadingSecretName],
-  );
+  function toggleSecret(secretName: string) {
+    setSecrets((secrets) =>
+      secrets.map((s) => {
+        return s.name === secretName ? { ...s, checked: !s.checked } : s;
+      }),
+    );
+  }
 
-  const onChangeSecretEnabled = useCallback(
-    async (secretName: string, enabled: boolean) => {
-      onRegisterLoadingSecretName(secretName);
+  async function onChangeSecretEnabled(secretName: string, enabled: boolean) {
+    toggleSecret(secretName); // optimistic update
 
-      try {
-        if (enabled) {
-          await associateSecretWithSession(props.session.id, secretName);
-        } else {
-          await disassociateSecretWithSession(props.session.id, secretName);
-        }
-      } catch (err) {
-        onDeregisterLoadingSecretName(secretName);
-        console.error(`Error changing secret ${secretName} enabled:`, err);
-        toast.error('Error enabling/disabling secret!');
-        return;
-      }
+    try {
+      const operation = enabled ? associateSecretWithSession : disassociateSecretWithSession;
+      await operation(session.id, secretName);
+    } catch (err) {
+      toggleSecret(secretName); // undo optimistic update
+      console.error(`Error toggling secret ${secretName}`, err);
+      toast.error('Error enabling/disabling secret!');
+      return;
+    }
+  }
 
-      // After changing the secret value, optimisitcally update the secrets list
-      // FIXME: maybe it would be better to just refetch?
-      setSecretsList((old) => {
-        if (old.status !== 'complete') {
-          return old;
-        }
-
-        return {
-          ...old,
-          data: old.data.map((item) => {
-            if (item.name === secretName) {
-              return {
-                ...item,
-                associatedWithSessionIds: enabled
-                  ? [...item.associatedWithSessionIds, props.session.id]
-                  : item.associatedWithSessionIds.filter((id) => id !== props.session.id),
-              };
-            } else {
-              return item;
-            }
-          }),
-        };
-      });
-
-      // NOTE: add a slight delay before removing the loading state to minimize ui flicker
-      setTimeout(() => {
-        onDeregisterLoadingSecretName(secretName);
-      }, 50);
-    },
-    [props.session.id, onRegisterLoadingSecretName, onDeregisterLoadingSecretName],
-  );
+  async function onSecretAdded(secretName: string) {
+    setShowForm(false);
+    await loadSecrets();
+    toggleSecret(secretName);
+    await associateSecretWithSession(session.id, secretName);
+  }
 
   return (
     <>
       <h4 className="text-lg font-semibold leading-tight mb-2">Secrets</h4>
-      <h6 className="mb-4 text-tertiary-foreground">Available in this srcbook</h6>
 
-      {secretsList.status === 'idle' || secretsList.status === 'loading' ? (
-        <span>Loading</span>
-      ) : null}
-      {secretsList.status === 'error' ? <span>Error loading secrets!</span> : null}
-      {secretsList.status === 'complete' ? (
-        <div>
-          {secretsList.data.map((secret) => {
-            const checked = secret.associatedWithSessionIds.includes(props.session.id);
-            return (
-              <div
-                className="flex items-center justify-between h-8 cursor-pointer"
-                key={secret.name}
-                onClick={() => onChangeSecretEnabled(secret.name, !checked)}
-                aria-hidden={true}
-              >
-                <span className="font-mono">{secret.name}</span>
-                <div onClick={(e) => e.stopPropagation()} aria-hidden={true}>
-                  <Switch
-                    disabled={loadingSecretNames.has(secret.name)}
-                    checked={checked}
-                    onCheckedChange={(checked) => onChangeSecretEnabled(secret.name, checked)}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
+      <div className="flex items-center justify-between">
+        {showForm ? (
+          <InlineForm onSecretAdded={onSecretAdded} />
+        ) : (
+          <>
+            <p className="text-tertiary-foreground">Enable secrets below</p>
+            <Button variant="secondary" onClick={() => setShowForm(true)}>
+              Add secret
+            </Button>
+          </>
+        )}
+      </div>
+
+      <div className="mt-8">
+        {secrets.map((secret) => (
+          <label
+            key={secret.name}
+            htmlFor={`secret-${secret.name}`}
+            className="flex items-center justify-between h-8 font-mono cursor-pointer"
+          >
+            {secret.name}
+
+            <Switch
+              id={`secret-${secret.name}`}
+              checked={secret.checked}
+              onCheckedChange={(checked) => onChangeSecretEnabled(secret.name, checked)}
+            />
+          </label>
+        ))}
+      </div>
     </>
+  );
+}
+
+function InlineForm(props: { onSecretAdded: (name: string) => void }) {
+  const [name, setName] = useState('');
+  const [value, setValue] = useState('');
+  const [error, _setError] = useState<string | null>(null);
+
+  function setError(error: string | null) {
+    if (error === null) {
+      _setError(null);
+      return;
+    }
+
+    _setError(error);
+    setTimeout(() => _setError(null), 5000);
+  }
+
+  function isValidSecret() {
+    return isValidSecretName(name) && value.length > 0;
+  }
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    _setError(null);
+
+    try {
+      await createSecret({ name, value });
+    } catch (err) {
+      console.error('Error creating secret', err);
+      setError('Error creating secret');
+      return;
+    }
+
+    props.onSecretAdded(name);
+
+    setName('');
+    setValue('');
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <form name="inline-secret-form" className="flex items-center space-x-4" onSubmit={onSubmit}>
+        <Input
+          required
+          autoComplete="off"
+          placeholder="SECRET_NAME"
+          value={name}
+          onChange={(e) => setName(e.currentTarget.value.toUpperCase())}
+        />
+        <Input
+          required
+          autoComplete="off"
+          value={value}
+          onChange={(e) => setValue(e.currentTarget.value)}
+          placeholder="secret-value"
+        />
+        <Button type="submit" variant="secondary" disabled={!isValidSecret()}>
+          Add
+        </Button>
+      </form>
+      {error && <p className="text-error text-[13px]">{error}</p>}
+    </div>
   );
 }

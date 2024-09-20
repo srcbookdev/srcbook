@@ -15,6 +15,15 @@ import { isValidSecretName } from '@/lib/utils';
 
 type PropsType = Pick<SessionMenuPanelContentsProps, 'session'>;
 
+// No Secrets Component
+function NoSecrets() {
+  return (
+    <div className="text-center flex justify-center items-center">
+      <p>No secrets Added Yet</p>
+    </div>
+  );
+}
+
 export default function SessionMenuPanelSecrets({ session }: PropsType) {
   const [secrets, setSecrets] = useState<{ name: string; checked: boolean }[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -79,7 +88,7 @@ export default function SessionMenuPanelSecrets({ session }: PropsType) {
           <InlineForm onSecretAdded={onSecretAdded} />
         ) : (
           <>
-            <p className="text-tertiary-foreground">Enable secrets below</p>
+            <p className="text-tertiary-foreground">Enable secrets below </p>
             <Button variant="secondary" onClick={() => setShowForm(true)}>
               Add secret
             </Button>
@@ -88,21 +97,23 @@ export default function SessionMenuPanelSecrets({ session }: PropsType) {
       </div>
 
       <div className="mt-8">
-        {secrets.map((secret) => (
-          <label
-            key={secret.name}
-            htmlFor={`secret-${secret.name}`}
-            className="flex items-center justify-between h-8 font-mono cursor-pointer"
-          >
-            {secret.name}
+        {secrets.length > 0 &&
+          secrets.map((secret) => (
+            <label
+              key={secret.name}
+              htmlFor={`secret-${secret.name}`}
+              className="flex items-center justify-between h-8 font-mono cursor-pointer border-2 m-2 p-5 rounded-xl border-tertiary-foreground/65"
+            >
+              {secret.name}
 
-            <Switch
-              id={`secret-${secret.name}`}
-              checked={secret.checked}
-              onCheckedChange={(checked) => onChangeSecretEnabled(secret.name, checked)}
-            />
-          </label>
-        ))}
+              <Switch
+                id={`secret-${secret.name}`}
+                checked={secret.checked}
+                onCheckedChange={(checked) => onChangeSecretEnabled(secret.name, checked)}
+              />
+            </label>
+          ))}
+        {secrets.length === 0 && <NoSecrets />}
       </div>
     </>
   );

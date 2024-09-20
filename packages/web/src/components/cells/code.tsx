@@ -449,15 +449,24 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
                   />
                 )}
               </div>
-              <CellOutput
-                cell={cell}
-                show={showStdio}
-                setShow={setShowStdio}
-                fixDiagnostics={aiFixDiagnostics}
-                cellMode={cellMode}
-                fullscreen={fullscreen}
-                setFullscreen={setFullscreen}
-              />
+              {props.readOnly ? (
+                <CellOutput
+                  readOnly
+                  cell={cell}
+                  show={showStdio}
+                  setShow={setShowStdio}
+                />
+              ) : (
+                <CellOutput
+                  cell={cell}
+                  show={showStdio}
+                  setShow={setShowStdio}
+                  fixDiagnostics={aiFixDiagnostics}
+                  cellMode={cellMode}
+                  fullscreen={fullscreen}
+                  setFullscreen={setFullscreen}
+                />
+              )}
             </>
           )}
         </div>

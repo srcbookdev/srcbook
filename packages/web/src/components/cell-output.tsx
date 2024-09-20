@@ -8,35 +8,36 @@ import { useCells } from '@/components/use-cell';
 import { OutputType, StdoutOutputType, StderrOutputType, CellModeType } from '@/types';
 import { Button } from './ui/button';
 
-type PropsType = {
+type BaseProps = {
   cell: CodeCellType | PackageJsonCellType;
   show: boolean;
   setShow: (show: boolean) => void;
+};
+
+type RegularProps = BaseProps & {
+  readOnly?: false;
   fixDiagnostics: (diagnostics: string) => void;
   cellMode: CellModeType;
   setFullscreen: (fullscreen: boolean) => void;
   fullscreen: boolean;
 };
+type ReadOnlyProps = BaseProps & { readOnly: true };
 
-export function CellOutput({
-  cell,
-  show,
-  setShow,
-  fixDiagnostics,
-  cellMode,
-  fullscreen,
-  setFullscreen,
-}: PropsType) {
+type Props = RegularProps | ReadOnlyProps;
+
+export function CellOutput(props: Props) {
+  const { cell, show, setShow } = props;
   const { getOutput, clearOutput, getTsServerDiagnostics, getTsServerSuggestions } = useCells();
 
   const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems' | 'warnings'>(
     'stdout',
   );
 
+  const fullscreen = !props.readOnly ? props.fullscreen : false;
   const stdout = getOutput(cell.id, 'stdout') as StdoutOutputType[];
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
-  const diagnostics = getTsServerDiagnostics(cell.id);
-  const suggestions = getTsServerSuggestions(cell.id);
+  const diagnostics = !props.readOnly ? getTsServerDiagnostics(cell.id) : [];
+  const suggestions = !props.readOnly ? getTsServerSuggestions(cell.id) : [];
 
   return (
     <div className={cn('font-mono text-sm', fullscreen && !show && 'border-b')}>
@@ -81,7 +82,7 @@ export function CellOutput({
                 'stderr'
               )}
             </TabsTrigger>
-            {cell.type === 'code' && cell.language === 'typescript' && (
+            {cell.type === 'code' && cell.language === 'typescript' && !props.readOnly && (
               <TabsTrigger
                 onClick={() => setShow(true)}
                 value="problems"
@@ -99,7 +100,7 @@ export function CellOutput({
                 )}
               </TabsTrigger>
             )}
-            {cell.type === 'code' && cell.language === 'typescript' && (
+            {cell.type === 'code' && cell.language === 'typescript' && !props.readOnly && (
               <TabsTrigger
                 onClick={() => setShow(true)}
                 value="warnings"
@@ -119,26 +120,33 @@ export function CellOutput({
             )}
           </TabsList>
           <div className="flex items-center gap-6">
-            <button
-              className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
-              onClick={() => {
-                setFullscreen(!fullscreen);
-              }}
-            >
-              {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-            </button>
-            <button
-              className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
-              disabled={activeTab === 'problems' || activeTab === 'warnings'}
-              onClick={() =>
-                clearOutput(
-                  cell.id,
-                  activeTab === 'problems' || activeTab === 'warnings' ? undefined : activeTab,
-                )
-              }
-            >
-              <Ban size={16} />
-            </button>
+            {!props.readOnly ? (
+              <button
+                className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
+                onClick={() => {
+                  if (props.readOnly) {
+                    return;
+                  }
+                  props.setFullscreen(!fullscreen);
+                }}
+              >
+                {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+              </button>
+            ) : null}
+            {!props.readOnly ? (
+              <button
+                className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
+                disabled={activeTab === 'problems' || activeTab === 'warnings'}
+                onClick={() =>
+                  clearOutput(
+                    cell.id,
+                    activeTab === 'problems' || activeTab === 'warnings' ? undefined : activeTab,
+                  )
+                }
+              >
+                <Ban size={16} />
+              </button>
+            ) : null}
             <button className="hover:text-secondary-hover" onClick={() => setShow(!show)}>
               {show ? <PanelBottomOpen size={20} /> : <PanelBottomClose size={20} />}
             </button>
@@ -157,21 +165,21 @@ export function CellOutput({
             <TabsContent value="stderr" className="mt-0">
               <Stderr stderr={stderr} />
             </TabsContent>
-            {cell.type === 'code' && cell.language === 'typescript' && (
+            {cell.type === 'code' && cell.language === 'typescript' && !props.readOnly && (
               <TabsContent value="problems" className="mt-0">
                 <TsServerDiagnostics
                   diagnostics={diagnostics}
-                  fixDiagnostics={fixDiagnostics}
-                  cellMode={cellMode}
+                  fixDiagnostics={props.fixDiagnostics}
+                  cellMode={props.cellMode}
                 />
               </TabsContent>
             )}
-            {cell.type === 'code' && cell.language === 'typescript' && (
+            {cell.type === 'code' && cell.language === 'typescript' && !props.readOnly && (
               <TabsContent value="warnings" className="mt-0">
                 <TsServerSuggestions
                   suggestions={suggestions}
-                  fixSuggestions={fixDiagnostics} // fixDiagnostics works for both diagnostics and suggestions
-                  cellMode={cellMode}
+                  fixSuggestions={props.fixDiagnostics} // fixDiagnostics works for both diagnostics and suggestions
+                  cellMode={props.cellMode}
                 />
               </TabsContent>
             )}

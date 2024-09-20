@@ -4,24 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Shortcut from '@/components/keyboard-shortcut';
-import { useNavigate } from 'react-router-dom';
+
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import {
-  Info,
-  Play,
-  Trash2,
-  Sparkles,
-  X,
-  MessageCircleWarning,
-  LoaderCircle,
-  Maximize,
-  Minimize,
-} from 'lucide-react';
-import TextareaAutosize from 'react-textarea-autosize';
-import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
+import { Info, Play, Trash2, Sparkles, LoaderCircle, Maximize, Minimize } from 'lucide-react';
+
 import {
   CellType,
   CodeCellType,
@@ -47,6 +36,7 @@ import { EditorView } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
+import { AiPromptInput } from '@/components/ai-prompt-input';
 import { tsHover } from './hover';
 import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
@@ -399,7 +389,6 @@ function Header(props: {
   } = props;
 
   const { aiEnabled } = useSettings();
-  const navigate = useNavigate();
 
   return (
     <>
@@ -558,50 +547,12 @@ function Header(props: {
         </div>
       </div>
       {['prompting', 'generating'].includes(cellMode) && (
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-start justify-between px-1">
-            <div className="flex items-start flex-grow">
-              <Sparkles size={16} className="m-2.5" />
-              <TextareaAutosize
-                className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
-                // eslint-disable-next-line jsx-a11y/no-autofocus -- needed for action flow, should not limit accessibility
-                autoFocus
-                placeholder="Ask the AI to edit this cell..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center gap-1">
-              <AiGenerateTipsDialog>
-                <Button size="icon" variant="icon">
-                  <MessageCircleWarning size={16} />
-                </Button>
-              </AiGenerateTipsDialog>
-              <Button
-                size="icon"
-                variant="icon"
-                onClick={() => {
-                  setCellMode('off');
-                  setPrompt('');
-                }}
-              >
-                <X size={16} />
-              </Button>
-            </div>
-          </div>
-
-          {!aiEnabled && (
-            <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 m-3">
-              <p>AI provider not configured.</p>
-              <button
-                className="font-medium underline cursor-pointer"
-                onClick={() => navigate('/settings')}
-              >
-                Settings
-              </button>
-            </div>
-          )}
-        </div>
+        <AiPromptInput
+          prompt={prompt}
+          setPrompt={setPrompt}
+          onClose={() => setCellMode('off')}
+          aiEnabled={aiEnabled}
+        />
       )}
     </>
   );

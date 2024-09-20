@@ -22,7 +22,9 @@ export function encode(srcbook: SrcbookWithPlacebolderType, options: { inline: b
   const encoded = [
     encodeMetdata(srcbook),
     encodeTitleCell(titleCell),
-    encodePackageJsonCell(packageJsonCell, options),
+    ...((srcbook.language as string) !== 'markdown'
+      ? [encodePackageJsonCell(packageJsonCell, options)]
+      : []),
     ...cells.map((cell) => {
       switch (cell.type) {
         case 'code':
@@ -34,7 +36,6 @@ export function encode(srcbook: SrcbookWithPlacebolderType, options: { inline: b
       }
     }),
   ];
-
   // End every file with exactly one newline.
   return encoded.join('\n\n').trimEnd() + '\n';
 }

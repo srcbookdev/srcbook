@@ -6,6 +6,7 @@ import {
   type CodeCellType,
   randomid,
   type CellWithPlaceholderType,
+  type MarkdownCellType,
 } from '@srcbook/shared';
 import { type SessionType } from '../types.mjs';
 import { readFileSync } from 'node:fs';
@@ -85,11 +86,18 @@ const makeGenerateCellEditSystemPrompt = (language: CodeLanguageType) => {
 const makeGenerateCellEditUserPrompt = (
   query: string,
   session: SessionType,
-  cell: CodeCellType,
+  cell: CodeCellType | MarkdownCellType,
 ) => {
+  const cellLanguage = cell.type === 'markdown' ? 'markdown' : session.language;
+  const filteredCells =
+    cellLanguage === 'markdown'
+      ? session.cells.filter((cell) => !(cell.type === 'package.json'))
+      : session.cells;
+
   // Intentionally not passing in tsconfig.json here as that doesn't need to be in the prompt.
+
   const inlineSrcbook = encode(
-    { cells: session.cells, language: session.language },
+    { cells: filteredCells, language: cellLanguage as CodeLanguageType },
     { inline: true },
   );
 
@@ -97,9 +105,15 @@ const makeGenerateCellEditUserPrompt = (
 ${inlineSrcbook}
 ==== END SRCBOOK ====
 
-==== BEGIN CODE CELL ====
+${
+  cell.type === 'code'
+    ? `==== BEGIN CODE CELL ====
 ${cell.source}
-==== END CODE CELL ====
+==== END CODE CELL ====`
+    : `==== BEGIN MARKDOWN CELL ====
+${cell.text}
+==== END MARKDOWN CELL ====`
+}
 
 ==== BEGIN USER REQUEST ====
 ${query}
@@ -180,10 +194,14 @@ export async function generateCells(
   }
 }
 
-export async function generateCellEdit(query: string, session: SessionType, cell: CodeCellType) {
+export async function generateCellEdit(
+  query: string,
+  session: SessionType,
+  cell: CodeCellType | MarkdownCellType,
+) {
   const model = await getModel();
-
-  const systemPrompt = makeGenerateCellEditSystemPrompt(session.language);
+  const cellLanguage = cell.type === 'markdown' ? 'markdown' : session.language;
+  const systemPrompt = makeGenerateCellEditSystemPrompt(cellLanguage as CodeLanguageType);
   const userPrompt = makeGenerateCellEditUserPrompt(query, session, cell);
   const result = await generateText({
     model,

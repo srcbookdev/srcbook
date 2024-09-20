@@ -5,4 +5,4 @@
 'srcbook': patch
 ---
 
-Adds autocomplete support!
+480bf57: Adds autocomplete support!

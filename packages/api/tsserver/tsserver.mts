@@ -214,7 +214,7 @@ export class TsServer extends EventEmitter {
   }
 
   getCompletions(args: tsserver.protocol.FileLocationRequestArgs) {
-    return this.sendWithResponsePromise<tsserver.protocol.CompletionInfoResponse>({
+    return this.sendWithResponsePromise<{ body: tsserver.protocol.CompletionEntry[] }>({
       seq: this.seq,
       type: 'request',
       command: 'completions',

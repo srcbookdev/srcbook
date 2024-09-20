@@ -67,6 +67,7 @@ import {
   CellFormattedPayloadSchema,
   TsServerDefinitionLocationRequestPayloadSchema,
   TsServerDefinitionLocationResponsePayloadSchema,
+  TsServerCompletionEntriesPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
@@ -786,6 +787,12 @@ async function getCompletions(payload: TsServerDefinitionLocationRequestPayloadT
   });
 
   console.log('completions:', tsserverResponse.body);
+
+  const entries = tsserverResponse.body;
+
+  wss.broadcast(`session:${session.id}`, 'tsserver:cell:completions:response', {
+    response: entries ? { entries } : null,
+  });
 }
 
 async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestPayloadType) {
@@ -873,6 +880,7 @@ wss
     TsServerDefinitionLocationRequestPayloadSchema,
     getCompletions,
   )
+  .outgoing('tsserver:cell:completions:response', TsServerCompletionEntriesPayloadSchema)
   .outgoing('tsserver:cell:quickinfo:response', TsServerQuickInfoResponsePayloadSchema)
   .outgoing(
     'tsserver:cell:definition_location:response',

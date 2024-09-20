@@ -29,7 +29,6 @@ import { PackageJsonProvider, usePackageJson } from '@/components/use-package-js
 import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
-// import { TsConfigProvider } from '@/components/use-session-readonly';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([

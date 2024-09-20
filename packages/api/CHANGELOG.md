@@ -1,5 +1,13 @@
 # @srcbook/api
 
+## 0.0.7
+
+### Patch Changes
+
+- 691f81f: 480bf57: Adds autocomplete support!
+- Updated dependencies [691f81f]
+  - @srcbook/shared@0.0.7
+
 ## 0.0.6
 
 ### Patch Changes

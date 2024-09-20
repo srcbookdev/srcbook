@@ -26,18 +26,18 @@ type ReadOnlyProps = BaseProps & { readOnly: true };
 type Props = RegularProps | ReadOnlyProps;
 
 export function CellOutput(props: Props) {
-  const { cell, show, setShow } = props;
+  const { readOnly, cell, show, setShow } = props;
   const { getOutput, clearOutput, getTsServerDiagnostics, getTsServerSuggestions } = useCells();
 
   const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems' | 'warnings'>(
     'stdout',
   );
 
-  const fullscreen = !props.readOnly ? props.fullscreen : false;
+  const fullscreen = !readOnly ? props.fullscreen : false;
   const stdout = getOutput(cell.id, 'stdout') as StdoutOutputType[];
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
-  const diagnostics = !props.readOnly ? getTsServerDiagnostics(cell.id) : [];
-  const suggestions = !props.readOnly ? getTsServerSuggestions(cell.id) : [];
+  const diagnostics = !readOnly ? getTsServerDiagnostics(cell.id) : [];
+  const suggestions = !readOnly ? getTsServerSuggestions(cell.id) : [];
 
   return (
     <div className={cn('font-mono text-sm', fullscreen && !show && 'border-b')}>
@@ -82,7 +82,7 @@ export function CellOutput(props: Props) {
                 'stderr'
               )}
             </TabsTrigger>
-            {cell.type === 'code' && cell.language === 'typescript' && !props.readOnly && (
+            {cell.type === 'code' && cell.language === 'typescript' && !readOnly && (
               <TabsTrigger
                 onClick={() => setShow(true)}
                 value="problems"
@@ -100,7 +100,7 @@ export function CellOutput(props: Props) {
                 )}
               </TabsTrigger>
             )}
-            {cell.type === 'code' && cell.language === 'typescript' && !props.readOnly && (
+            {cell.type === 'code' && cell.language === 'typescript' && !readOnly && (
               <TabsTrigger
                 onClick={() => setShow(true)}
                 value="warnings"
@@ -120,11 +120,11 @@ export function CellOutput(props: Props) {
             )}
           </TabsList>
           <div className="flex items-center gap-6">
-            {!props.readOnly ? (
+            {!readOnly ? (
               <button
                 className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
                 onClick={() => {
-                  if (props.readOnly) {
+                  if (readOnly) {
                     return;
                   }
                   props.setFullscreen(!fullscreen);
@@ -133,7 +133,7 @@ export function CellOutput(props: Props) {
                 {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
               </button>
             ) : null}
-            {!props.readOnly ? (
+            {!readOnly ? (
               <button
                 className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
                 disabled={activeTab === 'problems' || activeTab === 'warnings'}
@@ -165,7 +165,7 @@ export function CellOutput(props: Props) {
             <TabsContent value="stderr" className="mt-0">
               <Stderr stderr={stderr} />
             </TabsContent>
-            {cell.type === 'code' && cell.language === 'typescript' && !props.readOnly && (
+            {cell.type === 'code' && cell.language === 'typescript' && !readOnly && (
               <TabsContent value="problems" className="mt-0">
                 <TsServerDiagnostics
                   diagnostics={diagnostics}
@@ -174,7 +174,7 @@ export function CellOutput(props: Props) {
                 />
               </TabsContent>
             )}
-            {cell.type === 'code' && cell.language === 'typescript' && !props.readOnly && (
+            {cell.type === 'code' && cell.language === 'typescript' && !readOnly && (
               <TabsContent value="warnings" className="mt-0">
                 <TsServerSuggestions
                   suggestions={suggestions}

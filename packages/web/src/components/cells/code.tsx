@@ -250,7 +250,7 @@ export default function CodeCell(props: Props) {
   }
 
   function onAcceptDiff() {
-    if (props.readOnly) {
+    if (readOnly) {
       return;
     }
     updateCellOnClient({ ...cell, source: newSource });
@@ -290,7 +290,7 @@ export default function CodeCell(props: Props) {
             cell={cell}
             runCell={runCell}
             stopCell={stopCell}
-            onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
+            onDeleteCell={!readOnly ? props.onDeleteCell : null}
             generate={generate}
             cellMode={cellMode}
             setCellMode={setCellMode}
@@ -313,7 +313,7 @@ export default function CodeCell(props: Props) {
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
                 <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
-                  {props.readOnly ? (
+                  {readOnly ? (
                     <CodeEditor readOnly session={session} cell={cell} />
                   ) : (
                     <CodeEditor
@@ -359,7 +359,7 @@ export default function CodeCell(props: Props) {
               'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
           )}
         >
-          {props.readOnly ? (
+          {readOnly ? (
             <div className="p-1 flex items-center justify-between gap-2">
               <div className="flex items-center gap-1">
                 <span className="w-[200px] font-mono font-semibold text-xs transition-colors px-2">
@@ -395,7 +395,7 @@ export default function CodeCell(props: Props) {
               cell={cell}
               runCell={runCell}
               stopCell={stopCell}
-              onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
+              onDeleteCell={!readOnly ? props.onDeleteCell : null}
               generate={generate}
               cellMode={cellMode}
               setCellMode={setCellMode}
@@ -418,7 +418,7 @@ export default function CodeCell(props: Props) {
           ) : (
             <>
               <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
-                {props.readOnly ? (
+                {readOnly ? (
                   <CodeEditor readOnly session={session} cell={cell} />
                 ) : (
                   <CodeEditor
@@ -432,7 +432,7 @@ export default function CodeCell(props: Props) {
                   />
                 )}
               </div>
-              {props.readOnly ? (
+              {readOnly ? (
                 <CellOutput readOnly cell={cell} show={showStdio} setShow={setShowStdio} />
               ) : (
                 <CellOutput
@@ -875,9 +875,11 @@ function CodeEditor({
     }
     extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
     if (typeof channel !== 'undefined') {
-      extensions.push(autocompletion({
-        override: [(context) => getCompletions(context, session.id, cell, channel)]
-      }));
+      extensions.push(
+        autocompletion({
+          override: [(context) => getCompletions(context, session.id, cell, channel)],
+        }),
+      );
     }
     extensions.push(
       Prec.highest(

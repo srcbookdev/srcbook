@@ -121,8 +121,8 @@ type SessionProps =
   | ({ readOnly?: false; channel: SessionChannel } & SessionPropsBase);
 
 function Session(props: SessionProps) {
-  const { session, srcbooks, config } = props;
-  const channel = !props.readOnly ? props.channel : null;
+  const { readOnly, session, srcbooks, config } = props;
+  const channel = !readOnly ? props.channel : null;
 
   const {
     cells: allCells,
@@ -160,7 +160,7 @@ function Session(props: SessionProps) {
   });
 
   async function onDeleteCell(cell: CellType | GenerateAICellType) {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
     if (cell.type !== 'code' && cell.type !== 'markdown') {
@@ -170,7 +170,7 @@ function Session(props: SessionProps) {
     // Optimistically delete cell
     removeCell(cell);
 
-    props.channel.push('cell:delete', {
+    channel.push('cell:delete', {
       sessionId: session.id,
       cellId: cell.id,
     });
@@ -345,7 +345,7 @@ function Session(props: SessionProps) {
   return (
     <div className="flex flex-col">
       <SessionNavbar
-        readOnly={props.readOnly}
+        readOnly={readOnly}
         session={session}
         srcbooks={srcbooks}
         baseDir={config.baseDir}
@@ -354,7 +354,7 @@ function Session(props: SessionProps) {
 
       <div className="flex mt-12">
         <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
-        {props.readOnly ? (
+        {readOnly ? (
           <SessionMenu
             readOnly
             session={session}
@@ -375,7 +375,7 @@ function Session(props: SessionProps) {
 
         <div className="grow shrink lg:px-0 pb-28">
           <div className="max-w-[800px] mx-auto my-12 px-[32px]">
-            {props.readOnly ? (
+            {readOnly ? (
               <TitleCell readOnly cell={titleCell} />
             ) : (
               <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
@@ -383,7 +383,7 @@ function Session(props: SessionProps) {
 
             {cells.map((cell, idx) => (
               <div key={cell.id}>
-                {props.readOnly ? (
+                {readOnly ? (
                   <div className="h-5" />
                 ) : (
                   <InsertCellDivider
@@ -394,10 +394,10 @@ function Session(props: SessionProps) {
                   />
                 )}
 
-                {cell.type === 'code' && props.readOnly && (
+                {cell.type === 'code' && readOnly && (
                   <CodeCell readOnly cell={cell} session={session} />
                 )}
-                {cell.type === 'code' && !props.readOnly && (
+                {cell.type === 'code' && !readOnly && (
                   <CodeCell
                     cell={cell}
                     session={session}
@@ -407,10 +407,8 @@ function Session(props: SessionProps) {
                   />
                 )}
 
-                {cell.type === 'markdown' && props.readOnly && (
-                  <MarkdownCell readOnly cell={cell} />
-                )}
-                {cell.type === 'markdown' && !props.readOnly && (
+                {cell.type === 'markdown' && readOnly && <MarkdownCell readOnly cell={cell} />}
+                {cell.type === 'markdown' && !readOnly && (
                   <MarkdownCell
                     cell={cell}
                     updateCellOnServer={updateCellOnServer}
@@ -418,7 +416,7 @@ function Session(props: SessionProps) {
                   />
                 )}
 
-                {cell.type === 'generate-ai' && !props.readOnly && (
+                {cell.type === 'generate-ai' && !readOnly && (
                   <GenerateAiCell
                     cell={cell}
                     session={session}
@@ -430,7 +428,7 @@ function Session(props: SessionProps) {
             ))}
 
             {/* There is always an insert cell divider after the last cell */}
-            {!props.readOnly ? (
+            {!readOnly ? (
               <InsertCellDivider
                 language={session.language}
                 createCodeCell={() => createNewCell('code', allCells.length)}

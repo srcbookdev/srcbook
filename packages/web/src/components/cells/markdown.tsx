@@ -70,7 +70,7 @@ type MarkdownCellProps =
 export default function MarkdownCell(props: MarkdownCellProps) {
   const { codeTheme, theme } = useTheme();
   const { updateCell: updateCellOnClient } = useCells();
-  const { cell } = props;
+  const { readOnly, cell } = props;
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
   const [text, setText] = useState(cell.text);
@@ -102,7 +102,7 @@ export default function MarkdownCell(props: MarkdownCellProps) {
 
   const keyMap = Prec.highest(
     keymap.of(
-      !props.readOnly
+      !readOnly
         ? [
             {
               key: 'Mod-Enter',
@@ -124,7 +124,7 @@ export default function MarkdownCell(props: MarkdownCellProps) {
   );
 
   function onSave() {
-    if (props.readOnly) {
+    if (readOnly) {
       return;
     }
     const error = getValidationError(text);
@@ -139,7 +139,7 @@ export default function MarkdownCell(props: MarkdownCellProps) {
     }
   }
 
-  const deleteButton = !props.readOnly ? (
+  const deleteButton = !readOnly ? (
     <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
       <Button variant="secondary" size="icon" className="border-transparent">
         <Trash2 size={16} />
@@ -151,7 +151,7 @@ export default function MarkdownCell(props: MarkdownCellProps) {
     <div
       id={`cell-${cell.id}`}
       onDoubleClick={() => {
-        if (props.readOnly) {
+        if (readOnly) {
           return;
         }
         setStatus('edit');
@@ -170,7 +170,7 @@ export default function MarkdownCell(props: MarkdownCellProps) {
               {deleteButton}
             </div>
             <div className="flex items-center gap-1">
-              {!props.readOnly ? (
+              {!readOnly ? (
                 <Button
                   variant="secondary"
                   size="icon"

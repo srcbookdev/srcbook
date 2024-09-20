@@ -355,6 +355,7 @@ function Session(props: SessionProps) {
       <div className="flex mt-12">
         <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
         <SessionMenu
+          readOnly={props.readOnly}
           session={session}
           selectedPanelName={selectedPanelName}
           selectedPanelOpen={selectedPanelOpen}

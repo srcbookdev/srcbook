@@ -19,18 +19,21 @@ import { usePackageJson } from '@/components/use-package-json';
 
 import { SessionMenuPanelContentsProps } from '.';
 
-type PropsType = Pick<SessionMenuPanelContentsProps, 'openDepsInstallModal'>;
+type PropsType = Pick<SessionMenuPanelContentsProps, 'readOnly' | 'openDepsInstallModal'>;
 
-export default function SessionMenuPanelPackages({ openDepsInstallModal }: PropsType) {
+export default function SessionMenuPanelPackages({ readOnly, openDepsInstallModal }: PropsType) {
   return (
     <>
       <h4 className="text-lg font-semibold leading-tight mb-4">Dependencies</h4>
-      <PackageJson openDepsInstallModal={openDepsInstallModal} />
+      <PackageJson readOnly={readOnly} openDepsInstallModal={openDepsInstallModal} />
     </>
   );
 }
 
-function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => void }) {
+function PackageJson({ readOnly, openDepsInstallModal }: { 
+  readOnly: boolean;
+  openDepsInstallModal: (() => void) | null;
+}) {
   const { codeTheme } = useTheme();
   const { source, onChangeSource, validationError, npmInstall, installing, output, failed } =
     usePackageJson();
@@ -54,6 +57,7 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
       >
         <div className="pt-1 pb-3 px-3">
           <CodeMirror
+            readOnly={readOnly}
             value={source}
             theme={codeTheme}
             extensions={[
@@ -68,7 +72,7 @@ function PackageJson({ openDepsInstallModal }: { openDepsInstallModal: () => voi
         {failed && <Error error="Failed to install dependencies" />}
         {hasOutput && <OutputContainer output={output} />}
       </CollapsibleContainer>
-      {open && (
+      {open && openDepsInstallModal && (
         <div className="flex justify-end items-center gap-2 pt-1">
           <Button variant="secondary" onClick={openDepsInstallModal}>
             Add package

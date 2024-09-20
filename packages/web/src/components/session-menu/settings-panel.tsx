@@ -15,9 +15,9 @@ import { useCells } from '@/components/use-cell';
 
 import type { SessionMenuPanelContentsProps } from '.';
 
-type PropsType = Pick<SessionMenuPanelContentsProps, 'session' | 'channel'>;
+type PropsType = Pick<SessionMenuPanelContentsProps, 'readOnly' | 'session' | 'channel'>;
 
-export default function SessionMenuPanelSettings({ session, channel }: PropsType) {
+export default function SessionMenuPanelSettings({ readOnly, session, channel }: PropsType) {
   const navigate = useNavigate();
   const { aiEnabled } = useSettings();
   const { cells } = useCells();
@@ -65,14 +65,14 @@ export default function SessionMenuPanelSettings({ session, channel }: PropsType
       )}
       {session.language === 'typescript' && (
         <div className="text-foreground mt-2 space-y-6">
-          <TsconfigJson channel={channel} />
+          <TsconfigJson readOnly={readOnly} channel={channel} />
         </div>
       )}
     </>
   );
 }
 
-function TsconfigJson({ channel }: { channel: SessionChannel | null }) {
+function TsconfigJson({ readOnly, channel }: { readOnly: boolean; channel: SessionChannel | null }) {
   const { codeTheme } = useTheme();
   const { source, onChangeSource, validationError } = useTsconfigJson();
   const [open, setOpen] = useState(true);
@@ -100,6 +100,7 @@ function TsconfigJson({ channel }: { channel: SessionChannel | null }) {
       >
         <div className="pt-1 pb-3 px-3 relative">
           <CodeMirror
+            readOnly={readOnly}
             value={source}
             theme={codeTheme}
             extensions={[json()]}

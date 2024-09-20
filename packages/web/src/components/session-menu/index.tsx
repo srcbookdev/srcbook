@@ -185,7 +185,7 @@ function SessionMenuPanel(props: SessionMenuPanelProps) {
 }
 
 type SidebarProps = {
-  readOnly: boolean;
+  readOnly?: boolean;
   selectedPanelName: Panel['name'];
   selectedPanelOpen: boolean;
   onChangeSelectedPanelNameAndOpen: (
@@ -345,6 +345,7 @@ export default function SessionMenu(props: Props) {
         onClose={() => onChangeSelectedPanelNameAndOpen(([name, _open]) => [name, false])}
         sidebar={
           <Sidebar
+            readOnly={readOnly}
             selectedPanelName={selectedPanelName}
             selectedPanelOpen={selectedPanelOpen}
             onChangeSelectedPanelNameAndOpen={onChangeSelectedPanelNameAndOpen}

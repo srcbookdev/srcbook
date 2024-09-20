@@ -29,6 +29,11 @@ import {
   TsServerDefinitionLocationRequestPayloadSchema,
   TsServerDefinitionLocationResponsePayloadSchema,
   TsServerCompletionEntriesPayloadSchema,
+  FilePayloadSchema,
+  FileCreatedPayloadSchema,
+  FileUpdatedPayloadSchema,
+  FileRenamedPayloadSchema,
+  FileDeletedPayloadSchema,
 } from '../schemas/websockets.mjs';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -80,3 +85,13 @@ export type TsServerDefinitionLocationResponsePayloadType = z.infer<
 export type TsServerCompletionEntriesPayloadType = z.infer<
   typeof TsServerCompletionEntriesPayloadSchema
 >;
+
+//////////
+// APPS //
+//////////
+
+export type FilePayloadType = z.infer<typeof FilePayloadSchema>;
+export type FileCreatedPayloadType = z.infer<typeof FileCreatedPayloadSchema>;
+export type FileUpdatedPayloadType = z.infer<typeof FileUpdatedPayloadSchema>;
+export type FileRenamedPayloadType = z.infer<typeof FileRenamedPayloadSchema>;
+export type FileDeletedPayloadType = z.infer<typeof FileDeletedPayloadSchema>;

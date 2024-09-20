@@ -27,6 +27,11 @@ import {
   TsServerDefinitionLocationResponsePayloadSchema,
   TsServerDefinitionLocationRequestPayloadSchema,
   TsServerCompletionEntriesPayloadSchema,
+  FileCreatedPayloadSchema,
+  FileUpdatedPayloadSchema,
+  FileRenamedPayloadSchema,
+  FileDeletedPayloadSchema,
+  FilePayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -80,5 +85,32 @@ export class SessionChannel extends Channel<
       incoming: IncomingSessionEvents,
       outgoing: OutgoingSessionEvents,
     });
+  }
+}
+
+const IncomingAppEvents = {
+  file: FilePayloadSchema,
+};
+
+const OutgoingAppEvents = {
+  'file:created': FileCreatedPayloadSchema,
+  'file:updated': FileUpdatedPayloadSchema,
+  'file:renamed': FileRenamedPayloadSchema,
+  'file:deleted': FileDeletedPayloadSchema,
+};
+
+export class AppChannel extends Channel<typeof IncomingAppEvents, typeof OutgoingAppEvents> {
+  appId: string;
+
+  static create(appId: string) {
+    return new AppChannel(appId);
+  }
+
+  constructor(appId: string) {
+    super(client, `app:${appId}`, {
+      incoming: IncomingAppEvents,
+      outgoing: OutgoingAppEvents,
+    });
+    this.appId = appId;
   }
 }

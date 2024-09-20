@@ -1,5 +1,5 @@
-import { useNavigate, useLoaderData } from 'react-router-dom';
-import { CodeLanguageType, TitleCellType } from '@srcbook/shared';
+import { useNavigate, useLoaderData, useRevalidator } from 'react-router-dom';
+import { AppType, CodeLanguageType, TitleCellType } from '@srcbook/shared';
 import {
   getConfig,
   createSession,
@@ -14,22 +14,24 @@ import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
 import {
   MainCTACard,
+  AppCard,
   SrcbookCard,
   GenerateSrcbookButton,
   CreateSrcbookButton,
   ImportSrcbookButton,
+  CreateAppButton,
 } from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import MailingListCard from '@/components/mailing-list-card';
+import CreateAppModal from '@/components/apps/create-modal';
+import { createApp, loadApps } from '@/clients/http/apps';
+import DeleteAppModal from '@/components/delete-app-dialog';
 
 export async function loader() {
-  const [{ result: config }, { result: srcbooks }, { result: examples }] = await Promise.all([
-    getConfig(),
-    loadSessions(),
-    loadSrcbookExamples(),
-  ]);
+  const [{ result: config }, { result: srcbooks }, { result: examples }, { data: apps }] =
+    await Promise.all([getConfig(), loadSessions(), loadSrcbookExamples(), loadApps('desc')]);
 
   return {
     defaultLanguage: config.defaultLanguage,
@@ -37,10 +39,12 @@ export async function loader() {
     srcbooks,
     examples,
     config,
+    apps,
   };
 }
 
 type HomeLoaderDataType = {
+  apps: AppType[];
   baseDir: string;
   srcbooks: SessionType[];
   examples: ExampleSrcbookType[];
@@ -48,13 +52,19 @@ type HomeLoaderDataType = {
 };
 
 export default function Home() {
-  const { defaultLanguage, baseDir, srcbooks, examples } = useLoaderData() as HomeLoaderDataType;
+  const { apps, defaultLanguage, baseDir, srcbooks, examples } =
+    useLoaderData() as HomeLoaderDataType;
   const navigate = useNavigate();
+
+  const { revalidate } = useRevalidator();
 
   const [showImportSrcbookModal, setShowImportSrcbookModal] = useState(false);
   const [showGenSrcbookModal, setShowGenSrcbookModal] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [srcbookToDelete, setSrcbookToDelete] = useState<SessionType | undefined>(undefined);
+
+  const [appToDelete, setAppToDelete] = useState<AppType | null>(null);
+  const [showCreateAppModal, setShowCreateAppModal] = useState(false);
 
   function onDeleteSrcbook(srcbook: SessionType) {
     setSrcbookToDelete(srcbook);
@@ -71,6 +81,11 @@ export default function Home() {
     openSrcbook(result.path);
   }
 
+  async function onCreateApp(name: string, language: CodeLanguageType, prompt?: string) {
+    const { data: app } = await createApp({ name, language, prompt });
+    navigate(`/apps/${app.id}`);
+  }
+
   async function openExampleSrcbook(example: ExampleSrcbookType) {
     const { result } = await importSrcbook({ path: example.path });
     openSrcbook(result.dir);
@@ -78,6 +93,19 @@ export default function Home() {
 
   return (
     <div className="divide-y divide-border space-y-8 pb-10">
+      {showCreateAppModal && (
+        <CreateAppModal onClose={() => setShowCreateAppModal(false)} onCreate={onCreateApp} />
+      )}
+      {appToDelete && (
+        <DeleteAppModal
+          app={appToDelete}
+          onClose={() => setAppToDelete(null)}
+          onDeleted={() => {
+            revalidate();
+            setAppToDelete(null);
+          }}
+        />
+      )}
       <DeleteSrcbookModal
         open={showDelete}
         onOpenChange={setShowDelete}
@@ -92,8 +120,12 @@ export default function Home() {
 
       <div>
         <h4 className="h4 mx-auto mb-6">New Srcbook</h4>
-        <div className="grid grid-cols-2 sm:flex gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
           <CreateSrcbookButton defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
+          <CreateAppButton
+            defaultLanguage={defaultLanguage}
+            onClick={() => setShowCreateAppModal(true)}
+          />
           <GenerateSrcbookButton onClick={() => setShowGenSrcbookModal(true)} />
           <ImportSrcbookButton onClick={() => setShowImportSrcbookModal(true)} />
         </div>
@@ -101,7 +133,7 @@ export default function Home() {
 
       {srcbooks.length > 0 && (
         <div>
-          <h4 className="h4 mx-auto mt-8 mb-6">Recent Srcbooks</h4>
+          <h4 className="h4 mx-auto mt-8 mb-6">Your Srcbooks</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {srcbooks
               .sort((a, b) => b.openedAt - a.openedAt)
@@ -116,6 +148,23 @@ export default function Home() {
                   onDelete={() => onDeleteSrcbook(srcbook)}
                 />
               ))}
+          </div>
+        </div>
+      )}
+
+      {apps.length > 0 && (
+        <div>
+          <h4 className="h4 mx-auto mt-8 mb-6">Your apps</h4>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {apps.map((app) => (
+              <AppCard
+                key={app.id}
+                name={app.name}
+                language={app.language}
+                onClick={() => navigate(`/apps/${app.id}`)}
+                onDelete={() => setAppToDelete(app)}
+              />
+            ))}
           </div>
         </div>
       )}

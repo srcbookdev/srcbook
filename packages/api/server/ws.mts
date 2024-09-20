@@ -63,6 +63,8 @@ import WebSocketServer, { MessageContextType } from './ws-client.mjs';
 import { filenameFromPath, pathToCodeFile } from '../srcbook/path.mjs';
 import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
+import { loadApp } from '../apps/app.mjs';
+import { getProjectFiles } from '../apps/disk.mjs';
 
 type SessionsContextType = MessageContextType<'sessionId'>;
 
@@ -882,5 +884,18 @@ wss
     TsServerDefinitionLocationRequestPayloadSchema,
     getCompletions,
   );
+
+wss.channel('app:<appId>').onJoin(async (topic, ws) => {
+  const app = await loadApp(topic.split(':')[1]!);
+
+  // TODO: disconnect
+  if (!app) {
+    return;
+  }
+
+  for (const file of await getProjectFiles(app)) {
+    ws.send(JSON.stringify([topic, 'file', { file }]));
+  }
+});
 
 export default wss;

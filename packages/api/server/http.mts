@@ -2,7 +2,7 @@ import Path from 'node:path';
 import { posthog } from '../posthog-client.mjs';
 import fs from 'node:fs/promises';
 import { SRCBOOKS_DIR } from '../constants.mjs';
-import express, { type Application } from 'express';
+import express, { type Application, type Response } from 'express';
 import cors from 'cors';
 import {
   createSession,
@@ -34,6 +34,8 @@ import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 import { pathToSrcbook } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
+import { loadApps, loadApp, createApp, serializeApp, deleteApp } from '../apps/app.mjs';
+import { CreateAppSchema } from '../apps/schemas.mjs';
 
 const app: Application = express();
 
@@ -387,6 +389,77 @@ router.post('/subscribe', cors(), async (req, res) => {
     return res.json({ success: true });
   } else {
     return res.status(hubResponse.status).json({ success: false });
+  }
+});
+
+function error500(res: Response, e: Error) {
+  const error = e as unknown as Error;
+  console.error(error);
+  return res.status(500).json({ error: 'An unexpected error occurred.' });
+}
+
+router.options('/apps', cors());
+router.post('/apps', cors(), async (req, res) => {
+  const result = CreateAppSchema.safeParse(req.body);
+
+  if (result.success === false) {
+    const errors = result.error.errors.map((error) => error.message);
+    return res.status(400).json({ errors });
+  }
+
+  const attrs = result.data;
+
+  posthog.capture({
+    event: 'user created app',
+    properties: { language: attrs.language, withPrompt: typeof attrs.prompt === 'string' },
+  });
+
+  try {
+    const app = await createApp(attrs);
+    return res.json({ data: serializeApp(app) });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps', cors());
+router.get('/apps', cors(), async (req, res) => {
+  const sort = req.query.sort === 'desc' ? 'desc' : 'asc';
+
+  try {
+    const apps = await loadApps(sort);
+    return res.json({ data: apps.map(serializeApp) });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id', cors());
+router.get('/apps/:id', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    return res.json({ data: serializeApp(app) });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id', cors());
+router.delete('/apps/:id', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await deleteApp(id);
+    return res.json({ deleted: true });
+  } catch (e) {
+    return error500(res, e as Error);
   }
 });
 

@@ -1,31 +1,9 @@
-// import { SessionChannel } from '@/clients/websocket';
-// import { CompletionContext } from '@codemirror/autocomplete';
-// import { CodeCellType } from '@srcbook/shared';
-
-// export function myCompletions(
-//   context: CompletionContext,
-//   sessionId: string,
-//   cell: CodeCellType,
-//   channel: SessionChannel,
-// ) {
-//   const word = context.matchBefore(/\w*/);
-//   if (word?.from == word?.to && !context.explicit) return null;
-//   return {
-//     from: word?.from,
-//     options: [
-//       { label: 'match', type: 'keyword' },
-//       { label: 'hello', type: 'variable', info: '(World)' },
-//       { label: 'magic', type: 'text', apply: '⠁⭒*.✩.*⭒⠁', detail: 'macro' },
-//     ],
-//   };
-// }
-
 import { SessionChannel } from '@/clients/websocket';
 import { CompletionContext, CompletionResult } from '@codemirror/autocomplete';
 import { CodeCellType, TsServerCompletionEntriesPayloadType } from '@srcbook/shared';
 import { mapCMLocationToTsServer } from './util';
 
-export function myCompletions(
+export function getCompletions(
   context: CompletionContext,
   sessionId: string,
   cell: CodeCellType,

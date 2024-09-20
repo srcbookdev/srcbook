@@ -28,6 +28,7 @@ import {
   CellFormattedPayloadSchema,
   TsServerDefinitionLocationRequestPayloadSchema,
   TsServerDefinitionLocationResponsePayloadSchema,
+  TsServerCompletionEntriesPayloadSchema,
 } from '../schemas/websockets.mjs';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -74,4 +75,8 @@ export type TsServerDefinitionLocationRequestPayloadType = z.infer<
 >;
 export type TsServerDefinitionLocationResponsePayloadType = z.infer<
   typeof TsServerDefinitionLocationResponsePayloadSchema
+>;
+
+export type TsServerCompletionEntriesPayloadType = z.infer<
+  typeof TsServerCompletionEntriesPayloadSchema
 >;

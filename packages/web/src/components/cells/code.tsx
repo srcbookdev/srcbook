@@ -52,6 +52,8 @@ import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
 import { getFileContent } from '@/lib/server';
+import { autocompletion } from '@codemirror/autocomplete';
+import { getCompletions } from './get-completions';
 
 const DEBOUNCE_DELAY = 500;
 
@@ -749,6 +751,7 @@ function CodeEditor({
     javascript({ typescript: true }),
     tsHover(session.id, cell, channel, theme),
     tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions),
+    autocompletion({ override: [(context) => getCompletions(context, session.id, cell, channel)] }),
     Prec.highest(
       EditorView.domEventHandlers({
         click: (e, view) => {

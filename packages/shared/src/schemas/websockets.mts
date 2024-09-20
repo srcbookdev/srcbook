@@ -5,6 +5,7 @@ import {
   TsServerDiagnosticSchema,
   TsServerQuickInfoRequestSchema,
   TsServerQuickInfoResponseSchema,
+  TsServerCompletionEntriesSchema,
 } from './tsserver.mjs';
 
 // A _message_ over websockets
@@ -145,6 +146,10 @@ export const TsServerDefinitionLocationRequestPayloadSchema = z.object({
 
 export const TsServerDefinitionLocationResponsePayloadSchema = z.object({
   response: TsServerDefinitionLocationSchema,
+});
+
+export const TsServerCompletionEntriesPayloadSchema = z.object({
+  response: TsServerCompletionEntriesSchema,
 });
 
 export const TsConfigUpdatePayloadSchema = z.object({

@@ -73,7 +73,9 @@ type ReadOnlyProps = BaseProps & { readOnly: true };
 type Props = RegularProps | ReadOnlyProps;
 
 export default function CodeCell(props: Props) {
-  const { session, cell } = props;
+  const { readOnly, session, cell } = props;
+  const channel = !readOnly ? props.channel : null;
+
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
   const [cellMode, setCellMode] = useState<CellModeType>('off');
@@ -113,7 +115,7 @@ export default function CodeCell(props: Props) {
   }
 
   useEffect(() => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
 
@@ -135,13 +137,13 @@ export default function CodeCell(props: Props) {
       }
     }
 
-    props.channel.on('cell:error', callback);
+    channel.on('cell:error', callback);
 
-    return () => props.channel.off('cell:error', callback);
-  }, [cell.id, props.readOnly, !props.readOnly ? props.channel : null]);
+    return () => channel.off('cell:error', callback);
+  }, [cell.id, channel]);
 
   useEffect(() => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
 
@@ -152,17 +154,17 @@ export default function CodeCell(props: Props) {
       }
     }
 
-    props.channel.on('cell:formatted', callback);
-    return () => props.channel.off('cell:formatted', callback);
-  }, [cell.id, props.readOnly, !props.readOnly ? props.channel : null, updateCellOnClient]);
+    channel.on('cell:formatted', callback);
+    return () => channel.off('cell:formatted', callback);
+  }, [cell.id, channel, updateCellOnClient]);
 
   function updateFilename(filename: string) {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
 
     updateCellOnClient({ ...cell, filename });
-    props.channel.push('cell:rename', {
+    channel.push('cell:rename', {
       sessionId: session.id,
       cellId: cell.id,
       filename,
@@ -170,7 +172,7 @@ export default function CodeCell(props: Props) {
   }
 
   useEffect(() => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
 
@@ -180,17 +182,17 @@ export default function CodeCell(props: Props) {
       setNewSource(payload.output);
       setCellMode('reviewing');
     }
-    props.channel.on('ai:generated', callback);
-    return () => props.channel.off('ai:generated', callback);
-  }, [cell.id, props.readOnly, !props.readOnly ? props.channel : null]);
+    channel.on('ai:generated', callback);
+    return () => channel.off('ai:generated', callback);
+  }, [cell.id, channel]);
 
   const generate = () => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
 
     setGenerationType('edit');
-    props.channel.push('ai:generate', {
+    channel.push('ai:generate', {
       sessionId: session.id,
       cellId: cell.id,
       prompt,
@@ -199,12 +201,12 @@ export default function CodeCell(props: Props) {
   };
 
   const aiFixDiagnostics = (diagnostics: string) => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
     setCellMode('fixing');
     setGenerationType('fix');
-    props.channel.push('ai:fix_diagnostics', {
+    channel.push('ai:fix_diagnostics', {
       sessionId: session.id,
       cellId: cell.id,
       diagnostics,
@@ -212,7 +214,7 @@ export default function CodeCell(props: Props) {
   };
 
   function runCell() {
-    if (props.readOnly) {
+    if (!channel) {
       return false;
     }
     if (cell.status === 'running') {
@@ -228,7 +230,7 @@ export default function CodeCell(props: Props) {
     // Add artificial delay to allow debounced updates to propagate
     // TODO: Handle this in a more robust way
     setTimeout(() => {
-      props.channel.push('cell:exec', {
+      channel.push('cell:exec', {
         sessionId: session.id,
         cellId: cell.id,
       });
@@ -236,10 +238,10 @@ export default function CodeCell(props: Props) {
   }
 
   function stopCell() {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
-    props.channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
+    channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
   }
 
   function onRevertDiff() {
@@ -258,11 +260,11 @@ export default function CodeCell(props: Props) {
   }
 
   function formatCell() {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
     setCellMode('formatting');
-    props.channel.push('cell:format', {
+    channel.push('cell:format', {
       sessionId: session.id,
       cellId: cell.id,
     });
@@ -916,13 +918,14 @@ function CodeEditor({
 
     return extensions;
   }, [
-    session.id,
+    session,
     cell,
     channel,
     theme,
     getTsServerDiagnostics,
     getTsServerSuggestions,
     formatCell,
+    runCell,
   ]);
 
   if (readOnly) {

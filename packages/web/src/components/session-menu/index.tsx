@@ -311,13 +311,13 @@ export default function SessionMenu(props: Props) {
       channel,
       openDepsInstallModal,
     }),
-    [props.readOnly, session, channel, openDepsInstallModal],
+    [readOnly, session, channel, openDepsInstallModal],
   );
 
   return (
     <>
       <KeyboardShortcutsDialog
-        readOnly={props.readOnly}
+        readOnly={readOnly}
         open={showShortcuts}
         onOpenChange={setShowShortcuts}
       />
@@ -328,7 +328,7 @@ export default function SessionMenu(props: Props) {
       <div className="grow-0 shrink-0 w-12">
         <div className="fixed top-12 left-0 bottom-0 w-12">
           <Sidebar
-            readOnly={props.readOnly || false}
+            readOnly={readOnly || false}
             selectedPanelName={selectedPanelName}
             selectedPanelOpen={selectedPanelOpen}
             onChangeSelectedPanelNameAndOpen={onChangeSelectedPanelNameAndOpen}

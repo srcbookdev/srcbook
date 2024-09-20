@@ -122,6 +122,7 @@ type SessionProps =
 
 function Session(props: SessionProps) {
   const { session, srcbooks, config } = props;
+  const channel = !props.readOnly ? props.channel : null;
 
   const {
     cells: allCells,
@@ -176,62 +177,62 @@ function Session(props: SessionProps) {
   }
 
   useEffect(() => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
     const callback = (payload: CellOutputPayloadType) => {
       setOutput(payload.cellId, payload.output);
     };
 
-    props.channel.on('cell:output', callback);
+    channel.on('cell:output', callback);
 
-    return () => props.channel.off('cell:output', callback);
-  }, [props.readOnly, !props.readOnly ? props.channel : null, setOutput]);
+    return () => channel.off('cell:output', callback);
+  }, [channel, setOutput]);
 
   useEffect(() => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
     const callback = (payload: TsServerCellDiagnosticsPayloadType) => {
       setTsServerDiagnostics(payload.cellId, payload.diagnostics);
     };
 
-    props.channel.on('tsserver:cell:diagnostics', callback);
+    channel.on('tsserver:cell:diagnostics', callback);
 
-    return () => props.channel.off('tsserver:cell:diagnostics', callback);
-  }, [props.readOnly, !props.readOnly ? props.channel : null, setTsServerDiagnostics]);
+    return () => channel.off('tsserver:cell:diagnostics', callback);
+  }, [channel, setTsServerDiagnostics]);
 
   useEffect(() => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
     const callback = (payload: TsServerCellSuggestionsPayloadType) => {
       setTsServerSuggestions(payload.cellId, payload.diagnostics);
     };
 
-    props.channel.on('tsserver:cell:suggestions', callback);
+    channel.on('tsserver:cell:suggestions', callback);
 
-    return () => props.channel.off('tsserver:cell:suggestions', callback);
-  }, [props.readOnly, !props.readOnly ? props.channel : null, setTsServerSuggestions]);
+    return () => channel.off('tsserver:cell:suggestions', callback);
+  }, [channel, setTsServerSuggestions]);
 
   useEffect(() => {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
     const callback = (payload: CellUpdatedPayloadType) => {
       updateCell(payload.cell);
     };
 
-    props.channel.on('cell:updated', callback);
+    channel.on('cell:updated', callback);
 
-    return () => props.channel.off('cell:updated', callback);
-  }, [props.readOnly, !props.readOnly ? props.channel : null, updateCell]);
+    return () => channel.off('cell:updated', callback);
+  }, [channel, updateCell]);
 
   function updateCellOnServer(cell: CellType, updates: CellUpdateAttrsType) {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
-    props.channel.push('cell:update', {
+    channel.push('cell:update', {
       sessionId: session.id,
       cellId: cell.id,
       updates,
@@ -239,7 +240,7 @@ function Session(props: SessionProps) {
   }
 
   async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
 
@@ -250,11 +251,11 @@ function Session(props: SessionProps) {
     switch (type) {
       case 'code':
         cell = createCodeCell(index, session.language);
-        props.channel.push('cell:create', { sessionId: session.id, index, cell });
+        channel.push('cell:create', { sessionId: session.id, index, cell });
         break;
       case 'markdown':
         cell = createMarkdownCell(index);
-        props.channel.push('cell:create', { sessionId: session.id, index, cell });
+        channel.push('cell:create', { sessionId: session.id, index, cell });
         break;
       case 'generate-ai':
         cell = createGenerateAiCell(index);
@@ -263,7 +264,7 @@ function Session(props: SessionProps) {
   }
 
   async function insertGeneratedCells(idx: number, cells: Array<CodeCellType | MarkdownCellType>) {
-    if (props.readOnly) {
+    if (!channel) {
       return;
     }
 
@@ -280,7 +281,7 @@ function Session(props: SessionProps) {
           newCell = createMarkdownCell(insertIdx, cell);
           break;
       }
-      props.channel.push('cell:create', { sessionId: session.id, index: insertIdx, cell: newCell });
+      channel.push('cell:create', { sessionId: session.id, index: insertIdx, cell: newCell });
     }
   }
 

@@ -1,5 +1,14 @@
 # @srcbook/web
 
+## 0.0.7
+
+### Patch Changes
+
+- f75be08: Add Ability to create secrets within a Srcbook [3091604](https://github.com/srcbookdev/srcbook/commit/30916042f1f2af937c8b188d794c522408e9c4e0)
+- 691f81f: 480bf57: Adds autocomplete support!
+- Updated dependencies [691f81f]
+  - @srcbook/shared@0.0.7
+
 ## 0.0.6
 
 ### Patch Changes

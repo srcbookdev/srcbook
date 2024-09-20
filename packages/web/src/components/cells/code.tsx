@@ -70,9 +70,9 @@ type RegularProps = BaseProps & {
   onDeleteCell: (cell: CellType) => void;
 };
 type ReadOnlyProps = BaseProps & { readOnly: true };
-// type Props = RegularProps | ReadOnlyProps;
+type Props = RegularProps | ReadOnlyProps;
 
-export default function CodeCell(props: ReadOnlyProps | RegularProps) {
+export default function CodeCell(props: Props) {
   const { session, cell } = props;
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);

@@ -282,9 +282,15 @@ function Sidebar({
 }
 
 export default function SessionMenu(props: Props) {
-  const { session, selectedPanelName, selectedPanelOpen, onChangeSelectedPanelNameAndOpen } = props;
-  const openDepsInstallModal = !props.readOnly ? props.openDepsInstallModal : null;
-  const channel = !props.readOnly ? props.channel : null;
+  const {
+    readOnly,
+    session,
+    selectedPanelName,
+    selectedPanelOpen,
+    onChangeSelectedPanelNameAndOpen,
+  } = props;
+  const openDepsInstallModal = !readOnly ? props.openDepsInstallModal : null;
+  const channel = !readOnly ? props.channel : null;
 
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -300,7 +306,7 @@ export default function SessionMenu(props: Props) {
 
   const selectedPanelContentsProps: SessionMenuPanelContentsProps = useMemo(
     () => ({
-      readOnly: props.readOnly || false,
+      readOnly: readOnly || false,
       session,
       channel,
       openDepsInstallModal,

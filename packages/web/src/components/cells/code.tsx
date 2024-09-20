@@ -887,7 +887,7 @@ function CodeEditor({
             }
           },
         }),
-      )
+      ),
     );
 
     const keys: Array<KeyBinding> = [];

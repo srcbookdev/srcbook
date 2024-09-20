@@ -30,7 +30,10 @@ export default function SessionMenuPanelPackages({ readOnly, openDepsInstallModa
   );
 }
 
-function PackageJson({ readOnly, openDepsInstallModal }: { 
+function PackageJson({
+  readOnly,
+  openDepsInstallModal,
+}: {
   readOnly: boolean;
   openDepsInstallModal: (() => void) | null;
 }) {

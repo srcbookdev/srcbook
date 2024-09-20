@@ -64,7 +64,7 @@ type BaseProps = {
 };
 
 type RegularProps = BaseProps & {
-  readOnly?: false,
+  readOnly?: false;
   channel: SessionChannel;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
@@ -138,11 +138,7 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
     props.channel.on('cell:error', callback);
 
     return () => props.channel.off('cell:error', callback);
-  }, [
-    cell.id,
-    props.readOnly,
-    !props.readOnly ? props.channel : null,
-  ]);
+  }, [cell.id, props.readOnly, !props.readOnly ? props.channel : null]);
 
   useEffect(() => {
     if (props.readOnly) {
@@ -158,12 +154,7 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
 
     props.channel.on('cell:formatted', callback);
     return () => props.channel.off('cell:formatted', callback);
-  }, [
-    cell.id,
-    props.readOnly,
-    !props.readOnly ? props.channel : null,
-    updateCellOnClient,
-  ]);
+  }, [cell.id, props.readOnly, !props.readOnly ? props.channel : null, updateCellOnClient]);
 
   function updateFilename(filename: string) {
     if (props.readOnly) {
@@ -191,11 +182,7 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
     }
     props.channel.on('ai:generated', callback);
     return () => props.channel.off('ai:generated', callback);
-  }, [
-    cell.id,
-    props.readOnly,
-    !props.readOnly ? props.channel : null,
-  ]);
+  }, [cell.id, props.readOnly, !props.readOnly ? props.channel : null]);
 
   const generate = () => {
     if (props.readOnly) {
@@ -217,7 +204,11 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
     }
     setCellMode('fixing');
     setGenerationType('fix');
-    props.channel.push('ai:fix_diagnostics', { sessionId: session.id, cellId: cell.id, diagnostics });
+    props.channel.push('ai:fix_diagnostics', {
+      sessionId: session.id,
+      cellId: cell.id,
+      diagnostics,
+    });
   };
 
   function runCell() {
@@ -321,11 +312,7 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
               <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
                 <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
                   {props.readOnly ? (
-                    <CodeEditor
-                      readOnly
-                      session={session}
-                      cell={cell}
-                    />
+                    <CodeEditor readOnly session={session} cell={cell} />
                   ) : (
                     <CodeEditor
                       readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
@@ -388,16 +375,14 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
                           size="icon"
                           onClick={() => {
                             navigator.clipboard.writeText(cell.source);
-                            toast.success("Copied to clipboard.");
+                            toast.success('Copied to clipboard.');
                           }}
                           tabIndex={1}
                         >
                           <CopyIcon size={16} />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>
-                        Copy to clipboard
-                      </TooltipContent>
+                      <TooltipContent>Copy to clipboard</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
@@ -432,11 +417,7 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
             <>
               <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
                 {props.readOnly ? (
-                  <CodeEditor
-                    readOnly
-                    session={session}
-                    cell={cell}
-                  />
+                  <CodeEditor readOnly session={session} cell={cell} />
                 ) : (
                   <CodeEditor
                     readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
@@ -450,12 +431,7 @@ export default function CodeCell(props: ReadOnlyProps | RegularProps) {
                 )}
               </div>
               {props.readOnly ? (
-                <CellOutput
-                  readOnly
-                  cell={cell}
-                  show={showStdio}
-                  setShow={setShowStdio}
-                />
+                <CellOutput readOnly cell={cell} show={showStdio} setShow={setShowStdio} />
               ) : (
                 <CellOutput
                   cell={cell}
@@ -849,7 +825,7 @@ type CodeEditorRegularProps = CodeEditorBaseProps & {
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
 };
 type CodeEditorReadOnlyProps = CodeEditorBaseProps & {
-  readOnly: true,
+  readOnly: true;
   channel?: SessionChannel;
   runCell?: () => void;
   formatCell?: () => void;
@@ -874,20 +850,24 @@ function CodeEditor({
     getTsServerSuggestions,
   } = useCells();
 
-  const updateCellOnServerOrNoop = useCallback<NonNullable<typeof updateCellOnServer>>((cell, attrs) => {
-    if (!updateCellOnServer) {
-      return;
-    }
-    updateCellOnServer(cell, attrs);
-  }, [updateCellOnServer]);
-  const updateCellOnServerDebounced = useDebouncedCallback(updateCellOnServerOrNoop, DEBOUNCE_DELAY);
+  const updateCellOnServerOrNoop = useCallback<NonNullable<typeof updateCellOnServer>>(
+    (cell, attrs) => {
+      if (!updateCellOnServer) {
+        return;
+      }
+      updateCellOnServer(cell, attrs);
+    },
+    [updateCellOnServer],
+  );
+  const updateCellOnServerDebounced = useDebouncedCallback(
+    updateCellOnServerOrNoop,
+    DEBOUNCE_DELAY,
+  );
 
   // FIXME: are the order of these extensions important? If not, the below can probably be
   // simplified.
   const extensions = useMemo(() => {
-    const extensions: Array<Extension> = [
-      javascript({ typescript: true }),
-    ];
+    const extensions: Array<Extension> = [javascript({ typescript: true })];
     if (typeof channel !== 'undefined') {
       extensions.push(tsHover(session.id, cell, channel, theme));
     }

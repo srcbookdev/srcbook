@@ -58,14 +58,14 @@ function getValidationError(text: string) {
   return null;
 }
 
-type MarkdownCellProps = 
-  | { readOnly: true; cell: MarkdownCellType; }
+type MarkdownCellProps =
+  | { readOnly: true; cell: MarkdownCellType }
   | {
-    readOnly?: false;
-    cell: MarkdownCellType;
-    updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
-    onDeleteCell: (cell: CellType) => void;
-  };
+      readOnly?: false;
+      cell: MarkdownCellType;
+      updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
+      onDeleteCell: (cell: CellType) => void;
+    };
 
 export default function MarkdownCell(props: MarkdownCellProps) {
   const { codeTheme, theme } = useTheme();
@@ -101,22 +101,26 @@ export default function MarkdownCell(props: MarkdownCellProps) {
   }, [status]);
 
   const keyMap = Prec.highest(
-    keymap.of(!props.readOnly ? [
-      {
-        key: 'Mod-Enter',
-        run: () => {
-          onSave();
-          return true;
-        },
-      },
-      {
-        key: 'Escape',
-        run: () => {
-          setStatus('view');
-          return true;
-        },
-      },
-    ] : []),
+    keymap.of(
+      !props.readOnly
+        ? [
+            {
+              key: 'Mod-Enter',
+              run: () => {
+                onSave();
+                return true;
+              },
+            },
+            {
+              key: 'Escape',
+              run: () => {
+                setStatus('view');
+                return true;
+              },
+            },
+          ]
+        : [],
+    ),
   );
 
   function onSave() {

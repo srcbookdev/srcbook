@@ -399,10 +399,7 @@ function Session(props: SessionProps) {
                 )}
 
                 {cell.type === 'markdown' && props.readOnly && (
-                  <MarkdownCell
-                    readOnly
-                    cell={cell}
-                  />
+                  <MarkdownCell readOnly cell={cell} />
                 )}
                 {cell.type === 'markdown' && !props.readOnly && (
                   <MarkdownCell

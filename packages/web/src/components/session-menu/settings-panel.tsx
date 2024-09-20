@@ -72,7 +72,13 @@ export default function SessionMenuPanelSettings({ readOnly, session, channel }:
   );
 }
 
-function TsconfigJson({ readOnly, channel }: { readOnly: boolean; channel: SessionChannel | null }) {
+function TsconfigJson({
+  readOnly,
+  channel,
+}: {
+  readOnly?: boolean;
+  channel: SessionChannel | null;
+}) {
   const { codeTheme } = useTheme();
   const { source, onChangeSource, validationError } = useTsconfigJson();
   const [open, setOpen] = useState(true);

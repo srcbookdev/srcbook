@@ -81,10 +81,10 @@ type BaseProps = {
 type Props =
   | (BaseProps & { readOnly: true })
   | (BaseProps & {
-    readOnly?: false
-    openDepsInstallModal: () => void;
-    channel: SessionChannel;
-})
+      readOnly?: false;
+      openDepsInstallModal: () => void;
+      channel: SessionChannel;
+    });
 
 marked.use({ gfm: true });
 
@@ -282,12 +282,7 @@ function Sidebar({
 }
 
 export default function SessionMenu(props: Props) {
-  const {
-    session,
-    selectedPanelName,
-    selectedPanelOpen,
-    onChangeSelectedPanelNameAndOpen,
-  } = props;
+  const { session, selectedPanelName, selectedPanelOpen, onChangeSelectedPanelNameAndOpen } = props;
   const openDepsInstallModal = !props.readOnly ? props.openDepsInstallModal : null;
   const channel = !props.readOnly ? props.channel : null;
 

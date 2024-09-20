@@ -6,7 +6,7 @@ type BaseProps = {
   cell: TitleCellType;
 };
 type RegularProps = BaseProps & {
-  readOnly?: false,
+  readOnly?: false;
   updateCellOnServer: (cell: TitleCellType, attrs: TitleCellUpdateAttrsType) => void;
 };
 type ReadOnlyProps = BaseProps & { readOnly: true };

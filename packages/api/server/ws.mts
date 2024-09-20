@@ -778,15 +778,11 @@ async function getCompletions(payload: TsServerDefinitionLocationRequestPayloadT
 
   const filename = cell.filename;
 
-  console.log('getting completions');
-
   const tsserverResponse = await tsserver.getCompletions({
     file: pathToCodeFile(session.dir, filename),
     line: payload.request.location.line,
     offset: payload.request.location.offset,
   });
-
-  console.log('completions:', tsserverResponse.body);
 
   const entries = tsserverResponse.body;
 

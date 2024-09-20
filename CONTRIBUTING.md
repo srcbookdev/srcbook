@@ -103,7 +103,7 @@ To create a new migration, first modify [schema.ts](./packages/api/db/schema.mts
 
 ```shell
 # This will generate the migration
-pnpm run generate -- --name <migration_name>
+pnpm run generate --name <migration_name>
 ```
 
 Migrations should be executed when the application starts. You can manually apply them using:

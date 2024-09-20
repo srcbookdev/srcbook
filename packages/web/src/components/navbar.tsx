@@ -47,6 +47,7 @@ function LightDarkModeDebugChanger() {
 }
 
 type SessionNavbarProps = {
+  readOnly?: boolean;
   session: SessionType;
   srcbooks: Array<SessionType>;
   title: string;
@@ -153,73 +154,79 @@ export function SessionNavbar(props: SessionNavbarProps) {
               </DropdownMenu>
             )}
 
-            <div className="w-[1px] h-5 bg-border" />
+            {!props.readOnly ? (
+              <>
+                <div className="w-[1px] h-5 bg-border" />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="icon" className="w-8 h-8 p-0 active:translate-y-0">
-                  <PlusIcon size={18} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuItem onClick={onCreateSrcbook} className="cursor-pointer">
-                  <PlusIcon className="mr-2 h-4 w-4" />
-                  <span>Create Srcbook</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    // FIXME: wrap this function calls in a setTimeout so that this runs after the
-                    // dropdown menu at least starts closing (ie, removes `pointer-events: none;`)
-                    //
-                    // Otherwise the Dialog this setState call opens and the DropdownMenu will fight
-                    // for control over the body tag styles.
-                    setTimeout(() => {
-                      setShowGenSrcbookModal(true);
-                    }, 0);
-                  }}
-                  className="cursor-pointer"
-                >
-                  <SparklesIcon className="mr-2 h-4 w-4" />
-                  <span>Generate Srcbook</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    // FIXME: wrap this function calls in a setTimeout so that this runs after the
-                    // dropdown menu at least starts closing (ie, removes `pointer-events: none;`)
-                    //
-                    // Otherwise the Dialog this setState call opens and the DropdownMenu will fight
-                    // for control over the body tag styles.
-                    setTimeout(() => {
-                      setShowImportSrcbookModal(true);
-                    }, 0);
-                  }}
-                  className="cursor-pointer"
-                >
-                  <ImportIcon className="mr-2 h-4 w-4" />
-                  <span>Open Srcbook</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="icon" className="w-8 h-8 p-0 active:translate-y-0">
+                      <PlusIcon size={18} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuItem onClick={onCreateSrcbook} className="cursor-pointer">
+                      <PlusIcon className="mr-2 h-4 w-4" />
+                      <span>Create Srcbook</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        // FIXME: wrap this function calls in a setTimeout so that this runs after the
+                        // dropdown menu at least starts closing (ie, removes `pointer-events: none;`)
+                        //
+                        // Otherwise the Dialog this setState call opens and the DropdownMenu will fight
+                        // for control over the body tag styles.
+                        setTimeout(() => {
+                          setShowGenSrcbookModal(true);
+                        }, 0);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <SparklesIcon className="mr-2 h-4 w-4" />
+                      <span>Generate Srcbook</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        // FIXME: wrap this function calls in a setTimeout so that this runs after the
+                        // dropdown menu at least starts closing (ie, removes `pointer-events: none;`)
+                        //
+                        // Otherwise the Dialog this setState call opens and the DropdownMenu will fight
+                        // for control over the body tag styles.
+                        setTimeout(() => {
+                          setShowImportSrcbookModal(true);
+                        }, 0);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <ImportIcon className="mr-2 h-4 w-4" />
+                      <span>Open Srcbook</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : null}
           </div>
 
           <LightDarkModeDebugChanger />
 
           <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="icon"
-                    size="icon"
-                    onClick={() => setShowDelete(true)}
-                    className="active:translate-y-0"
-                  >
-                    <TrashIcon size={18} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete this Srcbook</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {!props.readOnly ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="icon"
+                      size="icon"
+                      onClick={() => setShowDelete(true)}
+                      className="active:translate-y-0"
+                    >
+                      <TrashIcon size={18} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete this Srcbook</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : null}
             <Button
               variant="secondary"
               onClick={() => setShowSave(true)}

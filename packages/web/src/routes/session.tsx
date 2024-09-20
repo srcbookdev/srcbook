@@ -345,6 +345,7 @@ function Session(props: SessionProps) {
   return (
     <div className="flex flex-col">
       <SessionNavbar
+        readOnly={props.readOnly}
         session={session}
         srcbooks={srcbooks}
         baseDir={config.baseDir}

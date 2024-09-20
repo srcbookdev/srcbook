@@ -881,6 +881,9 @@ function CodeEditor({
       Prec.highest(
         EditorView.domEventHandlers({
           click: (e, view) => {
+            if (!channel) {
+              return;
+            }
             const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
             if (pos && e.altKey) {
               gotoDefinition(pos, cell, session, channel, openModal);

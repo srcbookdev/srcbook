@@ -353,15 +353,24 @@ function Session(props: SessionProps) {
 
       <div className="flex mt-12">
         <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
-        <SessionMenu
-          readOnly={props.readOnly}
-          session={session}
-          selectedPanelName={selectedPanelName}
-          selectedPanelOpen={selectedPanelOpen}
-          onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
-          openDepsInstallModal={() => setDepsInstallModalOpen(true)}
-          channel={!props.readOnly ? props.channel : null}
-        />
+        {props.readOnly ? (
+          <SessionMenu
+            readOnly
+            session={session}
+            selectedPanelName={selectedPanelName}
+            selectedPanelOpen={selectedPanelOpen}
+            onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
+          />
+        ) : (
+          <SessionMenu
+            session={session}
+            selectedPanelName={selectedPanelName}
+            selectedPanelOpen={selectedPanelOpen}
+            onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
+            openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+            channel={props.channel}
+          />
+        )}
 
         <div className="grow shrink lg:px-0 pb-28">
           <div className="max-w-[800px] mx-auto my-12 px-[32px]">

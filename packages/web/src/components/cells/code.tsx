@@ -174,6 +174,7 @@ export default function CodeCell(props: {
   };
 
   function runCell() {
+    console.log('inside cell run');
     if (cell.status === 'running') {
       return false;
     }

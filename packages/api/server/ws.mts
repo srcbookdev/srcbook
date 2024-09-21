@@ -123,6 +123,7 @@ async function cellExec(payload: CellExecPayloadType) {
   const session = await findSession(payload.sessionId);
   const cell = findCell(session, payload.cellId);
 
+  console.log('inside cellExec');
   if (!cell || cell.type !== 'code') {
     console.error(`Cannot execute cell with id ${payload.cellId}; cell not found.`);
     return;
@@ -615,16 +616,16 @@ function createTsServer(session: SessionType) {
 
   tsserver.onSemanticDiag(async (event) => {
     const eventBody = event.body;
-    if(!eventBody) return
+    if (!eventBody) return;
 
     // Get most recent session state
     let session;
-    try{
+    try {
       session = await findSession(sessionId);
-    } catch(e){
-      const error = e as unknown as Error
+    } catch (e) {
+      const error = e as unknown as Error;
       console.error(error);
-      return
+      return;
     }
 
     const filename = filenameFromPath(eventBody.file);
@@ -643,16 +644,16 @@ function createTsServer(session: SessionType) {
 
   tsserver.onSuggestionDiag(async (event) => {
     const eventBody = event.body;
-    if(!eventBody) return
+    if (!eventBody) return;
 
     // Get most recent session state
     let session;
-    try{
-       session = await findSession(sessionId);
-    } catch (e){
-      const error = e as unknown as Error
-      console.error(error)
-      return
+    try {
+      session = await findSession(sessionId);
+    } catch (e) {
+      const error = e as unknown as Error;
+      console.error(error);
+      return;
     }
 
     const filename = filenameFromPath(eventBody.file);

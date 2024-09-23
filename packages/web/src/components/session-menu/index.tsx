@@ -261,21 +261,23 @@ function Sidebar({
             <TooltipContent side="right">Keyboard shortcuts</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="icon"
-                size="icon"
-                className="active:translate-y-0"
-                onClick={onShowFeedbackModal}
-              >
-                <MessageCircleIcon size={18} className="stroke-tertiary-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Leave feedback</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {!readOnly ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="icon"
+                  size="icon"
+                  className="active:translate-y-0"
+                  onClick={onShowFeedbackModal}
+                >
+                  <MessageCircleIcon size={18} className="stroke-tertiary-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Leave feedback</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : null}
       </div>
     </div>
   );
@@ -321,8 +323,7 @@ export default function SessionMenu(props: Props) {
         open={showShortcuts}
         onOpenChange={setShowShortcuts}
       />
-      {/* FIXME: in read only mode, assuming the feedback dialog is desired, this probably needs a global serverside endpoint? */}
-      <FeedbackDialog open={showFeedback} onOpenChange={setShowFeedback} />
+      {!readOnly ? <FeedbackDialog open={showFeedback} onOpenChange={setShowFeedback} /> : null}
 
       {/* The sidebar is of a certain defined pixel width whoose parent takes the space of the fixed position element: */}
       <div className="grow-0 shrink-0 w-12">

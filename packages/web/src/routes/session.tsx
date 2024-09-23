@@ -353,7 +353,9 @@ function Session(props: SessionProps) {
       />
 
       <div className="flex mt-12">
-        <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+        {!readOnly ? (
+          <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+        ) : null}
         {readOnly ? (
           <SessionMenu
             readOnly

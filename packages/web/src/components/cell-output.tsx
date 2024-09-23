@@ -8,36 +8,29 @@ import { useCells } from '@/components/use-cell';
 import { OutputType, StdoutOutputType, StderrOutputType, CellModeType } from '@/types';
 import { Button } from './ui/button';
 
-type BaseProps = {
+type Props = {
   cell: CodeCellType | PackageJsonCellType;
   show: boolean;
   setShow: (show: boolean) => void;
-};
-
-type RegularProps = BaseProps & {
-  readOnly?: false;
   fixDiagnostics: (diagnostics: string) => void;
   cellMode: CellModeType;
   setFullscreen: (fullscreen: boolean) => void;
   fullscreen: boolean;
 };
-type ReadOnlyProps = BaseProps & { readOnly: true };
-
-type Props = RegularProps | ReadOnlyProps;
 
 export function CellOutput(props: Props) {
-  const { readOnly, cell, show, setShow } = props;
+  const { cell, show, setShow } = props;
   const { getOutput, clearOutput, getTsServerDiagnostics, getTsServerSuggestions } = useCells();
 
   const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems' | 'warnings'>(
     'stdout',
   );
 
-  const fullscreen = !readOnly ? props.fullscreen : false;
+  const fullscreen = props.fullscreen;
   const stdout = getOutput(cell.id, 'stdout') as StdoutOutputType[];
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
-  const diagnostics = !readOnly ? getTsServerDiagnostics(cell.id) : [];
-  const suggestions = !readOnly ? getTsServerSuggestions(cell.id) : [];
+  const diagnostics = getTsServerDiagnostics(cell.id);
+  const suggestions = getTsServerSuggestions(cell.id);
 
   return (
     <div className={cn('font-mono text-sm', fullscreen && !show && 'border-b')}>
@@ -82,7 +75,7 @@ export function CellOutput(props: Props) {
                 'stderr'
               )}
             </TabsTrigger>
-            {cell.type === 'code' && cell.language === 'typescript' && !readOnly && (
+            {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsTrigger
                 onClick={() => setShow(true)}
                 value="problems"
@@ -100,7 +93,7 @@ export function CellOutput(props: Props) {
                 )}
               </TabsTrigger>
             )}
-            {cell.type === 'code' && cell.language === 'typescript' && !readOnly && (
+            {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsTrigger
                 onClick={() => setShow(true)}
                 value="warnings"
@@ -120,33 +113,24 @@ export function CellOutput(props: Props) {
             )}
           </TabsList>
           <div className="flex items-center gap-6">
-            {!readOnly ? (
-              <button
-                className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
-                onClick={() => {
-                  if (readOnly) {
-                    return;
-                  }
-                  props.setFullscreen(!fullscreen);
-                }}
-              >
-                {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-              </button>
-            ) : null}
-            {!readOnly ? (
-              <button
-                className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
-                disabled={activeTab === 'problems' || activeTab === 'warnings'}
-                onClick={() =>
-                  clearOutput(
-                    cell.id,
-                    activeTab === 'problems' || activeTab === 'warnings' ? undefined : activeTab,
-                  )
-                }
-              >
-                <Ban size={16} />
-              </button>
-            ) : null}
+            <button
+              className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
+              onClick={() => props.setFullscreen(!fullscreen)}
+            >
+              {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+            </button>
+            <button
+              className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
+              disabled={activeTab === 'problems' || activeTab === 'warnings'}
+              onClick={() =>
+                clearOutput(
+                  cell.id,
+                  activeTab === 'problems' || activeTab === 'warnings' ? undefined : activeTab,
+                )
+              }
+            >
+              <Ban size={16} />
+            </button>
             <button className="hover:text-secondary-hover" onClick={() => setShow(!show)}>
               {show ? <PanelBottomOpen size={20} /> : <PanelBottomClose size={20} />}
             </button>
@@ -165,7 +149,7 @@ export function CellOutput(props: Props) {
             <TabsContent value="stderr" className="mt-0">
               <Stderr stderr={stderr} />
             </TabsContent>
-            {cell.type === 'code' && cell.language === 'typescript' && !readOnly && (
+            {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsContent value="problems" className="mt-0">
                 <TsServerDiagnostics
                   diagnostics={diagnostics}
@@ -174,7 +158,7 @@ export function CellOutput(props: Props) {
                 />
               </TabsContent>
             )}
-            {cell.type === 'code' && cell.language === 'typescript' && !readOnly && (
+            {cell.type === 'code' && cell.language === 'typescript' && (
               <TabsContent value="warnings" className="mt-0">
                 <TsServerSuggestions
                   suggestions={suggestions}

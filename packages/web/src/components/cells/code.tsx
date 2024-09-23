@@ -432,9 +432,7 @@ export default function CodeCell(props: Props) {
                   />
                 )}
               </div>
-              {readOnly ? (
-                <CellOutput readOnly cell={cell} show={showStdio} setShow={setShowStdio} />
-              ) : (
+              {!readOnly ? (
                 <CellOutput
                   cell={cell}
                   show={showStdio}
@@ -444,7 +442,7 @@ export default function CodeCell(props: Props) {
                   fullscreen={fullscreen}
                   setFullscreen={setFullscreen}
                 />
-              )}
+              ) : null}
             </>
           )}
         </div>

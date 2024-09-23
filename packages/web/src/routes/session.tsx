@@ -29,7 +29,7 @@ import { PackageJsonProvider, usePackageJson } from '@/components/use-package-js
 import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
-import { VITE_DEBUG_RENDER_SESSION_AS_READ_ONLY } from '@/lib/environment';
+import { VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY } from '@/lib/environment';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([
@@ -98,7 +98,7 @@ function SessionPage() {
     <CellsProvider cells={session.cells}>
       <PackageJsonProvider session={session} channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
-          {VITE_DEBUG_RENDER_SESSION_AS_READ_ONLY ? (
+          {VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY ? (
             <Session readOnly session={session} srcbooks={srcbooks} config={config} />
           ) : (
             <Session session={session} channel={channel} srcbooks={srcbooks} config={config} />

@@ -1,6 +1,6 @@
 import { CodeLanguageType, randomid, type AppType } from '@srcbook/shared';
 import { db } from '../db/index.mjs';
-import { type App, apps as appsTable } from '../db/schema.mjs';
+import { type App as DBAppType, apps as appsTable } from '../db/schema.mjs';
 import { createViteApp, deleteViteApp } from './disk.mjs';
 import { CreateAppSchemaType } from './schemas.mjs';
 import { asc, desc, eq } from 'drizzle-orm';
@@ -9,7 +9,7 @@ function toSecondsSinceEpoch(date: Date): number {
   return Math.floor(date.getTime() / 1000);
 }
 
-export function serializeApp(app: App): AppType {
+export function serializeApp(app: DBAppType): AppType {
   return {
     id: app.externalId,
     name: app.name,
@@ -19,12 +19,14 @@ export function serializeApp(app: App): AppType {
   };
 }
 
-async function insert(attrs: Pick<App, 'name' | 'language' | 'externalId'>): Promise<App> {
+async function insert(
+  attrs: Pick<DBAppType, 'name' | 'language' | 'externalId'>,
+): Promise<DBAppType> {
   const [app] = await db.insert(appsTable).values(attrs).returning();
   return app!;
 }
 
-export async function createApp(data: CreateAppSchemaType): Promise<App> {
+export async function createApp(data: CreateAppSchemaType): Promise<DBAppType> {
   const app = await insert({
     name: data.name,
     language: data.language,

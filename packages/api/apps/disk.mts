@@ -1,16 +1,17 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { type App } from '../db/schema.mjs';
+import { type App as DBAppType } from '../db/schema.mjs';
 import { APPS_DIR } from '../constants.mjs';
 import { toValidPackageName } from './utils.mjs';
 import { Dirent } from 'node:fs';
+import { FileType } from '@srcbook/shared';
 
 const FILES_TO_RENAME: Record<string, string | undefined> = {
   _gitignore: '.gitignore',
 };
 
-function pathToApp(id: string) {
+export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
 }
 
@@ -22,7 +23,7 @@ export function deleteViteApp(id: string) {
   return fs.rm(pathToApp(id), { recursive: true });
 }
 
-export async function createViteApp(app: App) {
+export async function createViteApp(app: DBAppType) {
   const appPath = pathToApp(app.externalId);
 
   // Use recursive because its parent directory may not exist.
@@ -34,7 +35,7 @@ export async function createViteApp(app: App) {
   return app;
 }
 
-async function scaffold(app: App, destDir: string) {
+async function scaffold(app: DBAppType, destDir: string) {
   const template = `react-${app.language}`;
 
   function write(file: string, content?: string) {
@@ -70,6 +71,11 @@ async function scaffold(app: App, destDir: string) {
   ]);
 }
 
+export function fileUpdated(app: DBAppType, file: FileType) {
+  const path = Path.join(pathToApp(app.externalId), file.path);
+  return fs.writeFile(path, file.source, 'utf-8');
+}
+
 async function copy(src: string, dest: string) {
   const stat = await fs.stat(src);
   if (stat.isDirectory()) {
@@ -89,14 +95,28 @@ async function copyDir(srcDir: string, destDir: string) {
   }
 }
 
-export async function getProjectFiles(app: App) {
+// TODO: This does not scale.
+export async function getProjectFiles(app: DBAppType) {
   const projectDir = Path.join(APPS_DIR, app.externalId);
 
-  const entries = await fs.readdir(projectDir, { withFileTypes: true, recursive: true });
-  const fileEntries = entries.filter((entry) => entry.isFile());
+  const { files, directories } = await getDiskEntries(projectDir, {
+    exclude: ['node_modules', 'dist', '.git'],
+  });
+
+  const nestedFiles = await Promise.all(
+    directories.flatMap(async (dir) => {
+      const entries = await fs.readdir(Path.join(projectDir, dir.name), {
+        withFileTypes: true,
+        recursive: true,
+      });
+      return entries.filter((entry) => entry.isFile());
+    }),
+  );
+
+  const entries = [...files, ...nestedFiles.flat()];
 
   return Promise.all(
-    fileEntries.map(async (entry) => {
+    entries.map(async (entry) => {
       const fullPath = Path.join(entry.parentPath, entry.name);
       const relativePath = Path.relative(projectDir, fullPath);
       const contents = await fs.readFile(fullPath);
@@ -107,17 +127,41 @@ export async function getProjectFiles(app: App) {
   );
 }
 
+async function getDiskEntries(projectDir: string, options: { exclude: string[] }) {
+  const result: { files: Dirent[]; directories: Dirent[] } = {
+    files: [],
+    directories: [],
+  };
+
+  for (const entry of await fs.readdir(projectDir, { withFileTypes: true })) {
+    if (options.exclude.includes(entry.name)) {
+      continue;
+    }
+
+    if (entry.isFile()) {
+      result.files.push(entry);
+    } else {
+      result.directories.push(entry);
+    }
+  }
+
+  return result;
+}
+
 // TODO: This does not scale.
 // What's the best way to know whether a file is a "binary"
 // file or not? Inspecting bytes for invalid utf8?
 const TEXT_FILE_EXTENSIONS = [
   '.ts',
+  '.cts',
   '.mts',
   '.tsx',
   '.js',
+  '.cjs',
   '.mjs',
   '.jsx',
   '.md',
+  '.markdown',
   '.json',
   '.css',
   '.html',

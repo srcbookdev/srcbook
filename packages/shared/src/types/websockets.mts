@@ -34,6 +34,9 @@ import {
   FileUpdatedPayloadSchema,
   FileRenamedPayloadSchema,
   FileDeletedPayloadSchema,
+  PreviewStatusPayloadSchema,
+  PreviewStopPayloadSchema,
+  PreviewStartPayloadSchema,
 } from '../schemas/websockets.mjs';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -95,3 +98,6 @@ export type FileCreatedPayloadType = z.infer<typeof FileCreatedPayloadSchema>;
 export type FileUpdatedPayloadType = z.infer<typeof FileUpdatedPayloadSchema>;
 export type FileRenamedPayloadType = z.infer<typeof FileRenamedPayloadSchema>;
 export type FileDeletedPayloadType = z.infer<typeof FileDeletedPayloadSchema>;
+export type PreviewStatusPayloadType = z.infer<typeof PreviewStatusPayloadSchema>;
+export type PreviewStartPayloadType = z.infer<typeof PreviewStartPayloadSchema>;
+export type PreviewStopPayloadType = z.infer<typeof PreviewStopPayloadSchema>;

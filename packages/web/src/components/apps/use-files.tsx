@@ -110,7 +110,9 @@ export function FilesProvider({ channel, children }: ProviderPropsType) {
   }, []);
 
   const updateFile = useCallback((file: FileType, attrs: Partial<FileType>) => {
-    filesRef.current[file.path] = { ...file, ...attrs };
+    const updatedFile: FileType = { ...file, ...attrs };
+    filesRef.current[file.path] = updatedFile;
+    channel.push('file:updated', { file: updatedFile });
     forceComponentRerender();
   }, []);
 

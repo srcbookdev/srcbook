@@ -10,6 +10,8 @@ import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor';
 import { Preview } from '@/components/apps/workspace/preview';
+import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
+import { cn } from '@/lib/utils';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: apps }, { data: app }] = await Promise.all([
@@ -47,20 +49,29 @@ export function AppsPage() {
 
   return (
     <FilesProvider channel={channelRef.current}>
-      <Apps app={app} apps={apps} />
+      <PreviewProvider channel={channelRef.current}>
+        <Apps app={app} apps={apps} />
+      </PreviewProvider>
     </FilesProvider>
   );
 }
 
 function Apps(props: { app: AppType; apps: AppType[] }) {
+  const { status: previewStatus } = usePreview();
+
   return (
     <div className="h-screen max-h-screen flex flex-col">
       <Header app={props.app} apps={props.apps} className="h-12 max-h-12 shrink-0" />
       <div className="flex flex-1 min-w-0">
         <Sidebar />
-        <div className="w-full h-full grid grid-cols-2 divide-x divide-border">
+        <div
+          className={cn(
+            'w-full h-full grid divide-x divide-border',
+            previewStatus === 'running' ? 'grid-cols-2' : 'grid-cols-1',
+          )}
+        >
           <Editor />
-          <Preview url="https://srcbook.com" />
+          {previewStatus === 'running' && <Preview />}
         </div>
       </div>
     </div>

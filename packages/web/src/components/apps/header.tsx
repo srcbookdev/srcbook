@@ -1,5 +1,13 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { PlusIcon, ChevronDownIcon, ShareIcon, Trash2Icon } from 'lucide-react';
+import {
+  PlusIcon,
+  ChevronDownIcon,
+  ShareIcon,
+  Trash2Icon,
+  Play,
+  StopCircle,
+  PlayCircle,
+} from 'lucide-react';
 import type { AppType, CodeLanguageType } from '@srcbook/shared';
 
 import { SrcbookLogo } from '@/components/logos';
@@ -16,6 +24,7 @@ import { useState } from 'react';
 import CreateAppModal from './create-modal';
 import { createApp } from '@/clients/http/apps';
 import { cn } from '@/lib/utils';
+import { usePreview } from './use-preview';
 
 type PropsType = {
   app: AppType;
@@ -26,6 +35,16 @@ type PropsType = {
 export default function AppHeader(props: PropsType) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const { start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
+
+  function togglePreview() {
+    if (previewStatus === 'running') {
+      stopPreview();
+    } else if (previewStatus === 'stopped') {
+      startPreview();
+    }
+  }
 
   const navigate = useNavigate();
 
@@ -143,6 +162,15 @@ export default function AppHeader(props: PropsType) {
                 <ShareIcon size={16} />
                 Export
               </div>
+            </Button>
+            <Button
+              onClick={togglePreview}
+              className="active:translate-y-0 gap-1.5"
+              disabled={!(previewStatus === 'stopped' || previewStatus === 'running')}
+            >
+              {previewStatus === 'stopped' && <PlayCircle size={16} />}
+              {previewStatus === 'running' && <StopCircle size={16} />}
+              Preview
             </Button>
           </div>
         </nav>

@@ -32,6 +32,9 @@ import {
   FileRenamedPayloadSchema,
   FileDeletedPayloadSchema,
   FilePayloadSchema,
+  PreviewStatusPayloadSchema,
+  PreviewStartPayloadSchema,
+  PreviewStopPayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -90,6 +93,7 @@ export class SessionChannel extends Channel<
 
 const IncomingAppEvents = {
   file: FilePayloadSchema,
+  'preview:status': PreviewStatusPayloadSchema,
 };
 
 const OutgoingAppEvents = {
@@ -97,6 +101,8 @@ const OutgoingAppEvents = {
   'file:updated': FileUpdatedPayloadSchema,
   'file:renamed': FileRenamedPayloadSchema,
   'file:deleted': FileDeletedPayloadSchema,
+  'preview:start': PreviewStartPayloadSchema,
+  'preview:stop': PreviewStopPayloadSchema,
 };
 
 export class AppChannel extends Channel<typeof IncomingAppEvents, typeof OutgoingAppEvents> {

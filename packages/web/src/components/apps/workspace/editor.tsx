@@ -14,13 +14,13 @@ type PropsType = {
 };
 
 export function Editor(props: PropsType) {
-  const { openedFile } = useFiles();
+  const { openedFile, updateFile } = useFiles();
 
   return (
     <div className={cn(props.className)}>
       <div className="p-3 w-full h-full">
         {openedFile ? (
-          <CodeEditor file={openedFile} />
+          <CodeEditor file={openedFile} onChange={updateFile} />
         ) : (
           <div className="h-full flex items-center justify-center text-tertiary-foreground">
             Use the file explorer to open a file for editing
@@ -35,7 +35,13 @@ function extname(path: string) {
   return '.' + path.split('.').pop();
 }
 
-function CodeEditor({ file }: { file: FileType }) {
+function CodeEditor({
+  file,
+  onChange,
+}: {
+  file: FileType;
+  onChange: (file: FileType, attrs: Partial<FileType>) => void;
+}) {
   const { codeTheme } = useTheme();
 
   const languageExtension = getCodeMirrorLanguageExtension(file);
@@ -46,9 +52,7 @@ function CodeEditor({ file }: { file: FileType }) {
       value={file.source}
       theme={codeTheme}
       extensions={extensions}
-      onChange={(source) => {
-        console.log(source);
-      }}
+      onChange={(source) => onChange(file, { source })}
     />
   );
 }

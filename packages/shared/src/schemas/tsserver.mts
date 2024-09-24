@@ -54,6 +54,18 @@ export const TsServerQuickInfoResponseSchema = z.object({
   tags: TsServerJsDocTagsSchema,
 });
 
+export const TsServerCompletionEntriesSchema = z.nullable(
+  z.object({
+    entries: z.array(
+      z.object({
+        name: z.string(),
+        kind: z.string(),
+        kindModifiers: z.string(),
+      }),
+    ),
+  }),
+);
+
 export const TsServerDefinitionLocationSchema = z.nullable(
   z.object({
     file: z.string(),

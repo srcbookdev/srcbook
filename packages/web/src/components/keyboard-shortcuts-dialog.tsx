@@ -19,9 +19,11 @@ function ShortcutRow({ keys, description }: { keys: string[]; description: strin
 }
 
 export default function KeyboardShortcutsDialog({
+  readOnly,
   open,
   onOpenChange,
 }: {
+  readOnly?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -36,15 +38,23 @@ export default function KeyboardShortcutsDialog({
               <ShortcutRow keys={['?']} description="show this dialog" />
               <ShortcutRow keys={['mod', ';']} description="open package.json" />
               <ShortcutRow keys={['mod', 'i']} description="open npm package install modal" />
-              <h5 className="font-semibold pt-6 pb-2">Markdown edit</h5>
-              <ShortcutRow keys={['esc']} description="switch back to preview mode" />
-              <ShortcutRow keys={['mod', '↵']} description="switch back to preview mode" />
-              <h5 className="font-semibold pt-6 pb-2">Code cell edit</h5>
-              <ShortcutRow keys={['mod', '↵']} description="run cell" />
-              <ShortcutRow keys={['mod', '/']} description="toggle lines comment" />
-              <ShortcutRow keys={['alt', '↑']} description="move lines up" />
-              <ShortcutRow keys={['alt', '↓']} description="move lines down" />
-              <ShortcutRow keys={['shift', 'alt', 'f']} description="format code using Prettier" />
+              {!readOnly ? (
+                <>
+                  <h5 className="font-semibold pt-6 pb-2">Markdown edit</h5>
+                  <ShortcutRow keys={['esc']} description="switch back to preview mode" />
+                  <ShortcutRow keys={['mod', '↵']} description="switch back to preview mode" />
+                  <h5 className="font-semibold pt-6 pb-2">Code cell edit</h5>
+                  <ShortcutRow keys={['mod', '↵']} description="run cell" />
+                  <ShortcutRow keys={['mod', '/']} description="toggle lines comment" />
+                  <ShortcutRow keys={['alt', '↑']} description="move lines up" />
+                  <ShortcutRow keys={['alt', '↓']} description="move lines down" />
+                  <ShortcutRow
+                    keys={['shift', 'alt', 'f']}
+                    description="format code using Prettier"
+                  />
+                  <ShortcutRow keys={['alt', 'click']} description="go to definition" />
+                </>
+              ) : null}
             </div>
           </DialogDescription>
         </DialogHeader>

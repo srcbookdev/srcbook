@@ -24,9 +24,10 @@ import SessionMenuPanelSettings from './settings-panel';
 import SessionMenuPanelSecrets from './secrets-panel';
 
 export type SessionMenuPanelContentsProps = {
+  readOnly: boolean;
   session: SessionType;
-  channel: SessionChannel;
-  openDepsInstallModal: () => void;
+  channel: SessionChannel | null;
+  openDepsInstallModal: (() => void) | null;
 };
 
 export const SESSION_MENU_PANELS = [
@@ -36,15 +37,17 @@ export const SESSION_MENU_PANELS = [
     openWidthInPx: 312,
     contents: () => <SessionMenuPanelTableOfContents />,
     tooltipContent: 'Table of contents',
+    showInReadOnly: true,
   },
   {
     name: 'packages' as const,
     icon: PackageIcon,
     openWidthInPx: 480,
-    contents: ({ openDepsInstallModal }: SessionMenuPanelContentsProps) => (
-      <SessionMenuPanelPackages openDepsInstallModal={openDepsInstallModal} />
+    contents: ({ readOnly, openDepsInstallModal }: SessionMenuPanelContentsProps) => (
+      <SessionMenuPanelPackages readOnly={readOnly} openDepsInstallModal={openDepsInstallModal} />
     ),
     tooltipContent: 'package.json',
+    showInReadOnly: true,
   },
   {
     name: 'settings' as const,
@@ -52,6 +55,7 @@ export const SESSION_MENU_PANELS = [
     openWidthInPx: 480,
     contents: (props: SessionMenuPanelContentsProps) => <SessionMenuPanelSettings {...props} />,
     tooltipContent: 'Settings and configuration',
+    showInReadOnly: true,
   },
   {
     name: 'secrets' as const,
@@ -60,20 +64,27 @@ export const SESSION_MENU_PANELS = [
     contents: (props: SessionMenuPanelContentsProps) => (
       <SessionMenuPanelSecrets session={props.session} />
     ),
+    showInReadOnly: false,
   },
 ];
 export type Panel = (typeof SESSION_MENU_PANELS)[0];
 
-type Props = {
+type BaseProps = {
   session: SessionType;
   selectedPanelName: Panel['name'];
   selectedPanelOpen: boolean;
   onChangeSelectedPanelNameAndOpen: (
     old: (param: [Panel['name'], boolean]) => [Panel['name'], boolean],
   ) => void;
-  openDepsInstallModal: () => void;
-  channel: SessionChannel;
 };
+
+type Props =
+  | (BaseProps & { readOnly: true })
+  | (BaseProps & {
+      readOnly?: false;
+      openDepsInstallModal: () => void;
+      channel: SessionChannel;
+    });
 
 marked.use({ gfm: true });
 
@@ -174,6 +185,7 @@ function SessionMenuPanel(props: SessionMenuPanelProps) {
 }
 
 type SidebarProps = {
+  readOnly?: boolean;
   selectedPanelName: Panel['name'];
   selectedPanelOpen: boolean;
   onChangeSelectedPanelNameAndOpen: (
@@ -184,6 +196,7 @@ type SidebarProps = {
 };
 
 function Sidebar({
+  readOnly,
   selectedPanelName,
   selectedPanelOpen,
   onChangeSelectedPanelNameAndOpen,
@@ -194,6 +207,10 @@ function Sidebar({
     <div className="flex flex-col items-center justify-between w-12 h-full py-4">
       <div className="flex flex-col items-center w-full gap-2">
         {SESSION_MENU_PANELS.map((panel) => {
+          if (readOnly && !panel.showInReadOnly) {
+            return null;
+          }
+
           const Icon = panel.icon;
           return (
             <TooltipProvider key={panel.name}>
@@ -244,34 +261,39 @@ function Sidebar({
             <TooltipContent side="right">Keyboard shortcuts</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="icon"
-                size="icon"
-                className="active:translate-y-0"
-                onClick={onShowFeedbackModal}
-              >
-                <MessageCircleIcon size={18} className="stroke-tertiary-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Leave feedback</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {!readOnly ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="icon"
+                  size="icon"
+                  className="active:translate-y-0"
+                  onClick={onShowFeedbackModal}
+                >
+                  <MessageCircleIcon size={18} className="stroke-tertiary-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Leave feedback</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export default function SessionMenu({
-  session,
-  selectedPanelName,
-  selectedPanelOpen,
-  onChangeSelectedPanelNameAndOpen,
-  openDepsInstallModal,
-  channel,
-}: Props) {
+export default function SessionMenu(props: Props) {
+  const {
+    readOnly,
+    session,
+    selectedPanelName,
+    selectedPanelOpen,
+    onChangeSelectedPanelNameAndOpen,
+  } = props;
+  const openDepsInstallModal = !readOnly ? props.openDepsInstallModal : null;
+  const channel = !readOnly ? props.channel : null;
+
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
@@ -285,19 +307,29 @@ export default function SessionMenu({
   useHotkeys('shift+Slash', () => setShowShortcuts(!showShortcuts));
 
   const selectedPanelContentsProps: SessionMenuPanelContentsProps = useMemo(
-    () => ({ session, channel, openDepsInstallModal }),
-    [session, channel, openDepsInstallModal],
+    () => ({
+      readOnly: readOnly || false,
+      session,
+      channel,
+      openDepsInstallModal,
+    }),
+    [readOnly, session, channel, openDepsInstallModal],
   );
 
   return (
     <>
-      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
-      <FeedbackDialog open={showFeedback} onOpenChange={setShowFeedback} />
+      <KeyboardShortcutsDialog
+        readOnly={readOnly}
+        open={showShortcuts}
+        onOpenChange={setShowShortcuts}
+      />
+      {!readOnly ? <FeedbackDialog open={showFeedback} onOpenChange={setShowFeedback} /> : null}
 
       {/* The sidebar is of a certain defined pixel width whoose parent takes the space of the fixed position element: */}
       <div className="grow-0 shrink-0 w-12">
         <div className="fixed top-12 left-0 bottom-0 w-12">
           <Sidebar
+            readOnly={readOnly}
             selectedPanelName={selectedPanelName}
             selectedPanelOpen={selectedPanelOpen}
             onChangeSelectedPanelNameAndOpen={onChangeSelectedPanelNameAndOpen}
@@ -314,6 +346,7 @@ export default function SessionMenu({
         onClose={() => onChangeSelectedPanelNameAndOpen(([name, _open]) => [name, false])}
         sidebar={
           <Sidebar
+            readOnly={readOnly}
             selectedPanelName={selectedPanelName}
             selectedPanelOpen={selectedPanelOpen}
             onChangeSelectedPanelNameAndOpen={onChangeSelectedPanelNameAndOpen}

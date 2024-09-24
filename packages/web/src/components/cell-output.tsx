@@ -8,7 +8,7 @@ import { useCells } from '@/components/use-cell';
 import { OutputType, StdoutOutputType, StderrOutputType, CellModeType } from '@/types';
 import { Button } from './ui/button';
 
-type PropsType = {
+type Props = {
   cell: CodeCellType | PackageJsonCellType;
   show: boolean;
   setShow: (show: boolean) => void;
@@ -18,21 +18,15 @@ type PropsType = {
   fullscreen: boolean;
 };
 
-export function CellOutput({
-  cell,
-  show,
-  setShow,
-  fixDiagnostics,
-  cellMode,
-  fullscreen,
-  setFullscreen,
-}: PropsType) {
+export function CellOutput(props: Props) {
+  const { cell, show, setShow } = props;
   const { getOutput, clearOutput, getTsServerDiagnostics, getTsServerSuggestions } = useCells();
 
   const [activeTab, setActiveTab] = useState<'stdout' | 'stderr' | 'problems' | 'warnings'>(
     'stdout',
   );
 
+  const fullscreen = props.fullscreen;
   const stdout = getOutput(cell.id, 'stdout') as StdoutOutputType[];
   const stderr = getOutput(cell.id, 'stderr') as StderrOutputType[];
   const diagnostics = getTsServerDiagnostics(cell.id);
@@ -121,9 +115,7 @@ export function CellOutput({
           <div className="flex items-center gap-6">
             <button
               className="hover:text-secondary-hover disabled:pointer-events-none disabled:opacity-50"
-              onClick={() => {
-                setFullscreen(!fullscreen);
-              }}
+              onClick={() => props.setFullscreen(!fullscreen)}
             >
               {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
             </button>
@@ -161,8 +153,8 @@ export function CellOutput({
               <TabsContent value="problems" className="mt-0">
                 <TsServerDiagnostics
                   diagnostics={diagnostics}
-                  fixDiagnostics={fixDiagnostics}
-                  cellMode={cellMode}
+                  fixDiagnostics={props.fixDiagnostics}
+                  cellMode={props.cellMode}
                 />
               </TabsContent>
             )}
@@ -170,8 +162,8 @@ export function CellOutput({
               <TabsContent value="warnings" className="mt-0">
                 <TsServerSuggestions
                   suggestions={suggestions}
-                  fixSuggestions={fixDiagnostics} // fixDiagnostics works for both diagnostics and suggestions
-                  cellMode={cellMode}
+                  fixSuggestions={props.fixDiagnostics} // fixDiagnostics works for both diagnostics and suggestions
+                  cellMode={props.cellMode}
                 />
               </TabsContent>
             )}

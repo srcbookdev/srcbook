@@ -402,6 +402,26 @@
   @apply !border-border;
 }
 
+.cm-tooltip-autocomplete {
+  @apply overflow-hidden;
+  @apply !bg-background;
+  @apply border;
+  @apply rounded-sm;
+  @apply shadow-md;
+  @apply !border-border;
+}
+
+.cm-tooltip.cm-tooltip-autocomplete ul {
+  font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
+    'Liberation Mono', 'Courier New', 'monospace';
+}
+
+.cm-tooltip.cm-tooltip-autocomplete ul li.custom-class {
+  @apply !bg-muted;
+  @apply !text-foreground;
+  font-style: normal;
+}
+
 .cm-diagnostic {
   @apply ml-0;
   @apply !p-0;

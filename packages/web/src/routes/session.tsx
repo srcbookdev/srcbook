@@ -29,6 +29,7 @@ import { PackageJsonProvider, usePackageJson } from '@/components/use-package-js
 import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
+import { VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY } from '@/lib/environment';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([
@@ -97,20 +98,30 @@ function SessionPage() {
     <CellsProvider cells={session.cells}>
       <PackageJsonProvider session={session} channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
-          <Session session={session} channel={channel} srcbooks={srcbooks} config={config} />
+          {VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY ? (
+            <Session readOnly session={session} srcbooks={srcbooks} config={config} />
+          ) : (
+            <Session session={session} channel={channel} srcbooks={srcbooks} config={config} />
+          )}
         </TsConfigProvider>
       </PackageJsonProvider>
     </CellsProvider>
   );
 }
 
-function Session(props: {
+type SessionPropsBase = {
   session: SessionType;
-  channel: SessionChannel;
   srcbooks: Array<SessionType>;
   config: SettingsType;
-}) {
-  const { session, channel, srcbooks, config } = props;
+};
+
+type SessionProps =
+  | ({ readOnly: true } & SessionPropsBase)
+  | ({ readOnly?: false; channel: SessionChannel } & SessionPropsBase);
+
+function Session(props: SessionProps) {
+  const { readOnly, session, srcbooks, config } = props;
+  const channel = !readOnly ? props.channel : null;
 
   const {
     cells: allCells,
@@ -148,6 +159,9 @@ function Session(props: {
   });
 
   async function onDeleteCell(cell: CellType | GenerateAICellType) {
+    if (!channel) {
+      return;
+    }
     if (cell.type !== 'code' && cell.type !== 'markdown') {
       throw new Error(`Cannot delete cell of type '${cell.type}'`);
     }
@@ -162,6 +176,9 @@ function Session(props: {
   }
 
   useEffect(() => {
+    if (!channel) {
+      return;
+    }
     const callback = (payload: CellOutputPayloadType) => {
       setOutput(payload.cellId, payload.output);
     };
@@ -172,6 +189,9 @@ function Session(props: {
   }, [channel, setOutput]);
 
   useEffect(() => {
+    if (!channel) {
+      return;
+    }
     const callback = (payload: TsServerCellDiagnosticsPayloadType) => {
       setTsServerDiagnostics(payload.cellId, payload.diagnostics);
     };
@@ -182,6 +202,9 @@ function Session(props: {
   }, [channel, setTsServerDiagnostics]);
 
   useEffect(() => {
+    if (!channel) {
+      return;
+    }
     const callback = (payload: TsServerCellSuggestionsPayloadType) => {
       setTsServerSuggestions(payload.cellId, payload.diagnostics);
     };
@@ -192,6 +215,9 @@ function Session(props: {
   }, [channel, setTsServerSuggestions]);
 
   useEffect(() => {
+    if (!channel) {
+      return;
+    }
     const callback = (payload: CellUpdatedPayloadType) => {
       updateCell(payload.cell);
     };
@@ -202,6 +228,9 @@ function Session(props: {
   }, [channel, updateCell]);
 
   function updateCellOnServer(cell: CellType, updates: CellUpdateAttrsType) {
+    if (!channel) {
+      return;
+    }
     channel.push('cell:update', {
       sessionId: session.id,
       cellId: cell.id,
@@ -210,6 +239,10 @@ function Session(props: {
   }
 
   async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
+    if (!channel) {
+      return;
+    }
+
     // First, create the cell on client.
     // Then, push state to server, _only_ for code or markdown cells. AI generation is a client side only cell.
     // TODO: Handle potential errors (eg, rollback optimistic client creation if there are errors)
@@ -230,6 +263,10 @@ function Session(props: {
   }
 
   async function insertGeneratedCells(idx: number, cells: Array<CodeCellType | MarkdownCellType>) {
+    if (!channel) {
+      return;
+    }
+
     for (let i = 0; i < cells.length; i++) {
       const cell = cells[i];
       if (!cell) continue;
@@ -307,6 +344,7 @@ function Session(props: {
   return (
     <div className="flex flex-col">
       <SessionNavbar
+        readOnly={readOnly}
         session={session}
         srcbooks={srcbooks}
         baseDir={config.baseDir}
@@ -314,40 +352,64 @@ function Session(props: {
       />
 
       <div className="flex mt-12">
-        <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
-        <SessionMenu
-          session={session}
-          selectedPanelName={selectedPanelName}
-          selectedPanelOpen={selectedPanelOpen}
-          onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
-          openDepsInstallModal={() => setDepsInstallModalOpen(true)}
-          channel={channel}
-        />
+        {!readOnly ? (
+          <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+        ) : null}
+        {readOnly ? (
+          <SessionMenu
+            readOnly
+            session={session}
+            selectedPanelName={selectedPanelName}
+            selectedPanelOpen={selectedPanelOpen}
+            onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
+          />
+        ) : (
+          <SessionMenu
+            session={session}
+            selectedPanelName={selectedPanelName}
+            selectedPanelOpen={selectedPanelOpen}
+            onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
+            openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+            channel={props.channel}
+          />
+        )}
 
         <div className="grow shrink lg:px-0 pb-28">
           <div className="max-w-[800px] mx-auto my-12 px-[32px]">
-            <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+            {readOnly ? (
+              <TitleCell readOnly cell={titleCell} />
+            ) : (
+              <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+            )}
 
             {cells.map((cell, idx) => (
               <div key={cell.id}>
-                <InsertCellDivider
-                  language={session.language}
-                  createCodeCell={() => createNewCell('code', idx + 2)}
-                  createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-                  createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
-                />
+                {readOnly ? (
+                  <div className="h-5" />
+                ) : (
+                  <InsertCellDivider
+                    language={session.language}
+                    createCodeCell={() => createNewCell('code', idx + 2)}
+                    createMarkdownCell={() => createNewCell('markdown', idx + 2)}
+                    createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+                  />
+                )}
 
-                {cell.type === 'code' && (
+                {cell.type === 'code' && readOnly && (
+                  <CodeCell readOnly cell={cell} session={session} />
+                )}
+                {cell.type === 'code' && !readOnly && (
                   <CodeCell
                     cell={cell}
                     session={session}
-                    channel={channel}
+                    channel={props.channel}
                     updateCellOnServer={updateCellOnServer}
                     onDeleteCell={onDeleteCell}
                   />
                 )}
 
-                {cell.type === 'markdown' && (
+                {cell.type === 'markdown' && readOnly && <MarkdownCell readOnly cell={cell} />}
+                {cell.type === 'markdown' && !readOnly && (
                   <MarkdownCell
                     cell={cell}
                     updateCellOnServer={updateCellOnServer}
@@ -355,7 +417,7 @@ function Session(props: {
                   />
                 )}
 
-                {cell.type === 'generate-ai' && (
+                {cell.type === 'generate-ai' && !readOnly && (
                   <GenerateAiCell
                     cell={cell}
                     session={session}
@@ -367,13 +429,15 @@ function Session(props: {
             ))}
 
             {/* There is always an insert cell divider after the last cell */}
-            <InsertCellDivider
-              language={session.language}
-              createCodeCell={() => createNewCell('code', allCells.length)}
-              createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-              createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
-              className={cn('h-14', cells.length === 0 && 'opacity-100')}
-            />
+            {!readOnly ? (
+              <InsertCellDivider
+                language={session.language}
+                createCodeCell={() => createNewCell('code', allCells.length)}
+                createMarkdownCell={() => createNewCell('markdown', allCells.length)}
+                createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
+                className={cn('h-14', cells.length === 0 && 'opacity-100')}
+              />
+            ) : null}
           </div>
         </div>
       </div>

@@ -58,14 +58,19 @@ function getValidationError(text: string) {
   return null;
 }
 
-export default function MarkdownCell(props: {
-  cell: MarkdownCellType;
-  updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
-  onDeleteCell: (cell: CellType) => void;
-}) {
+type MarkdownCellProps =
+  | { readOnly: true; cell: MarkdownCellType }
+  | {
+      readOnly?: false;
+      cell: MarkdownCellType;
+      updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
+      onDeleteCell: (cell: CellType) => void;
+    };
+
+export default function MarkdownCell(props: MarkdownCellProps) {
   const { codeTheme, theme } = useTheme();
   const { updateCell: updateCellOnClient } = useCells();
-  const { cell, updateCellOnServer, onDeleteCell } = props;
+  const { readOnly, cell } = props;
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
   const [text, setText] = useState(cell.text);
@@ -96,41 +101,61 @@ export default function MarkdownCell(props: {
   }, [status]);
 
   const keyMap = Prec.highest(
-    keymap.of([
-      {
-        key: 'Mod-Enter',
-        run: () => {
-          onSave();
-          return true;
-        },
-      },
-      {
-        key: 'Escape',
-        run: () => {
-          setStatus('view');
-          return true;
-        },
-      },
-    ]),
+    keymap.of(
+      !readOnly
+        ? [
+            {
+              key: 'Mod-Enter',
+              run: () => {
+                onSave();
+                return true;
+              },
+            },
+            {
+              key: 'Escape',
+              run: () => {
+                setStatus('view');
+                return true;
+              },
+            },
+          ]
+        : [],
+    ),
   );
 
   function onSave() {
+    if (readOnly) {
+      return;
+    }
     const error = getValidationError(text);
 
     setError(error);
 
     if (error === null) {
       updateCellOnClient({ ...cell, text });
-      updateCellOnServer(cell, { text });
+      props.updateCellOnServer(cell, { text });
       setStatus('view');
       return true;
     }
   }
 
+  const deleteButton = !readOnly ? (
+    <DeleteCellWithConfirmation onDeleteCell={() => props.onDeleteCell(cell)}>
+      <Button variant="secondary" size="icon" className="border-transparent">
+        <Trash2 size={16} />
+      </Button>
+    </DeleteCellWithConfirmation>
+  ) : null;
+
   return (
     <div
       id={`cell-${cell.id}`}
-      onDoubleClick={() => setStatus('edit')}
+      onDoubleClick={() => {
+        if (readOnly) {
+          return;
+        }
+        setStatus('edit');
+      }}
       className={cn(
         'group/cell relative w-full rounded-md border border-transparent hover:border-border transition-all',
         status === 'edit' && 'ring-1 ring-ring border-ring hover:border-ring',
@@ -139,24 +164,22 @@ export default function MarkdownCell(props: {
     >
       {status === 'view' ? (
         <div className="flex flex-col">
-          <div className="p-1 w-full hidden group-hover/cell:flex items-center justify-between z-10">
+          <div className="p-1 w-full h-10 hidden group-hover/cell:flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
               <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
-              <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-                <Button variant="secondary" size="icon" className="border-transparent">
-                  <Trash2 size={16} />
-                </Button>
-              </DeleteCellWithConfirmation>
+              {deleteButton}
             </div>
             <div className="flex items-center gap-1">
-              <Button
-                variant="secondary"
-                size="icon"
-                className="border-transparent"
-                onClick={() => setStatus('edit')}
-              >
-                <Pencil size={16} />
-              </Button>
+              {!readOnly ? (
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="border-transparent"
+                  onClick={() => setStatus('edit')}
+                >
+                  <Pencil size={16} />
+                </Button>
+              ) : null}
             </div>
           </div>
           <div className="sb-prose px-3 pt-10 group-hover/cell:pt-0">
@@ -175,11 +198,7 @@ export default function MarkdownCell(props: {
             <div className="p-1 w-full flex items-center justify-between z-10">
               <div className="flex items-center gap-2">
                 <h5 className="pl-2 text-sm font-mono font-bold">Markdown</h5>
-                <DeleteCellWithConfirmation onDeleteCell={() => onDeleteCell(cell)}>
-                  <Button variant="secondary" size="icon" className="border-transparent">
-                    <Trash2 size={16} />
-                  </Button>
-                </DeleteCellWithConfirmation>
+                {deleteButton}
               </div>
               <div className="flex items-center gap-1">
                 <Button variant="secondary" onClick={() => setStatus('view')}>

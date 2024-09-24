@@ -2,21 +2,33 @@ import { TitleCellType, TitleCellUpdateAttrsType } from '@srcbook/shared';
 import { EditableH1 } from '../ui/heading';
 import { useCells } from '../use-cell';
 
-export default function TitleCell(props: {
+type BaseProps = {
   cell: TitleCellType;
+};
+type RegularProps = BaseProps & {
+  readOnly?: false;
   updateCellOnServer: (cell: TitleCellType, attrs: TitleCellUpdateAttrsType) => void;
-}) {
-  const { cell, updateCellOnServer } = props;
+};
+type ReadOnlyProps = BaseProps & { readOnly: true };
+
+export default function TitleCell(props: RegularProps | ReadOnlyProps) {
   const { updateCell: updateCellOnClient } = useCells();
 
   function updateCell(text: string) {
-    updateCellOnClient({ ...cell, text });
-    updateCellOnServer(cell, { text });
+    if (props.readOnly) {
+      return;
+    }
+    updateCellOnClient({ ...props.cell, text });
+    props.updateCellOnServer(props.cell, { text });
   }
 
   return (
-    <div id={`cell-${cell.id}`} className="mb-4">
-      <EditableH1 text={cell.text} className="title" onUpdated={updateCell} />
+    <div id={`cell-${props.cell.id}`} className="mb-4">
+      {props.readOnly ? (
+        <h1 className="title">{props.cell.text}</h1>
+      ) : (
+        <EditableH1 text={props.cell.text} className="title" onUpdated={updateCell} />
+      )}
     </div>
   );
 }

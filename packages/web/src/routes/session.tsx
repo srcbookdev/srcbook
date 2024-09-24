@@ -99,9 +99,20 @@ function SessionPage() {
       <PackageJsonProvider session={session} channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
           {VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY ? (
-            <Session readOnly session={session} srcbooks={srcbooks} config={config} />
+            <Session
+              readOnly
+              cells={session.cells}
+              session={session}
+              srcbooks={srcbooks}
+              config={config}
+            />
           ) : (
-            <Session session={session} channel={channel} srcbooks={srcbooks} config={config} />
+            <SessionControlled
+              session={session}
+              channel={channel}
+              srcbooks={srcbooks}
+              config={config}
+            />
           )}
         </TsConfigProvider>
       </PackageJsonProvider>
@@ -109,22 +120,28 @@ function SessionPage() {
   );
 }
 
-type SessionPropsBase = {
+type SessionControlledProps = {
+  channel: SessionChannel;
   session: SessionType;
   srcbooks: Array<SessionType>;
   config: SettingsType;
 };
 
-type SessionProps =
-  | ({ readOnly: true } & SessionPropsBase)
-  | ({ readOnly?: false; channel: SessionChannel } & SessionPropsBase);
+function SessionControlled(props: SessionControlledProps) {
+  const { channel, session, srcbooks, config } = props;
 
-function Session(props: SessionProps) {
-  const { readOnly, session, srcbooks, config } = props;
-  const channel = !readOnly ? props.channel : null;
+  const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
+  const [[selectedPanelName, selectedPanelOpen], setSelectedPanelNameAndOpen] = useState<
+    [Panel['name'], boolean]
+  >([SESSION_MENU_PANELS[0]!.name, false]);
+
+  const isPanelOpen = useCallback(
+    (name: Panel['name']) => selectedPanelOpen && selectedPanelName === name,
+    [selectedPanelOpen, selectedPanelName],
+  );
 
   const {
-    cells: allCells,
+    cells,
     updateCell,
     removeCell,
     createCodeCell,
@@ -142,43 +159,7 @@ function Session(props: SessionProps) {
     installing: installingDependencies,
   } = usePackageJson();
 
-  const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
-  const [[selectedPanelName, selectedPanelOpen], setSelectedPanelNameAndOpen] = useState<
-    [Panel['name'], boolean]
-  >([SESSION_MENU_PANELS[0]!.name, false]);
-
-  const isPanelOpen = useCallback(
-    (name: Panel['name']) => selectedPanelOpen && selectedPanelName === name,
-    [selectedPanelOpen, selectedPanelName],
-  );
-
-  useHotkeys('mod+;', () => {
-    if (!isPanelOpen('packages')) {
-      setSelectedPanelNameAndOpen(['packages', true]);
-    }
-  });
-
-  async function onDeleteCell(cell: CellType | GenerateAICellType) {
-    if (!channel) {
-      return;
-    }
-    if (cell.type !== 'code' && cell.type !== 'markdown') {
-      throw new Error(`Cannot delete cell of type '${cell.type}'`);
-    }
-
-    // Optimistically delete cell
-    removeCell(cell);
-
-    channel.push('cell:delete', {
-      sessionId: session.id,
-      cellId: cell.id,
-    });
-  }
-
   useEffect(() => {
-    if (!channel) {
-      return;
-    }
     const callback = (payload: CellOutputPayloadType) => {
       setOutput(payload.cellId, payload.output);
     };
@@ -189,9 +170,6 @@ function Session(props: SessionProps) {
   }, [channel, setOutput]);
 
   useEffect(() => {
-    if (!channel) {
-      return;
-    }
     const callback = (payload: TsServerCellDiagnosticsPayloadType) => {
       setTsServerDiagnostics(payload.cellId, payload.diagnostics);
     };
@@ -202,9 +180,6 @@ function Session(props: SessionProps) {
   }, [channel, setTsServerDiagnostics]);
 
   useEffect(() => {
-    if (!channel) {
-      return;
-    }
     const callback = (payload: TsServerCellSuggestionsPayloadType) => {
       setTsServerSuggestions(payload.cellId, payload.diagnostics);
     };
@@ -215,9 +190,6 @@ function Session(props: SessionProps) {
   }, [channel, setTsServerSuggestions]);
 
   useEffect(() => {
-    if (!channel) {
-      return;
-    }
     const callback = (payload: CellUpdatedPayloadType) => {
       updateCell(payload.cell);
     };
@@ -227,22 +199,7 @@ function Session(props: SessionProps) {
     return () => channel.off('cell:updated', callback);
   }, [channel, updateCell]);
 
-  function updateCellOnServer(cell: CellType, updates: CellUpdateAttrsType) {
-    if (!channel) {
-      return;
-    }
-    channel.push('cell:update', {
-      sessionId: session.id,
-      cellId: cell.id,
-      updates,
-    });
-  }
-
-  async function createNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
-    if (!channel) {
-      return;
-    }
-
+  async function onCreateNewCell(type: 'code' | 'markdown' | 'generate-ai', index: number) {
     // First, create the cell on client.
     // Then, push state to server, _only_ for code or markdown cells. AI generation is a client side only cell.
     // TODO: Handle potential errors (eg, rollback optimistic client creation if there are errors)
@@ -262,11 +219,10 @@ function Session(props: SessionProps) {
     }
   }
 
-  async function insertGeneratedCells(idx: number, cells: Array<CodeCellType | MarkdownCellType>) {
-    if (!channel) {
-      return;
-    }
-
+  async function onInsertGeneratedCells(
+    idx: number,
+    cells: Array<CodeCellType | MarkdownCellType>,
+  ) {
     for (let i = 0; i < cells.length; i++) {
       const cell = cells[i];
       if (!cell) continue;
@@ -284,10 +240,27 @@ function Session(props: SessionProps) {
     }
   }
 
-  // TOOD: We need to stop treating titles and package.json as cells.
-  const [titleCellUncasted, _packageJsonCell, ...remainingCells] = allCells;
-  const titleCell = titleCellUncasted as TitleCellType;
-  const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
+  async function onDeleteCell(cell: CellType | GenerateAICellType) {
+    if (cell.type !== 'code' && cell.type !== 'markdown') {
+      throw new Error(`Cannot delete cell of type '${cell.type}'`);
+    }
+
+    // Optimistically delete cell
+    removeCell(cell);
+
+    channel.push('cell:delete', {
+      sessionId: session.id,
+      cellId: cell.id,
+    });
+  }
+
+  function updateCellOnServer(cell: CellType, updates: CellUpdateAttrsType) {
+    channel.push('cell:update', {
+      sessionId: session.id,
+      cellId: cell.id,
+      updates,
+    });
+  }
 
   useEffect(() => {
     let result: () => void = () => {};
@@ -342,6 +315,73 @@ function Session(props: SessionProps) {
   ]);
 
   return (
+    <>
+      <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+      <Session
+        readOnly={false}
+        cells={cells}
+        session={session}
+        srcbooks={srcbooks}
+        config={config}
+        channel={channel}
+        onChangeSelectedPanelNameAndOpen={(name, open) => setSelectedPanelNameAndOpen([name, open])}
+        onCreateNewCell={onCreateNewCell}
+        onInsertGeneratedCells={onInsertGeneratedCells}
+        onDeleteCell={onDeleteCell}
+        updateCellOnServer={updateCellOnServer}
+        openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+      />
+    </>
+  );
+}
+
+type SessionPropsBase = {
+  cells: Array<CellType | GenerateAICellType>;
+  session: SessionType;
+  srcbooks: Array<SessionType>;
+  config: SettingsType;
+};
+
+type SessionProps =
+  | ({ readOnly: true } & SessionPropsBase)
+  | ({
+      readOnly?: false;
+
+      channel: SessionChannel;
+
+      onCreateNewCell: (type: 'code' | 'markdown' | 'generate-ai', index: number) => void;
+      onInsertGeneratedCells: (idx: number, cells: Array<CodeCellType | MarkdownCellType>) => void;
+      onDeleteCell: (cell: CellType | GenerateAICellType) => void;
+      updateCellOnServer: (cell: CellType, updates: CellUpdateAttrsType) => void;
+      openDepsInstallModal: () => void;
+
+      onChangeSelectedPanelNameAndOpen?: (newName: Panel['name'], newOpen: boolean) => void;
+    } & SessionPropsBase);
+
+function Session(props: SessionProps) {
+  const { readOnly, cells: allCells, session, srcbooks, config } = props;
+
+  // TODO: We need to stop treating titles and package.json as cells.
+  const [titleCellUncasted, _packageJsonCell, ...remainingCells] = allCells;
+  const titleCell = titleCellUncasted as TitleCellType;
+  const cells = remainingCells as (MarkdownCellType | CodeCellType | GenerateAICellType)[];
+
+  const [[selectedPanelName, selectedPanelOpen], setSelectedPanelNameAndOpen] = useState<
+    [Panel['name'], boolean]
+  >([SESSION_MENU_PANELS[0]!.name, false]);
+
+  const isPanelOpen = useCallback(
+    (name: Panel['name']) => selectedPanelOpen && selectedPanelName === name,
+    [selectedPanelOpen, selectedPanelName],
+  );
+
+  useHotkeys('mod+;', () => {
+    if (!isPanelOpen('packages')) {
+      setSelectedPanelNameAndOpen(['packages', true]);
+    }
+  });
+
+  return (
     <div className="flex flex-col">
       <SessionNavbar
         readOnly={readOnly}
@@ -352,9 +392,6 @@ function Session(props: SessionProps) {
       />
 
       <div className="flex mt-12">
-        {!readOnly ? (
-          <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
-        ) : null}
         {readOnly ? (
           <SessionMenu
             readOnly
@@ -369,7 +406,7 @@ function Session(props: SessionProps) {
             selectedPanelName={selectedPanelName}
             selectedPanelOpen={selectedPanelOpen}
             onChangeSelectedPanelNameAndOpen={setSelectedPanelNameAndOpen}
-            openDepsInstallModal={() => setDepsInstallModalOpen(true)}
+            openDepsInstallModal={props.openDepsInstallModal}
             channel={props.channel}
           />
         )}
@@ -379,7 +416,7 @@ function Session(props: SessionProps) {
             {readOnly ? (
               <TitleCell readOnly cell={titleCell} />
             ) : (
-              <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+              <TitleCell cell={titleCell} updateCellOnServer={props.updateCellOnServer} />
             )}
 
             {cells.map((cell, idx) => (
@@ -389,9 +426,9 @@ function Session(props: SessionProps) {
                 ) : (
                   <InsertCellDivider
                     language={session.language}
-                    createCodeCell={() => createNewCell('code', idx + 2)}
-                    createMarkdownCell={() => createNewCell('markdown', idx + 2)}
-                    createGenerateAiCodeCell={() => createNewCell('generate-ai', idx + 2)}
+                    createCodeCell={() => props.onCreateNewCell('code', idx + 2)}
+                    createMarkdownCell={() => props.onCreateNewCell('markdown', idx + 2)}
+                    createGenerateAiCodeCell={() => props.onCreateNewCell('generate-ai', idx + 2)}
                   />
                 )}
 
@@ -403,8 +440,8 @@ function Session(props: SessionProps) {
                     cell={cell}
                     session={session}
                     channel={props.channel}
-                    updateCellOnServer={updateCellOnServer}
-                    onDeleteCell={onDeleteCell}
+                    updateCellOnServer={props.updateCellOnServer}
+                    onDeleteCell={props.onDeleteCell}
                   />
                 )}
 
@@ -412,8 +449,8 @@ function Session(props: SessionProps) {
                 {cell.type === 'markdown' && !readOnly && (
                   <MarkdownCell
                     cell={cell}
-                    updateCellOnServer={updateCellOnServer}
-                    onDeleteCell={onDeleteCell}
+                    updateCellOnServer={props.updateCellOnServer}
+                    onDeleteCell={props.onDeleteCell}
                   />
                 )}
 
@@ -422,7 +459,7 @@ function Session(props: SessionProps) {
                     cell={cell}
                     session={session}
                     insertIdx={idx + 2}
-                    onSuccess={insertGeneratedCells}
+                    onSuccess={props.onInsertGeneratedCells}
                   />
                 )}
               </div>
@@ -432,9 +469,11 @@ function Session(props: SessionProps) {
             {!readOnly ? (
               <InsertCellDivider
                 language={session.language}
-                createCodeCell={() => createNewCell('code', allCells.length)}
-                createMarkdownCell={() => createNewCell('markdown', allCells.length)}
-                createGenerateAiCodeCell={() => createNewCell('generate-ai', allCells.length)}
+                createCodeCell={() => props.onCreateNewCell('code', allCells.length)}
+                createMarkdownCell={() => props.onCreateNewCell('markdown', allCells.length)}
+                createGenerateAiCodeCell={() =>
+                  props.onCreateNewCell('generate-ai', allCells.length)
+                }
                 className={cn('h-14', cells.length === 0 && 'opacity-100')}
               />
             ) : null}

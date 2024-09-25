@@ -8,6 +8,8 @@ module.exports = {
     './index.html',
     './src/**/*.{css,ts,tsx}',
     path.join(path.dirname(require.resolve('@srcbook/components')), '**/*.{css,js,ts,tsx}'),
+    // FIXME: is it a good idea to process source files in completely different packages?
+    './node_modules/@srcbook/cells/**/*.{css,js,ts,tsx}',
   ],
   prefix: '',
   theme: {

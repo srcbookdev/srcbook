@@ -118,6 +118,9 @@ importers:
 
   packages/cells:
     dependencies:
+      '@srcbook/shared':
+        specifier: workspace:^
+        version: link:../shared
       '@types/react':
         specifier: '*'
         version: 18.3.5

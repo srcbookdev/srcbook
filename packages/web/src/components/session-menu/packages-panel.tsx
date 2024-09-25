@@ -14,7 +14,7 @@ import CollapsibleContainer from '@/components/collapsible-container';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import useTheme from '@/components/use-theme';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
 import { usePackageJson } from '@/components/use-package-json';
 
 import { SessionMenuPanelContentsProps } from '.';

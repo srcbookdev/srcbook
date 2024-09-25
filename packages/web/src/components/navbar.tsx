@@ -13,7 +13,7 @@ import { TitleCellType } from '@srcbook/shared';
 
 import { SessionType } from '@/types';
 import { SrcbookLogo } from '@/components/logos';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
 import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { ExportSrcbookModal, ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
@@ -23,9 +23,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@srcbook/ui/dist/components/ui/dropdown-menu';
 import { createSession, createSrcbook } from '@/lib/server';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@srcbook/ui/dist/components/ui/tooltip';
 
 function LightDarkModeDebugChanger() {
   const { theme, toggleTheme } = useTheme();

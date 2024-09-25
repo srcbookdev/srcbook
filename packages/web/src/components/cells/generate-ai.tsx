@@ -7,7 +7,7 @@ import { CircleAlert, Trash2, Sparkles } from 'lucide-react';
 import { GenerateAICellType, SessionType } from '@/types';
 import { useCells } from '@/components/use-cell';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
 import { useSettings } from '@/components/use-settings';
 
 export default function GenerateAiCell(props: {

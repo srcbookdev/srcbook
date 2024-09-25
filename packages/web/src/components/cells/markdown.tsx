@@ -7,7 +7,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { CircleAlert, Trash2, Pencil } from 'lucide-react';
 import { CellType, MarkdownCellType, MarkdownCellUpdateAttrsType } from '@srcbook/shared';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import useTheme from '@/components/use-theme';
 import { useCells } from '../use-cell';

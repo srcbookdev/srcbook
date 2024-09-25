@@ -7,10 +7,10 @@ import {
   associateSecretWithSession,
   disassociateSecretWithSession,
 } from '@/lib/server';
-import { Switch } from '@/components/ui/switch';
+import { Switch } from '@srcbook/ui/dist/components/ui/switch';
 import { SessionMenuPanelContentsProps } from '.';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
+import { Input } from '@srcbook/ui/dist/components/ui/input';
 import { isValidSecretName } from '@/lib/utils';
 
 type PropsType = Pick<SessionMenuPanelContentsProps, 'session'>;

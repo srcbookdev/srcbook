@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { sendFeedback } from '@/lib/server';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
+import { Input } from '@srcbook/ui/dist/components/ui/input';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
+} from '@srcbook/ui/dist/components/ui/dialog';
+import { Textarea } from '@srcbook/ui/dist/components/ui/textarea';
 
 export default function FeedbackDialog({
   open,

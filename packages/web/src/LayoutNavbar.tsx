@@ -1,5 +1,5 @@
 import { useLoaderData } from 'react-router-dom';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from '@srcbook/ui/dist/components/ui/sonner';
 import { SettingsProvider } from '@/components/use-settings';
 import { type SettingsType } from '@/types';
 import { getConfig } from '@/lib/server';

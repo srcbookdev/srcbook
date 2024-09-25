@@ -10,6 +10,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["index.tsx", "src/**/*.{ts.tsx}"],
+  "include": ["index.tsx", "src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

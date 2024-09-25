@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { X, Mailbox } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@srcbook/ui/dist/components/ui/card';
+import { Input } from '@srcbook/ui/dist/components/ui/input';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
 import { toast } from 'sonner';
 import { subscribeToMailingList } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';

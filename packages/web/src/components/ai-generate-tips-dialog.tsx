@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@srcbook/ui/dist/components/ui/dialog';
 
 export default function AiGenerateTipsDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);

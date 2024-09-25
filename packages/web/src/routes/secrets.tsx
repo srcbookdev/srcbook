@@ -5,8 +5,8 @@ import { getSecrets } from '@/lib/server';
 import { type SecretWithAssociatedSessions } from '@srcbook/shared';
 import { Info, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Form, useLoaderData, useRevalidator } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Input } from '@srcbook/ui/dist/components/ui/input';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
 import { updateSecret, createSecret, deleteSecret } from '@/lib/server';
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@srcbook/ui/dist/components/ui/dialog';
 
 async function loader() {
   const { result } = await getSecrets();

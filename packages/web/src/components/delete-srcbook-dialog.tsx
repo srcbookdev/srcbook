@@ -9,8 +9,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from '@srcbook/ui/dist/components/ui/dialog';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
 
 export default function DeleteSrcbookModal({
   open,

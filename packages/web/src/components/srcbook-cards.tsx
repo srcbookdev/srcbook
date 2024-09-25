@@ -1,5 +1,5 @@
 import { Sparkles, Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/ui/dist/components/ui/button';
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
 import { cn } from '@/lib/utils';

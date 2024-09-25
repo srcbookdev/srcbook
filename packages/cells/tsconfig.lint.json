@@ -1,4 +1,4 @@
 {
-  "include": ["index.tsx", "src/**/*.{ts,tsx}"],
+  "include": ["index.tsx", "src"],
   "exclude": ["node_modules", "dist"]
 }

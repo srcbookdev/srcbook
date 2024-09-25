@@ -1,0 +1,4 @@
+{
+  "include": ["index.mts", "src/**/*.mts"],
+  "exclude": ["node_modules", "dist"]
+}

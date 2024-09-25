@@ -116,11 +116,8 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5(@types/node@22.5.4)
 
-  packages/components:
+  packages/cells:
     dependencies:
-      '@srcbook/shared':
-        specifier: workspace:^
-        version: link:../shared
       '@types/react':
         specifier: '*'
         version: 18.3.5
@@ -235,9 +232,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@srcbook/components':
+      '@srcbook/cells':
         specifier: workspace:^
-        version: link:../components
+        version: link:../cells
       '@srcbook/shared':
         specifier: workspace:^
         version: link:../shared

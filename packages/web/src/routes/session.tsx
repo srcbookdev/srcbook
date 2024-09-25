@@ -14,7 +14,7 @@ import {
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
-import TitleCell from '@/components/cells/title';
+import { TitleCell } from '@srcbook/cells';
 import MarkdownCell from '@/components/cells/markdown';
 import GenerateAiCell from '@/components/cells/generate-ai';
 import CodeCell from '@/components/cells/code';
@@ -379,7 +379,11 @@ function Session(props: SessionProps) {
             {readOnly ? (
               <TitleCell readOnly cell={titleCell} />
             ) : (
-              <TitleCell cell={titleCell} updateCellOnServer={updateCellOnServer} />
+              <TitleCell
+                cell={titleCell}
+                updateCellOnClient={updateCell}
+                updateCellOnServer={updateCellOnServer}
+              />
             )}
 
             {cells.map((cell, idx) => (

@@ -1,4 +1,4 @@
 {
-  "include": ["index.mts", "src/**/*.mts"],
+  "include": ["index.mts", "src/**/*.{ts,tsx}"],
   "exclude": ["node_modules", "dist"]
 }

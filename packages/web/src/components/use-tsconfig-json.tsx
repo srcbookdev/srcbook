@@ -43,7 +43,6 @@ export function TsConfigProvider({ channel, session, children }: ProviderPropsTy
       if (error === null) {
         channel.push('tsconfig.json:update', {
           source,
-          sessionId: session.id,
         });
       }
     },

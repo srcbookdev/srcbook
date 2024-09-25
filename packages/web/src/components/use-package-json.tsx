@@ -68,7 +68,7 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffectOnce(() => {
-    channel.push('deps:validate', { sessionId: session.id });
+    channel.push('deps:validate', {});
   });
 
   const npmInstall = useCallback(
@@ -79,7 +79,7 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
         updateCellOnClient({ ...cell, status: 'running' });
         clearOutput(cell.id);
         setOutdated(false);
-        channel.push('deps:install', { sessionId: session.id, packages });
+        channel.push('deps:install', { packages });
       }
     },
     [cell, channel, session.id, updateCellOnClient, clearOutput],
@@ -97,7 +97,6 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
 
   function updateCellOnServer(updates: PackageJsonCellUpdateAttrsType) {
     channel.push('cell:update', {
-      sessionId: session.id,
       cellId: cell.id,
       updates,
     });

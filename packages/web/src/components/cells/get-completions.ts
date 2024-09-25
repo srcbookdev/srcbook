@@ -5,7 +5,6 @@ import { mapCMLocationToTsServer } from './util';
 
 export function getCompletions(
   context: CompletionContext,
-  sessionId: string,
   cell: CodeCellType,
   channel: SessionChannel,
 ): Promise<CompletionResult | null> {
@@ -43,7 +42,6 @@ export function getCompletions(
     channel.on('tsserver:cell:completions:response', callback);
 
     channel.push('tsserver:cell:completions:request', {
-      sessionId: sessionId,
       cellId: cell.id,
       request: {
         location: mapCMLocationToTsServer(cell.source, pos),

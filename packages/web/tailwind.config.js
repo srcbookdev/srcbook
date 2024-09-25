@@ -6,7 +6,6 @@ module.exports = {
   content: [
     './index.html',
     './src/**/*.{css,ts,tsx}',
-    // FIXME: is it a good idea to process source files in completely different packages?
     './node_modules/@srcbook/*/**/*.{css,js,ts,tsx}',
   ],
   prefix: '',

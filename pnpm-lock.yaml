@@ -121,6 +121,9 @@ importers:
       '@srcbook/shared':
         specifier: workspace:^
         version: link:../shared
+      '@srcbook/ui':
+        specifier: workspace:^
+        version: link:../ui
       '@types/react':
         specifier: '*'
         version: 18.3.5

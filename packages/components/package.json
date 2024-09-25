@@ -14,7 +14,8 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.5.2",
-    "@srcbook/shared": "workspace:^"
+    "@srcbook/shared": "workspace:^",
+    "@srcbook/ui": "workspace:^"
   },
   "peerDependencies": {
     "react": "*",

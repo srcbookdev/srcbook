@@ -13,8 +13,8 @@ import { cn } from '@/lib/utils';
 import CollapsibleContainer from '@/components/collapsible-container';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
-import useTheme from '@/components/use-theme';
-import { Button } from '@srcbook/ui/dist/components/ui/button';
+import useTheme from '@srcbook/components/src/components/use-theme';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import { usePackageJson } from '@/components/use-package-json';
 
 import { SessionMenuPanelContentsProps } from '.';

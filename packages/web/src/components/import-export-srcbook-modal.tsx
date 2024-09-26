@@ -12,11 +12,11 @@ import { createSession, exportSrcmdText, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
 import { SessionType } from '@/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@srcbook/ui/dist/components/ui/underline-flat-tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@srcbook/components/src/components/ui/underline-flat-tabs';
 import { showSaveFilePicker } from '@/lib/file-system-access';
-import { Input } from '@srcbook/ui/dist/components/ui/input';
-import { Textarea } from '@srcbook/ui/dist/components/ui/textarea';
-import { Button } from '@srcbook/ui/dist/components/ui/button';
+import { Input } from '@srcbook/components/src/components/ui/input';
+import { Textarea } from '@srcbook/components/src/components/ui/textarea';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import SrcMdUploadDropZone from '@/components/srcmd-upload-drop-zone';
 import {
   Dialog,
@@ -24,7 +24,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@srcbook/ui/dist/components/ui/dialog';
+} from '@srcbook/components/src/components/ui/dialog';
 
 export function ImportSrcbookModal({
   open,

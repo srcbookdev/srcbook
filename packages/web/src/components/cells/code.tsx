@@ -1,14 +1,14 @@
 /* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Dialog, DialogContent } from '@srcbook/ui/dist/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@srcbook/ui/dist/components/ui/tooltip';
+import { Dialog, DialogContent } from '@srcbook/components/src/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@srcbook/components/src/components/ui/tooltip';
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { KeyBinding, keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@srcbook/ui/dist/components/ui/resizable';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@srcbook/components/src/components/ui/resizable';
 import {
   Info,
   Play,
@@ -36,13 +36,13 @@ import {
 import { useSettings } from '@/components/use-settings';
 import { cn } from '@/lib/utils';
 import { CellModeType, SessionType } from '@/types';
-import { Button } from '@srcbook/ui/dist/components/ui/button';
-import { Input } from '@srcbook/ui/dist/components/ui/input';
+import { Button } from '@srcbook/components/src/components/ui/button';
+import { Input } from '@srcbook/components/src/components/ui/input';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import { SessionChannel } from '@/clients/websocket';
 import { useCells } from '@/components/use-cell';
 import { CellOutput } from '@/components/cell-output';
-import useTheme from '@/components/use-theme';
+import useTheme from '@srcbook/components/src/components/use-theme';
 import { useDebouncedCallback } from 'use-debounce';
 import { EditorView } from 'codemirror';
 import { EditorState, Extension } from '@codemirror/state';

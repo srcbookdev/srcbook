@@ -5,7 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@srcbook/ui/dist/components/ui/dialog';
+} from '@srcbook/components/src/components/ui/dialog';
 
 function ShortcutRow({ keys, description }: { keys: string[]; description: string }) {
   return (

@@ -21,7 +21,7 @@ import {
 } from '@/components/srcbook-cards';
 import DeleteSrcbookModal from '@/components/delete-srcbook-dialog';
 import { ExternalLink } from 'lucide-react';
-import { Button } from '@srcbook/ui/dist/components/ui/button';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import MailingListCard from '@/components/mailing-list-card';
 
 export async function loader() {

@@ -19,7 +19,7 @@ import MarkdownCell from '@/components/cells/markdown';
 import GenerateAiCell from '@/components/cells/generate-ai';
 import CodeCell from '@/components/cells/code';
 import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';
-import { Button } from '@srcbook/ui/dist/components/ui/button';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';
 import { CellsProvider, useCells } from '@/components/use-cell';
 import { cn } from '@/lib/utils';
@@ -416,6 +416,7 @@ function Session(props: SessionProps) {
                 {cell.type === 'markdown' && !readOnly && (
                   <MarkdownCell
                     cell={cell}
+                    updateCellOnClient={updateCell}
                     updateCellOnServer={updateCellOnServer}
                     onDeleteCell={onDeleteCell}
                   />

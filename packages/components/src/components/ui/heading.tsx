@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 import { TitleCellUpdateAttrsSchema } from '@srcbook/shared';
 
 const className =

@@ -787,7 +787,6 @@ function gotoDefinition(
   async function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
     channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
     if (response === null) {
-      console.log('no response');
       return;
     }
     const file_response = await getFileContent(response.file);
@@ -804,7 +803,6 @@ function gotoDefinition(
     }
   }
 
-  console.log({ location: mapCMLocationToTsServer(cell.source, pos) });
   channel.on('tsserver:cell:definition_location:response', gotoDefCallback);
   channel.push('tsserver:cell:definition_location:request', {
     sessionId: session.id,

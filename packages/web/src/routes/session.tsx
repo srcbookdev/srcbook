@@ -14,7 +14,7 @@ import {
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
-import { TitleCell } from '@srcbook/cells';
+import { TitleCell } from '@srcbook/components';
 import MarkdownCell from '@/components/cells/markdown';
 import GenerateAiCell from '@/components/cells/generate-ai';
 import CodeCell from '@/components/cells/code';

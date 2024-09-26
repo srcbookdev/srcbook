@@ -1,4 +1,0 @@
-{
-  "include": ["index.tsx", "src"],
-  "exclude": ["node_modules", "dist"]
-}

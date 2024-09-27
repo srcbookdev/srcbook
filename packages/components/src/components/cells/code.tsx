@@ -70,6 +70,7 @@ type RegularProps = BaseProps & {
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
   onGetDefinitionContents: (pos: number, cell: CodeCellType) => void;
+  onUpdateFileName: (cell: CodeCellType, filename: string) => void;
 };
 type ReadOnlyProps = BaseProps & { readOnly: true };
 type Props = RegularProps | ReadOnlyProps;
@@ -159,22 +160,6 @@ export default function CodeCell(props: Props) {
     channel.on('cell:formatted', callback);
     return () => channel.off('cell:formatted', callback);
   }, [cell.id, channel]);
-
-  function updateFilename(filename: string) {
-    if (!readOnly) {
-      return;
-    }
-    if (!channel) {
-      return;
-    }
-
-    props.updateCellOnClient({ ...cell, filename });
-    channel.push('cell:rename', {
-      sessionId: session.id,
-      cellId: cell.id,
-      filename,
-    });
-  }
 
   useEffect(() => {
     if (!channel) {
@@ -301,7 +286,7 @@ export default function CodeCell(props: Props) {
             setCellMode={setCellMode}
             prompt={prompt}
             setPrompt={setPrompt}
-            updateFilename={updateFilename}
+            updateFilename={onUpdateFileName}
             filenameError={filenameError}
             setFilenameError={setFilenameError}
             fullscreen={fullscreen}
@@ -407,7 +392,7 @@ export default function CodeCell(props: Props) {
               setCellMode={setCellMode}
               prompt={prompt}
               setPrompt={setPrompt}
-              updateFilename={updateFilename}
+              updateFilename={onUpdateFileName}
               filenameError={filenameError}
               setFilenameError={setFilenameError}
               fullscreen={fullscreen}

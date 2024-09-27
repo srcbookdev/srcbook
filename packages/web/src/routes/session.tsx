@@ -340,6 +340,19 @@ function Session(props: SessionProps) {
     npmInstall,
   ]);
 
+  async function onUpdateFileName(cell: CodeCellType, filename: string) {
+    if (!channel) {
+      return;
+    }
+
+    updateCell({ ...cell, filename });
+    channel.push('cell:rename', {
+      sessionId: session.id,
+      cellId: cell.id,
+      filename,
+    });
+  }
+
   return (
     <div className="flex flex-col">
       <SessionNavbar
@@ -408,6 +421,7 @@ function Session(props: SessionProps) {
                     channel={props.channel}
                     updateCellOnServer={updateCellOnServer}
                     onDeleteCell={onDeleteCell}
+                    onUpdateFileName={onUpdateFileName}
                   />
                 )}
 

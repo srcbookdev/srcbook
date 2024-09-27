@@ -29,6 +29,8 @@ import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
 import { VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY } from '@/lib/environment';
+import { getFileContent } from '@/lib/server';
+import { mapCMLocationToTsServer } from '../components/cells/util';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([
@@ -340,6 +342,41 @@ function Session(props: SessionProps) {
     npmInstall,
   ]);
 
+  async function onGetDefinitionContents(pos: number, cell: CodeCellType): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!readOnly) {
+        return;
+      }
+
+      async function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
+        channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
+        if (response === null) {
+          reject(new Error(`Error fetching file content: no response!`));
+          return;
+        }
+        const file_response = await getFileContent(response.file);
+        if (file_response.result.type === 'cell') {
+          document
+            .getElementById(file_response.result.filename)
+            ?.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          if (file_response.error) {
+            reject(new Error(`Error fetching file content: ${file_response.result}`));
+          } else {
+            resolve(file_response.result.content);
+          }
+        }
+      }
+
+      channel.on('tsserver:cell:definition_location:response', gotoDefCallback);
+      channel.push('tsserver:cell:definition_location:request', {
+        sessionId: session.id,
+        cellId: cell.id,
+        request: { location: mapCMLocationToTsServer(cell.source, pos) },
+      });
+    });
+  }
+
   async function onUpdateFileName(cell: CodeCellType, filename: string) {
     if (!channel) {
       return;
@@ -421,6 +458,7 @@ function Session(props: SessionProps) {
                     channel={props.channel}
                     updateCellOnServer={updateCellOnServer}
                     onDeleteCell={onDeleteCell}
+                    onGetDefinitionContents={onGetDefinitionContents}
                     onUpdateFileName={onUpdateFileName}
                   />
                 )}

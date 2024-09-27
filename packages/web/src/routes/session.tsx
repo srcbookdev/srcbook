@@ -20,7 +20,7 @@ import CodeCell from '@/components/cells/code';
 import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';
-import { CellsProvider, useCells } from '@/components/use-cell';
+import { CellsProvider, useCells } from '@srcbook/components/src/components/use-cell';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';

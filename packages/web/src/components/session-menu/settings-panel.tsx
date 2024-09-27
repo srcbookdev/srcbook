@@ -11,7 +11,7 @@ import CollapsibleContainer from '@/components/collapsible-container';
 import useTheme from '@srcbook/components/src/components/use-theme';
 import { SessionChannel } from '@/clients/websocket';
 import { useTsconfigJson } from '@/components/use-tsconfig-json';
-import { useCells } from '@/components/use-cell';
+import { useCells } from '@srcbook/components/src/components/use-cell';
 
 import type { SessionMenuPanelContentsProps } from '.';
 

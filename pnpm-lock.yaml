@@ -118,9 +118,24 @@ importers:
 
   packages/components:
     dependencies:
+      '@codemirror/autocomplete':
+        specifier: ^6.18.1
+        version: 6.18.1(@codemirror/language@6.10.2)(@codemirror/state@6.4.1)(@codemirror/view@6.33.0)(@lezer/common@1.2.1)
+      '@codemirror/lang-javascript':
+        specifier: ^6.2.2
+        version: 6.2.2
       '@codemirror/lang-markdown':
         specifier: ^6.2.5
         version: 6.2.5
+      '@codemirror/lint':
+        specifier: ^6.8.1
+        version: 6.8.1
+      '@codemirror/merge':
+        specifier: ^6.7.0
+        version: 6.7.0
+      '@codemirror/state':
+        specifier: ^6.4.1
+        version: 6.4.1
       '@lezer/highlight':
         specifier: ^1.2.1
         version: 1.2.1
@@ -181,6 +196,9 @@ importers:
       cmdk:
         specifier: ^1.0.0
         version: 1.0.0(@types/react-dom@18.3.0)(@types/react@18.3.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      codemirror:
+        specifier: '*'
+        version: 6.0.1(@lezer/common@1.2.1)
       lucide-react:
         specifier: '*'
         version: 0.439.0(react@18.3.1)
@@ -196,15 +214,24 @@ importers:
       react:
         specifier: '*'
         version: 18.3.1
+      react-hotkeys-hook:
+        specifier: '*'
+        version: 4.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-resizable-panels:
         specifier: ^2.1.2
         version: 2.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-textarea-autosize:
+        specifier: '*'
+        version: 8.5.3(@types/react@18.3.5)(react@18.3.1)
       sonner:
         specifier: '*'
         version: 1.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tailwind-merge:
         specifier: '*'
         version: 2.5.2
+      use-debounce:
+        specifier: '*'
+        version: 10.0.3(react@18.3.1)
 
   packages/configs:
     devDependencies:
@@ -247,27 +274,12 @@ importers:
 
   packages/web:
     dependencies:
-      '@codemirror/autocomplete':
-        specifier: ^6.18.1
-        version: 6.18.1(@codemirror/language@6.10.2)(@codemirror/state@6.4.1)(@codemirror/view@6.33.0)(@lezer/common@1.2.1)
-      '@codemirror/lang-javascript':
-        specifier: ^6.2.2
-        version: 6.2.2
       '@codemirror/lang-json':
         specifier: ^6.0.1
         version: 6.0.1
       '@codemirror/lang-markdown':
         specifier: ^6.2.5
         version: 6.2.5
-      '@codemirror/lint':
-        specifier: ^6.8.1
-        version: 6.8.1
-      '@codemirror/merge':
-        specifier: ^6.7.0
-        version: 6.7.0
-      '@codemirror/state':
-        specifier: ^6.4.1
-        version: 6.4.1
       '@srcbook/components':
         specifier: workspace:^
         version: link:../components

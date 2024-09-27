@@ -12,7 +12,12 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.18.1",
+    "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-markdown": "^6.2.5",
+    "@codemirror/lint": "^6.8.1",
+    "@codemirror/merge": "^6.7.0",
+    "@codemirror/state": "^6.4.1",
     "@lezer/highlight": "^1.2.1",
     "@lezer/javascript": "^1.4.17",
     "@radix-ui/react-collapsible": "^1.1.0",
@@ -29,6 +34,7 @@
     "@srcbook/shared": "workspace:^",
     "@uiw/codemirror-themes": "^4.23.2",
     "@uiw/react-codemirror": "^4.23.2",
+    "@uiw/react-codemirror": "^4.23.2",
     "class-variance-authority": "^0.7.0",
     "cmdk": "^1.0.0",
     "marked": "catalog:",
@@ -37,11 +43,18 @@
     "react-resizable-panels": "^2.1.2"
   },
   "peerDependencies": {
+    "@codemirror/autocomplete": "*",
     "@types/react": "*",
+    "@uiw/react-codemirror": "*",
     "clsx": "*",
+    "codemirror": "*",
     "lucide-react": "*",
     "react": "*",
+    "react-router-dom": "*",
+    "react-hotkeys-hook": "*",
+    "react-textarea-autosize": "*",
     "sonner": "*",
-    "tailwind-merge": "*"
+    "tailwind-merge": "*",
+    "use-debounce": "*"
   }
 }

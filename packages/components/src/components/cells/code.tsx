@@ -1,14 +1,14 @@
 /* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Dialog, DialogContent } from '@srcbook/components/src/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@srcbook/components/src/components/ui/tooltip';
+import { Dialog, DialogContent } from '../ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import Shortcut from '@/components/keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { KeyBinding, keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@srcbook/components/src/components/ui/resizable';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable';
 import {
   Info,
   Play,
@@ -34,15 +34,15 @@ import {
   TsServerDefinitionLocationResponsePayloadType,
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 import { CellModeType, SessionType } from '@/types';
-import { Button } from '@srcbook/components/src/components/ui/button';
-import { Input } from '@srcbook/components/src/components/ui/input';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
 import { SessionChannel } from '@/clients/websocket';
-import { useCells } from '@/components/use-cell';
-import { CellOutput } from '@/components/cell-output';
-import useTheme from '@srcbook/components/src/components/use-theme';
+import { useCells } from '../use-cell';
+import { CellOutput } from '../cell-output';
+import useTheme from '../use-theme';
 import { useDebouncedCallback } from 'use-debounce';
 import { EditorView } from 'codemirror';
 import { EditorState, Extension } from '@codemirror/state';
@@ -66,8 +66,10 @@ type BaseProps = {
 type RegularProps = BaseProps & {
   readOnly?: false;
   channel: SessionChannel;
+  updateCellOnClient: (cell: CodeCellType) => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   onDeleteCell: (cell: CellType) => void;
+  onGetDefinitionContents: (pos: number, cell: CodeCellType) => void;
 };
 type ReadOnlyProps = BaseProps & { readOnly: true };
 type Props = RegularProps | ReadOnlyProps;
@@ -148,22 +150,25 @@ export default function CodeCell(props: Props) {
     }
 
     function callback(payload: CellFormattedPayloadType) {
-      if (payload.cellId === cell.id) {
-        updateCellOnClient({ ...payload.cell });
+      if (!readOnly && payload.cellId === cell.id) {
+        props.updateCellOnClient({ ...payload.cell });
         setCellMode('off');
       }
     }
 
     channel.on('cell:formatted', callback);
     return () => channel.off('cell:formatted', callback);
-  }, [cell.id, channel, updateCellOnClient]);
+  }, [cell.id, channel]);
 
   function updateFilename(filename: string) {
+    if (!readOnly) {
+      return;
+    }
     if (!channel) {
       return;
     }
 
-    updateCellOnClient({ ...cell, filename });
+    props.updateCellOnClient({ ...cell, filename });
     channel.push('cell:rename', {
       sessionId: session.id,
       cellId: cell.id,
@@ -324,6 +329,7 @@ export default function CodeCell(props: Props) {
                       runCell={runCell}
                       formatCell={formatCell}
                       updateCellOnServer={props.updateCellOnServer}
+                      onGetDefinitionContents={props.onGetDefinitionContents}
                     />
                   )}
                 </div>
@@ -777,42 +783,6 @@ function tsLinter(
   });
 }
 
-function gotoDefinition(
-  pos: number,
-  cell: CodeCellType,
-  session: SessionType,
-  channel: SessionChannel,
-  editor: (content: string) => void,
-) {
-  async function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
-    channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
-    if (response === null) {
-      console.log('no response');
-      return;
-    }
-    const file_response = await getFileContent(response.file);
-    if (file_response.result.type === 'cell') {
-      document
-        .getElementById(file_response.result.filename)
-        ?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      if (file_response.error) {
-        console.error('Error fetching file content:', file_response.result);
-      } else {
-        editor(file_response.result.content);
-      }
-    }
-  }
-
-  console.log({ location: mapCMLocationToTsServer(cell.source, pos) });
-  channel.on('tsserver:cell:definition_location:response', gotoDefCallback);
-  channel.push('tsserver:cell:definition_location:request', {
-    sessionId: session.id,
-    cellId: cell.id,
-    request: { location: mapCMLocationToTsServer(cell.source, pos) },
-  });
-}
-
 type CodeEditorBaseProps = {
   cell: CodeCellType;
   session: SessionType;
@@ -823,6 +793,7 @@ type CodeEditorRegularProps = CodeEditorBaseProps & {
   runCell: () => void;
   formatCell: () => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
+  onGetDefinitionContents: (pos: number, cell: CodeCellType) => Promise<string>;
 };
 type CodeEditorReadOnlyProps = CodeEditorBaseProps & {
   readOnly: true;
@@ -830,6 +801,7 @@ type CodeEditorReadOnlyProps = CodeEditorBaseProps & {
   runCell?: () => void;
   formatCell?: () => void;
   updateCellOnServer?: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
+  onGetDefinitionContents?: (pos: number, cell: CodeCellType) => Promise<string>;
 };
 type CodeEditorProps = CodeEditorRegularProps | CodeEditorReadOnlyProps;
 
@@ -841,6 +813,7 @@ function CodeEditor({
   runCell,
   formatCell,
   updateCellOnServer,
+  onGetDefinitionContents,
 }: CodeEditorProps) {
   const { theme, codeTheme } = useTheme();
 
@@ -883,12 +856,18 @@ function CodeEditor({
       Prec.highest(
         EditorView.domEventHandlers({
           click: (e, view) => {
-            if (!channel) {
+            if (!onGetDefinitionContents) {
               return;
             }
             const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
             if (pos && e.altKey) {
-              gotoDefinition(pos, cell, session, channel, openModal);
+              onGetDefinitionContents(pos, cell).then(result => {
+                setModalContent(result);
+                setIsModalOpen(true);
+              }).catch((error) => {
+                console.error('Error calling onGetDefinitionContents:', error);
+                toast.error('Error calling goto definition!');
+              });
             }
           },
         }),
@@ -934,11 +913,6 @@ function CodeEditor({
   }
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
-
-  const openModal = (content: string) => {
-    setModalContent(content);
-    setIsModalOpen(true);
-  };
 
   return (
     <>

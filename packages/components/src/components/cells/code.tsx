@@ -5,7 +5,6 @@ import { Dialog, DialogContent } from '../ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import Shortcut from '../keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
-import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { KeyBinding, keymap, Prec } from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable';
@@ -22,24 +21,18 @@ import {
   CopyIcon,
 } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
-import AiGenerateTipsDialog from '@/components/ai-generate-tips-dialog';
+import AiGenerateTipsDialog from '../ai-generate-tips-dialog';
 import {
   CellType,
   CodeCellType,
   CodeCellUpdateAttrsType,
-  CellErrorPayloadType,
-  CellFormattedPayloadType,
-  AiGeneratedCellPayloadType,
   TsServerDiagnosticType,
-  TsServerDefinitionLocationResponsePayloadType,
 } from '@srcbook/shared';
-import { useSettings } from '@/components/use-settings';
 import { cn } from '../../lib/utils';
 import { CellModeType, SessionType } from '@/types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
-import { SessionChannel } from '@/clients/websocket';
+import DeleteCellWithConfirmation from '../delete-cell-dialog';
 import { useCells } from '../use-cell';
 import { CellOutput } from '../cell-output';
 import useTheme from '../use-theme';
@@ -49,10 +42,9 @@ import { EditorState, Extension } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { type Diagnostic, linter } from '@codemirror/lint';
 import { tsHover } from './hover';
-import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
+import { mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
-import { getFileContent } from '@/lib/server';
 import { autocompletion } from '@codemirror/autocomplete';
 import { getCompletions } from './get-completions';
 
@@ -65,296 +57,134 @@ type BaseProps = {
 
 type RegularProps = BaseProps & {
   readOnly?: false;
-  channel: SessionChannel;
+  aiEnabled: boolean;
+  aiFixDiagnostics: (diagnostics: string) => void;
+  cellMode: CellModeType;
+  // channel: SessionChannel;
+  filenameError: string | null;
+  fixDiagnostics: (diagnostics: string) => void;
+  fullscreen: boolean;
+  generationType: 'edit' | 'fix';
+  newSource: string;
+  onAccept: () => void;
+  onChangeCellModeType: (newCellMode: CellModeType) => void;
+  onChangeFilenameError: (newError: string | null) => void;
+  onChangeFullscreen: (value: boolean) => void;
+  onChangeGenerationType: (newGenerationType: 'edit' | 'fix') => void;
+  onChangeNewSource: (newSource: string) => void;
+  onChangePrompt: (newPrompt: string) => void;
+  onChangeShowStdio: (showStdio: boolean) => void;
+  onDeleteCell: (cell: CellType) => void;
+  onFormatCell: () => void;
+  onGenerate: () => void;
+  onGetDefinitionContents: (pos: number, cell: CodeCellType) => Promise<string>;
+  onRevert: () => void;
+  onRunCell: () => void;
+  onStopCell: () => void;
+  onUpdateFileName: (filename: string) => void;
+  prompt: string;
+  showStdio: boolean;
   updateCellOnClient: (cell: CodeCellType) => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
-  onDeleteCell: (cell: CellType) => void;
-  onGetDefinitionContents: (pos: number, cell: CodeCellType) => void;
-  onUpdateFileName: (cell: CodeCellType, filename: string) => void;
 };
 type ReadOnlyProps = BaseProps & { readOnly: true };
 type Props = RegularProps | ReadOnlyProps;
 
 export default function CodeCell(props: Props) {
-  const { readOnly, session, cell } = props;
-  const channel = !readOnly ? props.channel : null;
-
-  const [filenameError, _setFilenameError] = useState<string | null>(null);
-  const [showStdio, setShowStdio] = useState(false);
-  const [cellMode, setCellMode] = useState<CellModeType>('off');
-  const [generationType, setGenerationType] = useState<'edit' | 'fix'>('edit');
-  const [prompt, setPrompt] = useState('');
-  const [newSource, setNewSource] = useState('');
-  const [fullscreen, setFullscreen] = useState(false);
-  const { aiEnabled } = useSettings();
-  useHotkeys(
-    'mod+enter',
-    () => {
-      if (!prompt) return;
-      if (cellMode !== 'prompting') return;
-      if (!aiEnabled) return;
-      generate();
-    },
-    { enableOnFormTags: ['textarea'] },
-  );
-
-  useHotkeys(
-    'escape',
-    () => {
-      if (cellMode === 'prompting') {
-        setCellMode('off');
-        setPrompt('');
-      }
-    },
-
-    { enableOnFormTags: ['textarea'] },
-  );
-
-  const { updateCell: updateCellOnClient, clearOutput } = useCells();
-
-  function setFilenameError(error: string | null) {
-    _setFilenameError(error);
-    setTimeout(() => _setFilenameError(null), 3000);
-  }
-
-  useEffect(() => {
-    if (!channel) {
-      return;
-    }
-
-    function callback(payload: CellErrorPayloadType) {
-      if (payload.cellId !== cell.id) {
-        return;
-      }
-
-      const filenameError = payload.errors.find((e) => e.attribute === 'filename');
-
-      if (filenameError) {
-        setFilenameError(filenameError.message);
-      }
-
-      const formattingError = payload.errors.find((e) => e.attribute === 'formatting');
-      if (formattingError) {
-        toast.error(formattingError.message);
-        setCellMode('off');
-      }
-    }
-
-    channel.on('cell:error', callback);
-
-    return () => channel.off('cell:error', callback);
-  }, [cell.id, channel]);
-
-  useEffect(() => {
-    if (!channel) {
-      return;
-    }
-
-    function callback(payload: CellFormattedPayloadType) {
-      if (payload.cellId === cell.id) {
-        updateCellOnClient({ ...payload.cell });
-        setCellMode('off');
-      }
-    }
-
-    channel.on('cell:formatted', callback);
-    return () => channel.off('cell:formatted', callback);
-  }, [cell.id, channel]);
-
-  useEffect(() => {
-    if (!channel) {
-      return;
-    }
-
-    function callback(payload: AiGeneratedCellPayloadType) {
-      if (payload.cellId !== cell.id) return;
-      // We move to the "review" stage of the generation process:
-      setNewSource(payload.output);
-      setCellMode('reviewing');
-    }
-    channel.on('ai:generated', callback);
-    return () => channel.off('ai:generated', callback);
-  }, [cell.id, channel]);
-
-  const generate = () => {
-    if (!channel) {
-      return;
-    }
-
-    setGenerationType('edit');
-    channel.push('ai:generate', {
-      sessionId: session.id,
-      cellId: cell.id,
-      prompt,
-    });
-    setCellMode('generating');
-  };
-
-  const aiFixDiagnostics = (diagnostics: string) => {
-    if (!channel) {
-      return;
-    }
-    setCellMode('fixing');
-    setGenerationType('fix');
-    channel.push('ai:fix_diagnostics', {
-      sessionId: session.id,
-      cellId: cell.id,
-      diagnostics,
-    });
-  };
-
-  function runCell() {
-    if (!channel) {
-      return false;
-    }
-    if (cell.status === 'running') {
-      return false;
-    }
-
-    setShowStdio(true);
-
-    // Update client side only. The server will know it's running from the 'cell:exec' event.
-    updateCellOnClient({ ...cell, status: 'running' });
-    clearOutput(cell.id);
-
-    // Add artificial delay to allow debounced updates to propagate
-    // TODO: Handle this in a more robust way
-    setTimeout(() => {
-      channel.push('cell:exec', {
-        sessionId: session.id,
-        cellId: cell.id,
-      });
-    }, DEBOUNCE_DELAY + 10);
-  }
-
-  function stopCell() {
-    if (!channel) {
-      return;
-    }
-    channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
-  }
-
-  function onRevertDiff() {
-    setCellMode(generationType === 'edit' ? 'prompting' : 'off');
-    setNewSource('');
-  }
-
-  function onAcceptDiff() {
-    if (readOnly) {
-      return;
-    }
-    updateCellOnClient({ ...cell, source: newSource });
-    props.updateCellOnServer(cell, { source: newSource });
-    setPrompt('');
-    setCellMode('off');
-  }
-
-  function formatCell() {
-    if (!channel) {
-      return;
-    }
-    setCellMode('formatting');
-    channel.push('cell:format', {
-      sessionId: session.id,
-      cellId: cell.id,
-    });
-  }
-
   return (
     <div id={`cell-${props.cell.id}`}>
-      <Dialog open={fullscreen} onOpenChange={setFullscreen}>
-        <DialogContent
-          className={cn(
-            `w-[95vw] h-[95vh] max-w-none p-0 group flex flex-col`,
-            cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-            (cellMode === 'generating' || cellMode === 'fixing') &&
-              'ring-1 ring-ai-ring border-ai-ring',
-            cell.status !== 'running' &&
-              cellMode !== 'generating' &&
-              cellMode !== 'fixing' &&
-              'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
-          )}
-          hideClose
-        >
-          <Header
-            cell={cell}
-            runCell={runCell}
-            stopCell={stopCell}
-            onDeleteCell={!readOnly ? props.onDeleteCell : null}
-            generate={generate}
-            cellMode={cellMode}
-            setCellMode={setCellMode}
-            prompt={prompt}
-            setPrompt={setPrompt}
-            updateFilename={onUpdateFileName}
-            filenameError={filenameError}
-            setFilenameError={setFilenameError}
-            fullscreen={fullscreen}
-            setFullscreen={setFullscreen}
-            setShowStdio={setShowStdio}
-            onAccept={onAcceptDiff}
-            onRevert={onRevertDiff}
-            formatCell={formatCell}
-          />
+      {!props.readOnly ? (
+        <Dialog open={props.fullscreen} onOpenChange={props.onChangeFullscreen}>
+          <DialogContent
+            className={cn(
+              `w-[95vw] h-[95vh] max-w-none p-0 group flex flex-col`,
+              props.cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+              (props.cellMode === 'generating' || props.cellMode === 'fixing') &&
+                'ring-1 ring-ai-ring border-ai-ring',
+              props.cell.status !== 'running' &&
+                props.cellMode !== 'generating' &&
+                props.cellMode !== 'fixing' &&
+                'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
+            )}
+            hideClose
+          >
+            <Header
+              cell={props.cell}
+              runCell={props.onRunCell}
+              stopCell={props.onStopCell}
+              onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
+              generate={props.onGenerate}
+              cellMode={props.cellMode}
+              setCellMode={props.onChangeCellModeType}
+              prompt={props.prompt}
+              setPrompt={props.onChangePrompt}
+              updateFilename={props.onUpdateFileName}
+              filenameError={props.filenameError}
+              setFilenameError={props.onChangeFilenameError}
+              fullscreen={props.fullscreen}
+              setFullscreen={props.onChangeFullscreen}
+              setShowStdio={props.onChangeShowStdio}
+              onAccept={props.onAccept}
+              onRevert={props.onRevert}
+              formatCell={props.onFormatCell}
+              aiEnabled={!props.readOnly ? props.aiEnabled : false}
+            />
 
-          {cellMode === 'reviewing' ? (
-            <DiffEditor original={cell.source} modified={newSource} />
-          ) : (
-            <ResizablePanelGroup direction="vertical">
-              <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
-                <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
-                  {readOnly ? (
-                    <CodeEditor readOnly session={session} cell={cell} />
-                  ) : (
+            {props.cellMode === 'reviewing' ? (
+              <DiffEditor original={props.cell.source} modified={props.newSource} />
+            ) : (
+              <ResizablePanelGroup direction="vertical">
+                <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
+                  <div className={cn(props.cellMode !== 'off' && 'opacity-50')} id={props.cell.filename}>
                     <CodeEditor
-                      readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
+                      readOnly={['generating', 'prompting', 'formatting'].includes(props.cellMode)}
                       channel={props.channel}
-                      session={session}
-                      cell={cell}
-                      runCell={runCell}
-                      formatCell={formatCell}
+                      session={props.session}
+                      cell={props.cell}
+                      runCell={props.onRunCell}
+                      formatCell={props.onFormatCell}
                       updateCellOnServer={props.updateCellOnServer}
                       onGetDefinitionContents={props.onGetDefinitionContents}
                     />
-                  )}
-                </div>
-              </ResizablePanel>
+                  </div>
+                </ResizablePanel>
 
-              <ResizableHandle withHandle className="border-none" />
-              <ResizablePanel defaultSize={40} style={{ overflow: 'scroll' }}>
-                <CellOutput
-                  cell={cell}
-                  show={showStdio}
-                  setShow={setShowStdio}
-                  fullscreen={fullscreen}
-                  setFullscreen={setFullscreen}
-                  fixDiagnostics={aiFixDiagnostics}
-                  cellMode={cellMode}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          )}
-        </DialogContent>
-      </Dialog>
+                <ResizableHandle withHandle className="border-none" />
+                <ResizablePanel defaultSize={40} style={{ overflow: 'scroll' }}>
+                  <CellOutput
+                    cell={props.cell}
+                    show={props.showStdio}
+                    setShow={props.onChangeShowStdio}
+                    fullscreen={props.fullscreen}
+                    setFullscreen={props.onChangeFullscreen}
+                    fixDiagnostics={props.aiFixDiagnostics}
+                    cellMode={props.cellMode}
+                  />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            )}
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       <div className="relative group/cell" id={`cell-${props.cell.id}`}>
         <div
           className={cn(
             'border rounded-md group',
-            cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-            (cellMode === 'generating' || cellMode === 'fixing') &&
+            props.cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
+            !props.readOnly && (props.cellMode === 'generating' || props.cellMode === 'fixing') &&
               'ring-1 ring-ai-ring border-ai-ring',
-            cell.status !== 'running' &&
-              cellMode !== 'generating' &&
-              cellMode !== 'fixing' &&
+            !props.readOnly && props.cell.status !== 'running' &&
+              props.cellMode !== 'generating' &&
+              props.cellMode !== 'fixing' &&
               'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
           )}
         >
-          {readOnly ? (
+          {props.readOnly ? (
             <div className="p-1 flex items-center justify-between gap-2">
               <div className="flex items-center gap-1">
                 <span className="w-[200px] font-mono font-semibold text-xs transition-colors px-2">
-                  {cell.filename}
+                  {props.cell.filename}
                 </span>
               </div>
               <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-2">
@@ -367,7 +197,7 @@ export default function CodeCell(props: Props) {
                           className="w-8 px-0"
                           size="icon"
                           onClick={() => {
-                            navigator.clipboard.writeText(cell.source);
+                            navigator.clipboard.writeText(props.cell.source);
                             toast.success('Copied to clipboard.');
                           }}
                           tabIndex={1}
@@ -383,55 +213,56 @@ export default function CodeCell(props: Props) {
             </div>
           ) : (
             <Header
-              cell={cell}
-              runCell={runCell}
-              stopCell={stopCell}
-              onDeleteCell={!readOnly ? props.onDeleteCell : null}
-              generate={generate}
-              cellMode={cellMode}
-              setCellMode={setCellMode}
-              prompt={prompt}
-              setPrompt={setPrompt}
-              updateFilename={onUpdateFileName}
-              filenameError={filenameError}
-              setFilenameError={setFilenameError}
-              fullscreen={fullscreen}
-              setFullscreen={setFullscreen}
-              setShowStdio={setShowStdio}
-              onAccept={onAcceptDiff}
-              onRevert={onRevertDiff}
-              formatCell={formatCell}
+              cell={props.cell}
+              runCell={props.onRunCell}
+              stopCell={props.onStopCell}
+              onDeleteCell={!props.readOnly ? props.onDeleteCell : null}
+              generate={props.onGenerate}
+              cellMode={props.cellMode}
+              setCellMode={props.onChangeCellModeType}
+              prompt={props.prompt}
+              setPrompt={props.onChangePrompt}
+              updateFilename={props.onUpdateFileName}
+              filenameError={props.filenameError}
+              setFilenameError={props.onChangeFilenameError}
+              fullscreen={props.fullscreen}
+              setFullscreen={props.onChangeFullscreen}
+              setShowStdio={props.onChangeShowStdio}
+              onAccept={props.onAccept}
+              onRevert={props.onRevert}
+              formatCell={props.onFormatCell}
+              aiEnabled={props.aiEnabled}
             />
           )}
 
-          {cellMode === 'reviewing' ? (
-            <DiffEditor original={cell.source} modified={newSource} />
+          {!props.readOnly && props.cellMode === 'reviewing' ? (
+            <DiffEditor original={props.cell.source} modified={props.newSource} />
           ) : (
             <>
-              <div className={cn(cellMode !== 'off' && 'opacity-50')} id={cell.filename}>
-                {readOnly ? (
-                  <CodeEditor readOnly session={session} cell={cell} />
+              <div className={cn(!props.readOnly && props.cellMode !== 'off' && 'opacity-50')} id={props.cell.filename}>
+                {props.readOnly ? (
+                  <CodeEditor readOnly session={props.session} cell={props.cell} />
                 ) : (
                   <CodeEditor
-                    readOnly={['generating', 'prompting', 'formatting'].includes(cellMode)}
+                    readOnly={['generating', 'prompting', 'formatting'].includes(props.cellMode)}
                     channel={props.channel}
-                    session={session}
-                    cell={cell}
-                    runCell={runCell}
-                    formatCell={formatCell}
+                    session={props.session}
+                    cell={props.cell}
+                    runCell={props.onRunCell}
+                    formatCell={props.onFormatCell}
                     updateCellOnServer={props.updateCellOnServer}
                   />
                 )}
               </div>
-              {!readOnly ? (
+              {!props.readOnly ? (
                 <CellOutput
-                  cell={cell}
-                  show={showStdio}
-                  setShow={setShowStdio}
-                  fixDiagnostics={aiFixDiagnostics}
-                  cellMode={cellMode}
-                  fullscreen={fullscreen}
-                  setFullscreen={setFullscreen}
+                  cell={props.cell}
+                  show={props.showStdio}
+                  setShow={props.onChangeShowStdio}
+                  fixDiagnostics={props.aiFixDiagnostics}
+                  cellMode={props.cellMode}
+                  fullscreen={props.fullscreen}
+                  setFullscreen={props.onChangeFullscreen}
                 />
               ) : null}
             </>
@@ -461,6 +292,7 @@ function Header(props: {
   onAccept: () => void;
   onRevert: () => void;
   formatCell: () => void;
+  aiEnabled: boolean;
 }) {
   const {
     cell,
@@ -479,9 +311,9 @@ function Header(props: {
     setPrompt,
     stopCell,
     formatCell,
+    aiEnabled,
   } = props;
 
-  const { aiEnabled } = useSettings();
   const navigate = useNavigate();
 
   return (
@@ -774,7 +606,7 @@ type CodeEditorBaseProps = {
 };
 type CodeEditorRegularProps = CodeEditorBaseProps & {
   readOnly?: false;
-  channel: SessionChannel;
+  // channel: SessionChannel;
   runCell: () => void;
   formatCell: () => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
@@ -782,7 +614,7 @@ type CodeEditorRegularProps = CodeEditorBaseProps & {
 };
 type CodeEditorReadOnlyProps = CodeEditorBaseProps & {
   readOnly: true;
-  channel?: SessionChannel;
+  // channel?: SessionChannel;
   runCell?: () => void;
   formatCell?: () => void;
   updateCellOnServer?: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;

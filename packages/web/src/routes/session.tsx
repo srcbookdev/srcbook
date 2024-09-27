@@ -11,11 +11,12 @@ import {
   CodeCellType,
   TitleCellType,
   TsServerCellSuggestionsPayloadType,
+  TsServerDefinitionLocationResponsePayloadType,
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
-import { TitleCell, MarkdownCell /*, CodeCell */ } from '@srcbook/components';
-import CodeCell from '@srcbook/components/src/components/cells/code';
+import { TitleCell, MarkdownCell } from '@srcbook/components';
+import ControlledCodeCell from '@/components/cells/code';
 import GenerateAiCell from '@/components/cells/generate-ai';
 import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';
 import { Button } from '@srcbook/components/src/components/ui/button';
@@ -132,6 +133,7 @@ function Session(props: SessionProps) {
     createMarkdownCell,
     createGenerateAiCell,
     setOutput,
+    clearOutput,
     setTsServerDiagnostics,
     setTsServerSuggestions,
   } = useCells();
@@ -342,54 +344,6 @@ function Session(props: SessionProps) {
     npmInstall,
   ]);
 
-  async function onGetDefinitionContents(pos: number, cell: CodeCellType): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!readOnly) {
-        return;
-      }
-
-      async function gotoDefCallback({ response }: TsServerDefinitionLocationResponsePayloadType) {
-        channel.off('tsserver:cell:definition_location:response', gotoDefCallback);
-        if (response === null) {
-          reject(new Error(`Error fetching file content: no response!`));
-          return;
-        }
-        const file_response = await getFileContent(response.file);
-        if (file_response.result.type === 'cell') {
-          document
-            .getElementById(file_response.result.filename)
-            ?.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          if (file_response.error) {
-            reject(new Error(`Error fetching file content: ${file_response.result}`));
-          } else {
-            resolve(file_response.result.content);
-          }
-        }
-      }
-
-      channel.on('tsserver:cell:definition_location:response', gotoDefCallback);
-      channel.push('tsserver:cell:definition_location:request', {
-        sessionId: session.id,
-        cellId: cell.id,
-        request: { location: mapCMLocationToTsServer(cell.source, pos) },
-      });
-    });
-  }
-
-  async function onUpdateFileName(cell: CodeCellType, filename: string) {
-    if (!channel) {
-      return;
-    }
-
-    updateCell({ ...cell, filename });
-    channel.push('cell:rename', {
-      sessionId: session.id,
-      cellId: cell.id,
-      filename,
-    });
-  }
-
   return (
     <div className="flex flex-col">
       <SessionNavbar
@@ -449,17 +403,15 @@ function Session(props: SessionProps) {
                 )}
 
                 {cell.type === 'code' && readOnly && (
-                  <CodeCell readOnly cell={cell} session={session} />
+                  <ControlledCodeCell readOnly cell={cell} session={session} />
                 )}
                 {cell.type === 'code' && !readOnly && (
-                  <CodeCell
+                  <ControlledCodeCell
                     cell={cell}
                     session={session}
                     channel={props.channel}
                     updateCellOnServer={updateCellOnServer}
                     onDeleteCell={onDeleteCell}
-                    onGetDefinitionContents={onGetDefinitionContents}
-                    onUpdateFileName={onUpdateFileName}
                   />
                 )}
 

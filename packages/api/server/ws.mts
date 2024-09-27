@@ -123,8 +123,6 @@ async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
 async function cellExec(payload: CellExecPayloadType) {
   const session = await findSession(payload.sessionId);
   const cell = findCell(session, payload.cellId);
-
-  console.log('inside cellExec');
   if (!cell || cell.type !== 'code') {
     console.error(`Cannot execute cell with id ${payload.cellId}; cell not found.`);
     return;

@@ -1,6 +1,7 @@
 import TitleCell from './components/cells/title';
 import MarkdownCell from './components/cells/markdown';
-export { TitleCell, MarkdownCell };
+import CodeCell from './components/cells/code';
+export { TitleCell, MarkdownCell, CodeCell };
 
 export * from './components/ui/button';
 export * from './components/ui/card';

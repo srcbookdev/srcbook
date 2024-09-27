@@ -14,9 +14,9 @@ import {
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
-import { TitleCell, MarkdownCell } from '@srcbook/components';
+import { TitleCell, MarkdownCell /*, CodeCell */ } from '@srcbook/components';
+import CodeCell from '@srcbook/components/src/components/cells/code';
 import GenerateAiCell from '@/components/cells/generate-ai';
-import CodeCell from '@/components/cells/code';
 import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';

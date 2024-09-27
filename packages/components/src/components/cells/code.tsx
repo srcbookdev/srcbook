@@ -151,8 +151,8 @@ export default function CodeCell(props: Props) {
     }
 
     function callback(payload: CellFormattedPayloadType) {
-      if (!readOnly && payload.cellId === cell.id) {
-        props.updateCellOnClient({ ...payload.cell });
+      if (payload.cellId === cell.id) {
+        updateCellOnClient({ ...payload.cell });
         setCellMode('off');
       }
     }

@@ -1,4 +1,4 @@
-import Shortcut from '@/components/keyboard-shortcut';
+import Shortcut from '@srcbook/components/src/components/keyboard-shortcut';
 import {
   Dialog,
   DialogContent,

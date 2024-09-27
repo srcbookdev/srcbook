@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import Shortcut from '@/components/keyboard-shortcut';
+import Shortcut from '../keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
 import { useHotkeys } from 'react-hotkeys-hook';
 import CodeMirror, { KeyBinding, keymap, Prec } from '@uiw/react-codemirror';

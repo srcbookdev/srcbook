@@ -50,7 +50,7 @@ router.post('/file', cors(), async (req, res) => {
 
   try {
     const content = await fs.readFile(file, 'utf8');
-    const cell = file.includes('.srcbook/srcbooks') && !file.includes('node_modules');
+    const cell = file.includes(Path.join('.srcbook', 'srcbooks')) && !file.includes('node_modules');
     const filename = cell ? file.split('/').pop() || file : file;
 
     return res.json({

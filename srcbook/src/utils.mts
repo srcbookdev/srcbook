@@ -1,15 +1,15 @@
 import fs from 'node:fs';
 import net from 'node:net';
-import path from 'node:path';
+import Path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = Path.dirname(__filename);
 
-const ROOT_PATH = path.join(__dirname, '../../');
+const ROOT_PATH = Path.join(__dirname, '../../');
 
 export function pathTo(...paths: string[]) {
-  return path.join(ROOT_PATH, ...paths);
+  return Path.join(ROOT_PATH, ...paths);
 }
 
 export function getPackageJson() {

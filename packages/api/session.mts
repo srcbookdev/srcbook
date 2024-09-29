@@ -206,6 +206,7 @@ async function updateCodeCell(
   cell: CodeCellType,
   updates: any,
 ): Promise<UpdateResultType> {
+  console.log(2)
   const attrs = CodeCellUpdateAttrsSchema.parse(updates);
   return updateCellWithRollback(session, cell, { ...attrs }, async (session, updatedCell) => {
     try {

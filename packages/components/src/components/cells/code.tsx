@@ -40,6 +40,7 @@ import { EditorState, Extension } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
+import { useCells } from '../use-cell';
 
 const DEBOUNCE_DELAY = 500;
 
@@ -78,7 +79,6 @@ type RegularProps = BaseProps & {
   onUpdateFileName: (filename: string) => void;
   prompt: string;
   showStdio: boolean;
-  updateCellOnClient: (cell: CodeCellType) => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
   editorExtensions: Array<Extension>;
 };
@@ -135,7 +135,6 @@ export default function CodeCell(props: Props) {
                       cell={props.cell}
                       extensions={props.editorExtensions}
                       codeTheme={props.codeTheme}
-                      updateCellOnClient={props.updateCellOnClient}
                       updateCellOnServer={props.updateCellOnServer}
                     />
                   </div>
@@ -240,7 +239,6 @@ export default function CodeCell(props: Props) {
                     // FIXME: make sure that the changes this should be causing in `props.editorExtensions` actually are working
                     // readOnly={['generating', 'prompting', 'formatting'].includes(props.cellMode)}
                     cell={props.cell}
-                    updateCellOnClient={props.updateCellOnClient}
                     updateCellOnServer={props.updateCellOnServer}
                     extensions={props.editorExtensions}
                     codeTheme={props.codeTheme}
@@ -526,11 +524,12 @@ type CodeEditorProps = {
   cell: CodeCellType;
   extensions: Array<Extension>;
   codeTheme: Extension;
-  updateCellOnClient?: (cell: CodeCellType) => void;
   updateCellOnServer?: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
 };
 
-function CodeEditor({ cell, extensions, codeTheme, updateCellOnClient, updateCellOnServer }: CodeEditorProps) {
+function CodeEditor({ cell, extensions, codeTheme, updateCellOnServer }: CodeEditorProps) {
+  const { updateCell: updateCellOnClient } = useCells();
+
   const updateCellOnServerOrNoop = useCallback<NonNullable<typeof updateCellOnServer>>(
     (cell, attrs) => {
       if (!updateCellOnServer) {
@@ -555,9 +554,7 @@ function CodeEditor({ cell, extensions, codeTheme, updateCellOnClient, updateCel
         theme={codeTheme}
         extensions={extensions}
         onChange={(source) => {
-          if (updateCellOnClient) {
-            updateCellOnClient({ ...cell, source });
-          }
+          updateCellOnClient({ ...cell, source });
           updateCellOnServerDebounced(cell, { source });
         }}
       />

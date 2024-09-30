@@ -25,7 +25,12 @@ import {
   DropdownMenuTrigger,
 } from '@srcbook/components/src/components/ui/dropdown-menu';
 import { createSession, createSrcbook } from '@/lib/server';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@srcbook/components/src/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@srcbook/components/src/components/ui/tooltip';
 
 function LightDarkModeDebugChanger() {
   const { theme, toggleTheme } = useTheme();

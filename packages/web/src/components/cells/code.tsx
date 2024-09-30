@@ -389,13 +389,15 @@ export default function ControlledCodeCell(props: Props) {
             }
             const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
             if (pos && e.altKey) {
-              onGetDefinitionContents(pos, cell).then(result => {
-                setModalContent(result);
-                setIsModalOpen(true);
-              }).catch((error) => {
-                console.error('Error calling onGetDefinitionContents:', error);
-                toast.error('Error calling goto definition!');
-              });
+              onGetDefinitionContents(pos, cell)
+                .then((result) => {
+                  setModalContent(result);
+                  setIsModalOpen(true);
+                })
+                .catch((error) => {
+                  console.error('Error calling onGetDefinitionContents:', error);
+                  toast.error('Error calling goto definition!');
+                });
             }
           },
         }),
@@ -442,14 +444,7 @@ export default function ControlledCodeCell(props: Props) {
   ]);
 
   if (props.readOnly) {
-    return (
-      <CodeCell
-        readOnly
-        cell={props.cell}
-        session={props.session}
-        codeTheme={codeTheme}
-      />
-    );
+    return <CodeCell readOnly cell={props.cell} session={props.session} codeTheme={codeTheme} />;
   } else {
     return (
       <>

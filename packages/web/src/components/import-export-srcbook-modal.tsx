@@ -12,7 +12,12 @@ import { createSession, exportSrcmdText, importSrcbook } from '@/lib/server';
 import { getTitleForSession } from '@/lib/utils';
 import { SessionType } from '@/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@srcbook/components/src/components/ui/underline-flat-tabs';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '@srcbook/components/src/components/ui/underline-flat-tabs';
 import { showSaveFilePicker } from '@/lib/file-system-access';
 import { Input } from '@srcbook/components/src/components/ui/input';
 import { Textarea } from '@srcbook/components/src/components/ui/textarea';

@@ -1,11 +1,5 @@
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
 export default function AiGenerateTipsDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);

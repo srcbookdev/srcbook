@@ -22,11 +22,7 @@ import {
 } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import AiGenerateTipsDialog from '../ai-generate-tips-dialog';
-import {
-  CellType,
-  CodeCellType,
-  CodeCellUpdateAttrsType,
-} from '@srcbook/shared';
+import { CellType, CodeCellType, CodeCellUpdateAttrsType } from '@srcbook/shared';
 import { cn } from '../../lib/utils';
 import { CellModeType, SessionType } from '../../types';
 import { Button } from '../ui/button';
@@ -130,7 +126,10 @@ export default function CodeCell(props: Props) {
             ) : (
               <ResizablePanelGroup direction="vertical">
                 <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
-                  <div className={cn(props.cellMode !== 'off' && 'opacity-50')} id={props.cell.filename}>
+                  <div
+                    className={cn(props.cellMode !== 'off' && 'opacity-50')}
+                    id={props.cell.filename}
+                  >
                     <CodeEditor
                       cell={props.cell}
                       extensions={props.editorExtensions}
@@ -164,9 +163,11 @@ export default function CodeCell(props: Props) {
           className={cn(
             'border rounded-md group',
             props.cell.status === 'running' && 'ring-1 ring-run-ring border-run-ring',
-            !props.readOnly && (props.cellMode === 'generating' || props.cellMode === 'fixing') &&
+            !props.readOnly &&
+              (props.cellMode === 'generating' || props.cellMode === 'fixing') &&
               'ring-1 ring-ai-ring border-ai-ring',
-            !props.readOnly && props.cell.status !== 'running' &&
+            !props.readOnly &&
+              props.cell.status !== 'running' &&
               props.cellMode !== 'generating' &&
               props.cellMode !== 'fixing' &&
               'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
@@ -231,7 +232,10 @@ export default function CodeCell(props: Props) {
             <DiffEditor original={props.cell.source} modified={props.newSource} />
           ) : (
             <>
-              <div className={cn(!props.readOnly && props.cellMode !== 'off' && 'opacity-50')} id={props.cell.filename}>
+              <div
+                className={cn(!props.readOnly && props.cellMode !== 'off' && 'opacity-50')}
+                id={props.cell.filename}
+              >
                 {props.readOnly ? (
                   <CodeEditor cell={props.cell} extensions={[]} codeTheme={props.codeTheme} />
                 ) : (

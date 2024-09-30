@@ -14,7 +14,8 @@ import {
   TsServerDefinitionLocationResponsePayloadType,
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
-import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
+import type { SessionType, SettingsType } from '@/types';
+import { GenerateAICellType } from '@srcbook/components/src/types';
 import { TitleCell, MarkdownCell } from '@srcbook/components';
 import ControlledCodeCell from '@/components/cells/code';
 import GenerateAiCell from '@/components/cells/generate-ai';

@@ -4,7 +4,7 @@ import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcb
 import { cn } from '../lib/utils';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/underline-flat-tabs';
 import { useCells } from './use-cell';
-import { OutputType, StdoutOutputType, StderrOutputType, CellModeType } from '@/types';
+import { OutputType, StdoutOutputType, StderrOutputType, CellModeType } from '../types';
 import { Button } from './ui/button';
 
 type Props = {

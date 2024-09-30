@@ -28,7 +28,7 @@ import {
   CodeCellUpdateAttrsType,
 } from '@srcbook/shared';
 import { cn } from '../../lib/utils';
-import { CellModeType, SessionType } from '@/types';
+import { CellModeType, SessionType } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import DeleteCellWithConfirmation from '../delete-cell-dialog';

@@ -45,6 +45,7 @@ export function EditableH1(props: {
   return (
     <div>
       <h1
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role -- messy fix should be reworked
         role="textbox"
         aria-multiline="true"
         tabIndex={0}

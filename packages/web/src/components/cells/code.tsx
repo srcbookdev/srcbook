@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import {
   CellType,
@@ -10,15 +10,96 @@ import {
   CellFormattedPayloadType,
   AiGeneratedCellPayloadType,
   TsServerDefinitionLocationResponsePayloadType,
+  TsServerDiagnosticType,
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
 import CodeCell from '@srcbook/components/src/components/cells/code';
 import { CellModeType, SessionType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
 import { useCells } from '../use-cell';
-import { mapCMLocationToTsServer } from './util';
+import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { getFileContent } from '@/lib/server';
+import { tsHover } from '@srcbook/components/src/components/cells/hover';
+import { autocompletion } from '@codemirror/autocomplete';
+import { type Diagnostic, linter } from '@codemirror/lint';
+import { javascript } from '@codemirror/lang-javascript';
+import { getCompletions } from '@srcbook/components/src/components/cells/get-completions';
+import { EditorState, Extension, KeyBinding, keymap, Prec } from '@uiw/react-codemirror';
+import { EditorView } from 'codemirror';
+import useTheme from '@srcbook/components/src/components/use-theme';
+
+function tsLinter(
+  cell: CodeCellType,
+  getTsServerDiagnostics: (id: string) => TsServerDiagnosticType[],
+  getTsServerSuggestions: (id: string) => TsServerDiagnosticType[],
+) {
+  const semanticDiagnostics = getTsServerDiagnostics(cell.id);
+  const syntaticDiagnostics = getTsServerSuggestions(cell.id);
+  const diagnostics = [...syntaticDiagnostics, ...semanticDiagnostics].filter(
+    isDiagnosticWithLocation,
+  );
+
+  const cm_diagnostics = diagnostics.map((diagnostic) => {
+    return convertTSDiagnosticToCM(diagnostic, cell.source);
+  });
+
+  return linter(async (): Promise<readonly Diagnostic[]> => {
+    return cm_diagnostics;
+  });
+}
+
+function tsCategoryToSeverity(
+  diagnostic: Pick<TsServerDiagnosticType, 'category' | 'code'>,
+): Diagnostic['severity'] {
+  if (diagnostic.code === 7027) {
+    return 'warning';
+  }
+  // force resolve types with fallback
+  switch (diagnostic.category) {
+    case 'error':
+      return 'error';
+    case 'warning':
+      return 'warning';
+    case 'suggestion':
+      return 'warning';
+    case 'info':
+      return 'info';
+    default:
+      return 'info';
+  }
+}
+
+function isDiagnosticWithLocation(
+  diagnostic: TsServerDiagnosticType,
+): diagnostic is TsServerDiagnosticType {
+  return !!(typeof diagnostic.start.line === 'number' && typeof diagnostic.end.line === 'number');
+}
+
+function tsDiagnosticMessage(diagnostic: TsServerDiagnosticType): string {
+  if (typeof diagnostic.text === 'string') {
+    return diagnostic.text;
+  }
+  return JSON.stringify(diagnostic); // Fallback
+}
+
+function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: string): Diagnostic {
+  const message = tsDiagnosticMessage(diagnostic);
+
+  return {
+    from: mapTsServerLocationToCM(code, diagnostic.start.line, diagnostic.start.offset),
+    to: mapTsServerLocationToCM(code, diagnostic.end.line, diagnostic.end.offset),
+    message: message,
+    severity: tsCategoryToSeverity(diagnostic),
+    renderMessage: () => {
+      const dom = document.createElement('div');
+      dom.className = 'p-2 space-y-3 border-t max-w-lg max-h-64 text-xs relative';
+      dom.innerText = message;
+
+      return dom;
+    },
+  };
+}
 
 const DEBOUNCE_DELAY = 500;
 
@@ -39,6 +120,8 @@ type Props = RegularProps | ReadOnlyProps;
 export default function ControlledCodeCell(props: Props) {
   const { readOnly, session, cell } = props;
   const channel = !readOnly ? props.channel : null;
+
+  const { theme, codeTheme } = useTheme();
 
   const [filenameError, _setFilenameError] = useState<string | null>(null);
   const [showStdio, setShowStdio] = useState(false);
@@ -72,7 +155,12 @@ export default function ControlledCodeCell(props: Props) {
     { enableOnFormTags: ['textarea'] },
   );
 
-  const { updateCell: updateCellOnClient, clearOutput } = useCells();
+  const {
+    updateCell: updateCellOnClient,
+    clearOutput,
+    getTsServerDiagnostics,
+    getTsServerSuggestions,
+  } = useCells();
 
   function setFilenameError(error: string | null) {
     _setFilenameError(error);
@@ -274,12 +362,89 @@ export default function ControlledCodeCell(props: Props) {
     });
   }
 
+  // The order of these extensions is important.
+  // We want the errors to be first, so we call tsLinter before tsHover.
+  const extensions = useMemo(() => {
+    const extensions: Array<Extension> = [javascript({ typescript: true })];
+    extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
+    if (channel) {
+      extensions.push(tsHover(session.id, cell, channel, theme));
+    }
+    if (channel) {
+      extensions.push(
+        autocompletion({
+          override: [(context) => getCompletions(context, session.id, cell, channel)],
+        }),
+      );
+    }
+    extensions.push(
+      Prec.highest(
+        EditorView.domEventHandlers({
+          click: (e, view) => {
+            if (!onGetDefinitionContents) {
+              return;
+            }
+            const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+            if (pos && e.altKey) {
+              onGetDefinitionContents(pos, cell).then(result => {
+                setModalContent(result);
+                setIsModalOpen(true);
+              }).catch((error) => {
+                console.error('Error calling onGetDefinitionContents:', error);
+                toast.error('Error calling goto definition!');
+              });
+            }
+          },
+        }),
+      ),
+    );
+
+    const keys: Array<KeyBinding> = [];
+    if (runCell) {
+      keys.push({
+        key: 'Mod-Enter',
+        run: () => {
+          runCell();
+          return true;
+        },
+      });
+    }
+    if (formatCell) {
+      keys.push({
+        key: 'Shift-Alt-f',
+        run: () => {
+          formatCell();
+          return true;
+        },
+      });
+    }
+    extensions.push(Prec.highest(keymap.of(keys)));
+
+    if (['generating', 'prompting', 'formatting'].includes(cellMode)) {
+      extensions.push(EditorView.editable.of(false));
+      extensions.push(EditorState.readOnly.of(true));
+    }
+
+    return extensions;
+  }, [
+    session,
+    cell,
+    channel,
+    theme,
+    getTsServerDiagnostics,
+    getTsServerSuggestions,
+    formatCell,
+    runCell,
+    cellMode,
+  ]);
+
   if (props.readOnly) {
     return (
       <CodeCell
         readOnly
         cell={props.cell}
         session={props.session}
+        codeTheme={codeTheme}
       />
     );
   } else {
@@ -315,6 +480,7 @@ export default function ControlledCodeCell(props: Props) {
         updateCellOnServer={props.updateCellOnServer}
         fixDiagnostics={aiFixDiagnostics}
         updateCellOnClient={updateCellOnClient}
+        editorExtensions={extensions}
       />
     );
   }

@@ -1,11 +1,11 @@
 /* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import Shortcut from '../keyboard-shortcut';
 import { useNavigate } from 'react-router-dom';
-import CodeMirror, { KeyBinding, keymap, Prec } from '@uiw/react-codemirror';
+import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable';
 import {
@@ -26,33 +26,27 @@ import {
   CellType,
   CodeCellType,
   CodeCellUpdateAttrsType,
-  TsServerDiagnosticType,
 } from '@srcbook/shared';
 import { cn } from '../../lib/utils';
 import { CellModeType, SessionType } from '@/types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import DeleteCellWithConfirmation from '../delete-cell-dialog';
-import { useCells } from '../use-cell';
 import { CellOutput } from '../cell-output';
 import useTheme from '../use-theme';
 import { useDebouncedCallback } from 'use-debounce';
 import { EditorView } from 'codemirror';
 import { EditorState, Extension } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
-import { type Diagnostic, linter } from '@codemirror/lint';
-import { tsHover } from './hover';
-import { mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { PrettierLogo } from '../logos';
-import { autocompletion } from '@codemirror/autocomplete';
-import { getCompletions } from './get-completions';
 
 const DEBOUNCE_DELAY = 500;
 
 type BaseProps = {
   session: SessionType;
   cell: CodeCellType;
+  codeTheme: Extension;
 };
 
 type RegularProps = BaseProps & {
@@ -86,6 +80,7 @@ type RegularProps = BaseProps & {
   showStdio: boolean;
   updateCellOnClient: (cell: CodeCellType) => void;
   updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
+  editorExtensions: Array<Extension>;
 };
 type ReadOnlyProps = BaseProps & { readOnly: true };
 type Props = RegularProps | ReadOnlyProps;
@@ -137,14 +132,11 @@ export default function CodeCell(props: Props) {
                 <ResizablePanel style={{ overflow: 'scroll' }} defaultSize={60}>
                   <div className={cn(props.cellMode !== 'off' && 'opacity-50')} id={props.cell.filename}>
                     <CodeEditor
-                      readOnly={['generating', 'prompting', 'formatting'].includes(props.cellMode)}
-                      channel={props.channel}
-                      session={props.session}
                       cell={props.cell}
-                      runCell={props.onRunCell}
-                      formatCell={props.onFormatCell}
+                      extensions={props.editorExtensions}
+                      codeTheme={props.codeTheme}
+                      updateCellOnClient={props.updateCellOnClient}
                       updateCellOnServer={props.updateCellOnServer}
-                      onGetDefinitionContents={props.onGetDefinitionContents}
                     />
                   </div>
                 </ResizablePanel>
@@ -241,16 +233,16 @@ export default function CodeCell(props: Props) {
             <>
               <div className={cn(!props.readOnly && props.cellMode !== 'off' && 'opacity-50')} id={props.cell.filename}>
                 {props.readOnly ? (
-                  <CodeEditor readOnly session={props.session} cell={props.cell} />
+                  <CodeEditor cell={props.cell} extensions={[]} codeTheme={props.codeTheme} />
                 ) : (
                   <CodeEditor
-                    readOnly={['generating', 'prompting', 'formatting'].includes(props.cellMode)}
-                    channel={props.channel}
-                    session={props.session}
+                    // FIXME: make sure that the changes this should be causing in `props.editorExtensions` actually are working
+                    // readOnly={['generating', 'prompting', 'formatting'].includes(props.cellMode)}
                     cell={props.cell}
-                    runCell={props.onRunCell}
-                    formatCell={props.onFormatCell}
+                    updateCellOnClient={props.updateCellOnClient}
                     updateCellOnServer={props.updateCellOnServer}
+                    extensions={props.editorExtensions}
+                    codeTheme={props.codeTheme}
                   />
                 )}
               </div>
@@ -528,118 +520,15 @@ function Header(props: {
   );
 }
 
-function tsCategoryToSeverity(
-  diagnostic: Pick<TsServerDiagnosticType, 'category' | 'code'>,
-): Diagnostic['severity'] {
-  if (diagnostic.code === 7027) {
-    return 'warning';
-  }
-  // force resolve types with fallback
-  switch (diagnostic.category) {
-    case 'error':
-      return 'error';
-    case 'warning':
-      return 'warning';
-    case 'suggestion':
-      return 'warning';
-    case 'info':
-      return 'info';
-    default:
-      return 'info';
-  }
-}
-
-function isDiagnosticWithLocation(
-  diagnostic: TsServerDiagnosticType,
-): diagnostic is TsServerDiagnosticType {
-  return !!(typeof diagnostic.start.line === 'number' && typeof diagnostic.end.line === 'number');
-}
-
-function tsDiagnosticMessage(diagnostic: TsServerDiagnosticType): string {
-  if (typeof diagnostic.text === 'string') {
-    return diagnostic.text;
-  }
-  return JSON.stringify(diagnostic); // Fallback
-}
-
-function convertTSDiagnosticToCM(diagnostic: TsServerDiagnosticType, code: string): Diagnostic {
-  const message = tsDiagnosticMessage(diagnostic);
-
-  return {
-    from: mapTsServerLocationToCM(code, diagnostic.start.line, diagnostic.start.offset),
-    to: mapTsServerLocationToCM(code, diagnostic.end.line, diagnostic.end.offset),
-    message: message,
-    severity: tsCategoryToSeverity(diagnostic),
-    renderMessage: () => {
-      const dom = document.createElement('div');
-      dom.className = 'p-2 space-y-3 border-t max-w-lg max-h-64 text-xs relative';
-      dom.innerText = message;
-
-      return dom;
-    },
-  };
-}
-
-function tsLinter(
-  cell: CodeCellType,
-  getTsServerDiagnostics: (id: string) => TsServerDiagnosticType[],
-  getTsServerSuggestions: (id: string) => TsServerDiagnosticType[],
-) {
-  const semanticDiagnostics = getTsServerDiagnostics(cell.id);
-  const syntaticDiagnostics = getTsServerSuggestions(cell.id);
-  const diagnostics = [...syntaticDiagnostics, ...semanticDiagnostics].filter(
-    isDiagnosticWithLocation,
-  );
-
-  const cm_diagnostics = diagnostics.map((diagnostic) => {
-    return convertTSDiagnosticToCM(diagnostic, cell.source);
-  });
-
-  return linter(async (): Promise<readonly Diagnostic[]> => {
-    return cm_diagnostics;
-  });
-}
-
-type CodeEditorBaseProps = {
+type CodeEditorProps = {
   cell: CodeCellType;
-  session: SessionType;
-};
-type CodeEditorRegularProps = CodeEditorBaseProps & {
-  readOnly?: false;
-  // channel: SessionChannel;
-  runCell: () => void;
-  formatCell: () => void;
-  updateCellOnServer: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
-  onGetDefinitionContents: (pos: number, cell: CodeCellType) => Promise<string>;
-};
-type CodeEditorReadOnlyProps = CodeEditorBaseProps & {
-  readOnly: true;
-  // channel?: SessionChannel;
-  runCell?: () => void;
-  formatCell?: () => void;
+  extensions: Array<Extension>;
+  codeTheme: Extension;
+  updateCellOnClient?: (cell: CodeCellType) => void;
   updateCellOnServer?: (cell: CodeCellType, attrs: CodeCellUpdateAttrsType) => void;
-  onGetDefinitionContents?: (pos: number, cell: CodeCellType) => Promise<string>;
 };
-type CodeEditorProps = CodeEditorRegularProps | CodeEditorReadOnlyProps;
 
-function CodeEditor({
-  readOnly,
-  channel,
-  cell,
-  session,
-  runCell,
-  formatCell,
-  updateCellOnServer,
-  onGetDefinitionContents,
-}: CodeEditorProps) {
-  const { theme, codeTheme } = useTheme();
-
-  const {
-    updateCell: updateCellOnClient,
-    getTsServerDiagnostics,
-    getTsServerSuggestions,
-  } = useCells();
-
+function CodeEditor({ cell, extensions, codeTheme, updateCellOnClient, updateCellOnServer }: CodeEditorProps) {
   const updateCellOnServerOrNoop = useCallback<NonNullable<typeof updateCellOnServer>>(
     (cell, attrs) => {
       if (!updateCellOnServer) {
@@ -654,80 +543,6 @@ function CodeEditor({
     DEBOUNCE_DELAY,
   );
 
-  // The order of these extensions is important.
-  // We want the errors to be first, so we call tsLinter before tsHover.
-  const extensions = useMemo(() => {
-    const extensions: Array<Extension> = [javascript({ typescript: true })];
-    extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
-    if (typeof channel !== 'undefined') {
-      extensions.push(tsHover(session.id, cell, channel, theme));
-    }
-    if (typeof channel !== 'undefined') {
-      extensions.push(
-        autocompletion({
-          override: [(context) => getCompletions(context, session.id, cell, channel)],
-        }),
-      );
-    }
-    extensions.push(
-      Prec.highest(
-        EditorView.domEventHandlers({
-          click: (e, view) => {
-            if (!onGetDefinitionContents) {
-              return;
-            }
-            const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-            if (pos && e.altKey) {
-              onGetDefinitionContents(pos, cell).then(result => {
-                setModalContent(result);
-                setIsModalOpen(true);
-              }).catch((error) => {
-                console.error('Error calling onGetDefinitionContents:', error);
-                toast.error('Error calling goto definition!');
-              });
-            }
-          },
-        }),
-      ),
-    );
-
-    const keys: Array<KeyBinding> = [];
-    if (runCell) {
-      keys.push({
-        key: 'Mod-Enter',
-        run: () => {
-          runCell();
-          return true;
-        },
-      });
-    }
-    if (formatCell) {
-      keys.push({
-        key: 'Shift-Alt-f',
-        run: () => {
-          formatCell();
-          return true;
-        },
-      });
-    }
-    extensions.push(Prec.highest(keymap.of(keys)));
-
-    return extensions;
-  }, [
-    session,
-    cell,
-    channel,
-    theme,
-    getTsServerDiagnostics,
-    getTsServerSuggestions,
-    formatCell,
-    runCell,
-  ]);
-
-  if (readOnly) {
-    extensions.push(EditorView.editable.of(false));
-    extensions.push(EditorState.readOnly.of(true));
-  }
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
 
@@ -738,7 +553,9 @@ function CodeEditor({
         theme={codeTheme}
         extensions={extensions}
         onChange={(source) => {
-          updateCellOnClient({ ...cell, source });
+          if (updateCellOnClient) {
+            updateCellOnClient({ ...cell, source });
+          }
           updateCellOnServerDebounced(cell, { source });
         }}
       />

@@ -277,12 +277,21 @@ importers:
 
   packages/web:
     dependencies:
+      '@codemirror/autocomplete':
+        specifier: ^6.18.1
+        version: 6.18.1(@codemirror/language@6.10.2)(@codemirror/state@6.4.1)(@codemirror/view@6.33.0)(@lezer/common@1.2.1)
+      '@codemirror/lang-javascript':
+        specifier: ^6.2.2
+        version: 6.2.2
       '@codemirror/lang-json':
         specifier: ^6.0.1
         version: 6.0.1
       '@codemirror/lang-markdown':
         specifier: ^6.2.5
         version: 6.2.5
+      '@codemirror/lint':
+        specifier: ^6.8.1
+        version: 6.8.1
       '@srcbook/components':
         specifier: workspace:^
         version: link:../components

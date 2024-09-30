@@ -123,7 +123,6 @@ async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
 async function cellExec(payload: CellExecPayloadType) {
   const session = await findSession(payload.sessionId);
   const cell = findCell(session, payload.cellId);
-
   if (!cell || cell.type !== 'code') {
     console.error(`Cannot execute cell with id ${payload.cellId}; cell not found.`);
     return;
@@ -616,11 +615,15 @@ function createTsServer(session: SessionType) {
 
   tsserver.onSemanticDiag(async (event) => {
     const eventBody = event.body;
+    if (!eventBody) return;
 
     // Get most recent session state
-    const session = await findSession(sessionId);
-
-    if (!eventBody || !session) {
+    let session;
+    try {
+      session = await findSession(sessionId);
+    } catch (e) {
+      const error = e as unknown as Error;
+      console.error(error);
       return;
     }
 
@@ -640,11 +643,15 @@ function createTsServer(session: SessionType) {
 
   tsserver.onSuggestionDiag(async (event) => {
     const eventBody = event.body;
+    if (!eventBody) return;
 
     // Get most recent session state
-    const session = await findSession(sessionId);
-
-    if (!eventBody || !session) {
+    let session;
+    try {
+      session = await findSession(sessionId);
+    } catch (e) {
+      const error = e as unknown as Error;
+      console.error(error);
       return;
     }
 

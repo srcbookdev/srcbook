@@ -544,9 +544,6 @@ function CodeEditor({ cell, extensions, codeTheme, updateCellOnServer }: CodeEdi
     DEBOUNCE_DELAY,
   );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState('');
-
   return (
     <>
       <CodeMirror
@@ -558,20 +555,6 @@ function CodeEditor({ cell, extensions, codeTheme, updateCellOnServer }: CodeEdi
           updateCellOnServerDebounced(cell, { source });
         }}
       />
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="w-[80vw] h-[80vh] max-w-none p-0 overflow-scroll">
-          <CodeMirror
-            className="overflow-scroll focus-visible:outline-none"
-            value={modalContent}
-            theme={codeTheme}
-            extensions={[
-              javascript({ typescript: true }),
-              EditorView.editable.of(false),
-              EditorState.readOnly.of(true),
-            ]}
-          />
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

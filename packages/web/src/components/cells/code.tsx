@@ -132,6 +132,9 @@ export default function ControlledCodeCell(props: Props) {
   const [fullscreen, setFullscreen] = useState(false);
   const { aiEnabled } = useSettings();
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+
   useHotkeys(
     'mod+enter',
     () => {
@@ -449,39 +452,55 @@ export default function ControlledCodeCell(props: Props) {
     );
   } else {
     return (
-      <CodeCell
-        aiEnabled={aiEnabled}
-        aiFixDiagnostics={aiFixDiagnostics}
-        cell={props.cell}
-        cellMode={cellMode}
-        filenameError={filenameError}
-        fullscreen={fullscreen}
-        generationType={generationType}
-        newSource={newSource}
-        onAccept={onAcceptDiff}
-        onChangeCellModeType={setCellMode}
-        onChangeFilenameError={setFilenameError}
-        onChangeFullscreen={setFullscreen}
-        onChangeGenerationType={setGenerationType}
-        onChangeNewSource={setNewSource}
-        onChangePrompt={setPrompt}
-        onChangeShowStdio={setShowStdio}
-        onDeleteCell={props.onDeleteCell}
-        onFormatCell={formatCell}
-        onGenerate={generate}
-        onGetDefinitionContents={onGetDefinitionContents}
-        onRevert={onRevertDiff}
-        onRunCell={runCell}
-        onStopCell={stopCell}
-        onUpdateFileName={onUpdateFileName}
-        prompt={prompt}
-        session={props.session}
-        showStdio={showStdio}
-        updateCellOnServer={props.updateCellOnServer}
-        fixDiagnostics={aiFixDiagnostics}
-        updateCellOnClient={updateCellOnClient}
-        editorExtensions={extensions}
-      />
+      <>
+        <CodeCell
+          aiEnabled={aiEnabled}
+          aiFixDiagnostics={aiFixDiagnostics}
+          cell={props.cell}
+          cellMode={cellMode}
+          filenameError={filenameError}
+          fullscreen={fullscreen}
+          generationType={generationType}
+          newSource={newSource}
+          onAccept={onAcceptDiff}
+          onChangeCellModeType={setCellMode}
+          onChangeFilenameError={setFilenameError}
+          onChangeFullscreen={setFullscreen}
+          onChangeGenerationType={setGenerationType}
+          onChangeNewSource={setNewSource}
+          onChangePrompt={setPrompt}
+          onChangeShowStdio={setShowStdio}
+          onDeleteCell={props.onDeleteCell}
+          onFormatCell={formatCell}
+          onGenerate={generate}
+          onGetDefinitionContents={onGetDefinitionContents}
+          onRevert={onRevertDiff}
+          onRunCell={runCell}
+          onStopCell={stopCell}
+          onUpdateFileName={onUpdateFileName}
+          prompt={prompt}
+          session={props.session}
+          showStdio={showStdio}
+          updateCellOnServer={props.updateCellOnServer}
+          fixDiagnostics={aiFixDiagnostics}
+          updateCellOnClient={updateCellOnClient}
+          editorExtensions={extensions}
+        />
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="w-[80vw] h-[80vh] max-w-none p-0 overflow-scroll">
+            <CodeMirror
+              className="overflow-scroll focus-visible:outline-none"
+              value={modalContent}
+              theme={codeTheme}
+              extensions={[
+                javascript({ typescript: true }),
+                EditorView.editable.of(false),
+                EditorState.readOnly.of(true),
+              ]}
+            />
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 }

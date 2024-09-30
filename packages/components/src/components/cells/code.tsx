@@ -151,6 +151,7 @@ export default function CodeCell(props: Props) {
                     setFullscreen={props.onChangeFullscreen}
                     fixDiagnostics={props.aiFixDiagnostics}
                     cellMode={props.cellMode}
+                    aiEnabled={props.aiEnabled}
                   />
                 </ResizablePanel>
               </ResizablePanelGroup>
@@ -255,6 +256,7 @@ export default function CodeCell(props: Props) {
                   cellMode={props.cellMode}
                   fullscreen={props.fullscreen}
                   setFullscreen={props.onChangeFullscreen}
+                  aiEnabled={props.aiEnabled}
                 />
               ) : null}
             </>

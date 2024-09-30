@@ -16,7 +16,7 @@ import { useSettings } from '@/components/use-settings';
 import CodeCell from '@srcbook/components/src/components/cells/code';
 import { CellModeType, SessionType } from '@/types';
 import { SessionChannel } from '@/clients/websocket';
-import { useCells } from '../use-cell';
+import { useCells } from '@srcbook/components/src/components/use-cell';
 import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { getFileContent } from '@/lib/server';

@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { useSettings } from '@/components/use-settings';
 import { Ban, Maximize, Minimize, PanelBottomClose, PanelBottomOpen, Sparkles } from 'lucide-react';
 import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcbook/shared';
-import { cn } from '@/lib/utils';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@srcbook/components/src/components/ui/underline-flat-tabs';
-import { useCells } from '@/components/use-cell';
+import { cn } from '../lib/utils';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/underline-flat-tabs';
+import { useCells } from './use-cell';
 import { OutputType, StdoutOutputType, StderrOutputType, CellModeType } from '@/types';
-import { Button } from '@srcbook/components/src/components/ui/button';
+import { Button } from './ui/button';
 
 type Props = {
   cell: CodeCellType | PackageJsonCellType;
@@ -16,6 +15,7 @@ type Props = {
   cellMode: CellModeType;
   setFullscreen: (fullscreen: boolean) => void;
   fullscreen: boolean;
+  aiEnabled: boolean;
 };
 
 export function CellOutput(props: Props) {
@@ -155,6 +155,7 @@ export function CellOutput(props: Props) {
                   diagnostics={diagnostics}
                   fixDiagnostics={props.fixDiagnostics}
                   cellMode={props.cellMode}
+                  aiEnabled={props.aiEnabled}
                 />
               </TabsContent>
             )}
@@ -164,6 +165,7 @@ export function CellOutput(props: Props) {
                   suggestions={suggestions}
                   fixSuggestions={props.fixDiagnostics} // fixDiagnostics works for both diagnostics and suggestions
                   cellMode={props.cellMode}
+                  aiEnabled={props.aiEnabled}
                 />
               </TabsContent>
             )}
@@ -206,12 +208,13 @@ function TsServerDiagnostics({
   diagnostics,
   fixDiagnostics,
   cellMode,
+  aiEnabled,
 }: {
   diagnostics: TsServerDiagnosticType[];
   fixDiagnostics: (diagnostics: string) => void;
   cellMode: CellModeType;
+  aiEnabled: boolean;
 }) {
-  const { aiEnabled } = useSettings();
   const formattedDiagnostics = diagnostics.map(formatDiagnostic).join('\n');
   return diagnostics.length === 0 ? (
     <div className="italic text-center text-muted-foreground">No problems</div>
@@ -237,12 +240,13 @@ function TsServerSuggestions({
   suggestions,
   fixSuggestions,
   cellMode,
+  aiEnabled,
 }: {
   suggestions: TsServerDiagnosticType[];
   fixSuggestions: (suggestions: string) => void;
   cellMode: CellModeType;
+  aiEnabled: boolean;
 }) {
-  const { aiEnabled } = useSettings();
   const formattedSuggestions = suggestions.map(formatDiagnostic).join('\n');
   return suggestions.length === 0 ? (
     <div className="italic text-center text-muted-foreground">No warnings or suggestions</div>

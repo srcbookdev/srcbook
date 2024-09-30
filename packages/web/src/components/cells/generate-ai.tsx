@@ -5,7 +5,7 @@ import { type CodeCellType, type MarkdownCellType } from '@srcbook/shared';
 import { generateCells } from '@/lib/server';
 import { CircleAlert, Trash2, Sparkles } from 'lucide-react';
 import { GenerateAICellType, SessionType } from '@/types';
-import { useCells } from '@/components/use-cell';
+import { useCells } from '@srcbook/components/src/components/use-cell';
 import { cn } from '@/lib/utils';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { useSettings } from '@/components/use-settings';

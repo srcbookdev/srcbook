@@ -3,9 +3,7 @@
   "compilerOptions": {
     "noEmit": false,
     "allowImportingTsExtensions": false,
-    "outDir": "dist",
-    "composite": true,
-    "incremental": true
+    "outDir": "dist"
   },
   "include": ["index.mts", "src/**/*.mts"],
   "exclude": ["node_modules", "dist"]

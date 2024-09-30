@@ -1,0 +1,23 @@
+{
+  "name": "@srcbook/components",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "prebuild": "rm -rf ./dist",
+    "build": "tsc",
+    "dev": "tsc --watch --project .",
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.2",
+    "@srcbook/shared": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "@types/react": "*"
+  }
+}

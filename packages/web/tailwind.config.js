@@ -1,9 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 const plugin = require('tailwindcss/plugin');
+const path = require('path');
 
 module.exports = {
   darkMode: ['class'],
-  content: ['./index.html', './src/**/*.{css,ts,tsx}'],
+  content: [
+    './index.html',
+    './src/**/*.{css,ts,tsx}',
+    path.join(path.dirname(require.resolve('@srcbook/components')), '**/*.{css,js,ts,tsx}'),
+  ],
   prefix: '',
   theme: {
     container: {

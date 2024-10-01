@@ -240,7 +240,6 @@ export default function CodeCell(props: Props) {
                 ) : (
                   <CodeEditor
                     // FIXME: make sure that the changes this should be causing in `props.editorExtensions` actually are working
-                    // readOnly={['generating', 'prompting', 'formatting'].includes(props.cellMode)}
                     cell={props.cell}
                     updateCellOnServer={props.updateCellOnServer}
                     extensions={props.editorExtensions}
@@ -548,17 +547,15 @@ function CodeEditor({ cell, extensions, codeTheme, updateCellOnServer }: CodeEdi
   );
 
   return (
-    <>
-      <CodeMirror
-        value={cell.source}
-        theme={codeTheme}
-        extensions={extensions}
-        onChange={(source) => {
-          updateCellOnClient({ ...cell, source });
-          updateCellOnServerDebounced(cell, { source });
-        }}
-      />
-    </>
+    <CodeMirror
+      value={cell.source}
+      theme={codeTheme}
+      extensions={extensions}
+      onChange={(source) => {
+        updateCellOnClient({ ...cell, source });
+        updateCellOnServerDebounced(cell, { source });
+      }}
+    />
   );
 }
 

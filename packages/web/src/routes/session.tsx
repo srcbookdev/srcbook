@@ -11,7 +11,6 @@ import {
   CodeCellType,
   TitleCellType,
   TsServerCellSuggestionsPayloadType,
-  TsServerDefinitionLocationResponsePayloadType,
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, SettingsType } from '@/types';
@@ -31,8 +30,6 @@ import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
 import { VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY } from '@/lib/environment';
-import { getFileContent } from '@/lib/server';
-import { mapCMLocationToTsServer } from '../components/cells/util';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([
@@ -134,7 +131,6 @@ function Session(props: SessionProps) {
     createMarkdownCell,
     createGenerateAiCell,
     setOutput,
-    clearOutput,
     setTsServerDiagnostics,
     setTsServerSuggestions,
   } = useCells();

@@ -14,20 +14,28 @@ import {
 } from '@srcbook/shared';
 import { useSettings } from '@/components/use-settings';
 import CodeCell from '@srcbook/components/src/components/cells/code';
-import { CellModeType, SessionType } from '@/types';
+import { SessionType } from '@/types';
+import { CellModeType } from '@srcbook/components/src/types';
 import { SessionChannel } from '@/clients/websocket';
 import { useCells } from '@srcbook/components/src/components/use-cell';
 import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { getFileContent } from '@/lib/server';
-import { tsHover } from '@srcbook/components/src/components/cells/hover';
+import { tsHover } from '@/components/cells/hover';
 import { autocompletion } from '@codemirror/autocomplete';
 import { type Diagnostic, linter } from '@codemirror/lint';
 import { javascript } from '@codemirror/lang-javascript';
-import { getCompletions } from '@srcbook/components/src/components/cells/get-completions';
-import { EditorState, Extension, KeyBinding, keymap, Prec } from '@uiw/react-codemirror';
-import { EditorView } from 'codemirror';
+import { getCompletions } from '@/components/cells/get-completions';
+import CodeMirror, {
+  EditorState,
+  EditorView,
+  Extension,
+  KeyBinding,
+  keymap,
+  Prec,
+} from '@uiw/react-codemirror';
 import useTheme from '@srcbook/components/src/components/use-theme';
+import { Dialog, DialogContent } from '@srcbook/components/src/components/ui/dialog';
 
 function tsLinter(
   cell: CodeCellType,
@@ -478,8 +486,8 @@ export default function ControlledCodeCell(props: Props) {
           showStdio={showStdio}
           updateCellOnServer={props.updateCellOnServer}
           fixDiagnostics={aiFixDiagnostics}
-          updateCellOnClient={updateCellOnClient}
           editorExtensions={extensions}
+          codeTheme={codeTheme}
         />
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="w-[80vw] h-[80vh] max-w-none p-0 overflow-scroll">

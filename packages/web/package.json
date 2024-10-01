@@ -35,7 +35,8 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.3",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "marked": "catalog:"
   },
   "devDependencies": {
     "@types/react": "^18.3.5",

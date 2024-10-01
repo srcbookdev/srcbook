@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { OutputType } from '@/types';
+import { OutputType } from '@srcbook/components/src/types';
 import {
   Info,
   LoaderCircle,

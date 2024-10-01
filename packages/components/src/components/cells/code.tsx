@@ -51,7 +51,6 @@ type RegularProps = BaseProps & {
   aiEnabled: boolean;
   aiFixDiagnostics: (diagnostics: string) => void;
   cellMode: CellModeType;
-  // channel: SessionChannel;
   filenameError: string | null;
   fixDiagnostics: (diagnostics: string) => void;
   fullscreen: boolean;

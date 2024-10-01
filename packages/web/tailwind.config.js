@@ -8,7 +8,6 @@ module.exports = {
     './index.html',
     './src/**/*.{css,ts,tsx}',
     path.join(path.dirname(require.resolve('@srcbook/components')), '**/*.{css,js,ts,tsx}'),
-    path.join(path.dirname(require.resolve('@srcbook/cells')), '**/*.{css,js,ts,tsx}'),
   ],
   prefix: '',
   theme: {

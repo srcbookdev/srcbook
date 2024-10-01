@@ -1,6 +1,4 @@
-/* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
-
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import {
   CellType,
@@ -375,81 +373,67 @@ export default function ControlledCodeCell(props: Props) {
 
   // The order of these extensions is important.
   // We want the errors to be first, so we call tsLinter before tsHover.
-  const extensions = useMemo(() => {
-    const extensions: Array<Extension> = [javascript({ typescript: true })];
-    extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
-    if (channel) {
-      extensions.push(tsHover(session.id, cell, channel, theme));
-    }
-    if (channel) {
-      extensions.push(
-        autocompletion({
-          override: [(context) => getCompletions(context, session.id, cell, channel)],
-        }),
-      );
-    }
+  const extensions: Array<Extension> = [javascript({ typescript: true })];
+  if (channel) {
+    extensions.push(tsHover(session.id, cell, channel, theme));
+  }
+  extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
+  if (channel) {
     extensions.push(
-      Prec.highest(
-        EditorView.domEventHandlers({
-          click: (e, view) => {
-            if (!onGetDefinitionContents) {
-              return;
-            }
-            const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-            if (pos && e.altKey) {
-              onGetDefinitionContents(pos, cell)
-                .then((result) => {
-                  setModalContent(result);
-                  setIsModalOpen(true);
-                })
-                .catch((error) => {
-                  console.error('Error calling onGetDefinitionContents:', error);
-                  toast.error('Error calling goto definition!');
-                });
-            }
-          },
-        }),
-      ),
+      autocompletion({
+        override: [(context) => getCompletions(context, session.id, cell, channel)],
+      }),
     );
-
-    const keys: Array<KeyBinding> = [];
-    if (runCell) {
-      keys.push({
-        key: 'Mod-Enter',
-        run: () => {
-          runCell();
-          return true;
+  }
+  extensions.push(
+    Prec.highest(
+      EditorView.domEventHandlers({
+        click: (e, view) => {
+          if (!onGetDefinitionContents) {
+            return;
+          }
+          const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+          if (pos && e.altKey) {
+            onGetDefinitionContents(pos, cell)
+              .then((result) => {
+                setModalContent(result);
+                setIsModalOpen(true);
+              })
+              .catch((error) => {
+                console.error('Error calling onGetDefinitionContents:', error);
+                toast.error('Error calling goto definition!');
+              });
+          }
         },
-      });
-    }
-    if (formatCell) {
-      keys.push({
-        key: 'Shift-Alt-f',
-        run: () => {
-          formatCell();
-          return true;
-        },
-      });
-    }
-    extensions.push(Prec.highest(keymap.of(keys)));
+      }),
+    ),
+  );
 
-    if (['generating', 'prompting', 'formatting'].includes(cellMode)) {
-      extensions.push(EditorView.editable.of(false));
-      extensions.push(EditorState.readOnly.of(true));
-    }
+  const keys: Array<KeyBinding> = [];
+  if (runCell) {
+    keys.push({
+      key: 'Mod-Enter',
+      run: () => {
+        runCell();
+        return true;
+      },
+    });
+  }
+  if (formatCell) {
+    keys.push({
+      key: 'Shift-Alt-f',
+      run: () => {
+        formatCell();
+        return true;
+      },
+    });
+  }
+  extensions.push(Prec.highest(keymap.of(keys)));
 
-    return extensions;
-  }, [
-    session,
-    cell,
-    channel,
-    theme,
-    getTsServerDiagnostics,
-    getTsServerSuggestions,
-    formatCell,
-    runCell,
-    cellMode,
-  ]);
+  if (['generating', 'prompting', 'formatting'].includes(cellMode)) {
+    extensions.push(EditorView.editable.of(false));
+    extensions.push(EditorState.readOnly.of(true));
+  }
 
   if (props.readOnly) {
     return <CodeCell readOnly cell={props.cell} session={props.session} codeTheme={codeTheme} />;

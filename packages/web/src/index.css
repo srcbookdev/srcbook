@@ -29,7 +29,6 @@
     --sb-yellow-30: 33 97% 85%;
     --sb-yellow-40: 34 96% 81%;
     --sb-yellow-50: 35 95% 76%;
-    --sb-yellow-50-subtle: 35 95% 76% 0.1;
     --sb-yellow-60: 33 76% 69%;
     --sb-yellow-70: 35 31% 45%;
     --sb-yellow-80: 34 28% 32%;
@@ -38,7 +37,6 @@
     --sb-red-20: 0 100% 86%;
     --sb-red-30: 0 100% 76%;
     --sb-red-40: 0 100% 66%;
-    --sb-red-40-subtle: 0 100% 66% 0.1;
     --sb-red-50: 0 66% 53%;
     --sb-red-60: 0 66% 41%;
     --sb-red-70: 0 74% 30%;
@@ -79,10 +77,10 @@
     --inline-code-foreground: var(--foreground);
     --error: var(--sb-red-30);
     --error-foreground: var(--sb-red-80);
-    --error-background-subtle: var(--sb-red-40-subtle);
+    --error-background-subtle: hsl(var(--sb-red-40) / 0.1);
     --warning: var(--sb-yellow-20);
     --warning-foreground: var(--sb-yellow-80);
-    --warning-background-subtle: var(--sb-yellow-50-subtle);
+    --warning-background-subtle: hsl(var(--sb-yellow-50) / 0.1);
   }
 
   .dark {
@@ -100,10 +98,10 @@
     --inline-code-foreground: var(--foreground);
     --error: var(--sb-red-30);
     --error-foreground: var(--sb-red-80);
-    --error-background-subtle: var(--sb-red-40-subtle);
+    --error-background-subtle: hsl(var(--sb-red-40) / 0.1);
     --warning: var(--sb-yellow-20);
     --warning-foreground: var(--sb-yellow-80);
-    --warning-background-subtle: var(--sb-yellow-50-subtle);
+    --warning-background-subtle: hsl(var(--sb-yellow-50) / 0.1);
   }
 
   /* shadcn variables light */

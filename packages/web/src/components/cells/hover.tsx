@@ -38,7 +38,7 @@ export function tsHover(
         tooltipContainer.className = 'hidden';
 
         function callback({ response }: TsServerQuickInfoResponsePayloadType) {
-          tooltipContainer.className = 'p-2 space-y-2 max-w-3xl max-h-96 overflow-scroll';
+          tooltipContainer.className = 'p-2 space-y-2 max-w-3xl max-h-96 overflow-scroll text-xs';
           const signatureNode = formatCode(response.displayString, theme);
           tooltipContainer.appendChild(signatureNode);
 
@@ -90,7 +90,7 @@ function formatDocumentation(documentation: TsServerJSDocType): HTMLElement | nu
   }
 
   const div = document.createElement('div');
-  div.className = 'sb-prose text-tertiary-foreground';
+  div.className = 'text-xs text-secondary-foreground';
   div.innerHTML = parse(text) as string;
 
   return div;
@@ -102,7 +102,7 @@ function formatTags(tags: TsServerJsDocTagsType): HTMLElement | null {
   }
 
   const div = document.createElement('div');
-  div.className = 'sb-prose text-tertiary-foreground space-y-2';
+  div.className = 'text-xs text-secondary-foreground space-y-2';
 
   for (const tag of tags) {
     const tagDiv = document.createElement('div');

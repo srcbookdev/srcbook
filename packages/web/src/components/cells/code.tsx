@@ -868,10 +868,10 @@ function CodeEditor({
   // simplified.
   const extensions = useMemo(() => {
     const extensions: Array<Extension> = [javascript({ typescript: true })];
+    extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
     if (typeof channel !== 'undefined') {
       extensions.push(tsHover(session.id, cell, channel, theme));
     }
-    extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
     if (typeof channel !== 'undefined') {
       extensions.push(
         autocompletion({

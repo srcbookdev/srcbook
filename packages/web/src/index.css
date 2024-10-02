@@ -29,6 +29,7 @@
     --sb-yellow-30: 33 97% 85%;
     --sb-yellow-40: 34 96% 81%;
     --sb-yellow-50: 35 95% 76%;
+    --sb-yellow-50-subtle: 35 95% 76% 0.1;
     --sb-yellow-60: 33 76% 69%;
     --sb-yellow-70: 35 31% 45%;
     --sb-yellow-80: 34 28% 32%;
@@ -37,6 +38,7 @@
     --sb-red-20: 0 100% 86%;
     --sb-red-30: 0 100% 76%;
     --sb-red-40: 0 100% 66%;
+    --sb-red-40-subtle: 0 100% 66% 0.1;
     --sb-red-50: 0 66% 53%;
     --sb-red-60: 0 66% 41%;
     --sb-red-70: 0 74% 30%;
@@ -77,8 +79,10 @@
     --inline-code-foreground: var(--foreground);
     --error: var(--sb-red-30);
     --error-foreground: var(--sb-red-80);
+    --error-background-subtle: var(--sb-red-40-subtle);
     --warning: var(--sb-yellow-20);
     --warning-foreground: var(--sb-yellow-80);
+    --warning-background-subtle: var(--sb-yellow-50-subtle);
   }
 
   .dark {
@@ -96,8 +100,10 @@
     --inline-code-foreground: var(--foreground);
     --error: var(--sb-red-30);
     --error-foreground: var(--sb-red-80);
+    --error-background-subtle: var(--sb-red-40-subtle);
     --warning: var(--sb-yellow-20);
     --warning-foreground: var(--sb-yellow-80);
+    --warning-background-subtle: var(--sb-yellow-50-subtle);
   }
 
   /* shadcn variables light */
@@ -134,7 +140,7 @@
     --primary: var(--sb-core-0);
     --primary-foreground: var(--sb-core-100);
     --secondary: var(--sb-core-130);
-    --secondary-foreground: var(--sb-core-0);
+    --secondary-foreground: var(--sb-core-40);
     --muted: var(--sb-core-120);
     --muted-foreground: var(--sb-core-90);
     --accent: var(--sb-blue-60);
@@ -390,6 +396,9 @@
 .cm-editor * {
   font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
     'Liberation Mono', 'Courier New', 'monospace';
+}
+
+.cm-editor {
   font-size: 14px;
 }
 
@@ -397,16 +406,18 @@
   @apply overflow-hidden;
   @apply !bg-background;
   @apply border;
-  @apply rounded-sm;
   @apply shadow-md;
   @apply !border-border;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
 }
 
 .cm-tooltip-autocomplete {
   @apply overflow-hidden;
   @apply !bg-background;
   @apply border;
-  @apply rounded-sm;
   @apply shadow-md;
   @apply !border-border;
 }

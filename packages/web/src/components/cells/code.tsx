@@ -18,7 +18,7 @@ import { SessionChannel } from '@/clients/websocket';
 import { useCells } from '@srcbook/components/src/components/use-cell';
 import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
-import { getFileContent } from '@/lib/server';
+import { getFileContent, runCodiumAiAutocomplete } from '@/lib/server';
 import { tsHover } from '@/components/cells/hover';
 import { autocompletion } from '@codemirror/autocomplete';
 import { type Diagnostic, linter } from '@codemirror/lint';
@@ -34,6 +34,7 @@ import CodeMirror, {
 } from '@uiw/react-codemirror';
 import useTheme from '@srcbook/components/src/components/use-theme';
 import { Dialog, DialogContent } from '@srcbook/components/src/components/ui/dialog';
+import { inlineCopilot } from "codemirror-copilot";
 
 function tsLinter(
   cell: CodeCellType,
@@ -379,6 +380,28 @@ export default function ControlledCodeCell(props: Props) {
       }),
     );
   }
+  extensions.push(
+    inlineCopilot(async (prefix, suffix) => {
+      let response;
+      try {
+        response = await runCodiumAiAutocomplete(prefix+suffix, prefix.length-1);
+      } catch (err) {
+        console.error('Error fetching ai autocomplete suggestion:', err);
+        return "";
+      }
+
+      console.log('AUTOCOMPLETE RESPONSE:', response);
+      if (response.error) {
+        return "";
+      }
+
+      const completionItems = response.result.completionItems ?? [];
+      const mostLikelyCompletionScore = Math.min(...completionItems.map(item => item.completion.score));
+      const mostLikelyCompletion = completionItems.find(item => item.completion.score === mostLikelyCompletionScore);
+
+      return mostLikelyCompletion?.completionParts[0]?.text ?? "";
+    }, DEBOUNCE_DELAY),
+  );
   extensions.push(
     Prec.highest(
       EditorView.domEventHandlers({

@@ -14,6 +14,7 @@ import {
   exportSrcmdText,
 } from '../session.mjs';
 import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
+import { runCodiumAiAutocomplete } from '../ai/autocomplete/index.mjs';
 import {
   getConfig,
   updateConfig,
@@ -346,6 +347,19 @@ router.post('/feedback', cors(), async (req, res) => {
   });
 
   return res.json({ success: result.ok });
+});
+
+router.options('/ai-autocomplete', cors());
+router.post('/ai-autocomplete', cors(), async (req, res) => {
+  const { source, cursorOffset } = req.body;
+  let result;
+  try {
+    result = await runCodiumAiAutocomplete(source, cursorOffset);
+  } catch (err) {
+    console.error('Error running ai autocomplete:', err);
+    return res.json({ error: true });
+  }
+  return res.json({ error: false, result });
 });
 
 type NpmSearchResult = {

@@ -4,6 +4,7 @@ import type {
   MarkdownCellType,
   CodeCellType,
   SecretWithAssociatedSessions,
+  CodiumCompletionResult,
 } from '@srcbook/shared';
 import { SessionType, ExampleSrcbookType } from '@/types';
 import SRCBOOK_CONFIG from '@/config';
@@ -18,6 +19,20 @@ export async function getFileContent(filename: string) {
     },
     body: JSON.stringify({
       file: filename,
+    }),
+  });
+  return await file_response.json();
+}
+
+export async function runCodiumAiAutocomplete(source: string, cursorOffset: number): Promise<{error: false, result: CodiumCompletionResult} | { error: true }> {
+  const file_response = await fetch(API_BASE_URL + '/ai-autocomplete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      source,
+      cursorOffset,
     }),
   });
   return await file_response.json();

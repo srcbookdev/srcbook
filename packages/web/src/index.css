@@ -406,10 +406,6 @@
   @apply border;
   @apply shadow-md;
   @apply !border-border;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 20px; /* 142.857% */
 }
 
 .cm-tooltip-autocomplete {

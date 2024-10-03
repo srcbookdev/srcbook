@@ -864,8 +864,8 @@ function CodeEditor({
     DEBOUNCE_DELAY,
   );
 
-  // FIXME: are the order of these extensions important? If not, the below can probably be
-  // simplified.
+  // The order of these extensions is important.
+  // We want the errors to be first, so we call tsLinter before tsHover.
   const extensions = useMemo(() => {
     const extensions: Array<Extension> = [javascript({ typescript: true })];
     extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));

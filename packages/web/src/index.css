@@ -77,8 +77,10 @@
     --inline-code-foreground: var(--foreground);
     --error: var(--sb-red-30);
     --error-foreground: var(--sb-red-80);
+    --error-background-subtle: hsl(var(--sb-red-40) / 0.1);
     --warning: var(--sb-yellow-20);
     --warning-foreground: var(--sb-yellow-80);
+    --warning-background-subtle: hsl(var(--sb-yellow-50) / 0.1);
   }
 
   .dark {
@@ -96,8 +98,10 @@
     --inline-code-foreground: var(--foreground);
     --error: var(--sb-red-30);
     --error-foreground: var(--sb-red-80);
+    --error-background-subtle: hsl(var(--sb-red-40) / 0.1);
     --warning: var(--sb-yellow-20);
     --warning-foreground: var(--sb-yellow-80);
+    --warning-background-subtle: hsl(var(--sb-yellow-50) / 0.1);
   }
 
   /* shadcn variables light */
@@ -134,7 +138,7 @@
     --primary: var(--sb-core-0);
     --primary-foreground: var(--sb-core-100);
     --secondary: var(--sb-core-130);
-    --secondary-foreground: var(--sb-core-0);
+    --secondary-foreground: var(--sb-core-40);
     --muted: var(--sb-core-120);
     --muted-foreground: var(--sb-core-90);
     --accent: var(--sb-blue-60);
@@ -390,6 +394,9 @@
 .cm-editor * {
   font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
     'Liberation Mono', 'Courier New', 'monospace';
+}
+
+.cm-editor {
   font-size: 14px;
 }
 
@@ -397,7 +404,6 @@
   @apply overflow-hidden;
   @apply !bg-background;
   @apply border;
-  @apply rounded-sm;
   @apply shadow-md;
   @apply !border-border;
 }
@@ -406,7 +412,6 @@
   @apply overflow-hidden;
   @apply !bg-background;
   @apply border;
-  @apply rounded-sm;
   @apply shadow-md;
   @apply !border-border;
 }

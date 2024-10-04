@@ -9,11 +9,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import useTheme from '@/components/use-theme';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
+} from '@srcbook/components/src/components/ui/select';
+import { Input } from '@srcbook/components/src/components/ui/input';
+import useTheme from '@srcbook/components/src/components/use-theme';
+import { Switch } from '@srcbook/components/src/components/ui/switch';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import { toast } from 'sonner';
 
 function Settings() {

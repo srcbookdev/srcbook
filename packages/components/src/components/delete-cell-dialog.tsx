@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@srcbook/components/src/components/ui/button';
+import { Button } from './ui/button';
 import {
   Dialog,
   DialogTrigger,
@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@srcbook/components/src/components/ui/dialog';
+} from './ui/dialog';
 
 export default function DeleteCellWithConfirmationModal({
   onDeleteCell,

@@ -16,7 +16,7 @@ import {
   TsServerSuggestionType,
   getDefaultExtensionForLanguage,
 } from '@srcbook/shared';
-import { GenerateAICellType, OutputType } from '@/types';
+import { GenerateAICellType, OutputType } from '../types';
 
 import { randomid } from '@srcbook/shared';
 

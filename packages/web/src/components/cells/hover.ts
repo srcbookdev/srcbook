@@ -8,8 +8,8 @@ import { Extension, hoverTooltip } from '@uiw/react-codemirror';
 import { mapCMLocationToTsServer } from './util';
 import { SessionChannel } from '@/clients/websocket';
 import { parse } from 'marked';
-import { formatCode } from '@/lib/code-theme';
-import { type ThemeType } from '@/components/use-theme';
+import { formatCode } from '@srcbook/components/src/lib/code-theme';
+import { type ThemeType } from '@srcbook/components/src/components/use-theme';
 
 /** Hover extension for TS server information */
 export function tsHover(

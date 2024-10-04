@@ -5,11 +5,8 @@
     "allowImportingTsExtensions": false,
     "outDir": "dist",
     "jsx": "react-jsx",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "baseUrl": "."
   },
-  "include": ["index.tsx", "src/**/*.{ts.tsx}"],
+  "include": ["src/index.tsx", "src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

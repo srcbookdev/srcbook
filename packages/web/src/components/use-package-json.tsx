@@ -4,9 +4,10 @@ import {
   PackageJsonCellType,
   PackageJsonCellUpdateAttrsType,
 } from '@srcbook/shared';
-import { SessionType, OutputType } from '@/types';
+import { SessionType } from '@/types';
+import { OutputType } from '@srcbook/components/src/types';
 import { SessionChannel } from '@/clients/websocket';
-import { useCells } from './use-cell';
+import { useCells } from '@srcbook/components/src/components/use-cell';
 import useEffectOnce from './use-effect-once';
 
 function getValidationError(source: string) {

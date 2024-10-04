@@ -6,11 +6,10 @@ import CodeMirror, { keymap, Prec, EditorView } from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { CircleAlert, Trash2, Pencil } from 'lucide-react';
 import { CellType, MarkdownCellType, MarkdownCellUpdateAttrsType } from '@srcbook/shared';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import DeleteCellWithConfirmation from '@/components/delete-cell-dialog';
-import useTheme from '@/components/use-theme';
-import { useCells } from '../use-cell';
+import { cn } from '../../lib/utils';
+import { Button } from '../ui/button';
+import DeleteCellWithConfirmation from '../delete-cell-dialog';
+import useTheme from '../use-theme';
 
 marked.use({ gfm: true });
 
@@ -63,13 +62,13 @@ type MarkdownCellProps =
   | {
       readOnly?: false;
       cell: MarkdownCellType;
+      updateCellOnClient: (cell: MarkdownCellType) => void;
       updateCellOnServer: (cell: MarkdownCellType, attrs: MarkdownCellUpdateAttrsType) => void;
       onDeleteCell: (cell: CellType) => void;
     };
 
 export default function MarkdownCell(props: MarkdownCellProps) {
   const { codeTheme, theme } = useTheme();
-  const { updateCell: updateCellOnClient } = useCells();
   const { readOnly, cell } = props;
   const defaultState = cell.text ? 'view' : 'edit';
   const [status, setStatus] = useState<'edit' | 'view'>(defaultState);
@@ -132,7 +131,7 @@ export default function MarkdownCell(props: MarkdownCellProps) {
     setError(error);
 
     if (error === null) {
-      updateCellOnClient({ ...cell, text });
+      props.updateCellOnClient({ ...cell, text });
       props.updateCellOnServer(cell, { text });
       setStatus('view');
       return true;

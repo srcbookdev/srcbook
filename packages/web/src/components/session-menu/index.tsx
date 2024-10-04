@@ -15,9 +15,14 @@ import {
 import type { SessionType } from '@/types';
 import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
 import FeedbackDialog from '@/components/feedback-dialog';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@srcbook/components/src/components/ui/button';
+import { Sheet, SheetContent } from '@srcbook/components/src/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@srcbook/components/src/components/ui/tooltip';
 import SessionMenuPanelTableOfContents from './table-of-contents-panel';
 import SessionMenuPanelPackages from './packages-panel';
 import SessionMenuPanelSettings from './settings-panel';

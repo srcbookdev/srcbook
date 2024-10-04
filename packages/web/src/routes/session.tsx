@@ -13,15 +13,15 @@ import {
   TsServerCellSuggestionsPayloadType,
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
-import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
-import { TitleCell } from '@srcbook/components';
-import MarkdownCell from '@/components/cells/markdown';
+import type { SessionType, SettingsType } from '@/types';
+import { GenerateAICellType } from '@srcbook/components/src/types';
+import { TitleCell, MarkdownCell } from '@srcbook/components';
+import ControlledCodeCell from '@/components/cells/code';
 import GenerateAiCell from '@/components/cells/generate-ai';
-import CodeCell from '@/components/cells/code';
 import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';
-import { CellsProvider, useCells } from '@/components/use-cell';
+import { CellsProvider, useCells } from '@srcbook/components/src/components/use-cell';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
@@ -400,10 +400,10 @@ function Session(props: SessionProps) {
                 )}
 
                 {cell.type === 'code' && readOnly && (
-                  <CodeCell readOnly cell={cell} session={session} />
+                  <ControlledCodeCell readOnly cell={cell} session={session} />
                 )}
                 {cell.type === 'code' && !readOnly && (
-                  <CodeCell
+                  <ControlledCodeCell
                     cell={cell}
                     session={session}
                     channel={props.channel}
@@ -416,6 +416,7 @@ function Session(props: SessionProps) {
                 {cell.type === 'markdown' && !readOnly && (
                   <MarkdownCell
                     cell={cell}
+                    updateCellOnClient={updateCell}
                     updateCellOnServer={updateCellOnServer}
                     onDeleteCell={onDeleteCell}
                   />

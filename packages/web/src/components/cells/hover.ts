@@ -84,7 +84,7 @@ function formatDocumentation(documentation: TsServerJSDocType): HTMLElement | nu
   }
 
   const div = document.createElement('div');
-  div.className = 'text-xs text-secondary-foreground';
+  div.className = 'sb-prose-mini text-secondary-foreground';
   div.innerHTML = parse(text) as string;
 
   return div;
@@ -96,7 +96,7 @@ function formatTags(tags: TsServerJsDocTagsType): HTMLElement | null {
   }
 
   const div = document.createElement('div');
-  div.className = 'text-xs text-secondary-foreground space-y-2';
+  div.className = 'sb-prose-mini text-secondary-foreground space-y-2';
 
   for (const tag of tags) {
     const tagDiv = document.createElement('div');

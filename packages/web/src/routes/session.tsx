@@ -96,7 +96,7 @@ function SessionPage() {
 
   return (
     <CellsProvider cells={session.cells}>
-      <PackageJsonProvider session={session} channel={channel}>
+      <PackageJsonProvider channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
           {VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY ? (
             <Session readOnly session={session} srcbooks={srcbooks} config={config} />

@@ -46,7 +46,7 @@ export function TsConfigProvider({ channel, session, children }: ProviderPropsTy
         });
       }
     },
-    [session.id, setSource, channel, setValidationError],
+    [setSource, channel, setValidationError],
   );
 
   const context: TsConfigContextValue = {

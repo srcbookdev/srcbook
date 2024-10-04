@@ -16,57 +16,47 @@ export const WebSocketMessageSchema = z.tuple([
 ]);
 
 export const CellExecPayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
 });
 
 export const CellStopPayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
 });
 
 export const CellCreatePayloadSchema = z.object({
-  sessionId: z.string(),
   index: z.number(),
   cell: z.union([MarkdownCellSchema, CodeCellSchema]),
 });
 
 export const CellUpdatePayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
   updates: CellUpdateAttrsSchema,
 });
 
 export const CellFormatPayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
 });
 
 export const AiGenerateCellPayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
   prompt: z.string(),
 });
 
 export const AiFixDiagnosticsPayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
   diagnostics: z.string(),
 });
 
 export const CellRenamePayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
   filename: z.string(),
 });
 
 export const CellDeletePayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
 });
 
 export const CellErrorPayloadSchema = z.object({
-  sessionId: z.string(),
   cellId: z.string(),
   errors: z.array(
     z.object({
@@ -98,25 +88,18 @@ export const CellOutputPayloadSchema = z.object({
 });
 
 export const DepsInstallPayloadSchema = z.object({
-  sessionId: z.string(),
   packages: z.array(z.string()).optional(),
 });
 
-export const DepsValidatePayloadSchema = z.object({
-  sessionId: z.string(),
-});
+export const DepsValidatePayloadSchema = z.object({});
 
 export const DepsValidateResponsePayloadSchema = z.object({
   packages: z.array(z.string()).optional(),
 });
 
-export const TsServerStartPayloadSchema = z.object({
-  sessionId: z.string(),
-});
+export const TsServerStartPayloadSchema = z.object({});
 
-export const TsServerStopPayloadSchema = z.object({
-  sessionId: z.string(),
-});
+export const TsServerStopPayloadSchema = z.object({});
 
 export const TsServerCellDiagnosticsPayloadSchema = z.object({
   cellId: z.string(),
@@ -130,7 +113,6 @@ export const TsServerCellSuggestionsPayloadSchema = z.object({
 
 export const TsServerQuickInfoRequestPayloadSchema = z.object({
   cellId: z.string(),
-  sessionId: z.string(),
   request: TsServerQuickInfoRequestSchema,
 });
 
@@ -140,7 +122,6 @@ export const TsServerQuickInfoResponsePayloadSchema = z.object({
 
 export const TsServerDefinitionLocationRequestPayloadSchema = z.object({
   cellId: z.string(),
-  sessionId: z.string(),
   request: TsServerQuickInfoRequestSchema,
 });
 
@@ -153,7 +134,6 @@ export const TsServerCompletionEntriesPayloadSchema = z.object({
 });
 
 export const TsConfigUpdatePayloadSchema = z.object({
-  sessionId: z.string(),
   source: z.string(),
 });
 

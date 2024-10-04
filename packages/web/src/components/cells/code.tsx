@@ -124,7 +124,7 @@ type ReadOnlyProps = BaseProps & { readOnly: true };
 type Props = RegularProps | ReadOnlyProps;
 
 export default function ControlledCodeCell(props: Props) {
-  const { readOnly, session, cell } = props;
+  const { readOnly, cell } = props;
   const channel = !readOnly ? props.channel : null;
 
   const { theme, codeTheme } = useTheme();
@@ -227,7 +227,6 @@ export default function ControlledCodeCell(props: Props) {
 
     updateCellOnClient({ ...cell, filename });
     channel.push('cell:rename', {
-      sessionId: session.id,
       cellId: cell.id,
       filename,
     });
@@ -255,7 +254,6 @@ export default function ControlledCodeCell(props: Props) {
 
     setGenerationType('edit');
     channel.push('ai:generate', {
-      sessionId: session.id,
       cellId: cell.id,
       prompt,
     });
@@ -269,7 +267,6 @@ export default function ControlledCodeCell(props: Props) {
     setCellMode('fixing');
     setGenerationType('fix');
     channel.push('ai:fix_diagnostics', {
-      sessionId: session.id,
       cellId: cell.id,
       diagnostics,
     });
@@ -293,7 +290,6 @@ export default function ControlledCodeCell(props: Props) {
     // TODO: Handle this in a more robust way
     setTimeout(() => {
       channel.push('cell:exec', {
-        sessionId: session.id,
         cellId: cell.id,
       });
     }, DEBOUNCE_DELAY + 10);
@@ -303,7 +299,7 @@ export default function ControlledCodeCell(props: Props) {
     if (!channel) {
       return;
     }
-    channel.push('cell:stop', { sessionId: session.id, cellId: cell.id });
+    channel.push('cell:stop', { cellId: cell.id });
   }
 
   function onRevertDiff() {
@@ -327,7 +323,6 @@ export default function ControlledCodeCell(props: Props) {
     }
     setCellMode('formatting');
     channel.push('cell:format', {
-      sessionId: session.id,
       cellId: cell.id,
     });
   }
@@ -364,7 +359,6 @@ export default function ControlledCodeCell(props: Props) {
 
       channel.on('tsserver:cell:definition_location:response', gotoDefCallback);
       channel.push('tsserver:cell:definition_location:request', {
-        sessionId: session.id,
         cellId: cell.id,
         request: { location: mapCMLocationToTsServer(cell.source, pos) },
       });
@@ -375,13 +369,13 @@ export default function ControlledCodeCell(props: Props) {
   // We want the errors to be first, so we call tsLinter before tsHover.
   const extensions: Array<Extension> = [javascript({ typescript: true })];
   if (channel) {
-    extensions.push(tsHover(session.id, cell, channel, theme));
+    extensions.push(tsHover(cell, channel, theme));
   }
   extensions.push(tsLinter(cell, getTsServerDiagnostics, getTsServerSuggestions));
   if (channel) {
     extensions.push(
       autocompletion({
-        override: [(context) => getCompletions(context, session.id, cell, channel)],
+        override: [(context) => getCompletions(context, cell, channel)],
       }),
     );
   }

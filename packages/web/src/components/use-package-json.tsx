@@ -4,7 +4,6 @@ import {
   PackageJsonCellType,
   PackageJsonCellUpdateAttrsType,
 } from '@srcbook/shared';
-import { SessionType } from '@/types';
 import { OutputType } from '@srcbook/components/src/types';
 import { SessionChannel } from '@/clients/websocket';
 import { useCells } from '@srcbook/components/src/components/use-cell';
@@ -34,7 +33,6 @@ export interface PackageJsonContextValue {
 const PackageJsonContext = createContext<PackageJsonContextValue | undefined>(undefined);
 
 type ProviderPropsType = {
-  session: SessionType;
   channel: SessionChannel;
   children: React.ReactNode;
 };
@@ -48,7 +46,7 @@ type ProviderPropsType = {
  * 2. Decouple the rest of the code from treating package.json
  *    as a cell since we want to move away from that.
  */
-export function PackageJsonProvider({ channel, session, children }: ProviderPropsType) {
+export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
   const { cells, updateCell: updateCellOnClient, getOutput, clearOutput } = useCells();
 
   const cell = cells.find((cell) => cell.type === 'package.json') as PackageJsonCellType;
@@ -68,7 +66,7 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffectOnce(() => {
-    channel.push('deps:validate', { sessionId: session.id });
+    channel.push('deps:validate', {});
   });
 
   const npmInstall = useCallback(
@@ -79,10 +77,10 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
         updateCellOnClient({ ...cell, status: 'running' });
         clearOutput(cell.id);
         setOutdated(false);
-        channel.push('deps:install', { sessionId: session.id, packages });
+        channel.push('deps:install', { packages });
       }
     },
-    [cell, channel, session.id, updateCellOnClient, clearOutput],
+    [cell, channel, updateCellOnClient, clearOutput],
   );
 
   useEffect(() => {
@@ -97,7 +95,6 @@ export function PackageJsonProvider({ channel, session, children }: ProviderProp
 
   function updateCellOnServer(updates: PackageJsonCellUpdateAttrsType) {
     channel.push('cell:update', {
-      sessionId: session.id,
       cellId: cell.id,
       updates,
     });

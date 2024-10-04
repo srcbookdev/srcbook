@@ -74,7 +74,7 @@ function SessionPage() {
       oldChannel.unsubscribe();
 
       if (connectedSessionLanguageRef.current === 'typescript') {
-        oldChannel.push('tsserver:stop', { sessionId: session.id });
+        oldChannel.push('tsserver:stop', {});
       }
     }
 
@@ -88,7 +88,7 @@ function SessionPage() {
     channel.subscribe();
 
     if (session.language === 'typescript') {
-      channel.push('tsserver:start', { sessionId: session.id });
+      channel.push('tsserver:start', {});
     }
 
     forceComponentRerender();
@@ -96,7 +96,7 @@ function SessionPage() {
 
   return (
     <CellsProvider cells={session.cells}>
-      <PackageJsonProvider session={session} channel={channel}>
+      <PackageJsonProvider channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
           {VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY ? (
             <Session readOnly session={session} srcbooks={srcbooks} config={config} />
@@ -170,7 +170,6 @@ function Session(props: SessionProps) {
     removeCell(cell);
 
     channel.push('cell:delete', {
-      sessionId: session.id,
       cellId: cell.id,
     });
   }
@@ -232,7 +231,6 @@ function Session(props: SessionProps) {
       return;
     }
     channel.push('cell:update', {
-      sessionId: session.id,
       cellId: cell.id,
       updates,
     });
@@ -250,11 +248,11 @@ function Session(props: SessionProps) {
     switch (type) {
       case 'code':
         cell = createCodeCell(index, session.language);
-        channel.push('cell:create', { sessionId: session.id, index, cell });
+        channel.push('cell:create', { index, cell });
         break;
       case 'markdown':
         cell = createMarkdownCell(index);
-        channel.push('cell:create', { sessionId: session.id, index, cell });
+        channel.push('cell:create', { index, cell });
         break;
       case 'generate-ai':
         cell = createGenerateAiCell(index);
@@ -280,7 +278,7 @@ function Session(props: SessionProps) {
           newCell = createMarkdownCell(insertIdx, cell);
           break;
       }
-      channel.push('cell:create', { sessionId: session.id, index: insertIdx, cell: newCell });
+      channel.push('cell:create', { index: insertIdx, cell: newCell });
     }
   }
 

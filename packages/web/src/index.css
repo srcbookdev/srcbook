@@ -197,6 +197,14 @@
     @apply bg-muted;
     @apply text-inline-code-foreground;
   }
+
+  .code-mini {
+    @apply text-xs;
+    @apply rounded-sm;
+    @apply px-0.5;
+    @apply bg-muted;
+    @apply text-inline-code-foreground;
+  }
 }
 
 @layer base {
@@ -343,6 +351,144 @@
 
 .sb-prose img {
   border-radius: 3px;
+}
+
+.sb-prose-mini {
+  @apply font-sans;
+  @apply text-xs;
+  @apply leading-3;
+}
+
+.sb-prose-mini > *:first-child {
+  margin-top: 0;
+}
+
+.sb-prose-mini > *:last-child {
+  margin-bottom: 0;
+}
+
+.sb-prose-mini p {
+  @apply my-1;
+}
+
+.sb-prose-mini a {
+  font-weight: bold;
+  @apply underline;
+  @apply decoration-1;
+  @apply underline-offset-1;
+}
+
+.sb-prose-mini a:hover {
+  @apply text-primary-hover;
+}
+
+.sb-prose-mini blockquote {
+  @apply font-semibold;
+  @apply my-3;
+  @apply italic;
+  @apply text-tertiary-foreground;
+  @apply ps-2;
+  @apply border-s-2;
+  @apply border-s-border;
+  quotes: '\201C' '\201D' '\2018' '\2019';
+}
+
+.sb-prose-mini blockquote p:first-of-type::before {
+  content: open-quote;
+}
+
+.sb-prose-mini blockquote p:last-of-type::after {
+  content: close-quote;
+}
+
+.sb-prose-mini pre {
+  @apply text-xs;
+  @apply overflow-x-auto;
+  @apply bg-muted;
+  @apply text-foreground;
+  @apply p-2;
+  @apply rounded-sm;
+  @apply border;
+  @apply border-border;
+}
+
+.sb-prose-mini code:not(pre code) {
+  @apply code-mini;
+}
+
+.sb-prose-mini h1 > code,
+.sb-prose-mini h2 > code,
+.sb-prose-mini h3 > code,
+.sb-prose-mini h4 > code,
+.sb-prose-mini h5 > code {
+  @apply font-mono;
+  /* No way to avoid !important given specificity priority and the fact that we don't generate the HTML */
+  font-size: 80% !important;
+  @apply px-1.5 !important;
+  @apply font-normal;
+}
+
+.sb-prose-mini h1 {
+  @apply text-xl;
+  @apply my-2;
+}
+
+.sb-prose-mini h2 {
+  @apply text-lg;
+  @apply my-2;
+}
+
+.sb-prose-mini h3 {
+  @apply text-lg;
+  @apply my-2;
+}
+
+.sb-prose-mini h4 {
+  @apply text-sm;
+  @apply my-1;
+}
+
+.sb-prose-mini h5 {
+  @apply text-sm;
+  @apply my-1;
+}
+
+.sb-prose-mini hr {
+  @apply my-2;
+}
+
+.sb-prose-mini ol {
+  @apply list-decimal;
+  @apply ps-2;
+  margin: 1.15em 0;
+}
+
+.sb-prose-mini ol > li:marker {
+  @apply font-normal;
+}
+
+.sb-prose-mini ul {
+  @apply list-disc;
+  @apply ps-2;
+  margin: 0.75em 0;
+}
+
+.sb-prose-mini li {
+  margin: 3px 0;
+}
+
+.sb-prose-mini ol > li {
+  @apply ps-1.5;
+  @apply my-1;
+}
+
+.sb-prose-mini ul > li {
+  @apply ps-1.5;
+  @apply my-1;
+}
+
+.sb-prose-mini img {
+  border-radius: 1.5px;
 }
 
 .cm-editor {

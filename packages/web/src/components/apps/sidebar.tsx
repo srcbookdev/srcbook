@@ -1,8 +1,13 @@
 import { useState } from 'react';
 
 import { BotMessageSquare, FilesIcon, FlagIcon, KeyboardIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@srcbook/components/src/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@srcbook/components/src/components/ui/tooltip';
 import KeyboardShortcutsDialog from '../keyboard-shortcuts-dialog';
 import FeedbackDialog from '../feedback-dialog';
 import { cn } from '@/lib/utils';

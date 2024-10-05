@@ -6,8 +6,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from '@srcbook/components/src/components/ui/dialog';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import { AppType } from '@srcbook/shared';
 
 type PropsType = {

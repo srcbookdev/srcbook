@@ -1,9 +1,10 @@
 import { CodeLanguageType, randomid, type AppType } from '@srcbook/shared';
 import { db } from '../db/index.mjs';
 import { type App as DBAppType, apps as appsTable } from '../db/schema.mjs';
-import { createViteApp, deleteViteApp } from './disk.mjs';
+import { createViteApp, deleteViteApp, pathToApp } from './disk.mjs';
 import { CreateAppSchemaType } from './schemas.mjs';
 import { asc, desc, eq } from 'drizzle-orm';
+import { npmInstall } from '../exec.mjs';
 
 function toSecondsSinceEpoch(date: Date): number {
   return Math.floor(date.getTime() / 1000);
@@ -33,7 +34,25 @@ export async function createApp(data: CreateAppSchemaType): Promise<DBAppType> {
     externalId: randomid(),
   });
 
-  return createViteApp(app);
+  await createViteApp(app);
+
+  // TODO: handle this better.
+  // This should be done somewhere else and surface issues or retries.
+  // Not awaiting here because it's "happening in the background".
+  npmInstall({
+    cwd: pathToApp(app.externalId),
+    stdout(data) {
+      console.log(data.toString('utf8'));
+    },
+    stderr(data) {
+      console.error(data.toString('utf8'));
+    },
+    onExit(code) {
+      console.log(`npm install exit code: ${code}`);
+    },
+  });
+
+  return app;
 }
 
 export async function deleteApp(id: string) {

@@ -5,7 +5,7 @@ import { json } from '@codemirror/lang-json';
 import { javascript } from '@codemirror/lang-javascript';
 import { markdown } from '@codemirror/lang-markdown';
 import { cn } from '@/lib/utils';
-import useTheme from '@/components/use-theme';
+import useTheme from '@srcbook/components/src/components/use-theme';
 import { useFiles } from '../use-files';
 import { FileType } from '@srcbook/shared';
 

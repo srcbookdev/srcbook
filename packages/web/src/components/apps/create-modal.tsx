@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Input } from '@srcbook/components/src/components/ui/input';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,12 +9,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@srcbook/components/src/components/ui/dialog';
+
 import { HelpCircle, Sparkles } from 'lucide-react';
 import { CodeLanguageType } from '@srcbook/shared';
 import { JavaScriptLogo, TypeScriptLogo } from '../logos';
-import { Textarea } from '@/components/ui/textarea';
-import { TooltipContent, TooltipProvider, TooltipTrigger, Tooltip } from '@/components/ui/tooltip';
+import { Textarea } from '@srcbook/components/src/components/ui/textarea';
+import {
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  Tooltip,
+} from '@srcbook/components/src/components/ui/tooltip';
 
 type PropsType = {
   onClose: () => void;

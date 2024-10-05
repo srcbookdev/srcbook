@@ -4,21 +4,25 @@ import {
   ChevronDownIcon,
   ShareIcon,
   Trash2Icon,
-  Play,
   StopCircle,
   PlayCircle,
 } from 'lucide-react';
 import type { AppType, CodeLanguageType } from '@srcbook/shared';
 
 import { SrcbookLogo } from '@/components/logos';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+} from '@srcbook/components/src/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@srcbook/components/src/components/ui/tooltip';
 import DeleteAppModal from '../delete-app-dialog';
 import { useState } from 'react';
 import CreateAppModal from './create-modal';

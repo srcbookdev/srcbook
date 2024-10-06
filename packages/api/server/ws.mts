@@ -318,11 +318,18 @@ async function cellStop(payload: CellStopPayloadType, context: SessionsContextTy
     },
   });
 
-  const killed = processes.kill(session.id, cell.id);
-
-  if (!killed) {
+  try {
+    const killed = processes.kill(session.id, cell.id);
+    if (!killed) {
+      console.warn(
+        `Process for session ${session.id} and cell ${cell.id} could not be killed. It may have already finished executing.`,
+      );
+    }
+  } catch (e) {
+    const error = e as unknown as Error;
     console.error(
-      `Attempted to kill process for session ${session.id} and cell ${cell.id} but it didn't die`,
+      `Error occurred while trying to kill process for session ${session.id} and cell ${cell.id}:`,
+      error instanceof Error ? error.message : String(error),
     );
   }
 }

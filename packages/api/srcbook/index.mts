@@ -12,9 +12,20 @@ import { toFormattedJSON } from '../utils.mjs';
 import { readdir } from '../fs-utils.mjs';
 import { SRCBOOKS_DIR } from '../constants.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
-import { pathToCodeFile, pathToPackageJson, pathToReadme, pathToTsconfigJson } from './path.mjs';
-import { buildJSPackageJson, buildTSPackageJson, buildTsconfigJson } from './config.mjs';
+import {
+  pathToCodeFile,
+  pathToPackageJson,
+  pathToReadme,
+  pathToSrcbook,
+  pathToTsconfigJson,
+} from './path.mjs';
+import {
+  buildJSPackageJson,
+  buildTSPackageJson,
+  buildTsconfigJson,
+} from './config.mjs';
 import type { SessionType } from '../types.mjs';
+import { getSecretsAssociatedWithSession } from '../config.mjs';
 
 function writeCellOnlyToDisk(srcbookDir: string, cell: PackageJsonCellType | CodeCellType) {
   const path =
@@ -203,6 +214,10 @@ async function createSrcbookDir(basename: string = randomid()) {
   const srcPath = Path.join(srcbookDirectoryPath, 'src');
   await fs.mkdir(srcPath);
 
+  const envTypeDeclarationPath = Path.join(srcPath, 'env.d.ts');
+  const envTypeDeclarationFileContent = generateEnvTypesFile({})
+  await fs.writeFile(envTypeDeclarationPath, envTypeDeclarationFileContent);
+
   return srcbookDirectoryPath;
 }
 
@@ -217,3 +232,34 @@ export function removeSrcbook(srcbookDir: string) {
 export function removeCodeCellFromDisk(srcbookDir: string, filename: string) {
   return fs.rm(pathToCodeFile(srcbookDir, filename));
 }
+
+export async function updateSessionEnvTypeDeclarations(sessionId: string) {
+  const sessionSecrets = await getSecretsAssociatedWithSession(sessionId);
+  if (!Object.entries(sessionSecrets).length) return;
+  const envTypeDeclarationFileContent = generateEnvTypesFile(sessionSecrets);
+  const srcbookDir = pathToSrcbook(sessionId);
+  const envDtsPath = Path.join(srcbookDir, 'src', 'env.d.ts');
+  await fs.writeFile(envDtsPath, envTypeDeclarationFileContent);
+}
+
+export function generateEnvTypesFile(secrets: Record<string, string>) {
+  const envTypes = Object.entries(secrets).length
+    ? Object.keys(secrets)
+        .map((key) => `readonly ${key}: string;`)
+        .join('\n')
+    : '';
+
+  return `
+  declare namespace NodeJS {
+  interface ProcessEnv {
+    ${envTypes}
+  }
+}
+
+declare var process: {
+  env: NodeJS.ProcessEnv;
+};
+
+  `;
+}
+

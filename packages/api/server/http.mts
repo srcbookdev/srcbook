@@ -29,6 +29,7 @@ import {
   importSrcbookFromSrcmdFile,
   importSrcbookFromSrcmdText,
   importSrcbookFromSrcmdUrl,
+  updateSessionEnvTypeDeclarations,
 } from '../srcbook/index.mjs';
 import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
@@ -264,12 +265,14 @@ router.options('/sessions/:id/secrets/:name', cors());
 router.put('/sessions/:id/secrets/:name', cors(), async (req, res) => {
   const { id, name } = req.params;
   await associateSecretWithSession(name, id);
+  await updateSessionEnvTypeDeclarations(id)
   return res.status(204).end();
 });
 
 router.delete('/sessions/:id/secrets/:name', cors(), async (req, res) => {
   const { id, name } = req.params;
   await disassociateSecretWithSession(name, id);
+  await updateSessionEnvTypeDeclarations(id)
   return res.status(204).end();
 });
 

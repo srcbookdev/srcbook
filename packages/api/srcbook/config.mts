@@ -32,14 +32,18 @@ export function buildTSPackageJson() {
 export function buildTsconfigJson() {
   return {
     compilerOptions: {
+      types: [],
+      strict: true,
       module: 'nodenext',
       moduleResolution: 'nodenext',
       target: 'es2022',
       resolveJsonModule: true,
       noEmit: true,
       allowImportingTsExtensions: true,
+      noPropertyAccessFromIndexSignature: true,
     },
-    include: ['src/**/*'],
+    include: ['src/**/*', 'src/env.d.ts'],
     exclude: ['node_modules'],
   };
 }
+

@@ -46,4 +46,3 @@ export function buildTsconfigJson() {
     exclude: ['node_modules'],
   };
 }
-

@@ -19,11 +19,7 @@ import {
   pathToSrcbook,
   pathToTsconfigJson,
 } from './path.mjs';
-import {
-  buildJSPackageJson,
-  buildTSPackageJson,
-  buildTsconfigJson,
-} from './config.mjs';
+import { buildJSPackageJson, buildTSPackageJson, buildTsconfigJson } from './config.mjs';
 import type { SessionType } from '../types.mjs';
 import { getSecretsAssociatedWithSession } from '../config.mjs';
 
@@ -215,7 +211,7 @@ async function createSrcbookDir(basename: string = randomid()) {
   await fs.mkdir(srcPath);
 
   const envTypeDeclarationPath = Path.join(srcPath, 'env.d.ts');
-  const envTypeDeclarationFileContent = generateEnvTypesFile({})
+  const envTypeDeclarationFileContent = generateEnvTypesFile({});
   await fs.writeFile(envTypeDeclarationPath, envTypeDeclarationFileContent);
 
   return srcbookDirectoryPath;
@@ -262,4 +258,3 @@ declare var process: {
 
   `;
 }
-

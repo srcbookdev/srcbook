@@ -133,4 +133,3 @@ export async function disassociateSecretWithSession(secretName: string, sessionI
     )
     .returning();
 }
-

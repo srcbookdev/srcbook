@@ -1,5 +1,14 @@
 # @srcbook/api
 
+## 0.0.8
+
+### Patch Changes
+
+- 24c841e: Update websocket client to pass context and connection
+- a063c46: Fix uncaught exceptions in TsServer event handlers after srcbook deletion
+- Updated dependencies [24c841e]
+  - @srcbook/shared@0.0.8
+
 ## 0.0.7
 
 ### Patch Changes

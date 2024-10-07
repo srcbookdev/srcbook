@@ -1,5 +1,11 @@
 # @srcbook/shared
 
+## 0.0.8
+
+### Patch Changes
+
+- 24c841e: Update websocket client to pass context and connection
+
 ## 0.0.7
 
 ### Patch Changes

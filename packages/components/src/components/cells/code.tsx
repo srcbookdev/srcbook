@@ -29,7 +29,7 @@ import { Button } from '../ui/button.js';
 import { Input } from '../ui/input.js';
 import DeleteCellWithConfirmation from '../delete-cell-dialog';
 import { CellOutput } from '../cell-output.js';
-import useTheme from '../use-theme';
+import useTheme from '../use-theme.js';
 import { useDebouncedCallback } from 'use-debounce';
 import { EditorView } from 'codemirror';
 import { EditorState, Extension } from '@codemirror/state';

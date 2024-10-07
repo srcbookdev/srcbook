@@ -6,10 +6,10 @@ import CodeMirror, { keymap, Prec, EditorView } from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { CircleAlert, Trash2, Pencil } from 'lucide-react';
 import { CellType, MarkdownCellType, MarkdownCellUpdateAttrsType } from '@srcbook/shared';
-import { cn } from '../../lib/utils';
-import { Button } from '../ui/button';
-import DeleteCellWithConfirmation from '../delete-cell-dialog';
-import useTheme from '../use-theme';
+import { cn } from '../../lib/utils.js';
+import { Button } from '../ui/button.js';
+import DeleteCellWithConfirmation from '../delete-cell-dialog.js';
+import useTheme from '../use-theme.js';
 
 marked.use({ gfm: true });
 

@@ -1,5 +1,5 @@
 import { TitleCellType, TitleCellUpdateAttrsType } from '@srcbook/shared';
-import { EditableH1 } from '../ui/heading';
+import { EditableH1 } from '../ui/heading.js';
 
 type BaseProps = {
   cell: TitleCellType;

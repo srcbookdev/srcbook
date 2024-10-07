@@ -1,13 +1,13 @@
 /* eslint-disable jsx-a11y/tabindex-no-positive -- this should be fixed and reworked or minimize excessive positibe tabindex */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dialog, DialogContent } from '../ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import Shortcut from '../keyboard-shortcut';
+import { Dialog, DialogContent } from '../ui/dialog.js';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip.js';
+import Shortcut from '../keyboard-shortcut.js';
 import { useNavigate } from 'react-router-dom';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable.js';
 import {
   Info,
   Play,
@@ -21,22 +21,22 @@ import {
   CopyIcon,
 } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
-import AiGenerateTipsDialog from '../ai-generate-tips-dialog';
+import AiGenerateTipsDialog from '../ai-generate-tips-dialog.js';
 import { CellType, CodeCellType, CodeCellUpdateAttrsType } from '@srcbook/shared';
-import { cn } from '../../lib/utils';
+import { cn } from '../../lib/utils.js';
 import { CellModeType, SessionType } from '../../types';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '../ui/button.js';
+import { Input } from '../ui/input.js';
 import DeleteCellWithConfirmation from '../delete-cell-dialog';
-import { CellOutput } from '../cell-output';
+import { CellOutput } from '../cell-output.js';
 import useTheme from '../use-theme';
 import { useDebouncedCallback } from 'use-debounce';
 import { EditorView } from 'codemirror';
 import { EditorState, Extension } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
 import { toast } from 'sonner';
-import { PrettierLogo } from '../logos';
-import { useCells } from '../use-cell';
+import { PrettierLogo } from '../logos.js';
+import { useCells } from '../use-cell.js';
 
 const DEBOUNCE_DELAY = 500;
 

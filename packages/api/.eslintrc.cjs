@@ -10,4 +10,5 @@ module.exports = {
   globals: {
     Bun: false,
   },
+  ignorePatterns: ['apps/templates/**/*'],
 };

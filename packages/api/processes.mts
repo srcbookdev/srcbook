@@ -1,6 +1,6 @@
 import { ChildProcess } from 'node:child_process';
 
-class Processes {
+export class Processes {
   private processes: Record<string, ChildProcess> = {};
 
   add(sessionId: string, cellId: string, process: ChildProcess) {

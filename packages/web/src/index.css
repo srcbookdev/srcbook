@@ -503,6 +503,7 @@
 
 .cm-editor .cm-gutters {
   @apply rounded-bl;
+  @apply bg-background;
 }
 
 .cm-editor .cm-gutters .cm-gutterElement {

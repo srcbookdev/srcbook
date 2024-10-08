@@ -1,5 +1,13 @@
 # @srcbook/components
 
+## 0.0.3
+
+### Patch Changes
+
+- 459b18d: Deploy all packages
+- Updated dependencies [459b18d]
+  - @srcbook/shared@0.0.9
+
 ## 0.0.2
 
 ### Patch Changes

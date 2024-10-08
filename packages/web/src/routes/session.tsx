@@ -310,23 +310,8 @@ function Session(props: SessionProps) {
       });
       result = () => toast.dismiss(toastId);
     } else if (outdatedDependencies) {
-      toast.warning('Packages need to be installed', {
-        duration: 10000,
-        action: {
-          label: 'Install',
-          onClick: () => {
-            // If outdatedDependencies is an array, it usually menas those packages are not present
-            // inside of package.json yet. Thus we must specifically install them by name so they are
-            // installed and added to package.json. Otherwise, we just need to install what is already
-            // listed inside of package.json.
-            if (Array.isArray(outdatedDependencies)) {
-              npmInstall(outdatedDependencies);
-            } else {
-              npmInstall();
-            }
-          },
-        },
-      });
+      // Discard all the other possibilities and just install npm
+      npmInstall();
     }
 
     return result;

@@ -7,10 +7,6 @@ import { toValidPackageName } from './utils.mjs';
 import { Dirent } from 'node:fs';
 import { FileType } from '@srcbook/shared';
 
-const FILES_TO_RENAME: Record<string, string | undefined> = {
-  _gitignore: '.gitignore',
-};
-
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
 }
@@ -39,7 +35,7 @@ async function scaffold(app: DBAppType, destDir: string) {
   const template = `react-${app.language}`;
 
   function write(file: string, content?: string) {
-    const targetPath = Path.join(destDir, FILES_TO_RENAME[file] ?? file);
+    const targetPath = Path.join(destDir, file);
     return content === undefined
       ? copy(Path.join(templateDir, file), targetPath)
       : fs.writeFile(targetPath, content, 'utf-8');
@@ -100,7 +96,7 @@ export async function getProjectFiles(app: DBAppType) {
   const projectDir = Path.join(APPS_DIR, app.externalId);
 
   const { files, directories } = await getDiskEntries(projectDir, {
-    exclude: ['node_modules', 'dist', '.git'],
+    exclude: ['node_modules', 'dist'],
   });
 
   const nestedFiles = await Promise.all(

@@ -63,6 +63,7 @@ import WebSocketServer, { MessageContextType } from './ws-client.mjs';
 import { filenameFromPath, pathToCodeFile } from '../srcbook/path.mjs';
 import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
+import { register as registerAppChannel } from './channels/app.mjs';
 
 type SessionsContextType = MessageContextType<'sessionId'>;
 
@@ -889,5 +890,7 @@ wss
     TsServerDefinitionLocationRequestPayloadSchema,
     getCompletions,
   );
+
+registerAppChannel(wss);
 
 export default wss;

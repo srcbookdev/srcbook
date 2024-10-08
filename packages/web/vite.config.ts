@@ -13,7 +13,7 @@ export default defineConfig({
       configureServer(server) {
         const watcher = chokidar.watch('../api', {
           persistent: true,
-          ignored:  (file, _stats) => (_stats?.isFile() && !file.endsWith('.mts'))!,
+          ignored: (file, stats) => !!stats?.isFile() && !file.endsWith('.mts'),
         });
         watcher.on('change', () => {
           server.ws.send({

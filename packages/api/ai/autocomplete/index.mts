@@ -8,7 +8,11 @@ import { type CodiumCompletionResult } from "@srcbook/shared";
 const EDITOR_API_KEY = 'd49954eb-cfba-4992-980f-d8fb37f0e942';
 const LANGUAGE_SERVER_PROTO_FILE_PATH = path.join(__dirname, "language_server.proto");
 
-export async function runCodiumAiAutocomplete(source: string, cursorOffset: number): Promise<CodiumCompletionResult> {
+export async function runCodiumAiAutocomplete(
+  apiKey: string | null,
+  source: string,
+  cursorOffset: number,
+): Promise<CodiumCompletionResult> {
   const protos = await protobuf.load(LANGUAGE_SERVER_PROTO_FILE_PATH)
   const GetCompletionsRequest = protos.lookupType("GetCompletionsRequest");
   const Metadata = protos.lookupType("Metadata");
@@ -18,13 +22,14 @@ export async function runCodiumAiAutocomplete(source: string, cursorOffset: numb
   const GetCompletionsResponse = protos.lookupType("GetCompletionsResponse");
 
   const sessionId = `react-editor-${crypto.randomUUID()}`;
+  const apiKey = apiKey ?? EDITOR_API_KEY;
 
   const payload = {
     otherDocuments: [],
     metadata: Metadata.create({
       ideName: 'web',
       extensionVersion: '1.0.12',
-      apiKey: 'd49954eb-cfba-4992-980f-d8fb37f0e942',
+      apiKey,
       ideVersion: 'unknown',
       extensionName: '@codeium/react-code-editor',
       sessionId,
@@ -56,7 +61,7 @@ export async function runCodiumAiAutocomplete(source: string, cursorOffset: numb
     headers: {
       'Connect-Protocol-Version': '1',
       'Content-Type': 'application/proto',
-      Authorization: `Basic ${EDITOR_API_KEY}-${sessionId}`,
+      Authorization: `Basic ${apiKey}-${sessionId}`,
     },
   });
   // console.log('RESPONSE:', response.status);

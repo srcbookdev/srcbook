@@ -5,6 +5,7 @@ import './index.css';
 import Layout, { loader as configLoader } from './Layout';
 import LayoutNavbar from './LayoutNavbar';
 import Home, { loader as homeLoader } from './routes/home';
+import Apps from './routes/apps';
 import Session from './routes/session';
 import Settings from './routes/settings';
 import Secrets from './routes/secrets';
@@ -40,6 +41,12 @@ const router = createBrowserRouter([
         path: '/srcbooks/:id',
         loader: Session.loader,
         element: <Session />,
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: '/apps/:id',
+        loader: Apps.loader,
+        element: <Apps />,
         errorElement: <ErrorPage />,
       },
       {

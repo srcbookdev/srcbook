@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Ban, Maximize, Minimize, PanelBottomClose, PanelBottomOpen, Sparkles } from 'lucide-react';
 import { CodeCellType, PackageJsonCellType, TsServerDiagnosticType } from '@srcbook/shared';
-import { cn } from '../lib/utils';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/underline-flat-tabs';
-import { useCells } from './use-cell';
+import { cn } from '../lib/utils.js';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/underline-flat-tabs.js';
+import { useCells } from './use-cell.js';
 import { OutputType, StdoutOutputType, StderrOutputType, CellModeType } from '../types';
-import { Button } from './ui/button';
+import { Button } from './ui/button.js';
 
 type Props = {
   cell: CodeCellType | PackageJsonCellType;

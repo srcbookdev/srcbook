@@ -18,6 +18,10 @@ export type NPMInstallRequestType = BaseExecRequestType & {
   args?: Array<string>;
 };
 
+type NpxRequestType = BaseExecRequestType & {
+  args: Array<string>;
+};
+
 type SpawnCallRequestType = {
   cwd: string;
   env: NodeJS.ProcessEnv;
@@ -144,6 +148,17 @@ export function npmInstall(options: NPMInstallRequestType) {
     stdout,
     stderr,
     onExit,
+    env: process.env,
+  });
+}
+
+/**
+ * Run vite.
+ */
+export function vite(options: NpxRequestType) {
+  return spawnCall({
+    ...options,
+    command: Path.join(options.cwd, 'node_modules', '.bin', 'vite'),
     env: process.env,
   });
 }

@@ -1,5 +1,24 @@
 # @srcbook/web
 
+## 0.0.9
+
+### Patch Changes
+
+- 459b18d: Deploy all packages
+- Updated dependencies [459b18d]
+  - @srcbook/components@0.0.3
+  - @srcbook/shared@0.0.9
+
+## 0.0.8
+
+### Patch Changes
+
+- 24c841e: Update websocket client to pass context and connection
+- 1a80ba8: Improve styling of typescript hover box
+- Updated dependencies [24c841e]
+  - @srcbook/components@0.0.2
+  - @srcbook/shared@0.0.8
+
 ## 0.0.7
 
 ### Patch Changes

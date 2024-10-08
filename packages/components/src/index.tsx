@@ -1,31 +1,31 @@
-import TitleCell from './components/cells/title';
-import MarkdownCell from './components/cells/markdown';
-import CodeCell from './components/cells/code';
+import TitleCell from './components/cells/title.js';
+import MarkdownCell from './components/cells/markdown.js';
+import CodeCell from './components/cells/code.js';
 export { TitleCell, MarkdownCell, CodeCell };
 
-export * from './components/ui/button';
-export * from './components/ui/card';
-export * from './components/ui/collapsible';
-export * from './components/ui/command';
-export * from './components/ui/dialog';
+export * from './components/ui/button.js';
+export * from './components/ui/card.js';
+export * from './components/ui/collapsible.js';
+export * from './components/ui/command.js';
+export * from './components/ui/dialog.js';
 export * from './components/ui/dropdown-menu';
-export * from './components/ui/heading';
-export * from './components/ui/input';
-export * from './components/ui/navigation-menu';
-export * from './components/ui/popover';
-export * from './components/ui/resizable';
-export * from './components/ui/select';
-export * from './components/ui/sheet';
-export * from './components/ui/sonner';
-export * from './components/ui/switch';
-export * from './components/ui/tabs';
-export * from './components/ui/textarea';
-export * from './components/ui/tooltip';
+export * from './components/ui/heading.js';
+export * from './components/ui/input.js';
+export * from './components/ui/navigation-menu.js';
+export * from './components/ui/popover.js';
+export * from './components/ui/resizable.js';
+export * from './components/ui/select.js';
+export * from './components/ui/sheet.js';
+export * from './components/ui/sonner.js';
+export * from './components/ui/switch.js';
+export * from './components/ui/tabs.js';
+export * from './components/ui/textarea.js';
+export * from './components/ui/tooltip.js';
 export {
   Tabs as UnderlineTabs,
   TabsList as UnderlingTabsList,
   TabsTrigger as UnderlineTabsTrigger,
   TabsContent as UnderlineTabsContent,
-} from './components/ui/underline-flat-tabs';
+} from './components/ui/underline-flat-tabs.js';
 
-export * from './lib/utils';
+export * from './lib/utils.js';

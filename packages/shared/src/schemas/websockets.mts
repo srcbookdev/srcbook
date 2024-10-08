@@ -7,6 +7,7 @@ import {
   TsServerQuickInfoResponseSchema,
   TsServerCompletionEntriesSchema,
 } from './tsserver.mjs';
+import { FileSchema } from './apps.mjs';
 
 // A _message_ over websockets
 export const WebSocketMessageSchema = z.tuple([
@@ -140,3 +141,36 @@ export const TsConfigUpdatePayloadSchema = z.object({
 export const TsConfigUpdatedPayloadSchema = z.object({
   source: z.string(),
 });
+
+//////////
+// APPS //
+//////////
+
+export const FilePayloadSchema = z.object({
+  file: FileSchema,
+});
+
+export const FileCreatedPayloadSchema = z.object({
+  file: FileSchema,
+});
+
+export const FileUpdatedPayloadSchema = z.object({
+  file: FileSchema.partial(),
+});
+
+export const FileRenamedPayloadSchema = z.object({
+  oldPath: z.string(),
+  newPath: z.string(),
+});
+
+export const FileDeletedPayloadSchema = z.object({
+  path: z.string(),
+});
+
+export const PreviewStatusPayloadSchema = z.object({
+  url: z.string().nullable(),
+  status: z.enum(['booting', 'running', 'stopped']),
+});
+
+export const PreviewStartPayloadSchema = z.object({});
+export const PreviewStopPayloadSchema = z.object({});

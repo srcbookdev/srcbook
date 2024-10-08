@@ -60,6 +60,8 @@ export class Channel {
     }
   > = {};
 
+  onJoinCallback: (topic: string, ws: WebSocket) => void = () => {};
+
   constructor(topic: string) {
     this.topic = topic;
     this.parts = this.splitIntoParts(topic);
@@ -125,6 +127,11 @@ export class Channel {
     ) => void,
   ) {
     this.events[event] = { schema, handler };
+    return this;
+  }
+
+  onJoin(callback: (topic: string, ws: WebSocket) => void) {
+    this.onJoinCallback = callback;
     return this;
   }
 }
@@ -202,8 +209,11 @@ export default class WebSocketServer {
       return;
     }
 
+    const { channel, match } = channelMatch;
+
     if (event === 'subscribe') {
       conn.subscriptions.push(topic);
+      channel.onJoinCallback(topic, conn.socket);
       return;
     }
 
@@ -211,8 +221,6 @@ export default class WebSocketServer {
       conn.subscriptions = conn.subscriptions.filter((t) => t !== topic);
       return;
     }
-
-    const { channel, match } = channelMatch;
 
     const registeredEvent = channel.events[event];
 

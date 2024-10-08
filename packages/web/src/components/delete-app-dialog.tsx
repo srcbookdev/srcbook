@@ -34,7 +34,9 @@ export default function DeleteAppModal({ app, onClose, onDeleted }: PropsType) {
     <Dialog
       open={true}
       onOpenChange={(open) => {
-        open === false && onClose();
+        if (open === false) {
+          onClose();
+        }
       }}
     >
       <DialogContent className="max-w-sm">

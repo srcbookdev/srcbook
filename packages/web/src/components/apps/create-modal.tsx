@@ -46,7 +46,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
 
     try {
       await onCreate(name, language, prompt.trim() === '' ? undefined : prompt);
-    } catch (err) {
+    } finally {
       setSubmitting(false);
     }
   }
@@ -55,7 +55,9 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
     <Dialog
       open
       onOpenChange={(open) => {
-        open === false && onClose();
+        if (open === false) {
+          onClose();
+        }
       }}
     >
       <DialogContent className={cn('flex flex-col transition-height w-[800px]')}>
@@ -98,6 +100,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
             <Input
               name="app[name]"
               value={name}
+              /* eslint-disable-next-line jsx-a11y/no-autofocus */
               autoFocus
               autoComplete="off"
               onChange={(e) => setName(e.currentTarget.value)}

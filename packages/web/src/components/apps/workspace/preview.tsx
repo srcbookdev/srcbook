@@ -14,7 +14,7 @@ export function Preview(props: PropsType) {
 
   return (
     <div className={cn(props.className)}>
-      <iframe className="w-full h-full" src={url} />
+      <iframe className="w-full h-full" src={url} title="App preview" />
     </div>
   );
 }

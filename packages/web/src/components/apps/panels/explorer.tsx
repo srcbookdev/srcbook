@@ -37,9 +37,8 @@ function FileTree({ tree, openedFile, setOpenedFile }: FileTreePropsType) {
                 ? 'cursor-default text-foreground font-semibold'
                 : 'cursor-pointer hover:text-foreground hover:font-semibold'
             }
-            onClick={() => setOpenedFile(entry.file)}
           >
-            {entry.name}
+            <button onClick={() => setOpenedFile(entry.file)}>{entry.name}</button>
           </li>
         ),
       )}

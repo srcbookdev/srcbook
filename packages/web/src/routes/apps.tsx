@@ -45,7 +45,7 @@ export function AppsPage() {
 
     channelRef.current.unsubscribe();
     channelRef.current = AppChannel.create(app.id);
-  }, [app.id, channelRef.current]);
+  }, [app.id]);
 
   return (
     <FilesProvider channel={channelRef.current}>

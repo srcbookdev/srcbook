@@ -109,12 +109,15 @@ export function FilesProvider({ channel, children }: ProviderPropsType) {
     forceComponentRerender();
   }, []);
 
-  const updateFile = useCallback((file: FileType, attrs: Partial<FileType>) => {
-    const updatedFile: FileType = { ...file, ...attrs };
-    filesRef.current[file.path] = updatedFile;
-    channel.push('file:updated', { file: updatedFile });
-    forceComponentRerender();
-  }, []);
+  const updateFile = useCallback(
+    (file: FileType, attrs: Partial<FileType>) => {
+      const updatedFile: FileType = { ...file, ...attrs };
+      filesRef.current[file.path] = updatedFile;
+      channel.push('file:updated', { file: updatedFile });
+      forceComponentRerender();
+    },
+    [channel],
+  );
 
   const deleteFile = useCallback((file: FileType) => {
     delete filesRef.current[file.path];

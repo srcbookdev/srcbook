@@ -82,10 +82,10 @@ export class TsServer extends EventEmitter {
   }
 
   private sendWithoutResponse(request: tsserver.protocol.Request) {
-    this.resolvers[request.seq] = () => {}
-    this.send(request)
+    this.resolvers[request.seq] = () => {};
+    this.send(request);
   }
-  
+
   private sendWithResponsePromise<T>(request: tsserver.protocol.Request) {
     return new Promise<T>((resolve) => {
       this.resolvers[request.seq] = resolve;

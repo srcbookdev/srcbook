@@ -11,9 +11,9 @@ export default defineConfig({
     {
       name: 'backend-watch-reload',
       configureServer(server) {
-        const watcher = chokidar.watch('../api/**/*.mts', {
-          ignored: /node_modules/,
+        const watcher = chokidar.watch('../api', {
           persistent: true,
+          ignored:  (file, _stats) => (_stats?.isFile() && !file.endsWith('.mts'))!,
         });
         watcher.on('change', () => {
           server.ws.send({

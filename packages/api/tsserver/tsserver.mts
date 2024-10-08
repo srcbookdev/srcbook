@@ -81,6 +81,11 @@ export class TsServer extends EventEmitter {
     this.process.stdin?.write(JSON.stringify(request) + '\n');
   }
 
+  private sendWithoutResponse(request: tsserver.protocol.Request) {
+    this.resolvers[request.seq] = () => {}
+    this.send(request)
+  }
+  
   private sendWithResponsePromise<T>(request: tsserver.protocol.Request) {
     return new Promise<T>((resolve) => {
       this.resolvers[request.seq] = resolve;
@@ -123,7 +128,7 @@ export class TsServer extends EventEmitter {
    * This is used to tell tsserver to start tracking a file and all its dependencies.
    */
   open(args: tsserver.protocol.OpenRequestArgs) {
-    return this.send({
+    return this.sendWithoutResponse({
       seq: this.seq,
       type: 'request',
       command: 'open',
@@ -137,7 +142,7 @@ export class TsServer extends EventEmitter {
    * This is used to tell tsserver to stop tracking a file.
    */
   close(args: tsserver.protocol.FileRequestArgs) {
-    return this.send({
+    return this.sendWithoutResponse({
       seq: this.seq,
       type: 'request',
       command: 'close',
@@ -153,7 +158,7 @@ export class TsServer extends EventEmitter {
    * Note that the diagnostics are sent as asynchronous events instead of responding to this request.
    */
   geterr(args: tsserver.protocol.GeterrRequestArgs) {
-    this.send({
+    this.sendWithoutResponse({
       seq: this.seq,
       type: 'request',
       command: 'geterr',
@@ -169,7 +174,7 @@ export class TsServer extends EventEmitter {
    * errors that can occur when renaming files.
    */
   reloadProjects() {
-    this.send({
+    this.sendWithoutResponse({
       seq: this.seq,
       type: 'request',
       command: 'reloadProjects',

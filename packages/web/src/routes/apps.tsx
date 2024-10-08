@@ -2,33 +2,28 @@ import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 
 import { AppType } from '@srcbook/shared';
 
-import { loadApp, loadApps } from '@/clients/http/apps';
-import Header from '@/components/apps/header';
+import { loadApp } from '@/clients/http/apps';
 import Sidebar from '@/components/apps/sidebar';
 import { useEffect, useRef } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
-import { Editor } from '@/components/apps/workspace/editor';
+import { Editor } from '@/components/apps/workspace/editor/editor';
 import { Preview } from '@/components/apps/workspace/preview';
 import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
 import { cn } from '@/lib/utils';
 
 async function loader({ params }: LoaderFunctionArgs) {
-  const [{ data: apps }, { data: app }] = await Promise.all([
-    loadApps('desc'),
-    loadApp(params.id!),
-  ]);
+  const [{ data: app }] = await Promise.all([loadApp(params.id!)]);
 
-  return { apps, app };
+  return { app };
 }
 
 type AppLoaderDataType = {
   app: AppType;
-  apps: AppType[];
 };
 
 export function AppsPage() {
-  const { app, apps } = useLoaderData() as AppLoaderDataType;
+  const { app } = useLoaderData() as AppLoaderDataType;
 
   const channelRef = useRef(AppChannel.create(app.id));
 
@@ -50,29 +45,26 @@ export function AppsPage() {
   return (
     <FilesProvider channel={channelRef.current}>
       <PreviewProvider channel={channelRef.current}>
-        <Apps app={app} apps={apps} />
+        <Apps app={app} />
       </PreviewProvider>
     </FilesProvider>
   );
 }
 
-function Apps(props: { app: AppType; apps: AppType[] }) {
+function Apps(props: { app: AppType }) {
   const { status: previewStatus } = usePreview();
 
   return (
-    <div className="h-screen max-h-screen flex flex-col">
-      <Header app={props.app} apps={props.apps} className="h-12 max-h-12 shrink-0" />
-      <div className="flex flex-1 min-w-0">
-        <Sidebar />
-        <div
-          className={cn(
-            'w-full h-full grid divide-x divide-border',
-            previewStatus === 'running' ? 'grid-cols-2' : 'grid-cols-1',
-          )}
-        >
-          <Editor />
-          {previewStatus === 'running' && <Preview />}
-        </div>
+    <div className="h-screen max-h-screen flex">
+      <Sidebar />
+      <div
+        className={cn(
+          'w-full h-full grid divide-x divide-border',
+          previewStatus === 'running' ? 'grid-cols-2' : 'grid-cols-1',
+        )}
+      >
+        <Editor app={props.app} />
+        {previewStatus === 'running' && <Preview />}
       </div>
     </div>
   );

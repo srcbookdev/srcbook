@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CircleCheck, Loader2, CircleX } from 'lucide-react';
+import { CircleCheck, Loader2, CircleX, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { aiHealthcheck, subscribeToMailingList } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
 import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
@@ -21,6 +22,7 @@ function Settings() {
     aiProvider,
     aiModel,
     aiBaseUrl,
+    codeiumApiKey,
     openaiKey: configOpenaiKey,
     anthropicKey: configAnthropicKey,
     updateConfig: updateConfigContext,
@@ -35,6 +37,7 @@ function Settings() {
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
   const [email, setEmail] = useState<string>(isSubscribed ? subscriptionEmail : '');
+  const [codeiumApiKeyVisible, setCodeiumApiKeyVisible] = useState(false);
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfigContext({ defaultLanguage: value });
@@ -80,6 +83,8 @@ function Settings() {
       console.error('Subscription error:', error);
     }
   };
+
+  const codeiumCallbackUrl = `${window.location.href}/codeium-callback`;
 
   return (
     <div>
@@ -202,6 +207,49 @@ function Settings() {
                     Save
                   </Button>
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div>
+          <h2 className="text-xl pb-2">AI Autocomplete</h2>
+          <div className="flex flex-col">
+            {codeiumApiKey ? (
+              <div>
+                <div className="opacity-70 text-sm pb-2">Codeium API Key:</div>
+                <div className="flex justify-between items-center gap-2">
+                  <Input
+                    name="codeiumApiKey"
+                    type={codeiumApiKeyVisible ? "text" : "password"}
+                    value={codeiumApiKey}
+                    readOnly
+                  />
+                  <Button size="icon" variant="secondary" onClick={() => setCodeiumApiKeyVisible(n => !n)}>
+                    {codeiumApiKeyVisible ? (
+                      <EyeIcon size={16} />
+                    ) : (
+                      <EyeOffIcon size={16} />
+                    )}
+                  </Button>
+                  <Button variant="secondary" onClick={() => {
+                    updateConfigContext({ codeiumApiKey: null }).then(() => {
+                      toast.success('Removed Codeium api key.');
+                    }).catch(err => {
+                      console.error('Error removing Codeium api key:', err);
+                      toast.error('Error removing Codeium key!');
+                    });
+                  }}>
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Button asChild>
+                  <Link to={`https://www.codeium.com/profile?response_type=token&redirect_uri=${codeiumCallbackUrl}&state=a&scope=openid%20profile%20email&redirect_parameters_type=query`}>
+                    Start Codeium OAuth
+                  </Link>
+                </Button>
               </div>
             )}
           </div>

@@ -15,6 +15,7 @@ export type SettingsType = {
   aiProvider: AiProviderType;
   aiModel: string;
   aiBaseUrl?: string | null;
+  codeiumApiKey?: string | null;
   subscriptionEmail?: string | null;
 };
 

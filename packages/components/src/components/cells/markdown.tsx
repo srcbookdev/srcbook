@@ -86,7 +86,7 @@ export default function MarkdownCell(props: MarkdownCellProps) {
     mermaid.initialize({
       startOnLoad: false,
       theme: 'base',
-      fontFamily: 'IBM Plex Sans',
+      fontFamily: 'Instrument Sans',
       darkMode: theme === 'dark',
       themeVariables: theme === 'dark' ? MERMAID_DARK_OVERRIDES : MERMAID_LIGHT_OVERRIDES,
     });

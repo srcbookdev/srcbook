@@ -57,20 +57,29 @@ function SettingsCodeiumCallback() {
       });
   });
 
+  let inner: React.ReactNode;
   switch (status) {
     case 'loading':
-      return <div>Loading...</div>;
+      inner = <span>Loading...</span>;
+      break;
     case 'already_set':
-      return <div>Codeium credentials already set!</div>;
+      inner = <span>Codeium credentials already set!</span>;
+      break;
     case 'no_access_token':
-      return (
+      inner = (
         <div>
           No <code>access_token</code> query parameter found!
         </div>
       );
+      break;
     case 'token_exchange_error':
-      return <div>Error exchanging codeium access token for api key!</div>;
+      inner = <span>Error exchanging codeium access token for api key!</span>;
+      break;
   }
+
+  return (
+    <div className="flex items-center justify-center w-screen h-screen opacity-70">{inner}</div>
+  );
 }
 
 export default SettingsCodeiumCallback;

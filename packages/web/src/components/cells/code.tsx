@@ -384,13 +384,12 @@ export default function ControlledCodeCell(props: Props) {
     inlineCopilot(async (prefix, suffix) => {
       let response;
       try {
-        response = await runCodiumAiAutocomplete(prefix+suffix, prefix.length-1);
+        response = await runCodiumAiAutocomplete(prefix+suffix, prefix.length);
       } catch (err) {
         console.error('Error fetching ai autocomplete suggestion:', err);
         return "";
       }
 
-      console.log('AUTOCOMPLETE RESPONSE:', response);
       if (response.error) {
         return "";
       }

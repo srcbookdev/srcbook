@@ -10,7 +10,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "check-types": "tsc"
+    "check-types": "tsc",
+    "generate-codeium-proto-json": "node --eval 'console.log(\"export default\", JSON.stringify(require(\"protobufjs\").loadSync(\"src/lib/ai-autocomplete/language_server.proto\").toJSON(), null, 2));' > src/lib/ai-autocomplete/languageServerProto.ts"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.1",

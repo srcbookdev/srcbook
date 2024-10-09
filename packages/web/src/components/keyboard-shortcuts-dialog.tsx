@@ -1,11 +1,11 @@
-import Shortcut from '@/components/keyboard-shortcut';
+import Shortcut from '@srcbook/components/src/components/keyboard-shortcut';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@srcbook/components/src/components/ui/dialog';
 
 function ShortcutRow({ keys, description }: { keys: string[]; description: string }) {
   return (

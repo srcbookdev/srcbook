@@ -19,10 +19,6 @@ export type SettingsType = {
   subscriptionEmail?: string | null;
 };
 
-export type StdoutOutputType = { type: 'stdout'; data: string };
-export type StderrOutputType = { type: 'stderr'; data: string };
-export type OutputType = StdoutOutputType | StderrOutputType;
-
 export type SessionType = {
   id: string;
   cells: CellType[];
@@ -40,16 +36,3 @@ export type ExampleSrcbookType = {
   description: string;
   tags: string[];
 };
-
-export type GenerateAICellType = {
-  id: string;
-  type: 'generate-ai';
-};
-
-export type CellModeType =
-  | 'off'
-  | 'generating'
-  | 'reviewing'
-  | 'prompting'
-  | 'fixing'
-  | 'formatting';

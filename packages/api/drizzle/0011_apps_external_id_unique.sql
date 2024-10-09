@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `apps_external_id_unique` ON `apps` (`external_id`);

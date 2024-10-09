@@ -1,5 +1,5 @@
 import { Sparkles, Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
 import { cn } from '@/lib/utils';
@@ -182,6 +182,45 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
   );
 }
 
+type AppCardPropsType = {
+  name: string;
+  language: CodeLanguageType;
+  onClick: () => void;
+  onDelete: () => void;
+};
+
+export function AppCard(props: AppCardPropsType) {
+  function onDelete(e: React.MouseEvent<HTMLButtonElement>) {
+    e.stopPropagation();
+    props.onDelete();
+  }
+
+  return (
+    <CardContainer
+      onClick={props.onClick}
+      className="active:translate-y-0.5 hover:border-foreground"
+    >
+      <h5 className="font-semibold leading-[18px] line-clamp-2">{props.name}</h5>
+      <div className="flex items-center justify-between text-tertiary-foreground">
+        <div className="text-[13px] flex items-center gap-2">
+          <SrcbookLogo className="text-foreground" size={16} />
+          <span>React</span>
+        </div>
+        <code className="font-mono group-hover:hidden">
+          {props.language === 'javascript' ? 'JS' : 'TS'}
+        </code>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="hidden group-hover:block hover:text-foreground"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </CardContainer>
+  );
+}
+
 function BigButton(props: { onClick: () => void; className?: string; children: React.ReactNode }) {
   return (
     <button
@@ -245,6 +284,19 @@ export function CreateSrcbookButton(props: {
           TS
         </Button>
       </div>
+    </div>
+  );
+}
+
+export function CreateAppButton(props: { defaultLanguage: CodeLanguageType; onClick: () => void }) {
+  return (
+    <div className="space-y-1">
+      <BigButton onClick={() => props.onClick()}>
+        <div className="flex flex-col h-full items-start justify-between">
+          <PlusIcon size={20} />
+          <h5 className="font-medium leading-[18px]">Create App</h5>
+        </div>
+      </BigButton>
     </div>
   );
 }

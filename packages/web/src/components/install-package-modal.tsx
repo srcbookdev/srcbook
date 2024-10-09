@@ -3,14 +3,14 @@ import { Loader2 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { cn } from '@/lib/utils';
 import { searchNpmPackages } from '@/lib/server';
-import { Input } from '@/components/ui/input';
+import { Input } from '@srcbook/components/src/components/ui/input';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@srcbook/components/src/components/ui/dialog';
 
 import { usePackageJson } from './use-package-json';
 

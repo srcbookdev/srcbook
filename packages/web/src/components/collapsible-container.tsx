@@ -1,6 +1,10 @@
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@srcbook/components/src/components/ui/collapsible';
 
 export default function CollapsibleContainer(props: {
   open: boolean;

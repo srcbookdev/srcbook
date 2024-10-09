@@ -13,15 +13,15 @@ import {
   TsServerCellSuggestionsPayloadType,
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
-import type { SessionType, GenerateAICellType, SettingsType } from '@/types';
-import { TitleCell } from '@srcbook/components';
-import MarkdownCell from '@/components/cells/markdown';
+import type { SessionType, SettingsType } from '@/types';
+import { GenerateAICellType } from '@srcbook/components/src/types';
+import { TitleCell, MarkdownCell } from '@srcbook/components';
+import ControlledCodeCell from '@/components/cells/code';
 import GenerateAiCell from '@/components/cells/generate-ai';
-import CodeCell from '@/components/cells/code';
 import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';
-import { Button } from '@/components/ui/button';
+import { Button } from '@srcbook/components/src/components/ui/button';
 import { SessionChannel } from '@/clients/websocket';
-import { CellsProvider, useCells } from '@/components/use-cell';
+import { CellsProvider, useCells } from '@srcbook/components/src/components/use-cell';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
 import InstallPackageModal from '@/components/install-package-modal';
@@ -75,7 +75,7 @@ function SessionPage() {
       oldChannel.unsubscribe();
 
       if (connectedSessionLanguageRef.current === 'typescript') {
-        oldChannel.push('tsserver:stop', { sessionId: session.id });
+        oldChannel.push('tsserver:stop', {});
       }
     }
 
@@ -89,7 +89,7 @@ function SessionPage() {
     channel.subscribe();
 
     if (session.language === 'typescript') {
-      channel.push('tsserver:start', { sessionId: session.id });
+      channel.push('tsserver:start', {});
     }
 
     forceComponentRerender();
@@ -97,7 +97,7 @@ function SessionPage() {
 
   return (
     <CellsProvider cells={session.cells}>
-      <PackageJsonProvider session={session} channel={channel}>
+      <PackageJsonProvider channel={channel}>
         <TsConfigProvider session={session} channel={channel}>
           {VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY ? (
             <Session readOnly session={session} srcbooks={srcbooks} config={config} />
@@ -171,7 +171,6 @@ function Session(props: SessionProps) {
     removeCell(cell);
 
     channel.push('cell:delete', {
-      sessionId: session.id,
       cellId: cell.id,
     });
   }
@@ -233,7 +232,6 @@ function Session(props: SessionProps) {
       return;
     }
     channel.push('cell:update', {
-      sessionId: session.id,
       cellId: cell.id,
       updates,
     });
@@ -251,11 +249,11 @@ function Session(props: SessionProps) {
     switch (type) {
       case 'code':
         cell = createCodeCell(index, session.language);
-        channel.push('cell:create', { sessionId: session.id, index, cell });
+        channel.push('cell:create', { index, cell });
         break;
       case 'markdown':
         cell = createMarkdownCell(index);
-        channel.push('cell:create', { sessionId: session.id, index, cell });
+        channel.push('cell:create', { index, cell });
         break;
       case 'generate-ai':
         cell = createGenerateAiCell(index);
@@ -281,7 +279,7 @@ function Session(props: SessionProps) {
           newCell = createMarkdownCell(insertIdx, cell);
           break;
       }
-      channel.push('cell:create', { sessionId: session.id, index: insertIdx, cell: newCell });
+      channel.push('cell:create', { index: insertIdx, cell: newCell });
     }
   }
 
@@ -413,10 +411,10 @@ function Session(props: SessionProps) {
                 )}
 
                 {cell.type === 'code' && readOnly && (
-                  <CodeCell readOnly cell={cell} session={session} />
+                  <ControlledCodeCell readOnly cell={cell} session={session} />
                 )}
                 {cell.type === 'code' && !readOnly && (
-                  <CodeCell
+                  <ControlledCodeCell
                     cell={cell}
                     session={session}
                     channel={props.channel}
@@ -429,6 +427,7 @@ function Session(props: SessionProps) {
                 {cell.type === 'markdown' && !readOnly && (
                   <MarkdownCell
                     cell={cell}
+                    updateCellOnClient={updateCell}
                     updateCellOnServer={updateCellOnServer}
                     onDeleteCell={onDeleteCell}
                   />

@@ -40,41 +40,32 @@ import type {
   TsServerDefinitionLocationRequestPayloadType,
 } from '@srcbook/shared';
 import {
-  CellErrorPayloadSchema,
   CellUpdatePayloadSchema,
-  CellUpdatedPayloadSchema,
   CellRenamePayloadSchema,
   CellDeletePayloadSchema,
   CellFormatPayloadSchema,
   CellExecPayloadSchema,
   CellStopPayloadSchema,
   AiGenerateCellPayloadSchema,
-  AiGeneratedCellPayloadSchema,
   AiFixDiagnosticsPayloadSchema,
   DepsInstallPayloadSchema,
   DepsValidatePayloadSchema,
-  CellOutputPayloadSchema,
-  DepsValidateResponsePayloadSchema,
   TsServerStartPayloadSchema,
   TsServerStopPayloadSchema,
-  TsServerCellDiagnosticsPayloadSchema,
   CellCreatePayloadSchema,
   TsConfigUpdatePayloadSchema,
-  TsConfigUpdatedPayloadSchema,
-  TsServerCellSuggestionsPayloadSchema,
   TsServerQuickInfoRequestPayloadSchema,
-  TsServerQuickInfoResponsePayloadSchema,
-  CellFormattedPayloadSchema,
   TsServerDefinitionLocationRequestPayloadSchema,
-  TsServerDefinitionLocationResponsePayloadSchema,
-  TsServerCompletionEntriesPayloadSchema,
 } from '@srcbook/shared';
 import tsservers from '../tsservers.mjs';
 import { TsServer } from '../tsserver/tsserver.mjs';
-import WebSocketServer from './ws-client.mjs';
+import WebSocketServer, { MessageContextType } from './ws-client.mjs';
 import { filenameFromPath, pathToCodeFile } from '../srcbook/path.mjs';
 import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
+import { register as registerAppChannel } from './channels/app.mjs';
+
+type SessionsContextType = MessageContextType<'sessionId'>;
 
 const wss = new WebSocketServer();
 
@@ -120,8 +111,8 @@ async function nudgeMissingDeps(wss: WebSocketServer, session: SessionType) {
   }
 }
 
-async function cellExec(payload: CellExecPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellExec(payload: CellExecPayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
   const cell = findCell(session, payload.cellId);
   if (!cell || cell.type !== 'code') {
     console.error(`Cannot execute cell with id ${payload.cellId}; cell not found.`);
@@ -229,8 +220,8 @@ async function tsxExec({ session, cell, secrets }: ExecRequestType) {
   );
 }
 
-async function depsInstall(payload: DepsInstallPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function depsInstall(payload: DepsInstallPayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
   const cell = session.cells.find(
     (cell) => cell.type === 'package.json',
   ) as PackageJsonCellType | void;
@@ -306,13 +297,13 @@ async function depsInstall(payload: DepsInstallPayloadType) {
   );
 }
 
-async function depsValidate(payload: DepsValidatePayloadType) {
-  const session = await findSession(payload.sessionId);
+async function depsValidate(_payload: DepsValidatePayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
   nudgeMissingDeps(wss, session);
 }
 
-async function cellStop(payload: CellStopPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellStop(payload: CellStopPayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
   const cell = findCell(session, payload.cellId);
 
   if (!cell || cell.type !== 'code') {
@@ -337,11 +328,11 @@ async function cellStop(payload: CellStopPayloadType) {
   }
 }
 
-async function cellCreate(payload: CellCreatePayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellCreate(payload: CellCreatePayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   const { index, cell } = payload;
@@ -392,8 +383,8 @@ function reopenFileInTsServer(
   tsserver.open({ file: openFilePath, fileContent: file.source });
 }
 
-async function cellGenerate(payload: AiGenerateCellPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellGenerate(payload: AiGenerateCellPayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
   const cell = session.cells.find((cell) => cell.id === payload.cellId) as CodeCellType;
 
   posthog.capture({
@@ -412,8 +403,11 @@ async function cellGenerate(payload: AiGenerateCellPayloadType) {
   });
 }
 
-async function cellFixDiagnostics(payload: AiFixDiagnosticsPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellFixDiagnostics(
+  payload: AiFixDiagnosticsPayloadType,
+  context: SessionsContextType,
+) {
+  const session = await findSession(context.params.sessionId);
   const cell = findCell(session, payload.cellId) as CodeCellType;
 
   const result = await fixDiagnostics(session, cell, payload.diagnostics);
@@ -424,16 +418,16 @@ async function cellFixDiagnostics(payload: AiFixDiagnosticsPayloadType) {
   });
 }
 
-async function cellFormat(payload: CellFormatPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellFormat(payload: CellFormatPayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
   const cellBeforeUpdate = findCell(session, payload.cellId);
 
   if (!cellBeforeUpdate || cellBeforeUpdate.type !== 'code') {
     throw new Error(
-      `No cell exists or not a code cell for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+      `No cell exists or not a code cell for session '${context.params.sessionId}' and cell '${payload.cellId}'`,
     );
   }
   const result = await formatAndUpdateCodeCell(session, cellBeforeUpdate);
@@ -461,18 +455,18 @@ async function cellFormat(payload: CellFormatPayloadType) {
   }
 }
 
-async function cellUpdate(payload: CellUpdatePayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellUpdate(payload: CellUpdatePayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   const cellBeforeUpdate = findCell(session, payload.cellId);
 
   if (!cellBeforeUpdate) {
     throw new Error(
-      `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+      `No cell exists for session '${context.params.sessionId}' and cell '${payload.cellId}'`,
     );
   }
   const result = await updateCell(session, cellBeforeUpdate, payload.updates);
@@ -486,18 +480,18 @@ async function cellUpdate(payload: CellUpdatePayloadType) {
   refreshCodeCellDiagnostics(session, cell);
 }
 
-async function cellRename(payload: CellRenamePayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellRename(payload: CellRenamePayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   const cellBeforeUpdate = findCell(session, payload.cellId);
 
   if (!cellBeforeUpdate) {
     throw new Error(
-      `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+      `No cell exists for session '${context.params.sessionId}' and cell '${payload.cellId}'`,
     );
   }
 
@@ -559,18 +553,18 @@ async function cellRename(payload: CellRenamePayloadType) {
   }
 }
 
-async function cellDelete(payload: CellDeletePayloadType) {
-  const session = await findSession(payload.sessionId);
+async function cellDelete(payload: CellDeletePayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   const cell = findCell(session, payload.cellId);
 
   if (!cell) {
     throw new Error(
-      `No cell exists for session '${payload.sessionId}' and cell '${payload.cellId}'`,
+      `No cell exists for session '${context.params.sessionId}' and cell '${payload.cellId}'`,
     );
   }
 
@@ -682,11 +676,11 @@ function createTsServer(session: SessionType) {
   return tsserver;
 }
 
-async function tsserverStart(payload: TsServerStartPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function tsserverStart(_payload: TsServerStartPayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   if (session.language !== 'typescript') {
@@ -699,15 +693,15 @@ async function tsserverStart(payload: TsServerStartPayloadType) {
   );
 }
 
-async function tsserverStop(payload: TsServerStopPayloadType) {
-  tsservers.shutdown(payload.sessionId);
+async function tsserverStop(_payload: TsServerStopPayloadType, context: SessionsContextType) {
+  tsservers.shutdown(context.params.sessionId);
 }
 
-async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
-  const session = await findSession(payload.sessionId);
+async function tsconfigUpdate(payload: TsConfigUpdatePayloadType, context: SessionsContextType) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   posthog.capture({ event: 'user updated tsconfig' });
@@ -725,11 +719,14 @@ async function tsconfigUpdate(payload: TsConfigUpdatePayloadType) {
   });
 }
 
-async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function tsserverQuickInfo(
+  payload: TsServerQuickInfoRequestPayloadType,
+  context: SessionsContextType,
+) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   if (session.language !== 'typescript') {
@@ -764,11 +761,14 @@ async function tsserverQuickInfo(payload: TsServerQuickInfoRequestPayloadType) {
   });
 }
 
-async function getCompletions(payload: TsServerDefinitionLocationRequestPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function getCompletions(
+  payload: TsServerDefinitionLocationRequestPayloadType,
+  context: SessionsContextType,
+) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   if (session.language !== 'typescript') {
@@ -798,11 +798,14 @@ async function getCompletions(payload: TsServerDefinitionLocationRequestPayloadT
   });
 }
 
-async function getDefinitionLocation(payload: TsServerDefinitionLocationRequestPayloadType) {
-  const session = await findSession(payload.sessionId);
+async function getDefinitionLocation(
+  payload: TsServerDefinitionLocationRequestPayloadType,
+  context: SessionsContextType,
+) {
+  const session = await findSession(context.params.sessionId);
 
   if (!session) {
-    throw new Error(`No session exists for session '${payload.sessionId}'`);
+    throw new Error(`No session exists for session '${context.params.sessionId}'`);
   }
 
   if (session.language !== 'typescript') {
@@ -852,51 +855,35 @@ function refreshCodeCellDiagnostics(session: SessionType, cell: CodeCellType) {
     requestAllDiagnostics(tsserver, session);
   }
 }
+
 wss
-  .channel('session:*')
-  .incoming('cell:exec', CellExecPayloadSchema, cellExec)
-  .incoming('cell:stop', CellStopPayloadSchema, cellStop)
-  .incoming('cell:create', CellCreatePayloadSchema, cellCreate)
-  .incoming('cell:update', CellUpdatePayloadSchema, cellUpdate)
-  .incoming('cell:rename', CellRenamePayloadSchema, cellRename)
-  .incoming('cell:delete', CellDeletePayloadSchema, cellDelete)
-  .incoming('cell:format', CellFormatPayloadSchema, cellFormat)
-  .incoming('ai:generate', AiGenerateCellPayloadSchema, cellGenerate)
-  .incoming('ai:fix_diagnostics', AiFixDiagnosticsPayloadSchema, cellFixDiagnostics)
-  .incoming('deps:install', DepsInstallPayloadSchema, depsInstall)
-  .incoming('deps:validate', DepsValidatePayloadSchema, depsValidate)
-  .incoming('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
-  .incoming('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
-  .incoming('tsconfig.json:update', TsConfigUpdatePayloadSchema, tsconfigUpdate)
-  .incoming(
-    'tsserver:cell:quickinfo:request',
-    TsServerQuickInfoRequestPayloadSchema,
-    tsserverQuickInfo,
-  )
-  .incoming(
+  .channel('session:<sessionId>')
+  .on('cell:exec', CellExecPayloadSchema, cellExec)
+  .on('cell:stop', CellStopPayloadSchema, cellStop)
+  .on('cell:create', CellCreatePayloadSchema, cellCreate)
+  .on('cell:update', CellUpdatePayloadSchema, cellUpdate)
+  .on('cell:rename', CellRenamePayloadSchema, cellRename)
+  .on('cell:delete', CellDeletePayloadSchema, cellDelete)
+  .on('cell:format', CellFormatPayloadSchema, cellFormat)
+  .on('ai:generate', AiGenerateCellPayloadSchema, cellGenerate)
+  .on('ai:fix_diagnostics', AiFixDiagnosticsPayloadSchema, cellFixDiagnostics)
+  .on('deps:install', DepsInstallPayloadSchema, depsInstall)
+  .on('deps:validate', DepsValidatePayloadSchema, depsValidate)
+  .on('tsserver:start', TsServerStartPayloadSchema, tsserverStart)
+  .on('tsserver:stop', TsServerStopPayloadSchema, tsserverStop)
+  .on('tsconfig.json:update', TsConfigUpdatePayloadSchema, tsconfigUpdate)
+  .on('tsserver:cell:quickinfo:request', TsServerQuickInfoRequestPayloadSchema, tsserverQuickInfo)
+  .on(
     'tsserver:cell:definition_location:request',
     TsServerDefinitionLocationRequestPayloadSchema,
     getDefinitionLocation,
   )
-  .incoming(
+  .on(
     'tsserver:cell:completions:request',
     TsServerDefinitionLocationRequestPayloadSchema,
     getCompletions,
-  )
-  .outgoing('tsserver:cell:completions:response', TsServerCompletionEntriesPayloadSchema)
-  .outgoing('tsserver:cell:quickinfo:response', TsServerQuickInfoResponsePayloadSchema)
-  .outgoing(
-    'tsserver:cell:definition_location:response',
-    TsServerDefinitionLocationResponsePayloadSchema,
-  )
-  .outgoing('cell:updated', CellUpdatedPayloadSchema)
-  .outgoing('cell:formatted', CellFormattedPayloadSchema)
-  .outgoing('cell:error', CellErrorPayloadSchema)
-  .outgoing('cell:output', CellOutputPayloadSchema)
-  .outgoing('ai:generated', AiGeneratedCellPayloadSchema)
-  .outgoing('deps:validate:response', DepsValidateResponsePayloadSchema)
-  .outgoing('tsserver:cell:diagnostics', TsServerCellDiagnosticsPayloadSchema)
-  .outgoing('tsserver:cell:suggestions', TsServerCellSuggestionsPayloadSchema)
-  .outgoing('tsconfig.json:updated', TsConfigUpdatedPayloadSchema);
+  );
+
+registerAppChannel(wss);
 
 export default wss;

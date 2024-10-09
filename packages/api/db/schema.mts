@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, unique } from 'drizzle-orm/sqlite-core';
 import { randomid } from '@srcbook/shared';
 
@@ -46,3 +47,18 @@ export const secretsToSession = sqliteTable(
 );
 
 export type SecretsToSession = typeof secretsToSession.$inferSelect;
+
+export const apps = sqliteTable('apps', {
+  id: integer('id').primaryKey(),
+  name: text('name').notNull(),
+  language: text('language').notNull(),
+  externalId: text('external_id').notNull().unique(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export type App = typeof apps.$inferSelect;

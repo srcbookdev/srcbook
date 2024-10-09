@@ -24,6 +24,9 @@ const makeGenerateCellSystemPrompt = (language: CodeLanguageType) => {
 const makeFixDiagnosticsSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'fix-cell-diagnostics.txt'), 'utf-8');
 };
+const makeAppBuilderSystemPrompt = () => {
+  return readFileSync(Path.join(PROMPTS_DIR, 'app-builder.txt'), 'utf-8');
+};
 
 const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, query: string) => {
   // Make sure we copy cells so we don't mutate the session
@@ -210,5 +213,17 @@ export async function fixDiagnostics(
     prompt: userPrompt,
   });
 
+  return result.text;
+}
+
+export async function generateApp(query: string): Promise<string> {
+  const model = await getModel();
+  const result = await generateText({
+    model,
+    system: makeAppBuilderSystemPrompt(),
+    prompt: query,
+  });
+  // TODO remove me
+  console.log(result);
   return result.text;
 }

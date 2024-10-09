@@ -351,6 +351,7 @@ function Session(props: SessionProps) {
       setInitialInstallAttempt(true);
     };
     setTimeout(() => handleAutoInstallation(), 1500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <div className="flex flex-col">

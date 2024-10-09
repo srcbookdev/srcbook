@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { inlineCopilot } from 'codemirror-copilot';
 import {
   CellType,
   CodeCellType,
@@ -35,7 +36,6 @@ import CodeMirror, {
 } from '@uiw/react-codemirror';
 import useTheme from '@srcbook/components/src/components/use-theme';
 import { Dialog, DialogContent } from '@srcbook/components/src/components/ui/dialog';
-import { inlineCopilot } from 'codemirror-copilot';
 
 function tsLinter(
   cell: CodeCellType,

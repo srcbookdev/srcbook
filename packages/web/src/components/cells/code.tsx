@@ -388,6 +388,7 @@ export default function ControlledCodeCell(props: Props) {
         response = await runCodiumAiAutocomplete(
           codeiumApiKey ?? null,
           prefix + suffix,
+          cell.language,
           prefix.length,
         );
       } catch (err) {

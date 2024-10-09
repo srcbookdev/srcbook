@@ -11,6 +11,7 @@ const EDITOR_API_KEY = 'd49954eb-cfba-4992-980f-d8fb37f0e942';
 export async function runCodiumAiAutocomplete(
   optionalApiKey: string | null,
   source: string,
+  sourceLanguage: 'javascript' | 'typescript',
   cursorOffset: number,
 ): Promise<CodiumCompletionResult> {
   const protos = protobuf.Root.fromJSON(languageServerProto as protobuf.INamespace);
@@ -36,8 +37,8 @@ export async function runCodiumAiAutocomplete(
     }),
     document: DocumentInfo.create({
       text: source,
-      editorLanguage: 'javascript',
-      language: Language.getOption('JAVASCRIPT'),
+      editorLanguage: sourceLanguage,
+      language: Language.getOption(sourceLanguage === 'javascript' ? 'JAVASCRIPT' : 'TYPESCRIPT'),
       cursorOffset: Long.fromValue(cursorOffset),
       lineEnding: '\n',
     }),

@@ -35,7 +35,7 @@ import CodeMirror, {
 } from '@uiw/react-codemirror';
 import useTheme from '@srcbook/components/src/components/use-theme';
 import { Dialog, DialogContent } from '@srcbook/components/src/components/ui/dialog';
-import { inlineCopilot } from "codemirror-copilot";
+import { inlineCopilot } from 'codemirror-copilot';
 
 function tsLinter(
   cell: CodeCellType,
@@ -387,19 +387,23 @@ export default function ControlledCodeCell(props: Props) {
       try {
         response = await runCodiumAiAutocomplete(
           codeiumApiKey ?? null,
-          prefix+suffix,
+          prefix + suffix,
           prefix.length,
         );
       } catch (err) {
         console.error('Error fetching ai autocomplete suggestion:', err);
-        return "";
+        return '';
       }
 
       const completionItems = response.completionItems ?? [];
-      const mostLikelyCompletionScore = Math.min(...completionItems.map(item => item.completion.score));
-      const mostLikelyCompletion = completionItems.find(item => item.completion.score === mostLikelyCompletionScore);
+      const mostLikelyCompletionScore = Math.min(
+        ...completionItems.map((item) => item.completion.score),
+      );
+      const mostLikelyCompletion = completionItems.find(
+        (item) => item.completion.score === mostLikelyCompletionScore,
+      );
 
-      return mostLikelyCompletion?.completionParts[0]?.text ?? "";
+      return mostLikelyCompletion?.completionParts[0]?.text ?? '';
     }, DEBOUNCE_DELAY),
   );
   extensions.push(

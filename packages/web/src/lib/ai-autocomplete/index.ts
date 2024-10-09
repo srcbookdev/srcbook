@@ -1,8 +1,8 @@
 import protobuf from 'protobufjs';
 import Long from 'long';
-import { type CodiumCompletionResult } from "@srcbook/shared";
+import { type CodiumCompletionResult } from '@srcbook/shared';
 
-import languageServerProto from "./language-server-proto";
+import languageServerProto from './language-server-proto';
 
 // NOTE: this EDITOR_API_KEY value was just included as a raw string in
 // @codeium/react-code-editor. This seems to not be a secret?
@@ -14,12 +14,12 @@ export async function runCodiumAiAutocomplete(
   cursorOffset: number,
 ): Promise<CodiumCompletionResult> {
   const protos = protobuf.Root.fromJSON(languageServerProto as protobuf.INamespace);
-  const GetCompletionsRequest = protos.lookupType("exa.language_server_pb.GetCompletionsRequest");
-  const Metadata = protos.lookupType("exa.codeium_common_pb.Metadata");
-  const DocumentInfo = protos.lookupType("exa.language_server_pb.Document");
-  const EditorOptions = protos.lookupType("exa.codeium_common_pb.EditorOptions");
-  const Language = protos.lookupEnum("exa.codeium_common_pb.Language");
-  const GetCompletionsResponse = protos.lookupType("exa.language_server_pb.GetCompletionsResponse");
+  const GetCompletionsRequest = protos.lookupType('exa.language_server_pb.GetCompletionsRequest');
+  const Metadata = protos.lookupType('exa.codeium_common_pb.Metadata');
+  const DocumentInfo = protos.lookupType('exa.language_server_pb.Document');
+  const EditorOptions = protos.lookupType('exa.codeium_common_pb.EditorOptions');
+  const Language = protos.lookupEnum('exa.codeium_common_pb.Language');
+  const GetCompletionsResponse = protos.lookupType('exa.language_server_pb.GetCompletionsResponse');
 
   const sessionId = `react-editor-${crypto.randomUUID()}`;
   const apiKey = optionalApiKey ?? EDITOR_API_KEY;
@@ -37,13 +37,13 @@ export async function runCodiumAiAutocomplete(
     document: DocumentInfo.create({
       text: source,
       editorLanguage: 'javascript',
-      language: Language.getOption("JAVASCRIPT"),
+      language: Language.getOption('JAVASCRIPT'),
       cursorOffset: Long.fromValue(cursorOffset),
       lineEnding: '\n',
     }),
     editorOptions: EditorOptions.create({
       tabSize: Long.fromValue(4),
-      insertSpaces: true
+      insertSpaces: true,
     }),
   };
 
@@ -55,15 +55,18 @@ export async function runCodiumAiAutocomplete(
   const requestData = GetCompletionsRequest.create(payload);
   const buffer = GetCompletionsRequest.encode(requestData).finish();
 
-  const response = await fetch('https://web-backend.codeium.com/exa.language_server_pb.LanguageServerService/GetCompletions', {
-    method: 'POST',
-    body: buffer,
-    headers: {
-      'Connect-Protocol-Version': '1',
-      'Content-Type': 'application/proto',
-      Authorization: `Basic ${apiKey}-${sessionId}`,
+  const response = await fetch(
+    'https://web-backend.codeium.com/exa.language_server_pb.LanguageServerService/GetCompletions',
+    {
+      method: 'POST',
+      body: buffer,
+      headers: {
+        'Connect-Protocol-Version': '1',
+        'Content-Type': 'application/proto',
+        Authorization: `Basic ${apiKey}-${sessionId}`,
+      },
     },
-  });
+  );
   // console.log('RESPONSE:', response.status);
 
   const responseBodyBytes = new Uint8Array(await response.arrayBuffer());

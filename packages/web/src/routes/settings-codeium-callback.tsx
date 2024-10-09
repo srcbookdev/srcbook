@@ -16,7 +16,9 @@ export async function exchangeCodeiumAccessTokenForApiKey(accessToken: string): 
 
   if (!response.ok) {
     console.error(response);
-    throw new Error(`Error exchanging codeium access token for api key: ${response.status} ${await response.text()}`);
+    throw new Error(
+      `Error exchanging codeium access token for api key: ${response.status} ${await response.text()}`,
+    );
   }
 
   return response.json();
@@ -33,44 +35,42 @@ function SettingsCodeiumCallback() {
 
   useEffectOnce(() => {
     if (codeiumApiKey) {
-      setStatus("already_set");
+      setStatus('already_set');
       return;
     }
     const accessToken = queryParams.get('access_token');
     if (!accessToken) {
-      setStatus("no_access_token");
+      setStatus('no_access_token');
       return;
     }
 
-    exchangeCodeiumAccessTokenForApiKey(accessToken).then(async response => {
-      const apiKey = response.api_key;
-      await updateConfig({ codeiumApiKey: apiKey });
+    exchangeCodeiumAccessTokenForApiKey(accessToken)
+      .then(async (response) => {
+        const apiKey = response.api_key;
+        await updateConfig({ codeiumApiKey: apiKey });
 
-      navigate('/settings');
-    }).catch(err => {
-      console.error(err);
-      setStatus("token_exchange_error");
-    });
+        navigate('/settings');
+      })
+      .catch((err) => {
+        console.error(err);
+        setStatus('token_exchange_error');
+      });
   });
 
   switch (status) {
-    case "loading":
+    case 'loading':
+      return <div>Loading...</div>;
+    case 'already_set':
+      return <div>Codeium credentials already set!</div>;
+    case 'no_access_token':
       return (
-        <div>Loading...</div>
+        <div>
+          No <code>access_token</code> query parameter found!
+        </div>
       );
-    case "already_set":
-      return (
-        <div>Codeium credentials already set!</div>
-      );
-    case "no_access_token":
-      return (
-        <div>No <code>access_token</code> query parameter found!</div>
-      );
-    case "token_exchange_error":
-      return (
-        <div>Error exchanging codeium access token for api key!</div>
-      );
+    case 'token_exchange_error':
+      return <div>Error exchanging codeium access token for api key!</div>;
   }
-};
+}
 
 export default SettingsCodeiumCallback;

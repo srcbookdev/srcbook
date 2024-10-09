@@ -15,15 +15,14 @@ export type CodiumCompletionItem = {
     text: string;
     offset: string;
     prefix: string;
-    type: (
-      | "COMPLETION_PART_TYPE_UNSPECIFIED"
+    type:
+      | 'COMPLETION_PART_TYPE_UNSPECIFIED'
       // Single-line completion parts that appear within an existing line of text.
-      | "COMPLETION_PART_TYPE_INLINE"
+      | 'COMPLETION_PART_TYPE_INLINE'
       // Possibly multi-line completion parts that appear below an existing line of text.
-      | "COMPLETION_PART_TYPE_BLOCK"
+      | 'COMPLETION_PART_TYPE_BLOCK'
       // Like COMPLETION_PART_TYPE_INLINE, but overwrites the existing text.
-      | "COMPLETION_PART_TYPE_INLINE_MASK"
-    );
+      | 'COMPLETION_PART_TYPE_INLINE_MASK';
   }>;
   range: {
     endOffset: string;
@@ -35,15 +34,13 @@ export type CodiumCompletionItem = {
 export type CodiumCompletionResult = {
   completionItems?: Array<CodiumCompletionItem>;
   state: {
-    state: (
-      | "CODEIUM_STATE_UNSPECIFIED"
-      | "CODEIUM_STATE_INACTIVE"
-      | "CODEIUM_STATE_PROCESSING"
-      | "CODEIUM_STATE_SUCCESS"
-      | "CODEIUM_STATE_WARNING"
-      | "CODEIUM_STATE_ERROR"
-    ),
+    state:
+      | 'CODEIUM_STATE_UNSPECIFIED'
+      | 'CODEIUM_STATE_INACTIVE'
+      | 'CODEIUM_STATE_PROCESSING'
+      | 'CODEIUM_STATE_SUCCESS'
+      | 'CODEIUM_STATE_WARNING'
+      | 'CODEIUM_STATE_ERROR';
     status: string;
   };
 };
-

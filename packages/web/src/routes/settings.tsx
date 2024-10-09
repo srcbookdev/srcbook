@@ -220,25 +220,30 @@ function Settings() {
                 <div className="flex justify-between items-center gap-2">
                   <Input
                     name="codeiumApiKey"
-                    type={codeiumApiKeyVisible ? "text" : "password"}
+                    type={codeiumApiKeyVisible ? 'text' : 'password'}
                     value={codeiumApiKey}
                     readOnly
                   />
-                  <Button size="icon" variant="secondary" onClick={() => setCodeiumApiKeyVisible(n => !n)}>
-                    {codeiumApiKeyVisible ? (
-                      <EyeIcon size={16} />
-                    ) : (
-                      <EyeOffIcon size={16} />
-                    )}
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => setCodeiumApiKeyVisible((n) => !n)}
+                  >
+                    {codeiumApiKeyVisible ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />}
                   </Button>
-                  <Button variant="secondary" onClick={() => {
-                    updateConfigContext({ codeiumApiKey: null }).then(() => {
-                      toast.success('Removed Codeium api key.');
-                    }).catch(err => {
-                      console.error('Error removing Codeium api key:', err);
-                      toast.error('Error removing Codeium key!');
-                    });
-                  }}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      updateConfigContext({ codeiumApiKey: null })
+                        .then(() => {
+                          toast.success('Removed Codeium api key.');
+                        })
+                        .catch((err) => {
+                          console.error('Error removing Codeium api key:', err);
+                          toast.error('Error removing Codeium key!');
+                        });
+                    }}
+                  >
                     Remove
                   </Button>
                 </div>
@@ -246,7 +251,9 @@ function Settings() {
             ) : (
               <div>
                 <Button asChild>
-                  <Link to={`https://www.codeium.com/profile?response_type=token&redirect_uri=${codeiumCallbackUrl}&state=a&scope=openid%20profile%20email&redirect_parameters_type=query`}>
+                  <Link
+                    to={`https://www.codeium.com/profile?response_type=token&redirect_uri=${codeiumCallbackUrl}&state=a&scope=openid%20profile%20email&redirect_parameters_type=query`}
+                  >
                     Start Codeium OAuth
                   </Link>
                 </Button>

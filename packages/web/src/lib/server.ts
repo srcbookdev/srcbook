@@ -4,7 +4,6 @@ import type {
   MarkdownCellType,
   CodeCellType,
   SecretWithAssociatedSessions,
-  CodiumCompletionResult,
 } from '@srcbook/shared';
 import { SessionType, ExampleSrcbookType } from '@/types';
 import SRCBOOK_CONFIG from '@/config';

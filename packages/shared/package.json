@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "rm -rf ./dist",
     "build": "tsc",
-    "dev": "tsc --watch --project .",
+    "dev": "tsc --incremental --watch --project .",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc",
     "prepublishOnly": "npm run build"

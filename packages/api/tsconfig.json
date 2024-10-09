@@ -4,7 +4,7 @@
     "noEmit": false,
     "allowImportingTsExtensions": false,
     "outDir": "dist",
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "vite/client"]
   },
   "include": ["**/*.mts"],
   "exclude": ["node_modules", "dist"]

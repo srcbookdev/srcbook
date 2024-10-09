@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { CircleCheck, Loader2, CircleX, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { aiHealthcheck, subscribeToMailingList } from '@/lib/server';
@@ -15,7 +16,7 @@ import { Input } from '@srcbook/components/src/components/ui/input';
 import useTheme from '@srcbook/components/src/components/use-theme';
 import { Switch } from '@srcbook/components/src/components/ui/switch';
 import { Button } from '@srcbook/components/src/components/ui/button';
-import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 function Settings() {
   const {
@@ -37,6 +38,8 @@ function Settings() {
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
   const [email, setEmail] = useState<string>(isSubscribed ? subscriptionEmail : '');
+
+  const [codeiumApiKeyHovering, setCodeiumApiKeyHovering] = useState(false);
   const [codeiumApiKeyVisible, setCodeiumApiKeyVisible] = useState(false);
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
@@ -121,7 +124,7 @@ function Settings() {
 
         <div>
           <h2 className="text-xl pb-2">AI</h2>
-          <div className="flex flex-col">
+          <div className="flex flex-col pb-4">
             <label className="opacity-70 text-sm pb-4" htmlFor="ai-provider-selector">
               Select your preferred LLM and enter your credentials to use Srcbook's AI features.
             </label>
@@ -210,51 +213,75 @@ function Settings() {
               </div>
             )}
           </div>
-        </div>
-        <div>
-          <h2 className="text-xl pb-2">AI Autocomplete</h2>
+
+          <h3 className="text-md pb-2">Codeium AI Autocomplete</h3>
           <div className="flex flex-col">
+            <div className="opacity-70 text-sm pb-1">
+              By default, Codeium uses a public api token with limited capabilities. Optionally,
+              sign in to remove rate limits:
+            </div>
+
             {codeiumApiKey ? (
-              <div>
-                <div className="opacity-70 text-sm pb-2">Codeium API Key:</div>
+              <div
+                className="flex flex-col p-3 border rounded-sm"
+                onMouseEnter={() => setCodeiumApiKeyHovering(true)}
+                onMouseLeave={() => setCodeiumApiKeyHovering(false)}
+              >
+                <div className="opacity-70 text-sm pb-2">Signed in! Codeium API Key:</div>
                 <div className="flex justify-between items-center gap-2">
-                  <Input
-                    name="codeiumApiKey"
-                    type={codeiumApiKeyVisible ? 'text' : 'password'}
-                    value={codeiumApiKey}
-                    readOnly
-                  />
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    onClick={() => setCodeiumApiKeyVisible((n) => !n)}
-                  >
-                    {codeiumApiKeyVisible ? <EyeIcon size={16} /> : <EyeOffIcon size={16} />}
-                  </Button>
+                  <div className="text-left align-middle relative w-full">
+                    <Input
+                      name="codeiumApiKey"
+                      type={codeiumApiKeyVisible ? 'text' : 'password'}
+                      value={codeiumApiKey}
+                      disabled
+                      className="disabled:opacity-100 disabled:cursor-text group-hover:border-border group-focus-within:border-border pr-8"
+                    />
+                    {codeiumApiKeyVisible ? (
+                      <EyeOffIcon
+                        size={14}
+                        className={cn(
+                          'absolute right-3 top-2.5 cursor-pointer opacity-80 bg-background',
+                          !codeiumApiKeyHovering && 'hidden',
+                        )}
+                        onClick={() => setCodeiumApiKeyVisible(false)}
+                      />
+                    ) : (
+                      <EyeIcon
+                        size={14}
+                        className={cn(
+                          'absolute right-3 top-2.5 cursor-pointer opacity-80 bg-background',
+                          !codeiumApiKeyHovering && 'hidden',
+                        )}
+                        onClick={() => setCodeiumApiKeyVisible(true)}
+                      />
+                    )}
+                  </div>
+
                   <Button
                     variant="secondary"
                     onClick={() => {
                       updateConfigContext({ codeiumApiKey: null })
                         .then(() => {
-                          toast.success('Removed Codeium api key.');
+                          toast.success('Detached Codeium API key.');
                         })
                         .catch((err) => {
-                          console.error('Error removing Codeium api key:', err);
-                          toast.error('Error removing Codeium key!');
+                          console.error('Error detaching Codeium API key:', err);
+                          toast.error('Error detaching Codeium API key!');
                         });
                     }}
                   >
-                    Remove
+                    Detach
                   </Button>
                 </div>
               </div>
             ) : (
-              <div>
-                <Button asChild>
+              <div className="flex justify-center items-center p-3 h-[64px] border rounded-sm">
+                <Button asChild variant="secondary">
                   <Link
                     to={`https://www.codeium.com/profile?response_type=token&redirect_uri=${codeiumCallbackUrl}&state=a&scope=openid%20profile%20email&redirect_parameters_type=query`}
                   >
-                    Start Codeium OAuth
+                    Authenticate with Codeium
                   </Link>
                 </Button>
               </div>

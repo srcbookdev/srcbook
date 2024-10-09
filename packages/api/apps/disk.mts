@@ -1,5 +1,6 @@
 import type { RmOptions } from 'node:fs';
 import fs from 'node:fs/promises';
+import type {Project} from '../ai/app-parser.mjs';
 import Path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type App as DBAppType } from '../db/schema.mjs';
@@ -17,6 +18,38 @@ function pathToTemplate(template: string) {
 
 export function deleteViteApp(id: string) {
   return fs.rm(pathToApp(id), { recursive: true });
+}
+
+export async function createAppFromProject(app: DBAppType, project: Project) {
+  const appPath = pathToApp(app.externalId);
+
+  await fs.mkdir(appPath, { recursive: true });
+
+  for (const item of project.items) {
+    if (item.type === 'file') {
+      const filePath = Path.join(appPath, item.filename);
+      const dirPath = Path.dirname(filePath);
+
+      // Create nested directories if they don't exist
+      try {
+        await fs.stat(dirPath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          await fs.mkdir(dirPath, { recursive: true });
+        } else {
+          throw error;
+        }
+      }
+
+      // Write the file content
+      await fs.writeFile(filePath, item.content);
+      console.log(`File written: ${filePath}`);
+    } else if (item.type === 'command') {
+      // For now, we'll just log the commands
+      console.log(`Command to execute: ${item.content}`);
+    }
+  }
+  return app;
 }
 
 export async function createViteApp(app: DBAppType) {

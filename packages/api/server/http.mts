@@ -35,7 +35,14 @@ import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 import { pathToSrcbook } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
-import { loadApps, loadApp, createApp, serializeApp, deleteApp } from '../apps/app.mjs';
+import {
+  loadApps,
+  loadApp,
+  createApp,
+  serializeApp,
+  deleteApp,
+  createAppWithAi,
+} from '../apps/app.mjs';
 import {
   deleteFile,
   renameFile,
@@ -428,8 +435,13 @@ router.post('/apps', cors(), async (req, res) => {
   });
 
   try {
-    const app = await createApp(attrs);
-    return res.json({ data: serializeApp(app) });
+    if (typeof attrs.prompt === 'string') {
+      const app = await createAppWithAi({ name: attrs.name, prompt: attrs.prompt });
+      return res.json({ data: serializeApp(app) });
+    } else {
+      const app = await createApp(attrs);
+      return res.json({ data: serializeApp(app) });
+    }
   } catch (e) {
     return error500(res, e as Error);
   }

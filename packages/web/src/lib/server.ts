@@ -24,20 +24,6 @@ export async function getFileContent(filename: string) {
   return await file_response.json();
 }
 
-export async function runCodiumAiAutocomplete(source: string, cursorOffset: number): Promise<{error: false, result: CodiumCompletionResult} | { error: true }> {
-  const file_response = await fetch(API_BASE_URL + '/ai-autocomplete', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      source,
-      cursorOffset,
-    }),
-  });
-  return await file_response.json();
-}
-
 interface CreateSrcbookRequestType {
   path: string;
   name: string;

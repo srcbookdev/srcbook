@@ -78,18 +78,12 @@ importers:
       express:
         specifier: ^4.20.0
         version: 4.20.0
-      long:
-        specifier: ^5.2.3
-        version: 5.2.3
       marked:
         specifier: 'catalog:'
         version: 14.1.2
       posthog-node:
         specifier: ^4.2.0
         version: 4.2.0
-      protobufjs:
-        specifier: ^7.4.0
-        version: 7.4.0
       ws:
         specifier: 'catalog:'
         version: 8.18.0
@@ -328,12 +322,18 @@ importers:
       codemirror-copilot:
         specifier: ^0.0.7
         version: 0.0.7(@codemirror/state@6.4.1)(@codemirror/view@6.33.0)
+      long:
+        specifier: ^5.2.3
+        version: 5.2.3
       lucide-react:
         specifier: ^0.439.0
         version: 0.439.0(react@18.3.1)
       marked:
         specifier: 'catalog:'
         version: 14.1.2
+      protobufjs:
+        specifier: ^7.4.0
+        version: 7.4.0
       react:
         specifier: ^18.3.1
         version: 18.3.1

@@ -1,28 +1,28 @@
-import path from 'node:path';
 import protobuf from 'protobufjs';
 import Long from 'long';
 import { type CodiumCompletionResult } from "@srcbook/shared";
 
+import languageServerProto from "./language-server-proto";
+
 // NOTE: this EDITOR_API_KEY value was just included as a raw string in
 // @codeium/react-code-editor. This seems to not be a secret?
 const EDITOR_API_KEY = 'd49954eb-cfba-4992-980f-d8fb37f0e942';
-const LANGUAGE_SERVER_PROTO_FILE_PATH = path.join(__dirname, "language_server.proto");
 
 export async function runCodiumAiAutocomplete(
-  apiKey: string | null,
+  optionalApiKey: string | null,
   source: string,
   cursorOffset: number,
 ): Promise<CodiumCompletionResult> {
-  const protos = await protobuf.load(LANGUAGE_SERVER_PROTO_FILE_PATH)
-  const GetCompletionsRequest = protos.lookupType("GetCompletionsRequest");
-  const Metadata = protos.lookupType("Metadata");
-  const DocumentInfo = protos.lookupType("Document");
-  const EditorOptions = protos.lookupType("EditorOptions");
-  const Language = protos.lookupEnum("Language");
-  const GetCompletionsResponse = protos.lookupType("GetCompletionsResponse");
+  const protos = protobuf.Root.fromJSON(languageServerProto as protobuf.INamespace);
+  const GetCompletionsRequest = protos.lookupType("exa.language_server_pb.GetCompletionsRequest");
+  const Metadata = protos.lookupType("exa.codeium_common_pb.Metadata");
+  const DocumentInfo = protos.lookupType("exa.language_server_pb.Document");
+  const EditorOptions = protos.lookupType("exa.codeium_common_pb.EditorOptions");
+  const Language = protos.lookupEnum("exa.codeium_common_pb.Language");
+  const GetCompletionsResponse = protos.lookupType("exa.language_server_pb.GetCompletionsResponse");
 
   const sessionId = `react-editor-${crypto.randomUUID()}`;
-  const apiKey = apiKey ?? EDITOR_API_KEY;
+  const apiKey = optionalApiKey ?? EDITOR_API_KEY;
 
   const payload = {
     otherDocuments: [],
@@ -74,5 +74,5 @@ export async function runCodiumAiAutocomplete(
   //   console.log(item.completion.text);
   // }
 
-  return responseBody;
+  return responseBody.toJSON();
 }

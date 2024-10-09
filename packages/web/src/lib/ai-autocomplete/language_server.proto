@@ -1,3 +1,6 @@
+// NOTE: to generate a new set of json definitions, run:
+// npm run generate-codeium-proto-json
+
 // Copyright Exafunction, Inc.
 
 syntax = "proto3";

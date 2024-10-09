@@ -83,7 +83,14 @@
       "idx": 11,
       "version": "6",
       "when": 1728457840317,
-      "tag": "0011_add_auto_install_dependency",
+      "tag": "0011_apps_external_id_unique",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1728462057807,
+      "tag": "0012_add_auto_install_dependency",
       "breakpoints": true
     }
   ]

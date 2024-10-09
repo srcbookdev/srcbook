@@ -15,7 +15,7 @@ import WebSocketServer, {
   type ConnectionContextType,
 } from '../ws-client.mjs';
 import { loadApp } from '../../apps/app.mjs';
-import { fileUpdated, getProjectFiles, pathToApp } from '../../apps/disk.mjs';
+import { fileUpdated, pathToApp } from '../../apps/disk.mjs';
 import { vite } from '../../exec.mjs';
 
 type AppContextType = MessageContextType<'appId'>;
@@ -126,9 +126,5 @@ export function register(wss: WebSocketServer) {
           { url: null, status: existingProcess ? 'running' : 'stopped' },
         ]),
       );
-
-      for (const file of await getProjectFiles(app)) {
-        ws.send(JSON.stringify([topic, 'file', { file }]));
-      }
     });
 }

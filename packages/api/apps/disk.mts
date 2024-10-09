@@ -4,8 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { APPS_DIR } from '../constants.mjs';
 import { toValidPackageName } from './utils.mjs';
-import { Dirent } from 'node:fs';
-import { FileType } from '@srcbook/shared';
+import { DirEntryType, FileType } from '@srcbook/shared';
 
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
@@ -91,57 +90,58 @@ async function copyDir(srcDir: string, destDir: string) {
   }
 }
 
-// TODO: This does not scale.
-export async function getProjectFiles(app: DBAppType) {
+export async function loadDirectory(app: DBAppType, path: string): Promise<DirEntryType> {
   const projectDir = Path.join(APPS_DIR, app.externalId);
+  const dirPath = Path.join(projectDir, path);
+  const entries = await fs.readdir(dirPath, { withFileTypes: true });
 
-  const { files, directories } = await getDiskEntries(projectDir, {
-    exclude: ['node_modules', 'dist'],
+  const children = entries.map((entry) => {
+    const fullPath = Path.join(dirPath, entry.name);
+    const relativePath = Path.relative(projectDir, fullPath);
+
+    if (entry.isDirectory()) {
+      return {
+        type: 'directory' as const,
+        name: entry.name,
+        path: relativePath,
+        children: null,
+      };
+    } else {
+      return {
+        type: 'file' as const,
+        name: entry.name,
+        path: relativePath,
+      };
+    }
   });
 
-  const nestedFiles = await Promise.all(
-    directories.flatMap(async (dir) => {
-      const entries = await fs.readdir(Path.join(projectDir, dir.name), {
-        withFileTypes: true,
-        recursive: true,
-      });
-      return entries.filter((entry) => entry.isFile());
-    }),
-  );
+  const relativePath = Path.relative(projectDir, dirPath);
+  const basename = Path.basename(relativePath);
 
-  const entries = [...files, ...nestedFiles.flat()];
-
-  return Promise.all(
-    entries.map(async (entry) => {
-      const fullPath = Path.join(entry.parentPath, entry.name);
-      const relativePath = Path.relative(projectDir, fullPath);
-      const contents = await fs.readFile(fullPath);
-      const binary = isBinary(entry.name);
-      const source = !binary ? contents.toString('utf-8') : `TODO: handle this`;
-      return { path: relativePath, source, binary };
-    }),
-  );
+  return {
+    type: 'directory' as const,
+    name: basename === '' ? '.' : basename,
+    path: relativePath === '' ? '.' : relativePath,
+    children: children,
+  };
 }
 
-async function getDiskEntries(projectDir: string, options: { exclude: string[] }) {
-  const result: { files: Dirent[]; directories: Dirent[] } = {
-    files: [],
-    directories: [],
-  };
+export async function loadFile(app: DBAppType, path: string): Promise<FileType> {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const filePath = Path.join(projectDir, path);
+  const relativePath = Path.relative(projectDir, filePath);
+  const basename = Path.basename(filePath);
 
-  for (const entry of await fs.readdir(projectDir, { withFileTypes: true })) {
-    if (options.exclude.includes(entry.name)) {
-      continue;
-    }
-
-    if (entry.isFile()) {
-      result.files.push(entry);
-    } else {
-      result.directories.push(entry);
-    }
+  if (isBinary(basename)) {
+    return { path: relativePath, name: basename, source: `TODO: handle this`, binary: true };
+  } else {
+    return {
+      path: relativePath,
+      name: basename,
+      source: await fs.readFile(filePath, 'utf-8'),
+      binary: false,
+    };
   }
-
-  return result;
 }
 
 // TODO: This does not scale.

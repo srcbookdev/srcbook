@@ -47,11 +47,6 @@ export async function runCodiumAiAutocomplete(
     }),
   };
 
-  // const verified = GetCompletionsRequest.verify(payload);
-  // console.log('VERIFIED?', verified);
-
-  // console.log('REQUEST:', payload);
-
   const requestData = GetCompletionsRequest.create(payload);
   const buffer = GetCompletionsRequest.encode(requestData).finish();
 
@@ -67,15 +62,9 @@ export async function runCodiumAiAutocomplete(
       },
     },
   );
-  // console.log('RESPONSE:', response.status);
 
   const responseBodyBytes = new Uint8Array(await response.arrayBuffer());
   const responseBody = GetCompletionsResponse.decode(responseBodyBytes);
 
-  // console.log('RESPONSE COMPLETIONS:');
-  // for (const item of responseBody.completionItems) {
-  //   console.log(item.completion.text);
-  // }
-
-  return responseBody.toJSON();
+  return responseBody.toJSON() as CodiumCompletionResult;
 }

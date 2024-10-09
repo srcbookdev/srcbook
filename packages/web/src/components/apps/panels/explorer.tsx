@@ -1,15 +1,11 @@
 import { Folder } from 'lucide-react';
 import { useFiles, type FileTreeType } from '../use-files';
 import { FileType } from '@srcbook/shared';
+import { cn } from '@srcbook/components';
 
 export default function ExplorerPanel() {
   const { fileTree, openedFile, setOpenedFile } = useFiles();
-
-  return (
-    <div className="w-56 py-4">
-      <FileTree tree={fileTree} openedFile={openedFile} setOpenedFile={setOpenedFile} />
-    </div>
-  );
+  return <FileTree tree={fileTree} openedFile={openedFile} setOpenedFile={setOpenedFile} />;
 }
 
 type FileTreePropsType = {
@@ -20,7 +16,7 @@ type FileTreePropsType = {
 
 function FileTree({ tree, openedFile, setOpenedFile }: FileTreePropsType) {
   return (
-    <ul className="pl-4 font-mono text-xs text-tertiary-foreground leading-6">
+    <ul className="pl-3 text-sm text-tertiary-foreground leading-6">
       {tree.map((entry) =>
         entry.directory ? (
           <li key={entry.name}>
@@ -32,11 +28,12 @@ function FileTree({ tree, openedFile, setOpenedFile }: FileTreePropsType) {
         ) : (
           <li
             key={entry.name}
-            className={
+            className={cn(
+              'transition-all',
               openedFile?.path === entry.file.path
                 ? 'cursor-default text-foreground font-semibold'
-                : 'cursor-pointer hover:text-foreground hover:font-semibold'
-            }
+                : 'cursor-pointer hover:text-foreground',
+            )}
           >
             <button onClick={() => setOpenedFile(entry.file)}>{entry.name}</button>
           </li>

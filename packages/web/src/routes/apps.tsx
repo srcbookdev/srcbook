@@ -10,6 +10,7 @@ import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
 import { Preview } from '@/components/apps/workspace/preview';
 import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
+import ExpandableOverlay from '@/components/apps/expandable-overlay';
 import { cn } from '@/lib/utils';
 
 async function loader({ params }: LoaderFunctionArgs) {
@@ -77,6 +78,7 @@ function Apps(props: { app: AppType }) {
         <Editor app={props.app} />
         {previewStatus === 'running' && <Preview />}
       </div>
+      <ExpandableOverlay />
     </div>
   );
 }

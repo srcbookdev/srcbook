@@ -67,7 +67,7 @@ async function previewStart(
       url: 'http://localhost:5174/',
       status: 'running',
     });
-  }, 500);
+  }, 1500);
 }
 
 async function previewStop(

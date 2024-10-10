@@ -7,6 +7,7 @@ type PropsType = {
 
 export function Preview(props: PropsType) {
   const { url } = usePreview();
+  console.log('preview url', url);
 
   if (url === null) {
     return;

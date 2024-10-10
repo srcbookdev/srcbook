@@ -36,7 +36,7 @@ import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 import { pathToSrcbook } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
 import { loadApps, loadApp, createApp, serializeApp, deleteApp } from '../apps/app.mjs';
-import { loadDirectory, loadFile } from '../apps/disk.mjs';
+import { deleteFile, renameFile, loadDirectory, loadFile } from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
 
 const app: Application = express();
@@ -500,6 +500,47 @@ router.get('/apps/:id/files', cors(), async (req, res) => {
     }
 
     const file = await loadFile(app, path);
+
+    return res.json({ data: file });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/files', cors());
+router.delete('/apps/:id/files', cors(), async (req, res) => {
+  const { id } = req.params;
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    await deleteFile(app, path);
+
+    return res.json({ data: { deleted: true } });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/files/rename', cors());
+router.post('/apps/:id/files/rename', cors(), async (req, res) => {
+  const { id } = req.params;
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+  const name = req.query.name as string;
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const file = await renameFile(app, path, name);
 
     return res.json({ data: file });
   } catch (e) {

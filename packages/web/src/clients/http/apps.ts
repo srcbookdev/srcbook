@@ -1,4 +1,10 @@
-import type { AppType, CodeLanguageType, DirEntryType, FileType } from '@srcbook/shared';
+import type {
+  AppType,
+  CodeLanguageType,
+  DirEntryType,
+  FileEntryType,
+  FileType,
+} from '@srcbook/shared';
 import SRCBOOK_CONFIG from '@/config';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
@@ -83,6 +89,42 @@ export async function loadFile(id: string, path: string): Promise<{ data: FileTy
 
   const response = await fetch(API_BASE_URL + `/apps/${id}/files?${queryParams}`, {
     method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
+export async function deleteFile(id: string, path: string): Promise<{ data: { deleted: true } }> {
+  const queryParams = new URLSearchParams({ path });
+
+  const response = await fetch(API_BASE_URL + `/apps/${id}/files?${queryParams}`, {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
+export async function renameFile(
+  id: string,
+  path: string,
+  name: string,
+): Promise<{ data: FileEntryType }> {
+  const queryParams = new URLSearchParams({ path, name });
+
+  const response = await fetch(API_BASE_URL + `/apps/${id}/files/rename?${queryParams}`, {
+    method: 'POST',
     headers: { 'content-type': 'application/json' },
   });
 

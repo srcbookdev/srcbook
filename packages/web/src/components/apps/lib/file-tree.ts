@@ -1,4 +1,4 @@
-import type { DirEntryType, FsEntryTreeType } from '@srcbook/shared';
+import type { DirEntryType, FileEntryType, FsEntryTreeType } from '@srcbook/shared';
 
 /**
  * Sorts a file tree (in place) by name. Folders come first, then files.
@@ -16,7 +16,7 @@ export function sortTree(tree: DirEntryType): DirEntryType {
 }
 
 /**
- * Update a node in the file tree.
+ * Update a directory node in the file tree.
  *
  * This function is complex due to the merging of children. We do it to maintain
  * nested state of a given tree. Consider the following file tree that the user
@@ -48,7 +48,11 @@ export function sortTree(tree: DirEntryType): DirEntryType {
  * and later reopen a ancestor folder. We want the tree to look the same when the
  * reopen occurs with only the immediate children updated.
  */
-export function updateTree(tree: DirEntryType, node: DirEntryType): DirEntryType {
+export function updateDirNode(tree: DirEntryType, node: DirEntryType): DirEntryType {
+  return sortTree(doUpdateDirNode(tree, node));
+}
+
+function doUpdateDirNode(tree: DirEntryType, node: DirEntryType): DirEntryType {
   if (tree.path === node.path) {
     if (node.children === null) {
       return { ...node, children: tree.children };
@@ -62,7 +66,7 @@ export function updateTree(tree: DirEntryType, node: DirEntryType): DirEntryType
       ...tree,
       children: tree.children.map((entry) => {
         if (entry.type === 'directory') {
-          return updateTree(entry, node);
+          return doUpdateDirNode(entry, node);
         } else {
           return entry;
         }
@@ -93,4 +97,65 @@ function merge(oldChildren: FsEntryTreeType | null, newChildren: FsEntryTreeType
 
     return newChild;
   });
+}
+
+export function updateFileNode(
+  tree: DirEntryType,
+  oldNode: FileEntryType,
+  newNode: FileEntryType,
+): DirEntryType {
+  return sortTree(doUpdateFileNode(tree, oldNode, newNode));
+}
+
+function doUpdateFileNode(
+  tree: DirEntryType,
+  oldNode: FileEntryType,
+  newNode: FileEntryType,
+): DirEntryType {
+  if (tree.children === null) {
+    return tree;
+  }
+
+  const children = [];
+
+  for (const entry of tree.children) {
+    if (entry.path === oldNode.path) {
+      children.push(newNode);
+    } else {
+      if (entry.type === 'directory') {
+        children.push(doUpdateFileNode(entry, oldNode, newNode));
+      } else {
+        children.push(entry);
+      }
+    }
+  }
+
+  return { ...tree, children };
+}
+
+/**
+ * Delete a node from the file tree.
+ *
+ * This doesn't affect sort order, so no need to call sortTree.
+ */
+export function deleteNode(tree: DirEntryType, path: string): DirEntryType {
+  if (tree.children === null) {
+    return tree;
+  }
+
+  const children: FsEntryTreeType = [];
+
+  for (const entry of tree.children) {
+    if (entry.path === path) {
+      continue;
+    }
+
+    if (entry.type === 'directory') {
+      children.push(deleteNode(entry, path));
+    } else {
+      children.push(entry);
+    }
+  }
+
+  return { ...tree, children };
 }

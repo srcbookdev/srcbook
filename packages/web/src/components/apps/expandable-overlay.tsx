@@ -7,15 +7,19 @@ import { Button } from '@srcbook/components/src/components/ui/button';
 import { Textarea } from '@srcbook/components/src/components/ui/textarea';
 import { editApp } from '@/lib/server';
 import { AppType } from '@srcbook/shared';
+import { useFiles } from './use-files';
 
 type PropsType = {
   app: AppType;
 };
 export default function ExpandableOverlay(props: PropsType) {
+  const { updateFile, openFile, files } = useFiles();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  console.log(files);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,6 +42,33 @@ export default function ExpandableOverlay(props: PropsType) {
     setIsLoading(true);
     const response = await editApp(props.app.id, message);
     console.log('response in overlay.tsx', response);
+
+    // Update files based on the response
+    if (response.data && Array.isArray(response.data)) {
+      response.data.forEach(
+        async (fileUpdate: { type: 'file'; filename: string; content: string }) => {
+          console.log('fileUpdate', fileUpdate);
+          if (fileUpdate.type === 'file') {
+            // First, open the file. Very bad basename logic
+            const openedFile = await openFile({
+              type: 'file',
+              name: fileUpdate.filename.split('/').pop() || '',
+              path: fileUpdate.filename,
+            });
+            console.log('openedFile', openedFile);
+            // Then get the file from files
+            const file = files.find((file) => file.path === fileUpdate.filename);
+            if (file) {
+              console.log('found file', file);
+              await updateFile(file, { source: fileUpdate.content });
+            } else {
+              console.error('file not found', fileUpdate.filename);
+            }
+          }
+        },
+      );
+    }
+
     setMessage('');
     setIsExpanded(false);
     setIsLoading(false);
@@ -72,7 +103,7 @@ export default function ExpandableOverlay(props: PropsType) {
       className={cn(
         'fixed bottom-12 left-12 transition-all duration-150 ease-in-out',
         isExpanded
-          ? 'border rounded-lg w-96 h-64 bg-primary-foreground text-primary'
+          ? 'border border-ai-border rounded-lg w-96 h-64 bg-primary-foreground text-primary'
           : 'w-20 h-20 rounded-full bg-ai border-none',
       )}
     >
@@ -84,8 +115,8 @@ export default function ExpandableOverlay(props: PropsType) {
             placeholder="Ask a follow up"
             className="flex-grow mb-4 resize-none text-primary border border-foreground"
           />
-          <Button type="submit" className="w-full">
-            Submit
+          <Button variant="ai" type="submit" className="w-full">
+            Make changes
           </Button>
         </form>
       ) : (

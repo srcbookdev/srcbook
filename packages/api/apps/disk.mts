@@ -6,6 +6,7 @@ import { type App as DBAppType } from '../db/schema.mjs';
 import { APPS_DIR } from '../constants.mjs';
 import { toValidPackageName } from './utils.mjs';
 import { DirEntryType, FileType } from '@srcbook/shared';
+import { FileContent } from '../ai/app-parser.mjs';
 
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
@@ -200,4 +201,30 @@ function isBinary(basename: string) {
   const isDotfile = basename.startsWith('.'); // Assume these are text for now, e.g., .gitignore
   const isTextFile = TEXT_FILE_EXTENSIONS.includes(Path.extname(basename));
   return !(isDotfile || isTextFile);
+}
+
+export async function getFlatFilesForApp(id: string): Promise<FileContent[]> {
+  const appPath = pathToApp(id);
+  return getFlatFiles(appPath);
+}
+
+async function getFlatFiles(dir: string, basePath: string = ''): Promise<FileContent[]> {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  let files: FileContent[] = [];
+
+  for (const entry of entries) {
+    const relativePath = Path.join(basePath, entry.name);
+    const fullPath = Path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (entry.name !== 'node_modules') {
+        files = files.concat(await getFlatFiles(fullPath, relativePath));
+      }
+    } else if (entry.isFile() && entry.name !== 'package-lock.json') {
+      const content = await fs.readFile(fullPath, 'utf-8');
+      files.push({ filename: relativePath, content });
+    }
+  }
+
+  return files;
 }

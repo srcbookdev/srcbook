@@ -13,7 +13,8 @@ import {
   listSessions,
   exportSrcmdText,
 } from '../session.mjs';
-import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
+import { generateCells, generateSrcbook, healthcheck, generateAppEditor } from '../ai/generate.mjs';
+import { parseResponse } from '../ai/plan-parser.mjs'
 import {
   getConfig,
   updateConfig,
@@ -42,7 +43,8 @@ import {
   deleteApp,
   createAppWithAi,
 } from '../apps/app.mjs';
-import { loadDirectory, loadFile } from '../apps/disk.mjs';
+import { toValidPackageName } from '../apps/utils.mjs';
+import { loadDirectory, loadFile, getFlatFilesForApp } from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
 
 const app: Application = express();
@@ -508,8 +510,11 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
       return res.status(404).json({ error: 'App not found' });
     }
 
-    console.log(app.id, query)
-    return res.json({ data: 'ok'});
+    const validName = toValidPackageName(app.name);
+    const files = await getFlatFilesForApp(String(app.externalId));
+    const result = await generateAppEditor(validName, files, query);
+    const parsedResult = parseResponse(result);
+    return res.json({ data: parsedResult.actions });
   } catch (e) {
     return error500(res, e as Error);
   }
@@ -521,6 +526,7 @@ router.options('/apps/:id/files', cors());
 router.get('/apps/:id/files', cors(), async (req, res) => {
   const { id } = req.params;
   const path = typeof req.query.path === 'string' ? req.query.path : '.';
+  console.log('path', path);
 
   try {
     const app = await loadApp(id);

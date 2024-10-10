@@ -233,10 +233,20 @@ export async function fixDiagnostics(
 
 export async function generateApp(query: string): Promise<string> {
   const model = await getModel();
+  const userPrompt = `==== INSTRUCTIONS ========
+${makeAppBuilderSystemPrompt()}
+======= END INSTRUCTIONS ========
+
+======= BEGIN USER REQUEST =======
+${query}
+======= END USER REQUEST =======
+`;
+
+  console.log('using model', model);
   const result = await generateText({
     model,
-    system: makeAppBuilderSystemPrompt(),
-    prompt: query,
+    prompt: userPrompt,
+    temperature: 1,
   });
   // TODO remove me
   console.log(result);
@@ -245,12 +255,21 @@ export async function generateApp(query: string): Promise<string> {
 
 export async function generateAppEditor(projectId: string, files: FileContent[], query: string): Promise<string> {
   const model = await getModel();
-  const systemPrompt = makeAppEditorSystemPrompt();
-  const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
+  const userPrompt = `==== INSTRUCTIONS ========
+${makeAppEditorSystemPrompt()}
+======= END INSTRUCTIONS ========
+
+======= BEGIN USER REQUEST =======
+${makeAppEditorUserPrompt(projectId, files, query)}
+======= END USER REQUEST =======
+`;
+
+  console.log('using model', model);
+  console.log('User prompt:', userPrompt);
   const result = await generateText({
     model,
-    system: systemPrompt,
     prompt: userPrompt,
+    temperature: 1,
   });
   console.log(result);
   return result.text;

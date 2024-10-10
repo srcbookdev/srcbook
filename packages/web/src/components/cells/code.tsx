@@ -167,6 +167,7 @@ export default function ControlledCodeCell(props: Props) {
   );
 
   const {
+    cells,
     updateCell: updateCellOnClient,
     clearOutput,
     getTsServerDiagnostics,
@@ -390,6 +391,7 @@ export default function ControlledCodeCell(props: Props) {
           prefix + suffix,
           cell.language,
           prefix.length,
+          cells.filter((c): c is CodeCellType => c.type === 'code' && c.id !== cell.id),
         );
       } catch (err) {
         console.error('Error fetching ai autocomplete suggestion:', err);

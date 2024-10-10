@@ -1,6 +1,7 @@
 import protobuf from 'protobufjs';
 import Long from 'long';
 
+import { CodeCellType } from '@srcbook/shared';
 import languageServerProto from './language-server-proto';
 
 // NOTE: this EDITOR_API_KEY value was just included as a raw string in
@@ -15,6 +16,7 @@ export async function runCodeiumAiAutocomplete(
   source: string,
   sourceLanguage: 'javascript' | 'typescript',
   cursorOffset: number,
+  otherCodeCells: Array<CodeCellType> = [],
 ): Promise<CodiumCompletionResult> {
   const protos = protobuf.Root.fromJSON(languageServerProto as protobuf.INamespace);
   const GetCompletionsRequest = protos.lookupType('exa.language_server_pb.GetCompletionsRequest');
@@ -28,7 +30,17 @@ export async function runCodeiumAiAutocomplete(
   const apiKey = optionalApiKey ?? EDITOR_API_KEY;
 
   const payload = {
-    otherDocuments: [],
+    otherDocuments: otherCodeCells.map((otherCodeCell) =>
+      DocumentInfo.create({
+        absolutePath: otherCodeCell.filename,
+        relativePath: otherCodeCell.filename,
+        text: otherCodeCell.source,
+        editorLanguage: sourceLanguage,
+        language: Language.getOption(sourceLanguage === 'javascript' ? 'JAVASCRIPT' : 'TYPESCRIPT'),
+        cursorOffset: Long.fromValue(0), // NOTE: how do I represent the cursor not being in here?
+        lineEnding: '\n',
+      }),
+    ),
     metadata: Metadata.create({
       ideName: 'web',
       extensionVersion: '1.0.12',

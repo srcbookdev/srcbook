@@ -24,7 +24,12 @@ export function SettingsProvider({ config, children }: ProviderPropsType) {
   const updateConfig = async (newConfig: Partial<SettingsType>) => {
     // Filter out null values and convert back to an object
     const changeSet = Object.fromEntries(
-      Object.entries(newConfig).filter(([_, value]) => value !== null),
+      Object.entries(newConfig).filter(([key, value]) => {
+        if (key === 'codeiumApiKey') {
+          return true;
+        }
+        return value !== null;
+      }),
     );
 
     await updateConfigServer(changeSet);

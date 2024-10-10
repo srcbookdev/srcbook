@@ -240,6 +240,7 @@ interface EditConfigRequestType {
   aiBaseUrl?: string;
   aiModel?: string;
   aiProvider?: AiProviderType;
+  codeiumApiKey?: string;
   subscriptionEmail?: string | null;
 }
 

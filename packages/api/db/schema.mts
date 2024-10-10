@@ -15,6 +15,7 @@ export const configs = sqliteTable('config', {
   aiProvider: text('ai_provider').notNull().default('openai'),
   aiModel: text('ai_model').default('gpt-4o'),
   aiBaseUrl: text('ai_base_url'),
+  codeiumApiKey: text('codeium_api_key'),
   // Null: unset. Email: subscribed. "dismissed": dismissed the dialog.
   subscriptionEmail: text('subscription_email'),
 });

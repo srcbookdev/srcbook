@@ -10,6 +10,7 @@ import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
 import { Preview } from '@/components/apps/workspace/preview';
 import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
+import ExpandableOverlay from '@/components/apps/expandable-overlay';
 import { cn } from '@/lib/utils';
 import { ChatPanel } from '@/components/chat';
 
@@ -80,6 +81,7 @@ function Apps(props: { app: AppType }) {
         {previewVisible ? <Preview /> : null}
       </div>
       <ChatPanel />
+      <ExpandableOverlay />
     </div>
   );
 }

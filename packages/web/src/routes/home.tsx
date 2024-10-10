@@ -146,6 +146,23 @@ export default function Home() {
         </div>
       </div>
 
+      {apps.length > 0 && (
+        <div>
+          <h4 className="h4 mx-auto mt-8 mb-6">Your apps</h4>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {apps.map((app) => (
+              <AppCard
+                key={app.id}
+                name={app.name}
+                language={app.language}
+                onClick={() => navigate(`/apps/${app.id}`)}
+                onDelete={() => setAppToDelete(app)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {srcbooks.length > 0 && (
         <div>
           <h4 className="h4 mx-auto mt-8 mb-6">Your Notebooks</h4>

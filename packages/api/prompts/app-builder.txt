@@ -32,6 +32,14 @@ We want it to write out all of the files and respond with the exact following XM
   }
   ]]>
   </file>
+  <file filename="./postcss.config.js">
+    export default {
+    plugins: {
+        tailwindcss: {},
+        autoprefixer: {},
+      },
+    }
+  </file>
   <file filename="./App.tsx">
     <![CDATA[
       {... file contents (ALL OF THE FILE)}

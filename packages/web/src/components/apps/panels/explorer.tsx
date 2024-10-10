@@ -1,25 +1,41 @@
+import { useState } from 'react';
 import { FileIcon, ChevronRightIcon, type LucideIcon, ChevronDownIcon } from 'lucide-react';
 import { useFiles } from '../use-files';
-import type { DirEntryType } from '@srcbook/shared';
+import type { DirEntryType, FileEntryType } from '@srcbook/shared';
 import { cn } from '@srcbook/components';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@srcbook/components/src/components/ui/context-menu';
 
 export default function ExplorerPanel() {
   const { fileTree } = useFiles();
 
+  const [editingEntry, setEditingEntry] = useState<FileEntryType | null>(null);
+
   return (
     <ul className="w-full text-sm text-tertiary-foreground overflow-auto">
-      <FileTree depth={1} tree={fileTree} />
+      <FileTree
+        depth={1}
+        tree={fileTree}
+        editingEntry={editingEntry}
+        setEditingEntry={setEditingEntry}
+      />
     </ul>
   );
 }
 
-type FileTreePropsType = {
+function FileTree(props: {
   depth: number;
   tree: DirEntryType;
-};
+  editingEntry: FileEntryType | null;
+  setEditingEntry: (entry: FileEntryType | null) => void;
+}) {
+  const { depth, tree, editingEntry, setEditingEntry } = props;
 
-function FileTree({ depth, tree }: FileTreePropsType) {
-  const { openFile, toggleFolder, isFolderOpen, openedFile } = useFiles();
+  const { openFile, deleteFile, renameFile, toggleFolder, isFolderOpen, openedFile } = useFiles();
 
   if (tree.children === null) {
     return null;
@@ -42,24 +58,91 @@ function FileTree({ depth, tree }: FileTreePropsType) {
       ];
 
       if (opened) {
-        elements.push(<FileTree key={entry.path + '-tree'} depth={depth + 1} tree={entry} />);
+        elements.push(
+          <FileTree
+            key={entry.path + '-tree'}
+            depth={depth + 1}
+            tree={entry}
+            editingEntry={editingEntry}
+            setEditingEntry={setEditingEntry}
+          />,
+        );
       }
 
       return elements;
     } else {
-      return (
+      return entry.name === editingEntry?.name ? (
         <li key={entry.path}>
-          <Node
+          <RenameFileNode
             depth={depth}
-            icon={FileIcon}
+            name={entry.name}
+            onSubmit={(name) => {
+              renameFile(entry, name);
+              setEditingEntry(null);
+            }}
+            onCancel={() => setEditingEntry(null)}
+          />
+        </li>
+      ) : (
+        <li key={entry.path}>
+          <FileNode
+            depth={depth}
             label={entry.name}
             active={openedFile?.path === entry.path}
             onClick={() => openFile(entry)}
+            deleteFile={() => deleteFile(entry)}
+            renameFile={() => setEditingEntry(entry)}
           />
         </li>
       );
     }
   });
+}
+
+function FileNode(props: {
+  depth: number;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  deleteFile: () => void;
+  renameFile: () => void;
+}) {
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <Node {...props} icon={FileIcon} />
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={props.renameFile}>Rename</ContextMenuItem>
+        <ContextMenuItem onClick={props.deleteFile}>Delete</ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
+
+function RenameFileNode(props: {
+  depth: number;
+  name: string;
+  onSubmit: (name: string) => void;
+  onCancel: () => void;
+}) {
+  const [input, setInput] = useState(props.name);
+  return (
+    <input
+      value={input}
+      className="flex h-8 w-full rounded-sm border border-ring bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      autoFocus
+      onBlur={props.onCancel}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          props.onSubmit(input);
+        } else if (e.key === 'Escape') {
+          props.onCancel();
+        }
+      }}
+      onChange={(e) => setInput(e.currentTarget.value)}
+    />
+  );
 }
 
 function Node(props: {

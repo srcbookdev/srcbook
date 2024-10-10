@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { APPS_DIR } from '../constants.mjs';
 import { toValidPackageName } from './utils.mjs';
-import { DirEntryType, FileType } from '@srcbook/shared';
+import { DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
 
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
@@ -142,6 +142,32 @@ export async function loadFile(app: DBAppType, path: string): Promise<FileType> 
       binary: false,
     };
   }
+}
+
+export function deleteFile(app: DBAppType, path: string) {
+  const filePath = Path.join(APPS_DIR, app.externalId, path);
+  return fs.rm(filePath);
+}
+
+export async function renameFile(
+  app: DBAppType,
+  path: string,
+  name: string,
+): Promise<FileEntryType> {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const oldPath = Path.join(projectDir, path);
+  const dirname = Path.dirname(oldPath);
+  const newPath = Path.join(dirname, name);
+  await fs.rename(oldPath, newPath);
+
+  const relativePath = Path.relative(projectDir, newPath);
+  const basename = Path.basename(newPath);
+
+  return {
+    type: 'file' as const,
+    name: basename,
+    path: relativePath,
+  };
 }
 
 // TODO: This does not scale.

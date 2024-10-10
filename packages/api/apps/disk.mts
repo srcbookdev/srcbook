@@ -90,30 +90,36 @@ async function copyDir(srcDir: string, destDir: string) {
   }
 }
 
-export async function loadDirectory(app: DBAppType, path: string): Promise<DirEntryType> {
+export async function loadDirectory(
+  app: DBAppType,
+  path: string,
+  excludes = ['node_modules', 'dist', '.git'],
+): Promise<DirEntryType> {
   const projectDir = Path.join(APPS_DIR, app.externalId);
   const dirPath = Path.join(projectDir, path);
   const entries = await fs.readdir(dirPath, { withFileTypes: true });
 
-  const children = entries.map((entry) => {
-    const fullPath = Path.join(dirPath, entry.name);
-    const relativePath = Path.relative(projectDir, fullPath);
+  const children = entries
+    .filter((entry) => excludes.indexOf(entry.name) === -1)
+    .map((entry) => {
+      const fullPath = Path.join(dirPath, entry.name);
+      const relativePath = Path.relative(projectDir, fullPath);
 
-    if (entry.isDirectory()) {
-      return {
-        type: 'directory' as const,
-        name: entry.name,
-        path: relativePath,
-        children: null,
-      };
-    } else {
-      return {
-        type: 'file' as const,
-        name: entry.name,
-        path: relativePath,
-      };
-    }
-  });
+      if (entry.isDirectory()) {
+        return {
+          type: 'directory' as const,
+          name: entry.name,
+          path: relativePath,
+          children: null,
+        };
+      } else {
+        return {
+          type: 'file' as const,
+          name: entry.name,
+          path: relativePath,
+        };
+      }
+    });
 
   const relativePath = Path.relative(projectDir, dirPath);
   const basename = Path.basename(relativePath);

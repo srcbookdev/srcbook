@@ -78,7 +78,7 @@ function Apps(props: { app: AppType }) {
         <Editor app={props.app} />
         {previewStatus === 'running' && <Preview />}
       </div>
-      <ExpandableOverlay />
+      <ExpandableOverlay app={props.app} />
     </div>
   );
 }

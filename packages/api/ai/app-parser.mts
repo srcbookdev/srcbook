@@ -72,3 +72,23 @@ export function parseProjectXML(response: string): Project {
     throw new Error('Failed to parse XML response');
   }
 }
+// TODO reuse and cleanup types
+export interface FileContent {
+  filename: string;
+  content: string;
+}
+
+export function buildProjectXml(files: FileContent[], projectId: string): string {
+  const fileXmls = files.map(file => `
+  <file filename="${file.filename}">
+    <![CDATA[
+${file.content}
+    ]]>
+  </file>`).join('\n');
+
+  return `
+<project id="${projectId}">
+${fileXmls}
+</project>
+  `.trim();
+}

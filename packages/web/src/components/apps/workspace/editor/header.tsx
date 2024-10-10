@@ -37,7 +37,7 @@ export default function EditorHeader(props: PropsType) {
       >
         <nav className="flex items-center justify-between px-4 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="px-1.5">{props.app.name}</h3>
+            <h3 className="px-1.5 font-semibold">{props.app.name}</h3>
           </div>
 
           <div className="flex items-center gap-2">

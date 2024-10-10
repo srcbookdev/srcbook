@@ -80,36 +80,42 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
     [app.id],
   );
 
-  const deleteFile = useCallback(async (entry: FileEntryType) => {
-    await doDeleteFile(app.id, entry.path);
-    delete filesRef.current[entry.path];
-    setOpenedFile((openedFile) => {
-      if (openedFile && openedFile.path === entry.path) {
-        return null;
-      }
-      return openedFile;
-    });
-    fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
-    forceComponentRerender(); // required
-  }, []);
-
-  const renameFile = useCallback(async (entry: FileEntryType, name: string) => {
-    const { data: newEntry } = await doRenameFile(app.id, entry.path, name);
-    const oldFile = filesRef.current[entry.path];
-    if (oldFile) {
-      const newFile = { ...oldFile, path: newEntry.path, name: newEntry.name };
-      delete filesRef.current[oldFile.path];
-      filesRef.current[newFile.path] = newFile;
+  const deleteFile = useCallback(
+    async (entry: FileEntryType) => {
+      await doDeleteFile(app.id, entry.path);
+      delete filesRef.current[entry.path];
       setOpenedFile((openedFile) => {
-        if (openedFile && openedFile.path === oldFile.path) {
-          return newFile;
+        if (openedFile && openedFile.path === entry.path) {
+          return null;
         }
         return openedFile;
       });
-    }
-    fileTreeRef.current = updateFileNode(fileTreeRef.current, entry, newEntry);
-    forceComponentRerender(); // required
-  }, []);
+      fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
+      forceComponentRerender(); // required
+    },
+    [app.id],
+  );
+
+  const renameFile = useCallback(
+    async (entry: FileEntryType, name: string) => {
+      const { data: newEntry } = await doRenameFile(app.id, entry.path, name);
+      const oldFile = filesRef.current[entry.path];
+      if (oldFile) {
+        const newFile = { ...oldFile, path: newEntry.path, name: newEntry.name };
+        delete filesRef.current[oldFile.path];
+        filesRef.current[newFile.path] = newFile;
+        setOpenedFile((openedFile) => {
+          if (openedFile && openedFile.path === oldFile.path) {
+            return newFile;
+          }
+          return openedFile;
+        });
+      }
+      fileTreeRef.current = updateFileNode(fileTreeRef.current, entry, newEntry);
+      forceComponentRerender(); // required
+    },
+    [app.id],
+  );
 
   const isFolderOpen = useCallback((entry: DirEntryType) => {
     return openedDirectoriesRef.current.has(entry.path);

@@ -131,6 +131,7 @@ function RenameFileNode(props: {
     <input
       value={input}
       className="flex h-8 w-full rounded-sm border border-ring bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      /* eslint-disable-next-line jsx-a11y/no-autofocus */
       autoFocus
       onBlur={props.onCancel}
       onKeyDown={(e) => {

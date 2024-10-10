@@ -20,7 +20,7 @@ import { useCells } from '@srcbook/components/src/components/use-cell';
 import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { getFileContent } from '@/lib/server';
-import { runCodiumAiAutocomplete } from '@/lib/ai-autocomplete';
+import { runCodeiumAiAutocomplete } from '@/lib/ai-autocomplete';
 import { tsHover } from '@/components/cells/hover';
 import { autocompletion } from '@codemirror/autocomplete';
 import { type Diagnostic, linter } from '@codemirror/lint';
@@ -385,7 +385,7 @@ export default function ControlledCodeCell(props: Props) {
     inlineCopilot(async (prefix, suffix) => {
       let response;
       try {
-        response = await runCodiumAiAutocomplete(
+        response = await runCodeiumAiAutocomplete(
           codeiumApiKey ?? null,
           prefix + suffix,
           cell.language,

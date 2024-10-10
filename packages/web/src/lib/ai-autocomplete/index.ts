@@ -10,7 +10,7 @@ const EDITOR_API_KEY = 'd49954eb-cfba-4992-980f-d8fb37f0e942';
 
 // NOTE: The below logic has been adapted from codeium's `@codeium/react-code-editor package. See here:
 // https://github.com/Exafunction/codeium-react-code-editor/blob/768e1b231c00e078c86bc19c8ede697a1e37ec75/src/components/CodeiumEditor/CompletionProvider.ts#L147-L159
-export async function runCodiumAiAutocomplete(
+export async function runCodeiumAiAutocomplete(
   optionalApiKey: string | null,
   source: string,
   sourceLanguage: 'javascript' | 'typescript',

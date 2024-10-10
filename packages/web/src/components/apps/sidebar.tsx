@@ -160,13 +160,13 @@ function Panel(props: {
       <div className="flex items-center justify-between h-12 px-3">
         <h4 className="font-semibold leading-none">{props.title}</h4>
         <button
-          className="p-2 text-tertiary-foreground hover:text-foreground hover:bg-sb-core-110 rounded-sm"
+          className="p-2 text-tertiary-foreground hover:text-foreground hover:bg-sb-core-20 dark:hover:bg-sb-core-110 rounded-sm"
           onClick={props.onClose}
         >
           <ChevronsLeftIcon size={18} />
         </button>
       </div>
-      <div className="w-56 py-3 flex-1 overflow-auto">{props.children}</div>
+      <div className="w-60 py-3 pr-1.5 flex-1 overflow-auto">{props.children}</div>
     </div>
   );
 }

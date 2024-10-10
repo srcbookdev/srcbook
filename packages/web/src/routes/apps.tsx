@@ -1,8 +1,8 @@
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 
-import { AppType } from '@srcbook/shared';
+import type { AppType, DirEntryType } from '@srcbook/shared';
 
-import { loadApp } from '@/clients/http/apps';
+import { loadApp, loadDirectory } from '@/clients/http/apps';
 import Sidebar from '@/components/apps/sidebar';
 import { useEffect, useRef } from 'react';
 import { AppChannel } from '@/clients/websocket';
@@ -13,17 +13,21 @@ import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
 import { cn } from '@/lib/utils';
 
 async function loader({ params }: LoaderFunctionArgs) {
-  const [{ data: app }] = await Promise.all([loadApp(params.id!)]);
+  const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
+    loadApp(params.id!),
+    loadDirectory(params.id!, '.'),
+  ]);
 
-  return { app };
+  return { app, rootDirEntries };
 }
 
 type AppLoaderDataType = {
   app: AppType;
+  rootDirEntries: DirEntryType;
 };
 
 export function AppsPage() {
-  const { app } = useLoaderData() as AppLoaderDataType;
+  const { app, rootDirEntries } = useLoaderData() as AppLoaderDataType;
 
   const channelRef = useRef(AppChannel.create(app.id));
 
@@ -43,7 +47,14 @@ export function AppsPage() {
   }, [app.id]);
 
   return (
-    <FilesProvider channel={channelRef.current}>
+    <FilesProvider
+      // Key can be used to remount a fresh provider if the app changes.
+      // This ensures we get a clean set of state for the new app.
+      key={app.id}
+      app={app}
+      channel={channelRef.current}
+      rootDirEntries={rootDirEntries}
+    >
       <PreviewProvider channel={channelRef.current}>
         <Apps app={app} />
       </PreviewProvider>

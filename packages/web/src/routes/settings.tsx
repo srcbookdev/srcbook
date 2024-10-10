@@ -26,6 +26,7 @@ function Settings() {
     updateConfig: updateConfigContext,
     defaultLanguage,
     subscriptionEmail,
+    autoInstallDependencies,
   } = useSettings();
 
   const isSubscribed = subscriptionEmail && subscriptionEmail !== 'dismissed';
@@ -38,6 +39,10 @@ function Settings() {
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfigContext({ defaultLanguage: value });
+  };
+
+  const toggleAutoInstallDependencies = () => {
+    updateConfigContext({ autoInstallDependencies: !autoInstallDependencies });
   };
 
   const setAiProvider = (provider: AiProviderType) => {
@@ -95,7 +100,20 @@ function Settings() {
             <label htmlFor="theme-switch">Dark mode</label>
           </div>
         </div>
-
+        <div>
+          <h2 className="text-xl pb-2">Dependency Installation</h2>
+          <label className="opacity-70 text-sm" htmlFor="theme-switch">
+            Auto-install required dependencies.
+          </label>
+          <div className="flex items-center gap-2 mt-4">
+            <Switch
+              id="Auto-Installation-switch"
+              checked={autoInstallDependencies}
+              onCheckedChange={toggleAutoInstallDependencies}
+            />
+            <label htmlFor="theme-switch">Enabled</label>
+          </div>
+        </div>
         <div>
           <h2 className="text-xl pb-2">Default Language</h2>
           <label className="opacity-70 block pb-4 text-sm" htmlFor="language-selector">

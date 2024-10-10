@@ -8,6 +8,7 @@ export interface FsObjectType {
 }
 
 export type SettingsType = {
+  autoInstallDependencies: boolean;
   baseDir: string;
   defaultLanguage: CodeLanguageType;
   openaiKey?: string | null;

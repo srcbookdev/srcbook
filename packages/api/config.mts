@@ -11,6 +11,7 @@ async function init() {
     const defaultConfig = {
       baseDir: HOME_DIR,
       defaultLanguage: 'typescript',
+      autoInstallDependencies: true,
       installId: randomid(),
       aiConfig: { provider: 'openai', model: 'gpt-4o' } as const,
       aiProvider: 'openai',

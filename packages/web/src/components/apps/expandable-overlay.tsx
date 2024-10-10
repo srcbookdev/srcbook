@@ -1,13 +1,19 @@
 'use client';
 
 import { cn } from '@srcbook/components/src/lib/utils';
-import { SparklesIcon } from 'lucide-react';
+import { SparklesIcon, LoaderCircle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { Textarea } from '@srcbook/components/src/components/ui/textarea';
+import { editApp } from '@/lib/server';
+import { AppType } from '@srcbook/shared';
 
-export default function ExpandableOverlay() {
+type PropsType = {
+  app: AppType;
+};
+export default function ExpandableOverlay(props: PropsType) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -26,11 +32,15 @@ export default function ExpandableOverlay() {
     };
   }, [isExpanded]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Submitted message:', message);
+    setIsLoading(true);
+    const response = await editApp(props.app.id, message);
+    console.log('response in overlay.tsx', response);
     setMessage('');
     setIsExpanded(false);
+    setIsLoading(false);
   };
 
   const handleOverlayClick = () => {
@@ -39,14 +49,30 @@ export default function ExpandableOverlay() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div
+        ref={overlayRef}
+        onClick={handleOverlayClick}
+        className={cn(
+          'fixed bottom-12 left-12 transition-all duration-150 ease-in-out w-20 h-20 rounded-full bg-ai border-none',
+        )}
+      >
+        <Button className="rounded-full w-full h-full" variant="ai">
+          <LoaderCircle className="animate-spin" size={24} />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
       className={cn(
-        'fixed bottom-4 right-4 transition-all duration-150 ease-in-out',
+        'fixed bottom-12 left-12 transition-all duration-150 ease-in-out',
         isExpanded
-          ? 'border rounded-lg w-96 h-64 bg-primary-foreground'
+          ? 'border rounded-lg w-96 h-64 bg-primary-foreground text-primary'
           : 'w-20 h-20 rounded-full bg-ai border-none',
       )}
     >
@@ -56,7 +82,7 @@ export default function ExpandableOverlay() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Ask a follow up"
-            className="flex-grow mb-4 resize-none"
+            className="flex-grow mb-4 resize-none text-primary border border-foreground"
           />
           <Button type="submit" className="w-full">
             Submit
@@ -64,7 +90,7 @@ export default function ExpandableOverlay() {
         </form>
       ) : (
         <Button className="rounded-full w-full h-full" variant="ai">
-          <SparklesIcon className="" size={16} />
+          <SparklesIcon className="" size={24} />
         </Button>
       )}
     </div>

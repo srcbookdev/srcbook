@@ -81,7 +81,7 @@ function Apps(props: { app: AppType }) {
         {previewVisible ? <Preview /> : null}
       </div>
       <ChatPanel />
-      <ExpandableOverlay />
+      <ExpandableOverlay app={props.app} />
     </div>
   );
 }

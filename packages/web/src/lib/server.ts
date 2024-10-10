@@ -437,3 +437,21 @@ export async function subscribeToMailingList(email: string) {
 
   return response.json();
 }
+
+export async function editApp(projectId: string, query: string) {
+  const response = await fetch(API_BASE_URL + '/apps/' + projectId + '/edit', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query }),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+  // Add a 2-second sleep timer
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  return response.json();
+}
+

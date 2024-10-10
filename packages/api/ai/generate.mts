@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs';
 import Path from 'node:path';
 import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
+import { buildProjectXml, type FileContent} from '../ai/app-parser.mjs'
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -27,6 +28,20 @@ const makeFixDiagnosticsSystemPrompt = () => {
 const makeAppBuilderSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'app-builder.txt'), 'utf-8');
 };
+const makeAppEditorSystemPrompt = () => {
+  return readFileSync(Path.join(PROMPTS_DIR, 'app-editor.txt'), 'utf-8');
+};  
+
+const makeAppEditorUserPrompt = (projectId: string, files: FileContent[], query: string) => {
+  const projectXml = buildProjectXml(files, projectId);
+  const userRequestXml = `<userRequest>${query}</userRequest>`;
+  return `Following below are the project XML and the user request.
+
+${projectXml}
+
+${userRequestXml}
+  `.trim();
+}
 
 const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, query: string) => {
   // Make sure we copy cells so we don't mutate the session
@@ -224,6 +239,19 @@ export async function generateApp(query: string): Promise<string> {
     prompt: query,
   });
   // TODO remove me
+  console.log(result);
+  return result.text;
+}
+
+export async function generateAppEditor(projectId: string, files: FileContent[], query: string): Promise<string> {
+  const model = await getModel();
+  const systemPrompt = makeAppEditorSystemPrompt();
+  const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
+  const result = await generateText({
+    model,
+    system: systemPrompt,
+    prompt: userPrompt,
+  });
   console.log(result);
   return result.text;
 }

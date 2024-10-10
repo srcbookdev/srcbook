@@ -510,6 +510,23 @@ router.get('/apps/:id/directories', cors(), async (req, res) => {
   }
 });
 
+router.options('/apps/:id/edit', cors());
+router.post('/apps/:id/edit', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { query } = req.body;
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+    console.log(app.id, query);
+    return res.json({ data: 'ok' });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
 router.options('/apps/:id/directories', cors());
 router.post('/apps/:id/directories', cors(), async (req, res) => {
   const { id } = req.params;

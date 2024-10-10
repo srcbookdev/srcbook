@@ -13,7 +13,8 @@ import {
   listSessions,
   exportSrcmdText,
 } from '../session.mjs';
-import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
+import { generateCells, generateSrcbook, healthcheck, generateAppEditor } from '../ai/generate.mjs';
+import { parseResponse } from '../ai/plan-parser.mjs';
 import {
   getConfig,
   updateConfig,
@@ -43,6 +44,7 @@ import {
   deleteApp,
   createAppWithAi,
 } from '../apps/app.mjs';
+import { toValidPackageName } from '../apps/utils.mjs';
 import {
   deleteFile,
   renameFile,
@@ -52,6 +54,7 @@ import {
   createDirectory,
   renameDirectory,
   deleteDirectory,
+  getFlatFilesForApp,
 } from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
 
@@ -520,8 +523,11 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
     if (!app) {
       return res.status(404).json({ error: 'App not found' });
     }
-    console.log(app.id, query);
-    return res.json({ data: 'ok' });
+    const validName = toValidPackageName(app.name);
+    const files = await getFlatFilesForApp(String(app.externalId));
+    const result = await generateAppEditor(validName, files, query);
+    const parsedResult = parseResponse(result);
+    return res.json({ data: parsedResult.actions });
   } catch (e) {
     return error500(res, e as Error);
   }
@@ -600,6 +606,7 @@ router.get('/apps/:id/files', cors(), async (req, res) => {
 
   // TODO: validate and ensure path is not absolute
   const path = typeof req.query.path === 'string' ? req.query.path : '.';
+  console.log('path', path);
 
   try {
     const app = await loadApp(id);

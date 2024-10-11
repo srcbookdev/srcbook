@@ -17,25 +17,28 @@ import type {
 } from '@srcbook/shared';
 import { AppChannel } from '@/clients/websocket';
 import {
+  createFile as doCreateFile,
   deleteFile as doDeleteFile,
   renameFile as doRenameFile,
+  createDirectory,
   loadDirectory,
   loadFile,
 } from '@/clients/http/apps';
-import { deleteNode, sortTree, updateDirNode, updateFileNode } from './lib/file-tree';
+import { createNode, deleteNode, sortTree, updateDirNode, updateFileNode } from './lib/file-tree';
 
 export interface FilesContextValue {
   files: FileType[];
   fileTree: DirEntryType;
   openFile: (entry: FileEntryType) => void;
+  createFile: (dirname: string, basename: string, source?: string) => void;
   renameFile: (entry: FileEntryType, name: string) => void;
   deleteFile: (entry: FileEntryType) => void;
   openFolder: (entry: DirEntryType) => void;
   closeFolder: (entry: DirEntryType) => void;
   toggleFolder: (entry: DirEntryType) => void;
   isFolderOpen: (entry: DirEntryType) => boolean;
+  createFolder: (dirname: string, basename: string) => void;
   openedFile: FileType | null;
-  createFile: (attrs: FileType) => void;
   updateFile: (file: FileType, attrs: Partial<FileType>) => void;
 }
 
@@ -78,6 +81,27 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
       setOpenedFile(file);
     },
     [app.id],
+  );
+
+  const createFile = useCallback(
+    async (dirname: string, basename: string, source?: string) => {
+      source = source || '';
+      const { data: fileEntry } = await doCreateFile(app.id, dirname, basename, source);
+      fileTreeRef.current = createNode(fileTreeRef.current, fileEntry);
+      forceComponentRerender(); // required
+      openFile(fileEntry);
+    },
+    [app.id, openFile],
+  );
+
+  const updateFile = useCallback(
+    (file: FileType, attrs: Partial<FileType>) => {
+      const updatedFile: FileType = { ...file, ...attrs };
+      filesRef.current[file.path] = updatedFile;
+      channel.push('file:updated', { file: updatedFile });
+      forceComponentRerender();
+    },
+    [channel],
   );
 
   const deleteFile = useCallback(
@@ -149,19 +173,14 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
     [isFolderOpen, openFolder, closeFolder],
   );
 
-  const createFile = useCallback((file: FileType) => {
-    filesRef.current[file.path] = file;
-    forceComponentRerender();
-  }, []);
-
-  const updateFile = useCallback(
-    (file: FileType, attrs: Partial<FileType>) => {
-      const updatedFile: FileType = { ...file, ...attrs };
-      filesRef.current[file.path] = updatedFile;
-      channel.push('file:updated', { file: updatedFile });
-      forceComponentRerender();
+  const createFolder = useCallback(
+    async (dirname: string, basename: string) => {
+      const { data: folderEntry } = await createDirectory(app.id, dirname, basename);
+      fileTreeRef.current = createNode(fileTreeRef.current, folderEntry);
+      forceComponentRerender(); // required
+      openFolder(folderEntry);
     },
-    [channel],
+    [app.id, openFolder],
   );
 
   const files = Object.values(filesRef.current);
@@ -177,6 +196,7 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
     closeFolder,
     toggleFolder,
     isFolderOpen,
+    createFolder,
     createFile,
     updateFile,
   };

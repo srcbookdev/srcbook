@@ -1,4 +1,4 @@
-import { Sparkles, Circle, PlusIcon, Trash2, Download } from 'lucide-react';
+import { Sparkles, Circle, PlusIcon, Trash2, Import, LayoutGrid } from 'lucide-react';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
@@ -155,12 +155,9 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
               <span>Running</span>
             </>
           ) : (
-            <>
-              <SrcbookLogo className="text-foreground" size={16} />
-              <span>
-                {props.cellCount} {props.cellCount === 1 ? 'Cell' : 'Cells'}
-              </span>
-            </>
+            <span>
+              {props.cellCount} {props.cellCount === 1 ? 'Cell' : 'Cells'}
+            </span>
           )}
         </div>
         <code className="font-mono group-hover:hidden">
@@ -196,17 +193,22 @@ export function AppCard(props: AppCardPropsType) {
       onClick={props.onClick}
       className="active:translate-y-0.5 hover:border-foreground"
     >
-      <h5 className="font-semibold leading-[18px] line-clamp-2">{props.name}</h5>
-      <code className="font-mono group-hover:hidden">
-        {props.language === 'javascript' ? 'JS' : 'TS'}
-      </code>
-      <button
-        type="button"
-        onClick={onDelete}
-        className="hidden group-hover:block hover:text-foreground"
-      >
-        <Trash2 size={16} />
-      </button>
+      <span className="flex items-center">
+        <LayoutGrid size={20} className="mr-2 text-sb-purple-60" />
+        <h5 className="font-semibold leading-[18px] line-clamp-2">{props.name}</h5>
+      </span>
+      <div className="flex justify-end">
+        <code className="font-mono group-hover:hidden text-tertiary-foreground">
+          {props.language === 'javascript' ? 'JS' : 'TS'}
+        </code>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="hidden group-hover:block hover:text-foreground"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
     </CardContainer>
   );
 }
@@ -275,11 +277,16 @@ export function CreateAppButton(props: { defaultLanguage: CodeLanguageType; onCl
   return (
     <CardContainer
       onClick={() => props.onClick()}
-      className="active:translate-y-0.5 hover:border-foreground"
+      className="active:translate-y-0.5 bg-[#F6EEFB80] border-sb-purple-20 hover:border-sb-purple-60 text-sb-purple-70"
     >
       <div className="flex flex-col h-full items-start justify-between">
         <PlusIcon size={20} />
-        <h5 className="font-medium leading-[18px]">Create App</h5>
+        <div className="flex items-center">
+          <h5 className="font-medium leading-[18px] mr-2">Create App</h5>
+          <span className="flex items-center justify-center h-[16px] px-2 rounded-lg text-sb-purple-60 bg-sb-core-0">
+            New
+          </span>
+        </div>
       </div>
     </CardContainer>
   );
@@ -292,7 +299,7 @@ export function ImportSrcbookButton(props: { onClick: () => void }) {
       className="border-dashed hover:border-solid focus-within:border-foreground"
     >
       <div className="flex flex-col h-full items-start justify-between">
-        <Download size={20} />
+        <Import size={20} />
         <div className="flex flex-col items-start gap-1">
           <h5 className="font-medium leading-none">Import Notebook</h5>
         </div>

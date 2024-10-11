@@ -155,6 +155,7 @@ module.exports = {
           'purple-10': 'hsl(var(--sb-purple-10))',
           'purple-20': 'hsl(var(--sb-purple-20))',
           'purple-60': 'hsl(var(--sb-purple-60))',
+          'purple-70': 'hsl(var(--sb-purple-70))',
           'purple-80': 'hsl(var(--sb-purple-80))',
 
           'green-20': 'hsl(var(--sb-green-20))',

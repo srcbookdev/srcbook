@@ -277,13 +277,13 @@ export function CreateAppButton(props: { defaultLanguage: CodeLanguageType; onCl
   return (
     <CardContainer
       onClick={() => props.onClick()}
-      className="active:translate-y-0.5 bg-[#F6EEFB80] border-sb-purple-20 hover:border-sb-purple-60 text-sb-purple-70"
+      className="active:translate-y-0.5 bg-[#F6EEFB80] dark:bg-[#331F4780] border-sb-purple-20 dark:border-sb-purple-80 hover:border-sb-purple-60 text-sb-purple-70 dark:text-sb-purple-20"
     >
       <div className="flex flex-col h-full items-start justify-between">
         <PlusIcon size={20} />
         <div className="flex items-center">
           <h5 className="font-medium leading-[18px] mr-2">Create App</h5>
-          <span className="flex items-center justify-center h-[16px] px-2 rounded-lg text-sb-purple-60 bg-sb-core-0">
+          <span className="flex items-center justify-center h-[16px] px-2 rounded-lg text-sb-purple-60 dark:text-sb-purple-20 bg-sb-core-0 dark:bg-sb-core-100">
             New
           </span>
         </div>

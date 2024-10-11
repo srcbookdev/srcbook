@@ -5,21 +5,36 @@ import { SparklesIcon, LoaderCircle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { Textarea } from '@srcbook/components/src/components/ui/textarea';
-import { editApp } from '@/lib/server';
+import { aiEditApp } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
 import { useFiles } from './use-files';
+
+type FileType = {
+  basename: string;
+  dirname: string;
+  type: 'file';
+  content: string;
+  filename: string;
+  description: string;
+};
+type CommandType = {
+  type: 'command';
+  content: string;
+  description: string;
+};
+
+type PlanItemType = FileType | CommandType;
 
 type PropsType = {
   app: AppType;
 };
 export default function ExpandableOverlay(props: PropsType) {
-  const { updateFile, openFile, files } = useFiles();
+  const { createFile } = useFiles();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const overlayRef = useRef<HTMLDivElement>(null);
-
-  console.log(files);
+  const [summary, setSummary] = useState<Array<PlanItemType>>([]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -40,33 +55,20 @@ export default function ExpandableOverlay(props: PropsType) {
     e.preventDefault();
     console.log('Submitted message:', message);
     setIsLoading(true);
-    const response = await editApp(props.app.id, message);
+    const response = await aiEditApp(props.app.id, message);
     console.log('response in overlay.tsx', response);
 
     // Update files based on the response
     if (response.data && Array.isArray(response.data)) {
-      response.data.forEach(
-        async (fileUpdate: { type: 'file'; filename: string; content: string }) => {
-          console.log('fileUpdate', fileUpdate);
-          if (fileUpdate.type === 'file') {
-            // First, open the file. Very bad basename logic
-            const openedFile = await openFile({
-              type: 'file',
-              name: fileUpdate.filename.split('/').pop() || '',
-              path: fileUpdate.filename,
-            });
-            console.log('openedFile', openedFile);
-            // Then get the file from files
-            const file = files.find((file) => file.path === fileUpdate.filename);
-            if (file) {
-              console.log('found file', file);
-              await updateFile(file, { source: fileUpdate.content });
-            } else {
-              console.error('file not found', fileUpdate.filename);
-            }
-          }
-        },
-      );
+      setSummary(response.data as Array<PlanItemType>);
+      response.data.forEach(async (fileUpdate: PlanItemType) => {
+        console.log('updating file', fileUpdate);
+        if (fileUpdate.type === 'file') {
+          await createFile(fileUpdate.dirname, fileUpdate.basename, fileUpdate.content);
+        } else if (fileUpdate.type === 'command') {
+          console.log('command', fileUpdate.content);
+        }
+      });
     }
 
     setMessage('');
@@ -92,6 +94,55 @@ export default function ExpandableOverlay(props: PropsType) {
         <Button className="rounded-full w-full h-full" variant="ai">
           <LoaderCircle className="animate-spin" size={24} />
         </Button>
+      </div>
+    );
+  }
+
+  if (summary.length > 0) {
+    return (
+      <div
+        ref={overlayRef}
+        onClick={handleOverlayClick}
+        className={cn(
+          'fixed bottom-12 left-12 transition-all duration-150 ease-in-out border border-sb-yellow-20 rounded-lg w-[500px] h-64 bg-primary-foreground text-primary p-2 bg-sb-yellow-10 overflow-auto',
+        )}
+      >
+        <div className="flex flex-col justify-between min-h-full">
+          <div>
+            {summary.map((item: PlanItemType) => {
+              if (item.type === 'file') {
+                return (
+                  <p key={item.basename}>
+                    <span className="text-sm font-mono">{item.filename}</span>:{' '}
+                    <span className="text-sm opacity-60 line-clamp-1">{item.description}</span>
+                  </p>
+                );
+              } else if (item.type === 'command') {
+                return (
+                  <div key={item.content}>
+                    <p className="text-sm font-mono">
+                      Run command: <span className="font-mono">{item.content}</span>
+                    </p>
+                    <p className="text-xs opacity-50">{item.description}</p>
+                  </div>
+                );
+              }
+            })}
+          </div>
+          <div className="flex items-center w-full gap-2">
+            <Button
+              variant="ghost"
+              className="flex-grow border border-sb-yellow-20"
+              onClick={() => setSummary([])}
+              disabled
+            >
+              Revert
+            </Button>
+            <Button className="flex-grow" onClick={() => setSummary([])}>
+              Done
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

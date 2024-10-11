@@ -637,6 +637,7 @@ router.post('/apps/:id/files', cors(), async (req, res) => {
       return res.status(404).json({ error: 'App not found' });
     }
 
+    console.log('About to write file', dirname, basename, source);
     const file = await createFile(app, dirname, basename, source);
 
     return res.json({ data: file });

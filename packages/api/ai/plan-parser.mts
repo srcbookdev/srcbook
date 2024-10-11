@@ -1,4 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
+import Path from 'node:path'
 
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
@@ -32,6 +33,8 @@ import { XMLParser } from 'fast-xml-parser';
 
 interface File {
   type: 'file';
+  dirname: string;
+  basename: string;
   filename: string;
   content: string;
   description: string;
@@ -84,6 +87,8 @@ export function parseResponse(response: string): Plan {
         plan.actions.push({
           type: 'file',
           filename: action.file['@_filename'],
+          dirname: Path.dirname(action.file['@_filename']),
+          basename: Path.basename(action.file['@_filename']),
           content: action.file['#text'],
           description: action.description,
         });

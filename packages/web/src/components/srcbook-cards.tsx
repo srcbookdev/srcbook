@@ -245,7 +245,7 @@ export function CreateSrcbookButton(props: {
 
       <div className="flex border rounded-sm bg-background w-fit">
         <Button
-          title="Use JavaScript for this Srcbook"
+          title="Use JavaScript for this Notebook"
           variant="secondary"
           className={cn(
             'border-none rounded-r-none active:translate-y-0 text-muted-foreground bg-muted w-10',
@@ -256,7 +256,7 @@ export function CreateSrcbookButton(props: {
           JS
         </Button>
         <Button
-          title="Use TypeScript for this Srcbook"
+          title="Use TypeScript for this Notebook"
           variant="secondary"
           className={cn(
             'border-none rounded-l-none active:translate-y-0 text-muted-foreground bg-muted w-10',

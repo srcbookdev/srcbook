@@ -9,14 +9,14 @@ export function Preview(props: PropsType) {
   const { url, status } = usePreview();
 
   switch (status) {
-    case "booting":
-    case "connecting":
+    case 'connecting':
+    case 'booting':
       return (
-        <div className={cn("flex justify-center items-center w-full h-full", props.className)}>
+        <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
           <span className="text-tertiary-foreground">Booting...</span>
         </div>
       );
-    case "running":
+    case 'running':
       if (url === null) {
         return;
       }
@@ -26,7 +26,7 @@ export function Preview(props: PropsType) {
           <iframe className="w-full h-full" src={url} title="App preview" />
         </div>
       );
-    case "stopped":
+    case 'stopped':
       return null;
   }
 }

@@ -145,9 +145,9 @@ export function register(wss: WebSocketServer) {
         JSON.stringify([
           topic,
           'preview:status',
-          existingProcess ? (
-            { status: 'running', url: `http://localhost:${existingProcess.port}/` }
-          ) : { url: null, status: 'stopped' },
+          existingProcess
+            ? { status: 'running', url: `http://localhost:${existingProcess.port}/` }
+            : { url: null, status: 'stopped' },
         ]),
       );
     });

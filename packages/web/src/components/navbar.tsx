@@ -204,7 +204,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
                       className="cursor-pointer"
                     >
                       <ImportIcon className="mr-2 h-4 w-4" />
-                      <span>Open Srcbook</span>
+                      <span>Open Notebook</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

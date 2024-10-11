@@ -211,19 +211,6 @@ export function AppCard(props: AppCardPropsType) {
   );
 }
 
-function BigButton(props: { onClick: () => void; className?: string; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={props.onClick}
-      className={cn(
-        'w-full sm:w-[216px] sm:max-w-[216px] h-24 p-3 bg-background border rounded-sm hover:border-ring transition-all',
-        props.className,
-      )}
-    >
-      {props.children}
-    </button>
-  );
-}
 export function GenerateSrcbookButton(props: { onClick: () => void }) {
   return (
     <CardContainer

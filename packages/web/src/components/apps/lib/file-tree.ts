@@ -1,5 +1,7 @@
 import type { DirEntryType, FileEntryType, FsEntryTreeType } from '@srcbook/shared';
 
+import { dirname } from './path';
+
 /**
  * Sorts a file tree (in place) by name. Folders come first, then files.
  */
@@ -156,6 +158,37 @@ export function deleteNode(tree: DirEntryType, path: string): DirEntryType {
       children.push(entry);
     }
   }
+
+  return { ...tree, children };
+}
+
+/**
+ * Create a new node in the file tree.
+ */
+export function createNode(tree: DirEntryType, node: DirEntryType | FileEntryType): DirEntryType {
+  return sortTree(doCreateNode(tree, node, dirname(node.path)));
+}
+
+function doCreateNode(
+  tree: DirEntryType,
+  node: DirEntryType | FileEntryType,
+  dirname: string,
+): DirEntryType {
+  if (tree.children === null) {
+    return tree;
+  }
+
+  if (tree.path === dirname) {
+    return { ...tree, children: [...tree.children, node] };
+  }
+
+  const children = tree.children.map((entry) => {
+    if (entry.type === 'directory') {
+      return doCreateNode(entry, node, dirname);
+    } else {
+      return entry;
+    }
+  });
 
   return { ...tree, children };
 }

@@ -1,4 +1,4 @@
-import { Sparkles, Circle, PlusIcon, Trash2, Upload } from 'lucide-react';
+import { Sparkles, Circle, PlusIcon, Trash2, Download } from 'lucide-react';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
@@ -114,14 +114,10 @@ export function CardContainer({
       {...props}
       onClick={onClick}
       className={cn(
-        'group border relative rounded-sm h-[108px] overflow-clip cursor-pointer transition-colors text-sm',
+        'group border relative rounded-md h-[92px] overflow-clip cursor-pointer transition-colors text-sm',
         className,
       )}
     >
-      <LongDashedHorizontalLine className="absolute top-[10px] text-border" />
-      <LongDashedHorizontalLine className="absolute bottom-[10px] text-border" />
-      <LongDashedVerticalLine className="absolute left-[10px] text-border" />
-      <LongDashedVerticalLine className="absolute right-[10px] text-border" />
       <div className="px-5 py-4 h-full flex flex-col justify-between">{children}</div>
     </div>
   );
@@ -201,22 +197,16 @@ export function AppCard(props: AppCardPropsType) {
       className="active:translate-y-0.5 hover:border-foreground"
     >
       <h5 className="font-semibold leading-[18px] line-clamp-2">{props.name}</h5>
-      <div className="flex items-center justify-between text-tertiary-foreground">
-        <div className="text-[13px] flex items-center gap-2">
-          <SrcbookLogo className="text-foreground" size={16} />
-          <span>React</span>
-        </div>
-        <code className="font-mono group-hover:hidden">
-          {props.language === 'javascript' ? 'JS' : 'TS'}
-        </code>
-        <button
-          type="button"
-          onClick={onDelete}
-          className="hidden group-hover:block hover:text-foreground"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
+      <code className="font-mono group-hover:hidden">
+        {props.language === 'javascript' ? 'JS' : 'TS'}
+      </code>
+      <button
+        type="button"
+        onClick={onDelete}
+        className="hidden group-hover:block hover:text-foreground"
+      >
+        <Trash2 size={16} />
+      </button>
     </CardContainer>
   );
 }
@@ -236,12 +226,15 @@ function BigButton(props: { onClick: () => void; className?: string; children: R
 }
 export function GenerateSrcbookButton(props: { onClick: () => void }) {
   return (
-    <BigButton onClick={props.onClick}>
+    <CardContainer
+      onClick={() => props.onClick()}
+      className="active:translate-y-0.5 hover:border-foreground"
+    >
       <div className="flex flex-col h-full items-start justify-between">
         <Sparkles size={20} />
-        <h5 className="font-medium leading-[18px]">Generate Srcbook</h5>
+        <h5 className="font-medium leading-[18px]">Generate Notebook</h5>
       </div>
-    </BigButton>
+    </CardContainer>
   );
 }
 
@@ -253,12 +246,15 @@ export function CreateSrcbookButton(props: {
 
   return (
     <div className="space-y-1">
-      <BigButton onClick={() => props.onSubmit(language)}>
+      <CardContainer
+        onClick={() => props.onSubmit(language)}
+        className="active:translate-y-0.5 hover:border-foreground"
+      >
         <div className="flex flex-col h-full items-start justify-between">
           <PlusIcon size={20} />
-          <h5 className="font-medium leading-[18px]">Create Srcbook</h5>
+          <h5 className="font-medium leading-[18px]">Create Notebook</h5>
         </div>
-      </BigButton>
+      </CardContainer>
 
       <div className="flex border rounded-sm bg-background w-fit">
         <Button
@@ -290,32 +286,30 @@ export function CreateSrcbookButton(props: {
 
 export function CreateAppButton(props: { defaultLanguage: CodeLanguageType; onClick: () => void }) {
   return (
-    <div className="space-y-1">
-      <BigButton onClick={() => props.onClick()}>
-        <div className="flex flex-col h-full items-start justify-between">
-          <PlusIcon size={20} />
-          <h5 className="font-medium leading-[18px]">Create App</h5>
-        </div>
-      </BigButton>
-    </div>
+    <CardContainer
+      onClick={() => props.onClick()}
+      className="active:translate-y-0.5 hover:border-foreground"
+    >
+      <div className="flex flex-col h-full items-start justify-between">
+        <PlusIcon size={20} />
+        <h5 className="font-medium leading-[18px]">Create App</h5>
+      </div>
+    </CardContainer>
   );
 }
 
 export function ImportSrcbookButton(props: { onClick: () => void }) {
   return (
-    <BigButton
-      onClick={props.onClick}
+    <CardContainer
+      onClick={() => props.onClick()}
       className="border-dashed hover:border-solid focus-within:border-foreground"
     >
       <div className="flex flex-col h-full items-start justify-between">
-        <Upload size={20} />
+        <Download size={20} />
         <div className="flex flex-col items-start gap-1">
-          <h5 className="font-medium leading-none">Open Srcbook</h5>
-          <p className="leading-none text-[13px] text-tertiary-foreground">
-            or drag 'n drop <span className="font-medium">.src.md</span> file
-          </p>
+          <h5 className="font-medium leading-none">Import Notebook</h5>
         </div>
       </div>
-    </BigButton>
+    </CardContainer>
   );
 }

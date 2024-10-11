@@ -119,13 +119,28 @@ export default function Home() {
       <ImportSrcbookModal open={showImportSrcbookModal} onOpenChange={setShowImportSrcbookModal} />
 
       <div>
-        <h4 className="h4 mx-auto mb-6">New Srcbook</h4>
+        <h4 className="h4 mx-auto mb-6">Apps</h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          <CreateSrcbookButton defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
           <CreateAppButton
             defaultLanguage={defaultLanguage}
             onClick={() => setShowCreateAppModal(true)}
           />
+          {apps.map((app) => (
+            <AppCard
+              key={app.id}
+              name={app.name}
+              language={app.language}
+              onClick={() => navigate(`/apps/${app.id}`)}
+              onDelete={() => setAppToDelete(app)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h4 className="h4 mx-auto mt-8 mb-6">New Notebook</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          <CreateSrcbookButton defaultLanguage={defaultLanguage} onSubmit={onCreateSrcbook} />
           <GenerateSrcbookButton onClick={() => setShowGenSrcbookModal(true)} />
           <ImportSrcbookButton onClick={() => setShowImportSrcbookModal(true)} />
         </div>
@@ -133,7 +148,7 @@ export default function Home() {
 
       {srcbooks.length > 0 && (
         <div>
-          <h4 className="h4 mx-auto mt-8 mb-6">Your Srcbooks</h4>
+          <h4 className="h4 mx-auto mt-8 mb-6">Your Notebooks</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {srcbooks
               .sort((a, b) => b.openedAt - a.openedAt)
@@ -148,23 +163,6 @@ export default function Home() {
                   onDelete={() => onDeleteSrcbook(srcbook)}
                 />
               ))}
-          </div>
-        </div>
-      )}
-
-      {apps.length > 0 && (
-        <div>
-          <h4 className="h4 mx-auto mt-8 mb-6">Your apps</h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {apps.map((app) => (
-              <AppCard
-                key={app.id}
-                name={app.name}
-                language={app.language}
-                onClick={() => navigate(`/apps/${app.id}`)}
-                onDelete={() => setAppToDelete(app)}
-              />
-            ))}
           </div>
         </div>
       )}

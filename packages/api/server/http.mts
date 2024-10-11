@@ -35,6 +35,14 @@ import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 import { pathToSrcbook } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
 import { loadApps, loadApp, createApp, serializeApp, deleteApp } from '../apps/app.mjs';
+import {
+  deleteFile,
+  renameFile,
+  loadDirectory,
+  loadFile,
+  createFile,
+  createDirectory,
+} from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
 
 const app: Application = express();
@@ -458,6 +466,139 @@ router.delete('/apps/:id', cors(), async (req, res) => {
   try {
     await deleteApp(id);
     return res.json({ deleted: true });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/directories', cors());
+router.get('/apps/:id/directories', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const directory = await loadDirectory(app, path);
+
+    return res.json({ data: directory });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/directories', cors());
+router.post('/apps/:id/directories', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const { dirname, basename } = req.body;
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const directory = await createDirectory(app, dirname, basename);
+
+    return res.json({ data: directory });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/files', cors());
+router.get('/apps/:id/files', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const file = await loadFile(app, path);
+
+    return res.json({ data: file });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/files', cors());
+router.post('/apps/:id/files', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const { dirname, basename, source } = req.body;
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const file = await createFile(app, dirname, basename, source);
+
+    return res.json({ data: file });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/files', cors());
+router.delete('/apps/:id/files', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    await deleteFile(app, path);
+
+    return res.json({ data: { deleted: true } });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/files/rename', cors());
+router.post('/apps/:id/files/rename', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+  const name = req.query.name as string;
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const file = await renameFile(app, path, name);
+
+    return res.json({ data: file });
   } catch (e) {
     return error500(res, e as Error);
   }

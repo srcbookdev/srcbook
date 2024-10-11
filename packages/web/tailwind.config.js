@@ -4,6 +4,9 @@ const path = require('path');
 
 module.exports = {
   darkMode: ['class'],
+  variants: {
+    outline: ['focus'],
+  },
   content: [
     './index.html',
     './src/**/*.{css,ts,tsx}',

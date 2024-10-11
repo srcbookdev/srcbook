@@ -64,6 +64,7 @@ export function AppsPage() {
 
 function Apps(props: { app: AppType }) {
   const { status: previewStatus } = usePreview();
+  const previewVisible = previewStatus === "booting" || previewStatus === "running";
 
   return (
     <div className="h-screen max-h-screen flex">
@@ -71,11 +72,13 @@ function Apps(props: { app: AppType }) {
       <div
         className={cn(
           'w-full h-full grid divide-x divide-border',
-          previewStatus === 'running' ? 'grid-cols-2' : 'grid-cols-1',
+          previewVisible ? 'grid-cols-2' : 'grid-cols-1',
         )}
       >
         <Editor app={props.app} />
-        {previewStatus === 'running' && <Preview />}
+        {previewVisible ? (
+          <Preview />
+        ) : null}
       </div>
     </div>
   );

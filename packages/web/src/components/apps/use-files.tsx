@@ -1,20 +1,6 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useReducer, useRef, useState } from 'react';
 
-import type {
-  FilePayloadType,
-  FileType,
-  DirEntryType,
-  FileEntryType,
-  AppType,
-} from '@srcbook/shared';
+import type { FileType, DirEntryType, FileEntryType, AppType } from '@srcbook/shared';
 import { AppChannel } from '@/clients/websocket';
 import {
   createFile as doCreateFile,
@@ -35,23 +21,7 @@ import {
   updateFileNode,
 } from './lib/file-tree';
 
-function removeCachedFiles(
-  files: Record<string, FileType>,
-  path: string,
-): Record<string, FileType> {
-  const result: Record<string, FileType> = {};
-
-  for (const key of Object.keys(files)) {
-    if (!key.startsWith(path)) {
-      result[key] = files[key]!;
-    }
-  }
-
-  return result;
-}
-
 export interface FilesContextValue {
-  files: FileType[];
   fileTree: DirEntryType;
   openFile: (entry: FileEntryType) => void;
   createFile: (dirname: string, basename: string, source?: string) => void;
@@ -85,25 +55,14 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
   //
   const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
 
-  const filesRef = useRef<Record<string, FileType>>({});
   const fileTreeRef = useRef<DirEntryType>(sortTree(rootDirEntries));
   const openedDirectoriesRef = useRef<Set<string>>(new Set());
 
   const [openedFile, setOpenedFile] = useState<FileType | null>(null);
 
-  useEffect(() => {
-    function onFile(payload: FilePayloadType) {
-      filesRef.current[payload.file.path] = payload.file;
-      forceComponentRerender();
-    }
-    channel.on('file', onFile);
-    return () => channel.off('file', onFile);
-  }, [channel, forceComponentRerender]);
-
   const openFile = useCallback(
     async (entry: FileEntryType) => {
       const { data: file } = await loadFile(app.id, entry.path);
-      filesRef.current[file.path] = file;
       setOpenedFile(file);
     },
     [app.id],
@@ -123,8 +82,8 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
   const updateFile = useCallback(
     (file: FileType, attrs: Partial<FileType>) => {
       const updatedFile: FileType = { ...file, ...attrs };
-      filesRef.current[file.path] = updatedFile;
       channel.push('file:updated', { file: updatedFile });
+      setOpenedFile(updatedFile);
       forceComponentRerender();
     },
     [channel],
@@ -133,7 +92,6 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
   const deleteFile = useCallback(
     async (entry: FileEntryType) => {
       await doDeleteFile(app.id, entry.path);
-      delete filesRef.current[entry.path];
       setOpenedFile((openedFile) => {
         if (openedFile && openedFile.path === entry.path) {
           return null;
@@ -143,28 +101,19 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
       fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
       forceComponentRerender(); // required
     },
-    [app.id],
+    [app.id, openedFile],
   );
 
   const renameFile = useCallback(
     async (entry: FileEntryType, name: string) => {
       const { data: newEntry } = await doRenameFile(app.id, entry.path, name);
-      const oldFile = filesRef.current[entry.path];
-      if (oldFile) {
-        const newFile = { ...oldFile, path: newEntry.path, name: newEntry.name };
-        delete filesRef.current[oldFile.path];
-        filesRef.current[newFile.path] = newFile;
-        setOpenedFile((openedFile) => {
-          if (openedFile && openedFile.path === oldFile.path) {
-            return newFile;
-          }
-          return openedFile;
-        });
+      if (openedFile && openedFile.path === entry.path) {
+        setOpenedFile({ ...openedFile, path: newEntry.path, name: newEntry.name });
       }
       fileTreeRef.current = updateFileNode(fileTreeRef.current, entry, newEntry);
       forceComponentRerender(); // required
     },
-    [app.id],
+    [app.id, openedFile],
   );
 
   const isFolderOpen = useCallback((entry: DirEntryType) => {
@@ -212,50 +161,37 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
   const deleteFolder = useCallback(
     async (entry: DirEntryType) => {
       await deleteDirectory(app.id, entry.path);
-      removeCachedFiles(filesRef.current, entry.path);
-      setOpenedFile((openedFile) => {
-        if (openedFile && openedFile.path.startsWith(entry.path)) {
-          return null;
-        }
-        return openedFile;
-      });
+      if (openedFile && openedFile.path.startsWith(entry.path)) {
+        setOpenedFile(null);
+      }
       openedDirectoriesRef.current.delete(entry.path);
       fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
       forceComponentRerender(); // required
     },
-    [app.id],
+    [app.id, openedFile],
   );
 
   const renameFolder = useCallback(
     async (entry: DirEntryType, name: string) => {
       const { data: newEntry } = await renameDirectory(app.id, entry.path, name);
-      // const oldFile = filesRef.current[entry.path];
-      // if (oldFile) {
-      //   const newFile = { ...oldFile, path: newEntry.path, name: newEntry.name };
-      //   delete filesRef.current[oldFile.path];
-      //   filesRef.current[newFile.path] = newFile;
-      //   setOpenedFile((openedFile) => {
-      //     if (openedFile && openedFile.path === oldFile.path) {
-      //       return newFile;
-      //     }
-      //     return openedFile;
-      //   });
-      // }
+
+      if (openedFile && openedFile.path.startsWith(entry.path)) {
+        setOpenedFile({ ...openedFile, path: openedFile.path.replace(entry.path, newEntry.path) });
+      }
+
       if (openedDirectoriesRef.current.has(entry.path)) {
         openedDirectoriesRef.current.delete(entry.path);
         openedDirectoriesRef.current.add(newEntry.path);
       }
 
       fileTreeRef.current = renameDirNode(fileTreeRef.current, entry, newEntry);
+
       forceComponentRerender(); // required
     },
-    [app.id],
+    [app.id, openedFile],
   );
 
-  const files = Object.values(filesRef.current);
-
   const context: FilesContextValue = {
-    files,
     fileTree: fileTreeRef.current,
     openFile,
     renameFile,

@@ -103,6 +103,45 @@ export async function createDirectory(
   return response.json();
 }
 
+export async function deleteDirectory(
+  id: string,
+  path: string,
+): Promise<{ data: { deleted: true } }> {
+  const queryParams = new URLSearchParams({ path });
+
+  const response = await fetch(API_BASE_URL + `/apps/${id}/directories?${queryParams}`, {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
+export async function renameDirectory(
+  id: string,
+  path: string,
+  name: string,
+): Promise<{ data: DirEntryType }> {
+  const queryParams = new URLSearchParams({ path, name });
+
+  const response = await fetch(API_BASE_URL + `/apps/${id}/directories/rename?${queryParams}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
 export async function loadFile(id: string, path: string): Promise<{ data: FileType }> {
   const queryParams = new URLSearchParams({ path });
 

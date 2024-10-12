@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileIcon, ChevronRightIcon, type LucideIcon, ChevronDownIcon } from 'lucide-react';
+import { FileIcon, ChevronRightIcon } from 'lucide-react';
 import { useFiles } from '../use-files';
 import type { DirEntryType, FileEntryType } from '@srcbook/shared';
 import { cn } from '@srcbook/components';
@@ -13,7 +13,7 @@ import {
 export default function ExplorerPanel() {
   const { fileTree, createFile, createFolder } = useFiles();
 
-  const [editingEntry, setEditingEntry] = useState<FileEntryType | null>(null);
+  const [editingEntry, setEditingEntry] = useState<FileEntryType | DirEntryType | null>(null);
   const [newEntry, setNewEntry] = useState<FileEntryType | DirEntryType | null>(null);
 
   return (
@@ -64,12 +64,21 @@ export default function ExplorerPanel() {
 function FileTree(props: {
   depth: number;
   tree: DirEntryType;
-  editingEntry: FileEntryType | null;
-  setEditingEntry: (entry: FileEntryType | null) => void;
+  editingEntry: FileEntryType | DirEntryType | null;
+  setEditingEntry: (entry: FileEntryType | DirEntryType | null) => void;
 }) {
   const { depth, tree, editingEntry, setEditingEntry } = props;
 
-  const { openFile, deleteFile, renameFile, toggleFolder, isFolderOpen, openedFile } = useFiles();
+  const {
+    openFile,
+    deleteFile,
+    renameFile,
+    openedFile,
+    toggleFolder,
+    isFolderOpen,
+    deleteFolder,
+    renameFolder,
+  } = useFiles();
 
   if (tree.children === null) {
     return null;
@@ -78,18 +87,36 @@ function FileTree(props: {
   return tree.children.flatMap((entry) => {
     if (entry.type === 'directory') {
       const opened = isFolderOpen(entry);
+      const elements = [];
 
-      const elements = [
-        <li key={entry.path}>
-          <Node
-            depth={depth}
-            icon={opened ? ChevronDownIcon : ChevronRightIcon}
-            label={entry.name}
-            active={false}
-            onClick={() => toggleFolder(entry)}
-          />
-        </li>,
-      ];
+      if (editingEntry?.path === entry.path) {
+        elements.push(
+          <li key={entry.path}>
+            <EditNameNode
+              depth={depth}
+              name={entry.name}
+              onSubmit={(name) => {
+                renameFolder(entry, name);
+                setEditingEntry(null);
+              }}
+              onCancel={() => setEditingEntry(null)}
+            />
+          </li>,
+        );
+      } else {
+        elements.push(
+          <li key={entry.path}>
+            <FolderNode
+              depth={depth}
+              label={entry.name}
+              opened={opened}
+              onClick={() => toggleFolder(entry)}
+              onDelete={() => deleteFolder(entry)}
+              onRename={() => setEditingEntry(entry)}
+            />
+          </li>,
+        );
+      }
 
       if (opened) {
         elements.push(
@@ -105,7 +132,7 @@ function FileTree(props: {
 
       return elements;
     } else {
-      return entry.name === editingEntry?.name ? (
+      return entry.path === editingEntry?.path ? (
         <li key={entry.path}>
           <EditNameNode
             depth={depth}
@@ -124,8 +151,8 @@ function FileTree(props: {
             label={entry.name}
             active={openedFile?.path === entry.path}
             onClick={() => openFile(entry)}
-            deleteFile={() => deleteFile(entry)}
-            renameFile={() => setEditingEntry(entry)}
+            onDelete={() => deleteFile(entry)}
+            onRename={() => setEditingEntry(entry)}
           />
         </li>
       );
@@ -138,17 +165,49 @@ function FileNode(props: {
   label: string;
   active: boolean;
   onClick: () => void;
-  deleteFile: () => void;
-  renameFile: () => void;
+  onDelete: () => void;
+  onRename: () => void;
 }) {
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <Node {...props} icon={FileIcon} />
+        <Node {...props} icon={<FileIcon size={12} />} />
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={props.renameFile}>Rename</ContextMenuItem>
-        <ContextMenuItem onClick={props.deleteFile}>Delete</ContextMenuItem>
+        <ContextMenuItem onClick={props.onRename}>Rename</ContextMenuItem>
+        <ContextMenuItem onClick={props.onDelete}>Delete</ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
+
+function FolderNode(props: {
+  depth: number;
+  label: string;
+  opened: boolean;
+  onClick: () => void;
+  onDelete: () => void;
+  onRename: () => void;
+}) {
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <Node
+          {...props}
+          icon={
+            <ChevronRightIcon
+              size={12}
+              className={cn(
+                'transition-transform duration-100',
+                props.opened && 'transform rotate-90',
+              )}
+            />
+          }
+        />
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={props.onRename}>Rename</ContextMenuItem>
+        <ContextMenuItem onClick={props.onDelete}>Delete</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -178,7 +237,11 @@ function EditNameNode(props: {
     <input
       ref={ref}
       defaultValue={props.name}
-      className="flex h-8 w-full rounded-sm border border-ring bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      className={cn(
+        'flex h-8 w-full rounded-sm border border-ring bg-transparent px-3 py-2 text-sm transition-colors',
+        'placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+        '[&::selection]:bg-accent [&::selection]:text-accent-foreground',
+      )}
       style={{ paddingLeft: `${props.depth * 12}px` }}
       onBlur={props.onCancel}
       onKeyDown={(e) => {
@@ -197,11 +260,11 @@ function EditNameNode(props: {
 function Node(props: {
   depth: number;
   label: string;
-  icon: LucideIcon;
-  active: boolean;
+  icon: React.ReactNode;
+  active?: boolean;
   onClick: () => void;
 }) {
-  const { depth, label, icon: Icon, active, onClick } = props;
+  const { depth, label, icon, active, onClick } = props;
 
   return (
     <button
@@ -213,7 +276,7 @@ function Node(props: {
       style={{ paddingLeft: `${depth * 12}px` }}
       title={label}
     >
-      <Icon size={12} /> <span className="truncate">{label}</span>
+      {icon} <span className="truncate">{label}</span>
     </button>
   );
 }

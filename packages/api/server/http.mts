@@ -42,6 +42,8 @@ import {
   loadFile,
   createFile,
   createDirectory,
+  renameDirectory,
+  deleteDirectory,
 } from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
 
@@ -508,6 +510,51 @@ router.post('/apps/:id/directories', cors(), async (req, res) => {
     }
 
     const directory = await createDirectory(app, dirname, basename);
+
+    return res.json({ data: directory });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/directories', cors());
+router.delete('/apps/:id/directories', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    await deleteDirectory(app, path);
+
+    return res.json({ data: { deleted: true } });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/directories/rename', cors());
+router.post('/apps/:id/directories/rename', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+  const name = req.query.name as string;
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const directory = await renameDirectory(app, path, name);
 
     return res.json({ data: directory });
   } catch (e) {

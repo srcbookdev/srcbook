@@ -101,6 +101,44 @@ function merge(oldChildren: FsEntryTreeType | null, newChildren: FsEntryTreeType
   });
 }
 
+export function renameDirNode(
+  tree: DirEntryType,
+  oldNode: DirEntryType,
+  newNode: DirEntryType,
+): DirEntryType {
+  return sortTree(doRenameDirNode(tree, oldNode, newNode));
+}
+
+function doRenameDirNode(
+  tree: DirEntryType,
+  oldNode: DirEntryType,
+  newNode: DirEntryType,
+): DirEntryType {
+  const children =
+    tree.children === null
+      ? null
+      : tree.children.map((entry) => {
+          if (entry.type === 'directory') {
+            return doRenameDirNode(entry, oldNode, newNode);
+          } else {
+            if (entry.path.startsWith(oldNode.path)) {
+              return { ...entry, path: entry.path.replace(oldNode.path, newNode.path) };
+            } else {
+              return entry;
+            }
+          }
+        });
+
+  if (tree.path === oldNode.path) {
+    return { ...newNode, children };
+  } else if (tree.path.startsWith(oldNode.path)) {
+    const path = tree.path.replace(oldNode.path, newNode.path);
+    return { ...tree, path, children };
+  } else {
+    return { ...tree, children };
+  }
+}
+
 export function updateFileNode(
   tree: DirEntryType,
   oldNode: FileEntryType,

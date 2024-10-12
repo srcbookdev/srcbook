@@ -101,19 +101,22 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
       fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
       forceComponentRerender(); // required
     },
-    [app.id, openedFile],
+    [app.id],
   );
 
   const renameFile = useCallback(
     async (entry: FileEntryType, name: string) => {
       const { data: newEntry } = await doRenameFile(app.id, entry.path, name);
-      if (openedFile && openedFile.path === entry.path) {
-        setOpenedFile({ ...openedFile, path: newEntry.path, name: newEntry.name });
-      }
+      setOpenedFile((openedFile) => {
+        if (openedFile && openedFile.path === entry.path) {
+          return { ...openedFile, path: newEntry.path, name: newEntry.name };
+        }
+        return openedFile;
+      });
       fileTreeRef.current = updateFileNode(fileTreeRef.current, entry, newEntry);
       forceComponentRerender(); // required
     },
-    [app.id, openedFile],
+    [app.id],
   );
 
   const isFolderOpen = useCallback((entry: DirEntryType) => {
@@ -161,23 +164,29 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
   const deleteFolder = useCallback(
     async (entry: DirEntryType) => {
       await deleteDirectory(app.id, entry.path);
-      if (openedFile && openedFile.path.startsWith(entry.path)) {
-        setOpenedFile(null);
-      }
+      setOpenedFile((openedFile) => {
+        if (openedFile && openedFile.path.startsWith(entry.path)) {
+          return null;
+        }
+        return openedFile;
+      });
       openedDirectoriesRef.current.delete(entry.path);
       fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
       forceComponentRerender(); // required
     },
-    [app.id, openedFile],
+    [app.id],
   );
 
   const renameFolder = useCallback(
     async (entry: DirEntryType, name: string) => {
       const { data: newEntry } = await renameDirectory(app.id, entry.path, name);
 
-      if (openedFile && openedFile.path.startsWith(entry.path)) {
-        setOpenedFile({ ...openedFile, path: openedFile.path.replace(entry.path, newEntry.path) });
-      }
+      setOpenedFile((openedFile) => {
+        if (openedFile && openedFile.path.startsWith(entry.path)) {
+          return { ...openedFile, path: openedFile.path.replace(entry.path, newEntry.path) };
+        }
+        return openedFile;
+      });
 
       if (openedDirectoriesRef.current.has(entry.path)) {
         openedDirectoriesRef.current.delete(entry.path);
@@ -188,7 +197,7 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
 
       forceComponentRerender(); // required
     },
-    [app.id, openedFile],
+    [app.id],
   );
 
   const context: FilesContextValue = {

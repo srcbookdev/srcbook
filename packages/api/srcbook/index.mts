@@ -210,7 +210,7 @@ async function createSrcbookDir(basename: string = randomid()) {
   const srcPath = Path.join(srcbookDirectoryPath, 'src');
   await fs.mkdir(srcPath);
 
-  const envTypeDeclarationPath = Path.join(srcPath, 'env.d.ts');
+  const envTypeDeclarationPath = Path.join(srcbookDirectoryPath, 'env.d.ts');
   const envTypeDeclarationFileContent = generateEnvTypesFile({});
   await fs.writeFile(envTypeDeclarationPath, envTypeDeclarationFileContent);
 
@@ -234,7 +234,7 @@ export async function updateSessionEnvTypeDeclarations(sessionId: string) {
   if (!Object.entries(sessionSecrets).length) return;
   const envTypeDeclarationFileContent = generateEnvTypesFile(sessionSecrets);
   const srcbookDir = pathToSrcbook(sessionId);
-  const envDtsPath = Path.join(srcbookDir, 'src', 'env.d.ts');
+  const envDtsPath = Path.join(srcbookDir, 'env.d.ts');
   await fs.writeFile(envDtsPath, envTypeDeclarationFileContent);
 }
 

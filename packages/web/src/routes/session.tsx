@@ -6,7 +6,7 @@ import {
   CellUpdatedPayloadType,
   CellUpdateAttrsType,
   TsServerCellDiagnosticsPayloadType,
-  CodeLanguageType, 
+  CodeLanguageType,
   MarkdownCellType,
   CodeCellType,
   TitleCellType,
@@ -36,7 +36,6 @@ async function loader({ params }: LoaderFunctionArgs) {
     getConfig(),
     loadSessions(),
     loadSession({ id: params.id! }),
-
   ]);
   return { config, srcbooks, session };
 }
@@ -122,7 +121,6 @@ type SessionProps =
 function Session(props: SessionProps) {
   const { readOnly, session, srcbooks, config } = props;
   const channel = !readOnly ? props.channel : null;
-
 
   const {
     cells: allCells,
@@ -250,7 +248,7 @@ function Session(props: SessionProps) {
       case 'code':
         cell = createCodeCell(index, session.language);
         channel.push('cell:create', { index, cell });
-        channel.push('cell:format', { cellId: cell.id})
+        channel.push('cell:format', { cellId: cell.id });
         break;
       case 'markdown':
         cell = createMarkdownCell(index);

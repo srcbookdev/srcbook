@@ -42,7 +42,7 @@ export function buildTsconfigJson() {
       allowImportingTsExtensions: true,
       noPropertyAccessFromIndexSignature: true,
     },
-    include: ['src/**/*', 'src/env.d.ts'],
+    include: ['src/**/*', 'env.d.ts'],
     exclude: ['node_modules'],
   };
 }

@@ -9,9 +9,10 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@srcbook/components/src/components/ui/context-menu';
+import { dirname } from '../lib/path';
 
 export default function ExplorerPanel() {
-  const { fileTree, createFile, createFolder } = useFiles();
+  const { fileTree } = useFiles();
 
   const [editingEntry, setEditingEntry] = useState<FileEntryType | DirEntryType | null>(null);
   const [newEntry, setNewEntry] = useState<FileEntryType | DirEntryType | null>(null);
@@ -23,24 +24,11 @@ export default function ExplorerPanel() {
           <FileTree
             depth={1}
             tree={fileTree}
+            newEntry={newEntry}
+            setNewEntry={setNewEntry}
             editingEntry={editingEntry}
             setEditingEntry={setEditingEntry}
           />
-          {newEntry && (
-            <EditNameNode
-              depth={1}
-              name={newEntry.name}
-              onSubmit={(name) => {
-                if (newEntry.type === 'directory') {
-                  createFolder('.', name);
-                } else {
-                  createFile('.', name);
-                }
-                setNewEntry(null);
-              }}
-              onCancel={() => setNewEntry(null)}
-            />
-          )}
         </ul>
       </ContextMenuTrigger>
       <ContextMenuContent>
@@ -64,18 +52,23 @@ export default function ExplorerPanel() {
 function FileTree(props: {
   depth: number;
   tree: DirEntryType;
+  newEntry: FileEntryType | DirEntryType | null;
+  setNewEntry: (entry: FileEntryType | DirEntryType | null) => void;
   editingEntry: FileEntryType | DirEntryType | null;
   setEditingEntry: (entry: FileEntryType | DirEntryType | null) => void;
 }) {
-  const { depth, tree, editingEntry, setEditingEntry } = props;
+  const { depth, tree, newEntry, setNewEntry, editingEntry, setEditingEntry } = props;
 
   const {
     openFile,
+    createFile,
     deleteFile,
     renameFile,
     openedFile,
     toggleFolder,
     isFolderOpen,
+    openFolder,
+    createFolder,
     deleteFolder,
     renameFolder,
   } = useFiles();
@@ -84,55 +77,118 @@ function FileTree(props: {
     return null;
   }
 
-  return tree.children.flatMap((entry) => {
+  const dirEntries = [];
+  const fileEntries = [];
+
+  for (const entry of tree.children) {
     if (entry.type === 'directory') {
-      const opened = isFolderOpen(entry);
-      const elements = [];
-
-      if (editingEntry?.path === entry.path) {
-        elements.push(
-          <li key={entry.path}>
-            <EditNameNode
-              depth={depth}
-              name={entry.name}
-              onSubmit={(name) => {
-                renameFolder(entry, name);
-                setEditingEntry(null);
-              }}
-              onCancel={() => setEditingEntry(null)}
-            />
-          </li>,
-        );
-      } else {
-        elements.push(
-          <li key={entry.path}>
-            <FolderNode
-              depth={depth}
-              label={entry.name}
-              opened={opened}
-              onClick={() => toggleFolder(entry)}
-              onDelete={() => deleteFolder(entry)}
-              onRename={() => setEditingEntry(entry)}
-            />
-          </li>,
-        );
-      }
-
-      if (opened) {
-        elements.push(
-          <FileTree
-            key={entry.path + '-tree'}
-            depth={depth + 1}
-            tree={entry}
-            editingEntry={editingEntry}
-            setEditingEntry={setEditingEntry}
-          />,
-        );
-      }
-
-      return elements;
+      dirEntries.push(entry);
     } else {
-      return entry.path === editingEntry?.path ? (
+      fileEntries.push(entry);
+    }
+  }
+
+  const elements = [];
+
+  if (newEntry !== null && newEntry.type === 'directory' && dirname(newEntry.path) === tree.path) {
+    elements.push(
+      <li key={newEntry.path}>
+        <EditNameNode
+          depth={depth}
+          name={newEntry.name}
+          onSubmit={(name) => {
+            createFolder(tree.path, name);
+            setNewEntry(null);
+          }}
+          onCancel={() => setNewEntry(null)}
+        />
+      </li>,
+    );
+  }
+
+  for (const entry of dirEntries) {
+    const opened = isFolderOpen(entry);
+
+    if (editingEntry?.path === entry.path) {
+      elements.push(
+        <li key={entry.path}>
+          <EditNameNode
+            depth={depth}
+            name={entry.name}
+            onSubmit={(name) => {
+              renameFolder(entry, name);
+              setEditingEntry(null);
+            }}
+            onCancel={() => setEditingEntry(null)}
+          />
+        </li>,
+      );
+    } else {
+      elements.push(
+        <li key={entry.path}>
+          <FolderNode
+            depth={depth}
+            label={entry.name}
+            opened={opened}
+            onClick={() => toggleFolder(entry)}
+            onDelete={() => deleteFolder(entry)}
+            onRename={() => setEditingEntry(entry)}
+            onNewFile={() => {
+              if (!isFolderOpen(entry)) {
+                openFolder(entry);
+              }
+              setNewEntry({ type: 'file', path: entry.path + '/untitled', name: 'untitled' });
+            }}
+            onNewfolder={() => {
+              if (!isFolderOpen(entry)) {
+                openFolder(entry);
+              }
+              setNewEntry({
+                type: 'directory',
+                path: entry.path + '/untitled',
+                name: 'untitled',
+                children: null,
+              });
+            }}
+          />
+        </li>,
+      );
+    }
+
+    if (opened) {
+      elements.push(
+        <FileTree
+          key={entry.path + '-tree'}
+          depth={depth + 1}
+          tree={entry}
+          newEntry={newEntry}
+          setNewEntry={setNewEntry}
+          editingEntry={editingEntry}
+          setEditingEntry={setEditingEntry}
+        />,
+      );
+    }
+  }
+  2;
+  if (newEntry !== null && newEntry.type === 'file' && dirname(newEntry.path) === tree.path) {
+    elements.push(
+      <li key={newEntry.path}>
+        <EditNameNode
+          depth={depth}
+          name={newEntry.name}
+          onSubmit={(name) => {
+            createFile(tree.path, name);
+            setNewEntry(null);
+          }}
+          onCancel={() => setNewEntry(null)}
+        />
+      </li>,
+    );
+  }
+
+  for (const entry of fileEntries) {
+    if (entry.path === editingEntry?.path) {
+      elements.push(
         <li key={entry.path}>
           <EditNameNode
             depth={depth}
@@ -143,8 +199,10 @@ function FileTree(props: {
             }}
             onCancel={() => setEditingEntry(null)}
           />
-        </li>
-      ) : (
+        </li>,
+      );
+    } else {
+      elements.push(
         <li key={entry.path}>
           <FileNode
             depth={depth}
@@ -154,10 +212,12 @@ function FileTree(props: {
             onDelete={() => deleteFile(entry)}
             onRename={() => setEditingEntry(entry)}
           />
-        </li>
+        </li>,
       );
     }
-  });
+  }
+
+  return elements;
 }
 
 function FileNode(props: {
@@ -188,6 +248,8 @@ function FolderNode(props: {
   onClick: () => void;
   onDelete: () => void;
   onRename: () => void;
+  onNewFile: () => void;
+  onNewfolder: () => void;
 }) {
   return (
     <ContextMenu>
@@ -206,6 +268,8 @@ function FolderNode(props: {
         />
       </ContextMenuTrigger>
       <ContextMenuContent>
+        <ContextMenuItem onClick={props.onNewFile}>New file...</ContextMenuItem>
+        <ContextMenuItem onClick={props.onNewfolder}>New folder...</ContextMenuItem>
         <ContextMenuItem onClick={props.onRename}>Rename</ContextMenuItem>
         <ContextMenuItem onClick={props.onDelete}>Delete</ContextMenuItem>
       </ContextMenuContent>
@@ -222,16 +286,37 @@ function EditNameNode(props: {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      const input = ref.current;
-      if (!input) return;
+    const input = ref.current;
+    if (!input) return;
+
+    const focusAndSelect = () => {
+      input.focus();
       const idx = input.value.lastIndexOf('.');
       input.setSelectionRange(0, idx === -1 ? input.value.length : idx);
-      input.focus();
-    }, 25);
+    };
 
-    return () => clearTimeout(timeout);
+    focusAndSelect();
+
+    // Re-focus if the input loses focus
+    const handleFocusOut = () => {
+      if (document.activeElement !== input) {
+        focusAndSelect();
+      }
+    };
+
+    document.addEventListener('focusin', handleFocusOut);
+
+    return () => {
+      document.removeEventListener('focusin', handleFocusOut);
+    };
   }, []);
+
+  function onBlur(e: React.FocusEvent<HTMLInputElement>) {
+    // Only cancel if the new active element is outside this component
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      props.onCancel();
+    }
+  }
 
   return (
     <input
@@ -243,7 +328,7 @@ function EditNameNode(props: {
         '[&::selection]:bg-accent [&::selection]:text-accent-foreground',
       )}
       style={{ paddingLeft: `${props.depth * 12}px` }}
-      onBlur={props.onCancel}
+      onBlur={onBlur}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && ref.current) {
           e.preventDefault();

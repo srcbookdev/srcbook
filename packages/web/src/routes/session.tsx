@@ -248,7 +248,6 @@ function Session(props: SessionProps) {
       case 'code':
         cell = createCodeCell(index, session.language);
         channel.push('cell:create', { index, cell });
-        channel.push('cell:format', { cellId: cell.id });
         break;
       case 'markdown':
         cell = createMarkdownCell(index);

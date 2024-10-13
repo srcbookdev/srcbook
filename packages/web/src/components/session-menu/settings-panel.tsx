@@ -45,7 +45,7 @@ export default function SessionMenuPanelSettings({ readOnly, session, channel }:
           >
             <X size={16} />
           </button>
-          <h2 className="font-bold">Use AI in Srcbook</h2>
+          <h2 className="font-bold">Use AI in notebook</h2>
           <p>
             AI features not enabled. To enable them, set up in{' '}
             <button

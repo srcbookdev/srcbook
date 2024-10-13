@@ -1,89 +1,53 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useReducer, useRef, useState } from 'react';
 
-import type { FilePayloadType, FileType } from '@srcbook/shared';
+import type { FileType, DirEntryType, FileEntryType, AppType } from '@srcbook/shared';
 import { AppChannel } from '@/clients/websocket';
-
-export type DirEntryType = { directory: true; name: string; children: FileTreeType };
-export type FileEntryType = { directory: false; name: string; file: FileType };
-export type FileTreeType = Array<FileEntryType | DirEntryType>;
-
-function createSortedFileTree(files: FileType[]): FileTreeType {
-  const tree = createFileTree(files);
-  sortTree(tree);
-  return tree;
-}
-
-function sortTree(tree: FileTreeType) {
-  tree.sort((a, b) => {
-    if (a.directory) sortTree(a.children);
-    if (b.directory) sortTree(b.children);
-    if (a.directory && !b.directory) return -1;
-    if (!a.directory && b.directory) return 1;
-    return a.name.localeCompare(b.name);
-  });
-}
-
-function createFileTree(files: FileType[]): FileTreeType {
-  const result: FileTreeType = [];
-
-  for (const file of files) {
-    let current = result;
-
-    const parts = file.path.split('/');
-
-    if (parts.length === 1) {
-      current.push({ directory: false, name: file.path, file });
-      continue;
-    }
-
-    const lastIdx = parts.length - 1;
-
-    for (let i = 0; i < lastIdx; i++) {
-      const dirEntry = current.find((entry) => entry.directory && entry.name === parts[i]) as
-        | DirEntryType
-        | undefined;
-
-      if (!dirEntry) {
-        const next: DirEntryType = { directory: true, name: parts[i]!, children: [] };
-        current.push(next);
-        current = next.children;
-      } else {
-        current = dirEntry.children;
-      }
-    }
-
-    current.push({ directory: false, name: parts[lastIdx]!, file });
-  }
-
-  return result;
-}
+import {
+  createFile as doCreateFile,
+  deleteFile as doDeleteFile,
+  renameFile as doRenameFile,
+  createDirectory,
+  deleteDirectory,
+  renameDirectory,
+  loadDirectory,
+  loadFile,
+} from '@/clients/http/apps';
+import {
+  createNode,
+  deleteNode,
+  renameDirNode,
+  sortTree,
+  updateDirNode,
+  updateFileNode,
+} from './lib/file-tree';
 
 export interface FilesContextValue {
-  files: FileType[];
-  fileTree: FileTreeType;
+  fileTree: DirEntryType;
+  openFile: (entry: FileEntryType) => void;
+  createFile: (dirname: string, basename: string, source?: string) => void;
+  renameFile: (entry: FileEntryType, name: string) => void;
+  deleteFile: (entry: FileEntryType) => void;
+  openFolder: (entry: DirEntryType) => void;
+  closeFolder: (entry: DirEntryType) => void;
+  toggleFolder: (entry: DirEntryType) => void;
+  isFolderOpen: (entry: DirEntryType) => boolean;
+  createFolder: (dirname: string, basename: string) => void;
+  deleteFolder: (entry: DirEntryType) => void;
+  renameFolder: (entry: DirEntryType, name: string) => void;
   openedFile: FileType | null;
-  setOpenedFile: React.Dispatch<React.SetStateAction<FileType | null>>;
-  createFile: (attrs: FileType) => void;
   updateFile: (file: FileType, attrs: Partial<FileType>) => void;
-  deleteFile: (file: FileType) => void;
 }
 
 const FilesContext = createContext<FilesContextValue | undefined>(undefined);
 
 type ProviderPropsType = {
+  app: AppType;
   channel: AppChannel;
   children: React.ReactNode;
+  rootDirEntries: DirEntryType;
 };
 
-export function FilesProvider({ channel, children }: ProviderPropsType) {
+export function FilesProvider({ app, channel, rootDirEntries, children }: ProviderPropsType) {
   // Because we use refs for our state, we need a way to trigger
   // component re-renders when the ref state changes.
   //
@@ -91,50 +55,166 @@ export function FilesProvider({ channel, children }: ProviderPropsType) {
   //
   const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
 
-  const filesRef = useRef<Record<string, FileType>>({});
+  const fileTreeRef = useRef<DirEntryType>(sortTree(rootDirEntries));
+  const openedDirectoriesRef = useRef<Set<string>>(new Set());
 
   const [openedFile, setOpenedFile] = useState<FileType | null>(null);
 
-  useEffect(() => {
-    function onFile(payload: FilePayloadType) {
-      filesRef.current[payload.file.path] = payload.file;
-      forceComponentRerender();
-    }
-    channel.on('file', onFile);
-    return () => channel.off('file', onFile);
-  }, [channel, forceComponentRerender]);
+  const openFile = useCallback(
+    async (entry: FileEntryType) => {
+      const { data: file } = await loadFile(app.id, entry.path);
+      setOpenedFile(file);
+    },
+    [app.id],
+  );
 
-  const createFile = useCallback((file: FileType) => {
-    filesRef.current[file.path] = file;
-    forceComponentRerender();
-  }, []);
+  const createFile = useCallback(
+    async (dirname: string, basename: string, source?: string) => {
+      source = source || '';
+      const { data: fileEntry } = await doCreateFile(app.id, dirname, basename, source);
+      fileTreeRef.current = createNode(fileTreeRef.current, fileEntry);
+      forceComponentRerender(); // required
+      openFile(fileEntry);
+    },
+    [app.id, openFile],
+  );
 
   const updateFile = useCallback(
     (file: FileType, attrs: Partial<FileType>) => {
       const updatedFile: FileType = { ...file, ...attrs };
-      filesRef.current[file.path] = updatedFile;
       channel.push('file:updated', { file: updatedFile });
+      setOpenedFile(updatedFile);
       forceComponentRerender();
     },
     [channel],
   );
 
-  const deleteFile = useCallback((file: FileType) => {
-    delete filesRef.current[file.path];
+  const deleteFile = useCallback(
+    async (entry: FileEntryType) => {
+      await doDeleteFile(app.id, entry.path);
+      setOpenedFile((openedFile) => {
+        if (openedFile && openedFile.path === entry.path) {
+          return null;
+        }
+        return openedFile;
+      });
+      fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
+      forceComponentRerender(); // required
+    },
+    [app.id],
+  );
+
+  const renameFile = useCallback(
+    async (entry: FileEntryType, name: string) => {
+      const { data: newEntry } = await doRenameFile(app.id, entry.path, name);
+      setOpenedFile((openedFile) => {
+        if (openedFile && openedFile.path === entry.path) {
+          return { ...openedFile, path: newEntry.path, name: newEntry.name };
+        }
+        return openedFile;
+      });
+      fileTreeRef.current = updateFileNode(fileTreeRef.current, entry, newEntry);
+      forceComponentRerender(); // required
+    },
+    [app.id],
+  );
+
+  const isFolderOpen = useCallback((entry: DirEntryType) => {
+    return openedDirectoriesRef.current.has(entry.path);
+  }, []);
+
+  const openFolder = useCallback(
+    async (entry: DirEntryType) => {
+      // Optimistically open the folder.
+      openedDirectoriesRef.current.add(entry.path);
+      forceComponentRerender();
+      const { data: directory } = await loadDirectory(app.id, entry.path);
+      fileTreeRef.current = updateDirNode(fileTreeRef.current, directory);
+      forceComponentRerender();
+    },
+    [app.id],
+  );
+
+  const closeFolder = useCallback((entry: DirEntryType) => {
+    openedDirectoriesRef.current.delete(entry.path);
     forceComponentRerender();
   }, []);
 
-  const files = Object.values(filesRef.current);
-  const fileTree = createSortedFileTree(files);
+  const toggleFolder = useCallback(
+    (entry: DirEntryType) => {
+      if (isFolderOpen(entry)) {
+        closeFolder(entry);
+      } else {
+        openFolder(entry);
+      }
+    },
+    [isFolderOpen, openFolder, closeFolder],
+  );
+
+  const createFolder = useCallback(
+    async (dirname: string, basename: string) => {
+      const { data: folderEntry } = await createDirectory(app.id, dirname, basename);
+      fileTreeRef.current = createNode(fileTreeRef.current, folderEntry);
+      forceComponentRerender(); // required
+      openFolder(folderEntry);
+    },
+    [app.id, openFolder],
+  );
+
+  const deleteFolder = useCallback(
+    async (entry: DirEntryType) => {
+      await deleteDirectory(app.id, entry.path);
+      setOpenedFile((openedFile) => {
+        if (openedFile && openedFile.path.startsWith(entry.path)) {
+          return null;
+        }
+        return openedFile;
+      });
+      openedDirectoriesRef.current.delete(entry.path);
+      fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
+      forceComponentRerender(); // required
+    },
+    [app.id],
+  );
+
+  const renameFolder = useCallback(
+    async (entry: DirEntryType, name: string) => {
+      const { data: newEntry } = await renameDirectory(app.id, entry.path, name);
+
+      setOpenedFile((openedFile) => {
+        if (openedFile && openedFile.path.startsWith(entry.path)) {
+          return { ...openedFile, path: openedFile.path.replace(entry.path, newEntry.path) };
+        }
+        return openedFile;
+      });
+
+      if (openedDirectoriesRef.current.has(entry.path)) {
+        openedDirectoriesRef.current.delete(entry.path);
+        openedDirectoriesRef.current.add(newEntry.path);
+      }
+
+      fileTreeRef.current = renameDirNode(fileTreeRef.current, entry, newEntry);
+
+      forceComponentRerender(); // required
+    },
+    [app.id],
+  );
 
   const context: FilesContextValue = {
-    files,
-    fileTree,
+    fileTree: fileTreeRef.current,
+    openFile,
+    renameFile,
+    deleteFile,
     openedFile,
-    setOpenedFile,
+    openFolder,
+    closeFolder,
+    toggleFolder,
+    isFolderOpen,
+    createFolder,
+    deleteFolder,
+    renameFolder,
     createFile,
     updateFile,
-    deleteFile,
   };
 
   return <FilesContext.Provider value={context}>{children}</FilesContext.Provider>;

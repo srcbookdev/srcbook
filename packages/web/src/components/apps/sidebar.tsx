@@ -1,6 +1,12 @@
 import { useState } from 'react';
 
-import { BotMessageSquare, FilesIcon, FlagIcon, KeyboardIcon } from 'lucide-react';
+import {
+  ChevronsLeftIcon,
+  FlagIcon,
+  FolderTreeIcon,
+  KeyboardIcon,
+  SettingsIcon,
+} from 'lucide-react';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import {
   Tooltip,
@@ -12,10 +18,23 @@ import KeyboardShortcutsDialog from '../keyboard-shortcuts-dialog';
 import FeedbackDialog from '../feedback-dialog';
 import { cn } from '@/lib/utils';
 import ExplorerPanel from './panels/explorer';
-import AIPanel from './panels/ai';
+import SettingsPanel from './panels/settings';
 import { useFiles } from './use-files';
+import { SrcbookLogo } from '../logos';
+import { Link } from 'react-router-dom';
 
-type PanelType = 'explorer' | 'ai';
+type PanelType = 'explorer' | 'settings';
+
+function getTitleForPanel(panel: PanelType | null): string | null {
+  switch (panel) {
+    case 'explorer':
+      return 'Files';
+    case 'settings':
+      return 'Settings';
+    default:
+      return null;
+  }
+}
 
 export default function Sidebar() {
   const { openedFile } = useFiles();
@@ -34,23 +53,32 @@ export default function Sidebar() {
       <FeedbackDialog open={showFeedback} onOpenChange={setShowFeedback} />
 
       <div className="flex h-full border-r border-border">
-        <div className="flex flex-col items-center justify-between w-12 h-full py-4 bg-background z-10">
+        <div className="flex flex-col items-center justify-between w-12 h-full py-3 bg-muted z-10">
           <div className="flex flex-col items-center w-full gap-2">
+            <div className="flex items-start h-10">
+              <Link to="/" className="p-0.5" title="Home">
+                <SrcbookLogo size={20} />
+              </Link>
+            </div>
             <NavItemWithTooltip tooltipContent="Explorer" onClick={() => setPanel('explorer')}>
-              <FilesIcon
+              <FolderTreeIcon
                 size={18}
                 className={cn(
+                  'transition-colors',
                   panel === 'explorer'
-                    ? 'stroke-secondary-foreground'
-                    : 'stroke-tertiary-foreground',
+                    ? 'text-secondary-foreground'
+                    : 'text-tertiary-foreground hover:text-secondary-foreground',
                 )}
               />
             </NavItemWithTooltip>
-            <NavItemWithTooltip tooltipContent="AI copilot" onClick={() => setPanel('ai')}>
-              <BotMessageSquare
+            <NavItemWithTooltip tooltipContent="Settings" onClick={() => setPanel('settings')}>
+              <SettingsIcon
                 size={18}
                 className={cn(
-                  panel === 'ai' ? 'stroke-secondary-foreground' : 'stroke-tertiary-foreground',
+                  'transition-colors',
+                  panel === 'settings'
+                    ? 'text-secondary-foreground'
+                    : 'text-tertiary-foreground hover:text-secondary-foreground',
                 )}
               />
             </NavItemWithTooltip>
@@ -60,19 +88,33 @@ export default function Sidebar() {
               tooltipContent="Keyboard shortcuts"
               onClick={() => setShowShortcuts(true)}
             >
-              <KeyboardIcon size={18} className="stroke-tertiary-foreground" />
+              <KeyboardIcon
+                size={18}
+                className="text-tertiary-foreground hover:text-secondary-foreground transition-colors"
+              />
             </NavItemWithTooltip>
             <NavItemWithTooltip
               tooltipContent="Leave feedback"
               onClick={() => setShowFeedback(true)}
             >
-              <FlagIcon size={18} className="stroke-tertiary-foreground" />
+              <FlagIcon
+                size={18}
+                className="text-tertiary-foreground hover:text-secondary-foreground transition-colors"
+              />
             </NavItemWithTooltip>
           </div>
         </div>
-        <Panel open={panel !== null}>
+        <Panel
+          open={panel !== null}
+          title={getTitleForPanel(panel)}
+          onClose={() => {
+            if (panel !== null) {
+              setPanel(panel);
+            }
+          }}
+        >
           {panel === 'explorer' && <ExplorerPanel />}
-          {panel === 'ai' && <AIPanel />}
+          {panel === 'settings' && <SettingsPanel />}
         </Panel>
       </div>
     </>
@@ -103,14 +145,28 @@ function NavItemWithTooltip(props: {
   );
 }
 
-function Panel(props: { open: boolean; children: React.ReactNode }) {
+function Panel(props: {
+  open: boolean;
+  title: string | null;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
   if (!props.open) {
     return null;
   }
 
   return (
-    <div className="h-full bg-background animate-in slide-in-from-left duration-75">
-      {props.children}
+    <div className="h-full flex flex-col bg-muted animate-in slide-in-from-left duration-75">
+      <div className="flex items-center justify-between h-12 px-3">
+        <h4 className="font-semibold leading-none">{props.title}</h4>
+        <button
+          className="p-2 text-tertiary-foreground hover:text-foreground hover:bg-sb-core-20 dark:hover:bg-sb-core-110 rounded-sm"
+          onClick={props.onClose}
+        >
+          <ChevronsLeftIcon size={18} />
+        </button>
+      </div>
+      <div className="w-60 py-3 pr-1.5 flex-1 overflow-auto">{props.children}</div>
     </div>
   );
 }

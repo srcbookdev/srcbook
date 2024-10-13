@@ -170,9 +170,9 @@ export function ImportSrcbookModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Open Srcbook</DialogTitle>
+          <DialogTitle>Open Notebook</DialogTitle>
           <DialogDescription asChild>
-            <p>Use one of the options below to open a Srcbook.</p>
+            <p>Use one of the options below to open a Notebook.</p>
           </DialogDescription>
         </DialogHeader>
 
@@ -403,8 +403,8 @@ export function ExportSrcbookModal({
           <DialogTitle>Export Srcbook</DialogTitle>
           <DialogDescription asChild>
             <p>
-              Export this Srcbook to a <code className="code">.src.md</code> file which is shareable
-              and can be imported into any Srcbook application.
+              Export this Notebook to a <code className="code">.src.md</code> file which is
+              shareable and can be imported into any Srcbook application.
             </p>
           </DialogDescription>
         </DialogHeader>

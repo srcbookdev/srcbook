@@ -15,12 +15,19 @@ import WebSocketServer, {
   type ConnectionContextType,
 } from '../ws-client.mjs';
 import { loadApp } from '../../apps/app.mjs';
-import { fileUpdated, getProjectFiles, pathToApp } from '../../apps/disk.mjs';
+import { fileUpdated, pathToApp } from '../../apps/disk.mjs';
 import { vite } from '../../exec.mjs';
+
+const VITE_PORT_REGEX = /Local:.*http:\/\/localhost:([0-9]{1,4})/;
 
 type AppContextType = MessageContextType<'appId'>;
 
-const processes = new Map<string, ChildProcess>();
+type ProcessMetadata = {
+  process: ChildProcess;
+  port: number | null;
+};
+
+const processMetadata = new Map<string, ProcessMetadata>();
 
 async function previewStart(
   _payload: PreviewStartPayloadType,
@@ -33,25 +40,48 @@ async function previewStart(
     return;
   }
 
-  const existingProcess = processes.get(app.externalId);
+  const existingProcess = processMetadata.get(app.externalId);
 
   if (existingProcess) {
-    conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'running' });
+    conn.reply(`app:${app.externalId}`, 'preview:status', {
+      status: 'running',
+      url: `http://localhost:${existingProcess.port}/`,
+    });
     return;
   }
 
+  conn.reply(`app:${app.externalId}`, 'preview:status', {
+    url: null,
+    status: 'booting',
+  });
+
+  const onChangePort = (newPort: number) => {
+    processMetadata.set(app.externalId, { process, port: newPort });
+    conn.reply(`app:${app.externalId}`, 'preview:status', {
+      url: `http://localhost:${newPort}/`,
+      status: 'running',
+    });
+  };
+
   const process = vite({
-    // TODO: Configure port and fail if port in use
     args: [],
     cwd: pathToApp(app.externalId),
     stdout: (data) => {
-      console.log(data.toString('utf8'));
+      const encodedData = data.toString('utf8');
+      console.log(encodedData);
+
+      const potentialPortMatch = VITE_PORT_REGEX.exec(encodedData);
+      if (potentialPortMatch) {
+        const portString = potentialPortMatch[1]!;
+        const port = parseInt(portString, 10);
+        onChangePort(port);
+      }
     },
     stderr: (data) => {
       console.error(data.toString('utf8'));
     },
     onExit: (_code) => {
-      processes.delete(app.externalId);
+      processMetadata.delete(app.externalId);
       conn.reply(`app:${app.externalId}`, 'preview:status', {
         url: null,
         status: 'stopped',
@@ -59,15 +89,7 @@ async function previewStart(
     },
   });
 
-  processes.set(app.externalId, process);
-
-  // TODO: better way to know when the server is ready
-  setTimeout(() => {
-    conn.reply(`app:${app.externalId}`, 'preview:status', {
-      url: 'http://localhost:5174/',
-      status: 'running',
-    });
-  }, 500);
+  processMetadata.set(app.externalId, { process, port: null });
 }
 
 async function previewStop(
@@ -81,14 +103,14 @@ async function previewStop(
     return;
   }
 
-  const process = processes.get(app.externalId);
+  const result = processMetadata.get(app.externalId);
 
-  if (!process) {
+  if (!result) {
     conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped' });
     return;
   }
 
-  process.kill('SIGTERM');
+  result.process.kill('SIGTERM');
 
   conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped' });
 }
@@ -117,18 +139,16 @@ export function register(wss: WebSocketServer) {
         return;
       }
 
-      const existingProcess = processes.get(app.externalId);
+      const existingProcess = processMetadata.get(app.externalId);
 
       ws.send(
         JSON.stringify([
           topic,
           'preview:status',
-          { url: null, status: existingProcess ? 'running' : 'stopped' },
+          existingProcess
+            ? { status: 'running', url: `http://localhost:${existingProcess.port}/` }
+            : { url: null, status: 'stopped' },
         ]),
       );
-
-      for (const file of await getProjectFiles(app)) {
-        ws.send(JSON.stringify([topic, 'file', { file }]));
-      }
     });
 }

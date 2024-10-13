@@ -169,7 +169,7 @@ function FileTree(props: {
       );
     }
   }
-  2;
+
   if (newEntry !== null && newEntry.type === 'file' && dirname(newEntry.path) === tree.path) {
     elements.push(
       <li key={newEntry.path}>

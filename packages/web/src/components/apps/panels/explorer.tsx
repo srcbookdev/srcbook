@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileIcon, ChevronRightIcon, type LucideIcon, ChevronDownIcon } from 'lucide-react';
+import { FileIcon, ChevronRightIcon } from 'lucide-react';
 import { useFiles } from '../use-files';
 import type { DirEntryType, FileEntryType } from '@srcbook/shared';
 import { cn } from '@srcbook/components';
@@ -9,11 +9,12 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@srcbook/components/src/components/ui/context-menu';
+import { dirname } from '../lib/path';
 
 export default function ExplorerPanel() {
-  const { fileTree, createFile, createFolder } = useFiles();
+  const { fileTree } = useFiles();
 
-  const [editingEntry, setEditingEntry] = useState<FileEntryType | null>(null);
+  const [editingEntry, setEditingEntry] = useState<FileEntryType | DirEntryType | null>(null);
   const [newEntry, setNewEntry] = useState<FileEntryType | DirEntryType | null>(null);
 
   return (
@@ -23,24 +24,11 @@ export default function ExplorerPanel() {
           <FileTree
             depth={1}
             tree={fileTree}
+            newEntry={newEntry}
+            setNewEntry={setNewEntry}
             editingEntry={editingEntry}
             setEditingEntry={setEditingEntry}
           />
-          {newEntry && (
-            <EditNameNode
-              depth={1}
-              name={newEntry.name}
-              onSubmit={(name) => {
-                if (newEntry.type === 'directory') {
-                  createFolder('.', name);
-                } else {
-                  createFile('.', name);
-                }
-                setNewEntry(null);
-              }}
-              onCancel={() => setNewEntry(null)}
-            />
-          )}
         </ul>
       </ContextMenuTrigger>
       <ContextMenuContent>
@@ -64,48 +52,143 @@ export default function ExplorerPanel() {
 function FileTree(props: {
   depth: number;
   tree: DirEntryType;
-  editingEntry: FileEntryType | null;
-  setEditingEntry: (entry: FileEntryType | null) => void;
+  newEntry: FileEntryType | DirEntryType | null;
+  setNewEntry: (entry: FileEntryType | DirEntryType | null) => void;
+  editingEntry: FileEntryType | DirEntryType | null;
+  setEditingEntry: (entry: FileEntryType | DirEntryType | null) => void;
 }) {
-  const { depth, tree, editingEntry, setEditingEntry } = props;
+  const { depth, tree, newEntry, setNewEntry, editingEntry, setEditingEntry } = props;
 
-  const { openFile, deleteFile, renameFile, toggleFolder, isFolderOpen, openedFile } = useFiles();
+  const {
+    openFile,
+    createFile,
+    deleteFile,
+    renameFile,
+    openedFile,
+    toggleFolder,
+    isFolderOpen,
+    openFolder,
+    createFolder,
+    deleteFolder,
+    renameFolder,
+  } = useFiles();
 
   if (tree.children === null) {
     return null;
   }
 
-  return tree.children.flatMap((entry) => {
-    if (entry.type === 'directory') {
-      const opened = isFolderOpen(entry);
+  const dirEntries = [];
+  const fileEntries = [];
 
-      const elements = [
+  for (const entry of tree.children) {
+    if (entry.type === 'directory') {
+      dirEntries.push(entry);
+    } else {
+      fileEntries.push(entry);
+    }
+  }
+
+  const elements = [];
+
+  if (newEntry !== null && newEntry.type === 'directory' && dirname(newEntry.path) === tree.path) {
+    elements.push(
+      <li key={newEntry.path}>
+        <EditNameNode
+          depth={depth}
+          name={newEntry.name}
+          onSubmit={(name) => {
+            createFolder(tree.path, name);
+            setNewEntry(null);
+          }}
+          onCancel={() => setNewEntry(null)}
+        />
+      </li>,
+    );
+  }
+
+  for (const entry of dirEntries) {
+    const opened = isFolderOpen(entry);
+
+    if (editingEntry?.path === entry.path) {
+      elements.push(
         <li key={entry.path}>
-          <Node
+          <EditNameNode
             depth={depth}
-            icon={opened ? ChevronDownIcon : ChevronRightIcon}
-            label={entry.name}
-            active={false}
-            onClick={() => toggleFolder(entry)}
+            name={entry.name}
+            onSubmit={(name) => {
+              renameFolder(entry, name);
+              setEditingEntry(null);
+            }}
+            onCancel={() => setEditingEntry(null)}
           />
         </li>,
-      ];
-
-      if (opened) {
-        elements.push(
-          <FileTree
-            key={entry.path + '-tree'}
-            depth={depth + 1}
-            tree={entry}
-            editingEntry={editingEntry}
-            setEditingEntry={setEditingEntry}
-          />,
-        );
-      }
-
-      return elements;
+      );
     } else {
-      return entry.name === editingEntry?.name ? (
+      elements.push(
+        <li key={entry.path}>
+          <FolderNode
+            depth={depth}
+            label={entry.name}
+            opened={opened}
+            onClick={() => toggleFolder(entry)}
+            onDelete={() => deleteFolder(entry)}
+            onRename={() => setEditingEntry(entry)}
+            onNewFile={() => {
+              if (!isFolderOpen(entry)) {
+                openFolder(entry);
+              }
+              setNewEntry({ type: 'file', path: entry.path + '/untitled', name: 'untitled' });
+            }}
+            onNewfolder={() => {
+              if (!isFolderOpen(entry)) {
+                openFolder(entry);
+              }
+              setNewEntry({
+                type: 'directory',
+                path: entry.path + '/untitled',
+                name: 'untitled',
+                children: null,
+              });
+            }}
+          />
+        </li>,
+      );
+    }
+
+    if (opened) {
+      elements.push(
+        <FileTree
+          key={entry.path + '-tree'}
+          depth={depth + 1}
+          tree={entry}
+          newEntry={newEntry}
+          setNewEntry={setNewEntry}
+          editingEntry={editingEntry}
+          setEditingEntry={setEditingEntry}
+        />,
+      );
+    }
+  }
+
+  if (newEntry !== null && newEntry.type === 'file' && dirname(newEntry.path) === tree.path) {
+    elements.push(
+      <li key={newEntry.path}>
+        <EditNameNode
+          depth={depth}
+          name={newEntry.name}
+          onSubmit={(name) => {
+            createFile(tree.path, name);
+            setNewEntry(null);
+          }}
+          onCancel={() => setNewEntry(null)}
+        />
+      </li>,
+    );
+  }
+
+  for (const entry of fileEntries) {
+    if (entry.path === editingEntry?.path) {
+      elements.push(
         <li key={entry.path}>
           <EditNameNode
             depth={depth}
@@ -116,21 +199,25 @@ function FileTree(props: {
             }}
             onCancel={() => setEditingEntry(null)}
           />
-        </li>
-      ) : (
+        </li>,
+      );
+    } else {
+      elements.push(
         <li key={entry.path}>
           <FileNode
             depth={depth}
             label={entry.name}
             active={openedFile?.path === entry.path}
             onClick={() => openFile(entry)}
-            deleteFile={() => deleteFile(entry)}
-            renameFile={() => setEditingEntry(entry)}
+            onDelete={() => deleteFile(entry)}
+            onRename={() => setEditingEntry(entry)}
           />
-        </li>
+        </li>,
       );
     }
-  });
+  }
+
+  return elements;
 }
 
 function FileNode(props: {
@@ -138,17 +225,53 @@ function FileNode(props: {
   label: string;
   active: boolean;
   onClick: () => void;
-  deleteFile: () => void;
-  renameFile: () => void;
+  onDelete: () => void;
+  onRename: () => void;
 }) {
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <Node {...props} icon={FileIcon} />
+        <Node {...props} icon={<FileIcon size={12} />} />
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={props.renameFile}>Rename</ContextMenuItem>
-        <ContextMenuItem onClick={props.deleteFile}>Delete</ContextMenuItem>
+        <ContextMenuItem onClick={props.onRename}>Rename</ContextMenuItem>
+        <ContextMenuItem onClick={props.onDelete}>Delete</ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
+
+function FolderNode(props: {
+  depth: number;
+  label: string;
+  opened: boolean;
+  onClick: () => void;
+  onDelete: () => void;
+  onRename: () => void;
+  onNewFile: () => void;
+  onNewfolder: () => void;
+}) {
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <Node
+          {...props}
+          icon={
+            <ChevronRightIcon
+              size={12}
+              className={cn(
+                'transition-transform duration-100',
+                props.opened && 'transform rotate-90',
+              )}
+            />
+          }
+        />
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={props.onNewFile}>New file...</ContextMenuItem>
+        <ContextMenuItem onClick={props.onNewfolder}>New folder...</ContextMenuItem>
+        <ContextMenuItem onClick={props.onRename}>Rename</ContextMenuItem>
+        <ContextMenuItem onClick={props.onDelete}>Delete</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -163,24 +286,49 @@ function EditNameNode(props: {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      const input = ref.current;
-      if (!input) return;
+    const input = ref.current;
+    if (!input) return;
+
+    const focusAndSelect = () => {
+      input.focus();
       const idx = input.value.lastIndexOf('.');
       input.setSelectionRange(0, idx === -1 ? input.value.length : idx);
-      input.focus();
-    }, 25);
+    };
 
-    return () => clearTimeout(timeout);
+    focusAndSelect();
+
+    // Re-focus if the input loses focus
+    const handleFocusOut = () => {
+      if (document.activeElement !== input) {
+        focusAndSelect();
+      }
+    };
+
+    document.addEventListener('focusin', handleFocusOut);
+
+    return () => {
+      document.removeEventListener('focusin', handleFocusOut);
+    };
   }, []);
+
+  function onBlur(e: React.FocusEvent<HTMLInputElement>) {
+    // Only cancel if the new active element is outside this component
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      props.onCancel();
+    }
+  }
 
   return (
     <input
       ref={ref}
       defaultValue={props.name}
-      className="flex h-8 w-full rounded-sm border border-ring bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      className={cn(
+        'flex h-8 w-full rounded-sm border border-ring bg-transparent px-3 py-2 text-sm transition-colors',
+        'placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+        '[&::selection]:bg-accent [&::selection]:text-accent-foreground',
+      )}
       style={{ paddingLeft: `${props.depth * 12}px` }}
-      onBlur={props.onCancel}
+      onBlur={onBlur}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && ref.current) {
           e.preventDefault();
@@ -197,11 +345,11 @@ function EditNameNode(props: {
 function Node(props: {
   depth: number;
   label: string;
-  icon: LucideIcon;
-  active: boolean;
+  icon: React.ReactNode;
+  active?: boolean;
   onClick: () => void;
 }) {
-  const { depth, label, icon: Icon, active, onClick } = props;
+  const { depth, label, icon, active, onClick } = props;
 
   return (
     <button
@@ -213,7 +361,7 @@ function Node(props: {
       style={{ paddingLeft: `${depth * 12}px` }}
       title={label}
     >
-      <Icon size={12} /> <span className="truncate">{label}</span>
+      {icon} <span className="truncate">{label}</span>
     </button>
   );
 }

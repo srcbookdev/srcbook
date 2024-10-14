@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { PreviewStatusPayloadType } from '@srcbook/shared';
 
-export type PreviewStatusType = 'connecting' | 'booting' | 'running' | 'stopped';
+export type PreviewStatusType = 'booting' | 'connecting' | 'running' | 'stopped';
 
 export interface PreviewContextValue {
   url: string | null;

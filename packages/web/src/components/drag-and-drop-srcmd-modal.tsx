@@ -31,7 +31,7 @@ function Modal(props: { open: boolean }) {
             </div>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center gap-2">
-            <strong className="text-lg font-semibold leading-tight">Open Srcbook</strong>
+            <strong className="text-lg font-semibold leading-tight">Open Notebook</strong>
             <p className="text-tertiary-foreground">
               Drop <code className="code">.src.md</code> file to open
             </p>

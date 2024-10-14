@@ -45,7 +45,7 @@ export default function DeleteSrcbookModal({
           <DialogTitle>Delete "{getTitleForSession(session)}"?</DialogTitle>
           <DialogDescription asChild>
             <div>
-              <p className="text-foreground">Deleting a Srcbook cannot be undone.</p>
+              <p className="text-foreground">Deleting a Notebook cannot be undone.</p>
             </div>
           </DialogDescription>
         </DialogHeader>

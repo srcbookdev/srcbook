@@ -42,30 +42,29 @@ function CodeEditor({
 }) {
   const { codeTheme } = useTheme();
 
-  const languageExtension = getCodeMirrorLanguageExtension(file);
-  const extensions = languageExtension ? [languageExtension] : [];
+  const languageExtensions = getCodeMirrorLanguageExtensions(file);
 
   return (
     <CodeMirror
       value={file.source}
       theme={codeTheme}
-      extensions={extensions}
+      extensions={languageExtensions}
       onChange={(source) => onChange(file, { source })}
     />
   );
 }
 
-function getCodeMirrorLanguageExtension(file: FileType) {
+function getCodeMirrorLanguageExtensions(file: FileType) {
   switch (extname(file.path)) {
     case '.json':
-      return json();
+      return [json()];
     case '.css':
-      return css();
+      return [css()];
     case '.html':
-      return html();
+      return [html()];
     case '.md':
     case '.markdown':
-      return markdown();
+      return [markdown()];
     case '.js':
     case '.cjs':
     case '.mjs':
@@ -74,6 +73,6 @@ function getCodeMirrorLanguageExtension(file: FileType) {
     case '.cts':
     case '.mts':
     case '.tsx':
-      return javascript({ typescript: true, jsx: true });
+      return [javascript({ typescript: true, jsx: true })];
   }
 }

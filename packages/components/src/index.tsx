@@ -14,6 +14,7 @@ export * from './components/ui/input.js';
 export * from './components/ui/navigation-menu.js';
 export * from './components/ui/popover.js';
 export * from './components/ui/resizable.js';
+export * from './components/ui/scroll-area.js';
 export * from './components/ui/select.js';
 export * from './components/ui/sheet.js';
 export * from './components/ui/sonner.js';

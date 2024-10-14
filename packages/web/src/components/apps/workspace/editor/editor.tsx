@@ -4,21 +4,23 @@ import { html } from '@codemirror/lang-html';
 import { json } from '@codemirror/lang-json';
 import { javascript } from '@codemirror/lang-javascript';
 import { markdown } from '@codemirror/lang-markdown';
-import { cn } from '@/lib/utils';
 import useTheme from '@srcbook/components/src/components/use-theme';
-import { useFiles } from '../use-files';
-import { FileType } from '@srcbook/shared';
+import { useFiles } from '../../use-files';
+import { AppType, FileType } from '@srcbook/shared';
+import EditorHeader from './header';
+import { extname } from '../../lib/path';
 
 type PropsType = {
-  className?: string;
+  app: AppType;
 };
 
 export function Editor(props: PropsType) {
   const { openedFile, updateFile } = useFiles();
 
   return (
-    <div className={cn(props.className)}>
-      <div className="p-3 w-full h-full">
+    <div className="flex flex-col">
+      <EditorHeader app={props.app} className="shrink-0 h-12 max-h-12" />
+      <div className="p-3 w-full flex-1">
         {openedFile ? (
           <CodeEditor file={openedFile} onChange={updateFile} />
         ) : (
@@ -29,10 +31,6 @@ export function Editor(props: PropsType) {
       </div>
     </div>
   );
-}
-
-function extname(path: string) {
-  return '.' + path.split('.').pop();
 }
 
 function CodeEditor({

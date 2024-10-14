@@ -1,34 +1,34 @@
 import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 
-import { AppType } from '@srcbook/shared';
+import type { AppType, DirEntryType } from '@srcbook/shared';
 
-import { loadApp, loadApps } from '@/clients/http/apps';
-import Header from '@/components/apps/header';
+import { loadApp, loadDirectory } from '@/clients/http/apps';
 import Sidebar from '@/components/apps/sidebar';
 import { useEffect, useRef } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
-import { Editor } from '@/components/apps/workspace/editor';
+import { Editor } from '@/components/apps/workspace/editor/editor';
 import { Preview } from '@/components/apps/workspace/preview';
 import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
 import { cn } from '@/lib/utils';
+import { ChatPanel } from '@/components/chat';
 
 async function loader({ params }: LoaderFunctionArgs) {
-  const [{ data: apps }, { data: app }] = await Promise.all([
-    loadApps('desc'),
+  const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
     loadApp(params.id!),
+    loadDirectory(params.id!, '.'),
   ]);
 
-  return { apps, app };
+  return { app, rootDirEntries };
 }
 
 type AppLoaderDataType = {
   app: AppType;
-  apps: AppType[];
+  rootDirEntries: DirEntryType;
 };
 
 export function AppsPage() {
-  const { app, apps } = useLoaderData() as AppLoaderDataType;
+  const { app, rootDirEntries } = useLoaderData() as AppLoaderDataType;
 
   const channelRef = useRef(AppChannel.create(app.id));
 
@@ -48,32 +48,38 @@ export function AppsPage() {
   }, [app.id]);
 
   return (
-    <FilesProvider channel={channelRef.current}>
+    <FilesProvider
+      // Key can be used to remount a fresh provider if the app changes.
+      // This ensures we get a clean set of state for the new app.
+      key={app.id}
+      app={app}
+      channel={channelRef.current}
+      rootDirEntries={rootDirEntries}
+    >
       <PreviewProvider channel={channelRef.current}>
-        <Apps app={app} apps={apps} />
+        <Apps app={app} />
       </PreviewProvider>
     </FilesProvider>
   );
 }
 
-function Apps(props: { app: AppType; apps: AppType[] }) {
+function Apps(props: { app: AppType }) {
   const { status: previewStatus } = usePreview();
+  const previewVisible = previewStatus === 'booting' || previewStatus === 'running';
 
   return (
-    <div className="h-screen max-h-screen flex flex-col">
-      <Header app={props.app} apps={props.apps} className="h-12 max-h-12 shrink-0" />
-      <div className="flex flex-1 min-w-0">
-        <Sidebar />
-        <div
-          className={cn(
-            'w-full h-full grid divide-x divide-border',
-            previewStatus === 'running' ? 'grid-cols-2' : 'grid-cols-1',
-          )}
-        >
-          <Editor />
-          {previewStatus === 'running' && <Preview />}
-        </div>
+    <div className="h-screen max-h-screen flex">
+      <Sidebar />
+      <div
+        className={cn(
+          'w-full h-full grid divide-x divide-border',
+          previewVisible ? 'grid-cols-2' : 'grid-cols-1',
+        )}
+      >
+        <Editor app={props.app} />
+        {previewVisible ? <Preview /> : null}
       </div>
+      <ChatPanel />
     </div>
   );
 }

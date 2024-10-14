@@ -1,11 +1,11 @@
+import type { RmOptions } from 'node:fs';
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { APPS_DIR } from '../constants.mjs';
 import { toValidPackageName } from './utils.mjs';
-import { Dirent } from 'node:fs';
-import { FileType } from '@srcbook/shared';
+import { DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
 
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
@@ -91,57 +91,139 @@ async function copyDir(srcDir: string, destDir: string) {
   }
 }
 
-// TODO: This does not scale.
-export async function getProjectFiles(app: DBAppType) {
+export async function loadDirectory(
+  app: DBAppType,
+  path: string,
+  excludes = ['node_modules', 'dist', '.git'],
+): Promise<DirEntryType> {
   const projectDir = Path.join(APPS_DIR, app.externalId);
+  const dirPath = Path.join(projectDir, path);
+  const entries = await fs.readdir(dirPath, { withFileTypes: true });
 
-  const { files, directories } = await getDiskEntries(projectDir, {
-    exclude: ['node_modules', 'dist'],
-  });
-
-  const nestedFiles = await Promise.all(
-    directories.flatMap(async (dir) => {
-      const entries = await fs.readdir(Path.join(projectDir, dir.name), {
-        withFileTypes: true,
-        recursive: true,
-      });
-      return entries.filter((entry) => entry.isFile());
-    }),
-  );
-
-  const entries = [...files, ...nestedFiles.flat()];
-
-  return Promise.all(
-    entries.map(async (entry) => {
-      const fullPath = Path.join(entry.parentPath, entry.name);
+  const children = entries
+    .filter((entry) => excludes.indexOf(entry.name) === -1)
+    .map((entry) => {
+      const fullPath = Path.join(dirPath, entry.name);
       const relativePath = Path.relative(projectDir, fullPath);
-      const contents = await fs.readFile(fullPath);
-      const binary = isBinary(entry.name);
-      const source = !binary ? contents.toString('utf-8') : `TODO: handle this`;
-      return { path: relativePath, source, binary };
-    }),
-  );
+
+      if (entry.isDirectory()) {
+        return {
+          type: 'directory' as const,
+          name: entry.name,
+          path: relativePath,
+          children: null,
+        };
+      } else {
+        return {
+          type: 'file' as const,
+          name: entry.name,
+          path: relativePath,
+        };
+      }
+    });
+
+  const relativePath = Path.relative(projectDir, dirPath);
+  const basename = Path.basename(relativePath);
+
+  return {
+    type: 'directory' as const,
+    name: basename === '' ? '.' : basename,
+    path: relativePath === '' ? '.' : relativePath,
+    children: children,
+  };
 }
 
-async function getDiskEntries(projectDir: string, options: { exclude: string[] }) {
-  const result: { files: Dirent[]; directories: Dirent[] } = {
-    files: [],
-    directories: [],
+export async function createDirectory(
+  app: DBAppType,
+  dirname: string,
+  basename: string,
+): Promise<DirEntryType> {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const dirPath = Path.join(projectDir, dirname, basename);
+
+  await fs.mkdir(dirPath, { recursive: false });
+
+  const relativePath = Path.relative(projectDir, dirPath);
+
+  return {
+    type: 'directory' as const,
+    name: Path.basename(relativePath),
+    path: relativePath,
+    children: null,
   };
+}
 
-  for (const entry of await fs.readdir(projectDir, { withFileTypes: true })) {
-    if (options.exclude.includes(entry.name)) {
-      continue;
-    }
+export function deleteDirectory(app: DBAppType, path: string) {
+  return deleteEntry(app, path, { recursive: true, force: true });
+}
 
-    if (entry.isFile()) {
-      result.files.push(entry);
-    } else {
-      result.directories.push(entry);
-    }
+export async function renameDirectory(
+  app: DBAppType,
+  path: string,
+  name: string,
+): Promise<DirEntryType> {
+  const result = await rename(app, path, name);
+  return { ...result, type: 'directory' as const, children: null };
+}
+
+export async function loadFile(app: DBAppType, path: string): Promise<FileType> {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const filePath = Path.join(projectDir, path);
+  const relativePath = Path.relative(projectDir, filePath);
+  const basename = Path.basename(filePath);
+
+  if (isBinary(basename)) {
+    return { path: relativePath, name: basename, source: `TODO: handle this`, binary: true };
+  } else {
+    return {
+      path: relativePath,
+      name: basename,
+      source: await fs.readFile(filePath, 'utf-8'),
+      binary: false,
+    };
   }
+}
 
-  return result;
+export async function createFile(
+  app: DBAppType,
+  dirname: string,
+  basename: string,
+  source: string,
+): Promise<FileEntryType> {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const filePath = Path.join(projectDir, dirname, basename);
+  await fs.writeFile(filePath, source, 'utf-8');
+  const relativePath = Path.relative(projectDir, filePath);
+  return { type: 'file' as const, path: relativePath, name: Path.basename(filePath) };
+}
+
+export function deleteFile(app: DBAppType, path: string) {
+  return deleteEntry(app, path);
+}
+
+export async function renameFile(
+  app: DBAppType,
+  path: string,
+  name: string,
+): Promise<FileEntryType> {
+  const result = await rename(app, path, name);
+  return { ...result, type: 'file' as const };
+}
+
+async function rename(app: DBAppType, path: string, name: string) {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const oldPath = Path.join(projectDir, path);
+  const dirname = Path.dirname(oldPath);
+  const newPath = Path.join(dirname, name);
+  await fs.rename(oldPath, newPath);
+  const relativePath = Path.relative(projectDir, newPath);
+  const basename = Path.basename(newPath);
+  return { name: basename, path: relativePath };
+}
+
+function deleteEntry(app: DBAppType, path: string, options: RmOptions = {}) {
+  const filePath = Path.join(APPS_DIR, app.externalId, path);
+  return fs.rm(filePath, options);
 }
 
 // TODO: This does not scale.

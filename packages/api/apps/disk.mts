@@ -1,3 +1,4 @@
+import type { RmOptions } from 'node:fs';
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -132,6 +133,39 @@ export async function loadDirectory(
   };
 }
 
+export async function createDirectory(
+  app: DBAppType,
+  dirname: string,
+  basename: string,
+): Promise<DirEntryType> {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const dirPath = Path.join(projectDir, dirname, basename);
+
+  await fs.mkdir(dirPath, { recursive: false });
+
+  const relativePath = Path.relative(projectDir, dirPath);
+
+  return {
+    type: 'directory' as const,
+    name: Path.basename(relativePath),
+    path: relativePath,
+    children: null,
+  };
+}
+
+export function deleteDirectory(app: DBAppType, path: string) {
+  return deleteEntry(app, path, { recursive: true, force: true });
+}
+
+export async function renameDirectory(
+  app: DBAppType,
+  path: string,
+  name: string,
+): Promise<DirEntryType> {
+  const result = await rename(app, path, name);
+  return { ...result, type: 'directory' as const, children: null };
+}
+
 export async function loadFile(app: DBAppType, path: string): Promise<FileType> {
   const projectDir = Path.join(APPS_DIR, app.externalId);
   const filePath = Path.join(projectDir, path);
@@ -150,9 +184,21 @@ export async function loadFile(app: DBAppType, path: string): Promise<FileType> 
   }
 }
 
+export async function createFile(
+  app: DBAppType,
+  dirname: string,
+  basename: string,
+  source: string,
+): Promise<FileEntryType> {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const filePath = Path.join(projectDir, dirname, basename);
+  await fs.writeFile(filePath, source, 'utf-8');
+  const relativePath = Path.relative(projectDir, filePath);
+  return { type: 'file' as const, path: relativePath, name: Path.basename(filePath) };
+}
+
 export function deleteFile(app: DBAppType, path: string) {
-  const filePath = Path.join(APPS_DIR, app.externalId, path);
-  return fs.rm(filePath);
+  return deleteEntry(app, path);
 }
 
 export async function renameFile(
@@ -160,20 +206,24 @@ export async function renameFile(
   path: string,
   name: string,
 ): Promise<FileEntryType> {
+  const result = await rename(app, path, name);
+  return { ...result, type: 'file' as const };
+}
+
+async function rename(app: DBAppType, path: string, name: string) {
   const projectDir = Path.join(APPS_DIR, app.externalId);
   const oldPath = Path.join(projectDir, path);
   const dirname = Path.dirname(oldPath);
   const newPath = Path.join(dirname, name);
   await fs.rename(oldPath, newPath);
-
   const relativePath = Path.relative(projectDir, newPath);
   const basename = Path.basename(newPath);
+  return { name: basename, path: relativePath };
+}
 
-  return {
-    type: 'file' as const,
-    name: basename,
-    path: relativePath,
-  };
+function deleteEntry(app: DBAppType, path: string, options: RmOptions = {}) {
+  const filePath = Path.join(APPS_DIR, app.externalId, path);
+  return fs.rm(filePath, options);
 }
 
 // TODO: This does not scale.

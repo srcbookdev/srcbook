@@ -8,6 +8,7 @@ import useTheme from '@srcbook/components/src/components/use-theme';
 import { useFiles } from '../../use-files';
 import { AppType, FileType } from '@srcbook/shared';
 import EditorHeader from './header';
+import { extname } from '../../lib/path';
 
 type PropsType = {
   app: AppType;
@@ -30,10 +31,6 @@ export function Editor(props: PropsType) {
       </div>
     </div>
   );
-}
-
-function extname(path: string) {
-  return '.' + path.split('.').pop();
 }
 
 function CodeEditor({

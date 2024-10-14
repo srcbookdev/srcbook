@@ -81,7 +81,7 @@ export default function GenerateSrcbookModal({
         <div className="flex flex-col gap-3">
           {!aiEnabled && <APIKeyWarning />}
           <Textarea
-            placeholder="Write a prompt to create a Srcbook..."
+            placeholder="Write a prompt to create a Notebook..."
             className="focus-visible:ring-2"
             rows={4}
             value={query}

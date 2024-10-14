@@ -37,7 +37,6 @@ async function loader({ params }: LoaderFunctionArgs) {
     loadSessions(),
     loadSession({ id: params.id! }),
   ]);
-
   return { config, srcbooks, session };
 }
 

@@ -16,7 +16,7 @@ export function dirname(path: string): string {
     return '.';
   }
 
-  return parts.pop() || '.';
+  return parts.slice(0, parts.length - 1).join('/');
 }
 
 export function extname(path: string) {

@@ -11,6 +11,7 @@ import { Editor } from '@/components/apps/workspace/editor/editor';
 import { Preview } from '@/components/apps/workspace/preview';
 import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
 import { cn } from '@/lib/utils';
+import { ChatPanel } from '@/components/chat';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
@@ -78,6 +79,7 @@ function Apps(props: { app: AppType }) {
         <Editor app={props.app} />
         {previewVisible ? <Preview /> : null}
       </div>
+      <ChatPanel />
     </div>
   );
 }

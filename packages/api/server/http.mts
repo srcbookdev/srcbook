@@ -46,7 +46,8 @@ router.use(express.json());
 
 router.options('/file', cors());
 
-router.get('/ai/generate', async (_req: Request, res: Response) => {
+router.options('/examples', cors());
+router.get('/ai/generate', cors(), async (_req: Request, res: Response) => {
   return streamResponse(res);
 });
 

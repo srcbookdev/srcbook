@@ -36,8 +36,7 @@ import { pathToSrcbook } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
 import { loadApps, loadApp, createApp, serializeApp, deleteApp } from '../apps/app.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
-import { StreamData, streamText } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { streamResponse } from '../ai/stream.mjs';
 
 const app: Application = express();
 
@@ -47,35 +46,8 @@ router.use(express.json());
 
 router.options('/file', cors());
 
-/**
- * Note things added with data.append will be 2: in stream, LLM res is 0: so you can
- * add any data you need to pass to the client as this goes to trigger UI events or
- * other actions.
- */
-router.get('/ai/anthropic/generate', cors(), async (_req: Request, res: Response) => {
-  const data = new StreamData();
-  data.append('initialized call');
-
-  const prompt = '';
-
-  const result = await streamText({
-    model: createAnthropic({
-      // eslint-disable-next-line -- temp so not adding to turbo, add custom key load logic here
-      apiKey: process.env.ANTHROPIC_KEY ?? '',
-    })('claude-3-5-sonnet-20240620'),
-    prompt: prompt,
-    onFinish({ text, usage, finishReason }) {
-      // documenting usable hooks here
-      console.log('call usage:', usage);
-      console.log('streamed text:', text);
-      console.log('finish reason:', finishReason);
-
-      data.append('call completed');
-      data.close();
-    },
-  });
-
-  result.pipeDataStreamToResponse(res, { data });
+router.get('/ai/generate', async (_req: Request, res: Response) => {
+  return streamResponse(res);
 });
 
 router.post('/file', cors(), async (req, res) => {

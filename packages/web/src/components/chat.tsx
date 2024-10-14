@@ -113,7 +113,7 @@ This simple timer app demonstrates the use of React hooks, Tailwind CSS for styl
 
 function AIStream(): React.JSX.Element {
   return (
-    <div className="rounded-xl bg-sb-core-0 w-[440px] border px-2 py-1 shadow-xl max-h-[75vh] overflow-y-hidden">
+    <div className="rounded-xl bg-background w-[440px] border px-2 py-1 shadow-xl max-h-[75vh] overflow-y-hidden">
       <div className="pb-2 flex justify-between items-center">
         <span className="px-2">Chat</span>
         <span className="flex">
@@ -138,7 +138,7 @@ function Chat(): React.JSX.Element {
   const first: boolean = false;
 
   return (
-    <div className="rounded-xl bg-sb-core-0 w-[440px] border px-2 py-1 hover:border-sb-purple-60 shadow-xl">
+    <div className="rounded-xl bg-background w-[440px] border px-2 py-1 hover:border-sb-purple-60 shadow-xl">
       <Textarea
         placeholder={first ? 'Ask anything or select ...' : 'Ask a follow up'}
         className="w-full resize-none border-none shadow-none focus:outline-none! focus:ring-0! focus:border-none! caret-sb-purple-60 overflow-hidden"

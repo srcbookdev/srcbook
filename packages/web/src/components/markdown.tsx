@@ -17,10 +17,10 @@ function postprocess(html: string): string {
     .replace(/<h5>/g, `<h5 class="text-sm py-1">`)
     .replace(/<h6>/g, `<h6 class="text-sm py-1">`)
     // TODO: syntax highlighting on code blocks
-    .replace(/<blockquote>/g, `<blockquote class="bg-sb-core-40 rounded-md">`)
+    .replace(/<blockquote>/g, `<blockquote class="bg-sb-core-40 dark:bg-sb-core-100 rounded-md">`)
     .replace(/<ul>/g, `<ul class="pl-2 my-0">`)
     .replace(/<ol>/g, `<ol class="pl-4 my-0 list-decimal">`)
-    .replace(/<code>/g, `<code class="rounded-sm bg-sb-core-20 p-1 text-xs">`);
+    .replace(/<code>/g, `<code class="rounded-sm bg-sb-core-20 dark:bg-sb-core-100 p-1 text-xs">`);
 
   return styled;
 }

@@ -11,6 +11,7 @@ import EditorHeader from './header';
 import { extname } from '../../lib/path';
 import { Preview } from '../preview';
 import { useHeaderTab } from '../../use-header-tab';
+import { cn } from '@/lib/utils.ts';
 
 type PropsType = {
   app: AppType;
@@ -39,7 +40,14 @@ export function Editor(props: PropsType) {
           )}
         </div>
       ) : null}
-      {tab === 'preview' ? <Preview /> : null}
+
+      {/*
+      NOTE: applying hidden conditional like this keeps the iframe from getting mounted/unmounted
+      and causing a flash of unstyled content
+      */}
+      <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
+        <Preview />
+      </div>
     </div>
   );
 }

@@ -92,7 +92,9 @@ function Chat({
                     >
                       {message.command}
                     </p>
-                    <Button onClick={() => console.log('run command', message.command)}>Run</Button>
+                    <Button onClick={() => alert('TODO: run command' + message.command)}>
+                      Run
+                    </Button>
                   </div>
                 </div>
               );

@@ -8,10 +8,10 @@ import { useEffect, useRef } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
-import { Preview } from '@/components/apps/workspace/preview';
-import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
+import { PreviewProvider } from '@/components/apps/use-preview';
 import { cn } from '@/lib/utils';
 import { ChatPanel } from '@/components/chat';
+import { HeaderTabProvider } from '@/components/apps/use-header-tab';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
@@ -57,7 +57,9 @@ export function AppsPage() {
       rootDirEntries={rootDirEntries}
     >
       <PreviewProvider channel={channelRef.current}>
-        <Apps app={app} />
+        <HeaderTabProvider>
+          <Apps app={app} />
+        </HeaderTabProvider>
       </PreviewProvider>
     </FilesProvider>
   );

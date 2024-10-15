@@ -9,15 +9,15 @@ import { useFiles } from '../../use-files';
 import { AppType, FileType } from '@srcbook/shared';
 import EditorHeader from './header';
 import { extname } from '../../lib/path';
-import { useState } from 'react';
 import { Preview } from '../preview';
+import { useHeaderTab } from '../../use-header-tab';
 
 type PropsType = {
   app: AppType;
 };
 
 export function Editor(props: PropsType) {
-  const [tab, setTab] = useState<'code' | 'preview'>('code');
+  const { tab, switchTab } = useHeaderTab();
   const { openedFile, updateFile } = useFiles();
 
   return (
@@ -25,7 +25,7 @@ export function Editor(props: PropsType) {
       <EditorHeader
         app={props.app}
         tab={tab}
-        onChangeTab={setTab}
+        onChangeTab={switchTab}
         className="shrink-0 h-12 max-h-12"
       />
       {tab === "code" ? (

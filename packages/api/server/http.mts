@@ -13,8 +13,8 @@ import {
   listSessions,
   exportSrcmdText,
 } from '../session.mjs';
-import { generateCells, generateSrcbook, healthcheck, generateAppEditor } from '../ai/generate.mjs';
-import { parseResponse } from '../ai/plan-parser.mjs';
+import { generateCells, generateSrcbook, healthcheck, editApp } from '../ai/generate.mjs';
+import { parsePlan } from '../ai/plan-parser.mjs';
 import {
   getConfig,
   updateConfig,
@@ -525,8 +525,8 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
     }
     const validName = toValidPackageName(app.name);
     const files = await getFlatFilesForApp(String(app.externalId));
-    const result = await generateAppEditor(validName, files, query);
-    const parsedResult = parseResponse(result);
+    const result = await editApp(validName, files, query);
+    const parsedResult = parsePlan(result);
     return res.json({ data: parsedResult.actions });
   } catch (e) {
     return error500(res, e as Error);
@@ -606,7 +606,6 @@ router.get('/apps/:id/files', cors(), async (req, res) => {
 
   // TODO: validate and ensure path is not absolute
   const path = typeof req.query.path === 'string' ? req.query.path : '.';
-  console.log('path', path);
 
   try {
     const app = await loadApp(id);
@@ -637,7 +636,6 @@ router.post('/apps/:id/files', cors(), async (req, res) => {
       return res.status(404).json({ error: 'App not found' });
     }
 
-    console.log('About to write file', dirname, basename, source);
     const file = await createFile(app, dirname, basename, source);
 
     return res.json({ data: file });

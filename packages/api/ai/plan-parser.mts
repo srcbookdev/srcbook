@@ -4,32 +4,37 @@ import Path from 'node:path'
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
 
-// <plan>
-//   <action type="file">
-//     <description>{Short justification of changes. Be as brief as possible, like a commit message}</description>
-//     <file filename="package.json">
-//         <![CDATA[{entire file contents}]]]]>
-//     </file>
-// </action>
-// <action type="file">
-//     <description>
-//         <![CDATA[{Short description of changes}]]>
-//     </description>
-//   <file filename="./App.tsx">
-//     <![CDATA[
-//       {... file contents (ALL OF THE FILE)}
-//     ]]>
-//   </file>
-//   <action type="command">
-//   <description>![CDATA[{Install dependencies}]]></description>
-//   <command>
-//    <![CDATA]
-//   npm install
-//   ]]>
-//   </command>
-//   </action>
-//   ...
-// </plan>
+/*
+ * Example of a plan:
+ *
+ * <plan>
+ *   <action type="file">
+ *     <description>{Short justification of changes. Be as brief as possible, like a commit message}</description>
+ *     <file filename="package.json">
+ *         <![CDATA[{entire file contents}]]]]>
+ *     </file>
+ *   </action>
+ *   <action type="file">
+ *     <description>
+ *         <![CDATA[{Short description of changes}]]>
+ *     </description>
+ *     <file filename="./App.tsx">
+ *       <![CDATA[
+ *         {... file contents (ALL OF THE FILE)}
+ *       ]]>
+ *     </file>
+ *   </action>
+ *   <action type="command">
+ *     <description>![CDATA[{Install dependencies}]]></description>
+ *     <command>
+ *       <![CDATA[
+ *         npm install
+ *       ]]>
+ *     </command>
+ *   </action>
+ *   ...
+ * </plan>
+ */
 
 interface File {
   type: 'file';
@@ -66,7 +71,7 @@ interface ParsedResult {
   };
 }
 
-export function parseResponse(response: string): Plan {
+export function parsePlan(response: string): Plan {
   try {
     const parser = new XMLParser({
       ignoreAttributes: false,

@@ -38,9 +38,7 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
   });
 
   const result = await generateApp(data.prompt);
-  console.log('About to parse the project XML');
   const project = parseProjectXML(result);
-  console.log('About to create the app from the project');
   await createAppFromProject(app, project);
 
   // TODO: handle this better.

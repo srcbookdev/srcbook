@@ -1,5 +1,11 @@
 import { XMLParser } from 'fast-xml-parser';
 
+// TODO reuse and cleanup types
+export interface FileContent {
+  filename: string;
+  content: string;
+}
+
 export type Project = {
   id: string;
   items: (File | Command)[];
@@ -68,17 +74,13 @@ export function parseProjectXML(response: string): Project {
 
     return project;
   } catch (error) {
-    console.error('Error parsing XML:', error);
+    console.error('Error parsing XML for the app:', error);
     throw new Error('Failed to parse XML response');
   }
 }
-// TODO reuse and cleanup types
-export interface FileContent {
-  filename: string;
-  content: string;
-}
 
 export function buildProjectXml(files: FileContent[], projectId: string): string {
+
   const fileXmls = files.map(file => `
   <file filename="${file.filename}">
     <![CDATA[

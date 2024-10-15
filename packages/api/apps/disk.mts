@@ -44,9 +44,9 @@ export async function createAppFromProject(app: DBAppType, project: Project) {
 
       // Write the file content
       await fs.writeFile(filePath, item.content);
-      console.log(`File written: ${filePath}`);
     } else if (item.type === 'command') {
       // For now, we'll just log the commands
+      // TODO: execute the commands in the right order.
       console.log(`Command to execute: ${item.content}`);
     }
   }
@@ -226,6 +226,10 @@ export async function createFile(
 ): Promise<FileEntryType> {
   const projectDir = Path.join(APPS_DIR, app.externalId);
   const filePath = Path.join(projectDir, dirname, basename);
+  
+  // Create intermediate directories if they don't exist
+  await fs.mkdir(Path.dirname(filePath), { recursive: true });
+  
   await fs.writeFile(filePath, source, 'utf-8');
   const relativePath = Path.relative(projectDir, filePath);
   return { type: 'file' as const, path: relativePath, name: Path.basename(filePath) };

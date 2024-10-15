@@ -238,12 +238,10 @@ export async function generateApp(query: string): Promise<string> {
     system: makeAppBuilderSystemPrompt(),
     prompt: query,
   });
-  // TODO remove me
-  console.log(result);
   return result.text;
 }
 
-export async function generateAppEditor(projectId: string, files: FileContent[], query: string): Promise<string> {
+export async function editApp(projectId: string, files: FileContent[], query: string): Promise<string> {
   const model = await getModel();
   const systemPrompt = makeAppEditorSystemPrompt();
   const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
@@ -252,6 +250,5 @@ export async function generateAppEditor(projectId: string, files: FileContent[],
     system: systemPrompt,
     prompt: userPrompt,
   });
-  console.log(result);
   return result.text;
 }

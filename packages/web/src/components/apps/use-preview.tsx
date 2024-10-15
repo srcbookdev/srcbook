@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { AppChannel } from '@/clients/websocket';
 import { PreviewStatusPayloadType } from '@srcbook/shared';
+import useEffectOnce from '@/components/use-effect-once';
 
 export type PreviewStatusType = 'booting' | 'connecting' | 'running' | 'stopped';
 
@@ -41,6 +42,11 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
   function stop() {
     channel.push('preview:stop', {});
   }
+
+  // When the page initially loads, start the vite server
+  useEffectOnce(() => {
+    start();
+  });
 
   return (
     <PreviewContext.Provider value={{ url, status, stop, start }}>

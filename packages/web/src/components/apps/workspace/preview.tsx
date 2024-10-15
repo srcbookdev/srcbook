@@ -22,11 +22,15 @@ export function Preview(props: PropsType) {
       }
 
       return (
-        <div className={cn(props.className)}>
+        <div className={cn('w-full h-full', props.className)}>
           <iframe className="w-full h-full" src={url} title="App preview" />
         </div>
       );
     case 'stopped':
-      return null;
+      return (
+        <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
+          <span className="text-tertiary-foreground">Stopped</span>
+        </div>
+      );
   }
 }

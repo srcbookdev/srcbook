@@ -8,10 +8,9 @@ import { useEffect, useRef } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
-import { Preview } from '@/components/apps/workspace/preview';
-import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
-import { cn } from '@/lib/utils';
+import { PreviewProvider } from '@/components/apps/use-preview';
 import { ChatPanel } from '@/components/chat';
+import { HeaderTabProvider } from '@/components/apps/use-header-tab';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
@@ -57,27 +56,20 @@ export function AppsPage() {
       rootDirEntries={rootDirEntries}
     >
       <PreviewProvider channel={channelRef.current}>
-        <Apps app={app} />
+        <HeaderTabProvider>
+          <Apps app={app} />
+        </HeaderTabProvider>
       </PreviewProvider>
     </FilesProvider>
   );
 }
 
 function Apps(props: { app: AppType }) {
-  const { status: previewStatus } = usePreview();
-  const previewVisible = previewStatus === 'booting' || previewStatus === 'running';
-
   return (
     <div className="h-screen max-h-screen flex">
       <Sidebar />
-      <div
-        className={cn(
-          'w-full h-full grid divide-x divide-border',
-          previewVisible ? 'grid-cols-2' : 'grid-cols-1',
-        )}
-      >
+      <div className="w-full h-full grid">
         <Editor app={props.app} />
-        {previewVisible ? <Preview /> : null}
       </div>
       <ChatPanel app={props.app} />
     </div>

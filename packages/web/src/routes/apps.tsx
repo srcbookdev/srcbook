@@ -9,7 +9,6 @@ import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
-import { cn } from '@/lib/utils';
 import { ChatPanel } from '@/components/chat';
 import { HeaderTabProvider } from '@/components/apps/use-header-tab';
 

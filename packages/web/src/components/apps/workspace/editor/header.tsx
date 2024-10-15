@@ -33,7 +33,7 @@ export default function EditorHeader(props: PropsType) {
     <>
       <header
         className={cn(
-          'w-full flex items-center justify-between bg-background z-50 text-sm border-b border-b-border',
+          'w-full flex items-center justify-between bg-background z-50 text-sm border-b border-b-border relative',
           props.className,
         )}
       >
@@ -42,7 +42,7 @@ export default function EditorHeader(props: PropsType) {
             <h3 className="px-1.5 font-semibold">{props.app.name}</h3>
           </div>
 
-          <div className="flex bg-muted h-7 rounded-sm">
+          <div className="absolute left-1/2 -translate-x-1/2 flex bg-muted h-7 rounded-sm">
             <button
               className={cn(
                 'flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm',
@@ -106,10 +106,6 @@ export default function EditorHeader(props: PropsType) {
                   <TooltipContent>Stop dev server</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            ) : null}
-            {props.tab !== 'preview' ? (
-              // NOTE: render this button here as a "placeholder" to eliminate layout shift
-              <Button variant="icon" size="icon" disabled className="invisible" />
             ) : null}
 
             <div

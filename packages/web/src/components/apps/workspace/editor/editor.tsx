@@ -9,26 +9,39 @@ import { useFiles } from '../../use-files';
 import { AppType, FileType } from '@srcbook/shared';
 import EditorHeader from './header';
 import { extname } from '../../lib/path';
+import { useState } from 'react';
+import { Preview } from '../preview';
 
 type PropsType = {
   app: AppType;
 };
 
 export function Editor(props: PropsType) {
+  const [tab, setTab] = useState<'code' | 'preview'>('code');
   const { openedFile, updateFile } = useFiles();
 
   return (
     <div className="flex flex-col">
-      <EditorHeader app={props.app} className="shrink-0 h-12 max-h-12" />
-      <div className="p-3 w-full flex-1">
-        {openedFile ? (
-          <CodeEditor file={openedFile} onChange={updateFile} />
-        ) : (
-          <div className="h-full flex items-center justify-center text-tertiary-foreground">
-            Use the file explorer to open a file for editing
-          </div>
-        )}
-      </div>
+      <EditorHeader
+        app={props.app}
+        tab={tab}
+        onChangeTab={setTab}
+        className="shrink-0 h-12 max-h-12"
+      />
+      {tab === "code" ? (
+        <div className="p-3 w-full flex-1">
+          {openedFile ? (
+            <CodeEditor file={openedFile} onChange={updateFile} />
+          ) : (
+            <div className="h-full flex items-center justify-center text-tertiary-foreground">
+              Use the file explorer to open a file for editing
+            </div>
+          )}
+        </div>
+      ) : null}
+      {tab === "preview" ? (
+        <Preview />
+      ) : null}
     </div>
   );
 }

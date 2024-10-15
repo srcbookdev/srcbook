@@ -64,20 +64,11 @@ export function AppsPage() {
 }
 
 function Apps(props: { app: AppType }) {
-  const { status: previewStatus } = usePreview();
-  const previewVisible = previewStatus === 'booting' || previewStatus === 'running';
-
   return (
     <div className="h-screen max-h-screen flex">
       <Sidebar />
-      <div
-        className={cn(
-          'w-full h-full grid divide-x divide-border',
-          previewVisible ? 'grid-cols-2' : 'grid-cols-1',
-        )}
-      >
+      <div className="w-full h-full grid">
         <Editor app={props.app} />
-        {previewVisible ? <Preview /> : null}
       </div>
       <ChatPanel app={props.app} />
     </div>

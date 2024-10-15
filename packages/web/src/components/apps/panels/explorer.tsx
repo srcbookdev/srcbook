@@ -2,50 +2,100 @@ import { useEffect, useRef, useState } from 'react';
 import { FileIcon, ChevronRightIcon } from 'lucide-react';
 import { useFiles } from '../use-files';
 import type { DirEntryType, FileEntryType } from '@srcbook/shared';
-import { cn } from '@srcbook/components';
+import { Button, cn } from '@srcbook/components';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@srcbook/components/src/components/ui/context-menu';
-import { dirname } from '../lib/path';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@srcbook/components/src/components/ui/dialog';
+
+import { basename, dirname, join } from '../lib/path';
+import { stat } from '@/clients/http/apps';
+import { useApp } from '../use-app';
+
+type ConfirmationNeededType = {
+  op: 'rename' | 'create' | 'delete';
+  type: 'file' | 'folder';
+  path: string;
+  onConfirm: () => void;
+  onClose: () => void;
+};
 
 export default function ExplorerPanel() {
   const { fileTree } = useFiles();
 
   const [editingEntry, setEditingEntry] = useState<FileEntryType | DirEntryType | null>(null);
   const [newEntry, setNewEntry] = useState<FileEntryType | DirEntryType | null>(null);
+  const [confirmationNeeded, setConfirmationNeeded] = useState<ConfirmationNeededType | null>(null);
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <ul className="w-full h-full text-sm text-tertiary-foreground overflow-auto">
-          <FileTree
-            depth={1}
-            tree={fileTree}
-            newEntry={newEntry}
-            setNewEntry={setNewEntry}
-            editingEntry={editingEntry}
-            setEditingEntry={setEditingEntry}
-          />
-        </ul>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem
-          onClick={() => setNewEntry({ type: 'file', path: 'untitled', name: 'untitled' })}
-        >
-          New file...
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() =>
-            setNewEntry({ type: 'directory', path: 'untitled', name: 'untitled', children: null })
-          }
-        >
-          New folder...
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <>
+      {confirmationNeeded && confirmationNeeded.op === 'delete' && (
+        <ConfirmDeletionDialog
+          type={confirmationNeeded.type}
+          path={confirmationNeeded.path}
+          onClose={() => {
+            confirmationNeeded.onClose();
+            setConfirmationNeeded(null);
+          }}
+          onConfirm={() => {
+            setConfirmationNeeded(null);
+            confirmationNeeded.onConfirm();
+          }}
+        />
+      )}
+      {confirmationNeeded && confirmationNeeded.op !== 'delete' && (
+        <MaybeConfirmReplaceDialog
+          op={confirmationNeeded.op}
+          path={confirmationNeeded.path}
+          onClose={() => {
+            confirmationNeeded.onClose();
+            setConfirmationNeeded(null);
+          }}
+          onConfirm={() => {
+            setConfirmationNeeded(null);
+            confirmationNeeded.onConfirm();
+          }}
+        />
+      )}
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <ul className="w-full h-full text-sm text-tertiary-foreground overflow-auto">
+            <FileTree
+              depth={1}
+              tree={fileTree}
+              newEntry={newEntry}
+              setNewEntry={setNewEntry}
+              editingEntry={editingEntry}
+              setEditingEntry={setEditingEntry}
+              setConfirmationNeeded={setConfirmationNeeded}
+            />
+          </ul>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            onClick={() => setNewEntry({ type: 'file', path: 'untitled', name: 'untitled' })}
+          >
+            New file...
+          </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() =>
+              setNewEntry({ type: 'directory', path: 'untitled', name: 'untitled', children: null })
+            }
+          >
+            New folder...
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    </>
   );
 }
 
@@ -56,6 +106,7 @@ function FileTree(props: {
   setNewEntry: (entry: FileEntryType | DirEntryType | null) => void;
   editingEntry: FileEntryType | DirEntryType | null;
   setEditingEntry: (entry: FileEntryType | DirEntryType | null) => void;
+  setConfirmationNeeded: (data: ConfirmationNeededType) => void;
 }) {
   const { depth, tree, newEntry, setNewEntry, editingEntry, setEditingEntry } = props;
 
@@ -97,8 +148,19 @@ function FileTree(props: {
           depth={depth}
           name={newEntry.name}
           onSubmit={(name) => {
-            createFolder(tree.path, name);
-            setNewEntry(null);
+            console.log('HERE? 7122');
+            props.setConfirmationNeeded({
+              op: 'create',
+              type: 'folder',
+              path: join(tree.path, name),
+              onConfirm: () => {
+                createFolder(tree.path, name);
+                setNewEntry(null);
+              },
+              onClose: () => {
+                setNewEntry(null);
+              },
+            });
           }}
           onCancel={() => setNewEntry(null)}
         />
@@ -165,6 +227,7 @@ function FileTree(props: {
           setNewEntry={setNewEntry}
           editingEntry={editingEntry}
           setEditingEntry={setEditingEntry}
+          setConfirmationNeeded={props.setConfirmationNeeded}
         />,
       );
     }
@@ -304,10 +367,10 @@ function EditNameNode(props: {
       }
     };
 
-    document.addEventListener('focusin', handleFocusOut);
+    // document.addEventListener('focusin', handleFocusOut);
 
     return () => {
-      document.removeEventListener('focusin', handleFocusOut);
+      // document.removeEventListener('focusin', handleFocusOut);
     };
   }, []);
 
@@ -363,5 +426,97 @@ function Node(props: {
     >
       {icon} <span className="truncate">{label}</span>
     </button>
+  );
+}
+
+/**
+ * Confirm deletion of a file or folder.
+ */
+function ConfirmDeletionDialog(props: {
+  type: 'file' | 'folder';
+  path: string;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog
+      defaultOpen={true}
+      onOpenChange={(open) => {
+        if (!open) {
+          props.onClose();
+        }
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete {props.type}?</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete {basename(props.path)}?
+          </DialogDescription>
+          <div className="flex w-full justify-end items-center gap-2 pt-4 bg-background">
+            <Button variant="secondary" onClick={props.onClose}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={props.onConfirm}>
+              Delete
+            </Button>
+          </div>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * If we're renaming or creating a file, this component will first
+ * check if a file or folder with the same name already exists. If
+ * it does, it will show a confirmation dialog before proceeding.
+ */
+function MaybeConfirmReplaceDialog(props: {
+  op: 'rename' | 'create';
+  path: string;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const { app } = useApp();
+
+  const [confirm, setConfirm] = useState<{ title: string; description: string } | null>(null);
+
+  useEffect(() => {
+    stat(app.id, props.path).then(({ data: stat }) => {
+      if (stat.exists) {
+        const type = stat.isDirectory ? 'directory' : 'file';
+        setConfirm({
+          title: `Replace ${type}?`,
+          description: `A ${type} named '${basename(props.path)}' already exists.`,
+        });
+      } else {
+        props.onConfirm();
+      }
+    });
+  }, [app.id]);
+
+  return confirm === null ? null : (
+    <Dialog
+      defaultOpen={true}
+      onOpenChange={(open) => {
+        if (!open) {
+          props.onClose();
+        }
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{confirm.title}</DialogTitle>
+          <DialogDescription>{confirm.description}</DialogDescription>
+          <div className="flex w-full justify-end items-center gap-2 pt-4 bg-background">
+            <Button variant="secondary" onClick={props.onClose}>
+              Cancel
+            </Button>
+            <Button onClick={props.onConfirm}>Replace</Button>
+          </div>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
   );
 }

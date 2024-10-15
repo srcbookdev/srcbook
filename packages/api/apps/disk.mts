@@ -201,6 +201,33 @@ export function deleteFile(app: DBAppType, path: string) {
   return deleteEntry(app, path);
 }
 
+export async function stat(app: DBAppType, path: string) {
+  const projectDir = Path.join(APPS_DIR, app.externalId);
+  const fullPath = Path.join(projectDir, path);
+
+  try {
+    const stat = await fs.stat(fullPath);
+
+    return {
+      exists: true,
+      isFile: stat.isFile(),
+      isDirectory: stat.isDirectory(),
+    };
+  } catch (e) {
+    const error = e as Error;
+
+    if ('code' in error && error.code === 'ENOENT') {
+      return {
+        exists: false,
+        isFile: false,
+        isDirectory: false,
+      };
+    }
+
+    throw e;
+  }
+}
+
 export async function renameFile(
   app: DBAppType,
   path: string,

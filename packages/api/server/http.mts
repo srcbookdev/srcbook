@@ -37,6 +37,7 @@ import { pathToSrcbook } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
 import { loadApps, loadApp, createApp, serializeApp, deleteApp } from '../apps/app.mjs';
 import {
+  stat,
   deleteFile,
   renameFile,
   loadDirectory,
@@ -471,6 +472,28 @@ router.delete('/apps/:id', cors(), async (req, res) => {
   try {
     await deleteApp(id);
     return res.json({ deleted: true });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/fs/stat', cors());
+router.get('/apps/:id/fs/stat', cors(), async (req, res) => {
+  const { id } = req.params;
+
+  // TODO: validate and ensure path is not absolute
+  const path = typeof req.query.path === 'string' ? req.query.path : '.';
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const data = await stat(app, path);
+
+    return res.json({ data });
   } catch (e) {
     return error500(res, e as Error);
   }

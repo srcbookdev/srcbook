@@ -7,6 +7,7 @@ import Sidebar from '@/components/apps/sidebar';
 import { useEffect, useRef } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
+import { AppProvider } from '@/components/apps/use-app';
 import { Editor } from '@/components/apps/workspace/editor/editor';
 import { Preview } from '@/components/apps/workspace/preview';
 import { PreviewProvider, usePreview } from '@/components/apps/use-preview';
@@ -48,18 +49,13 @@ export function AppsPage() {
   }, [app.id]);
 
   return (
-    <FilesProvider
-      // Key can be used to remount a fresh provider if the app changes.
-      // This ensures we get a clean set of state for the new app.
-      key={app.id}
-      app={app}
-      channel={channelRef.current}
-      rootDirEntries={rootDirEntries}
-    >
-      <PreviewProvider channel={channelRef.current}>
-        <Apps app={app} />
-      </PreviewProvider>
-    </FilesProvider>
+    <AppProvider key={app.id} app={app}>
+      <FilesProvider channel={channelRef.current} rootDirEntries={rootDirEntries}>
+        <PreviewProvider channel={channelRef.current}>
+          <Apps app={app} />
+        </PreviewProvider>
+      </FilesProvider>
+    </AppProvider>
   );
 }
 

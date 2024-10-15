@@ -213,3 +213,22 @@ export async function renameFile(
 
   return response.json();
 }
+
+export async function stat(
+  id: string,
+  path: string,
+): Promise<{ data: { exists: boolean; isFile: boolean; isDirectory: boolean } }> {
+  const queryParams = new URLSearchParams({ path });
+
+  const response = await fetch(API_BASE_URL + `/apps/${id}/fs/stat?${queryParams}`, {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}

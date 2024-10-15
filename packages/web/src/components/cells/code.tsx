@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { inlineCopilot } from 'codemirror-copilot';
 import {
   CellType,
   CodeCellType,
@@ -19,6 +20,7 @@ import { useCells } from '@srcbook/components/src/components/use-cell';
 import { mapCMLocationToTsServer, mapTsServerLocationToCM } from './util';
 import { toast } from 'sonner';
 import { getFileContent } from '@/lib/server';
+import { runCodeiumAiAutocomplete } from '@/lib/ai-autocomplete';
 import { tsHover } from '@/components/cells/hover';
 import { autocompletion } from '@codemirror/autocomplete';
 import { type Diagnostic, linter } from '@codemirror/lint';
@@ -136,7 +138,7 @@ export default function ControlledCodeCell(props: Props) {
   const [prompt, setPrompt] = useState('');
   const [newSource, setNewSource] = useState('');
   const [fullscreen, setFullscreen] = useState(false);
-  const { aiEnabled } = useSettings();
+  const { aiEnabled, codeiumApiKey } = useSettings();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
@@ -165,6 +167,7 @@ export default function ControlledCodeCell(props: Props) {
   );
 
   const {
+    cells,
     updateCell: updateCellOnClient,
     clearOutput,
     getTsServerDiagnostics,
@@ -379,6 +382,33 @@ export default function ControlledCodeCell(props: Props) {
       }),
     );
   }
+  extensions.push(
+    inlineCopilot(async (prefix, suffix) => {
+      let response;
+      try {
+        response = await runCodeiumAiAutocomplete(
+          codeiumApiKey ?? null,
+          prefix + suffix,
+          cell.language,
+          prefix.length,
+          cells.filter((c): c is CodeCellType => c.type === 'code' && c.id !== cell.id),
+        );
+      } catch (err) {
+        console.error('Error fetching ai autocomplete suggestion:', err);
+        return '';
+      }
+
+      const completionItems = response.completionItems ?? [];
+      const mostLikelyCompletionScore = Math.min(
+        ...completionItems.map((item) => item.completion.score),
+      );
+      const mostLikelyCompletion = completionItems.find(
+        (item) => item.completion.score === mostLikelyCompletionScore,
+      );
+
+      return mostLikelyCompletion?.completionParts[0]?.text ?? '';
+    }, DEBOUNCE_DELAY),
+  );
   extensions.push(
     Prec.highest(
       EditorView.domEventHandlers({

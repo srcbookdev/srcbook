@@ -1,0 +1,172 @@
+// NOTE: to generate a new set of json definitions, run:
+// npm run generate-codeium-proto-json
+
+// Copyright Exafunction, Inc.
+
+syntax = "proto3";
+
+package exa.language_server_pb;
+
+import "codeium_common.proto";
+// import "validate/validate.proto";
+
+option go_package = "github.com/Exafunction/Exafunction/exa/language_server_pb";
+
+service LanguageServerService {
+  rpc GetCompletions(GetCompletionsRequest) returns (GetCompletionsResponse) {}
+  rpc AcceptCompletion(AcceptCompletionRequest) returns (AcceptCompletionResponse) {}
+  rpc GetAuthToken(GetAuthTokenRequest) returns (GetAuthTokenResponse) {}
+}
+
+message MultilineConfig {
+  // Multiline model threshold. 0-1, higher = more single line, lower = more multiline,
+  // 0.0 = only_multiline, default is 0.5
+  float threshold = 1;
+}
+
+// Next ID: 9, Previous field: disable_cache.
+message GetCompletionsRequest {
+  codeium_common_pb.Metadata metadata = 1 /* [(validate.rules).message.required = true] */;
+  Document document = 2 /* [(validate.rules).message.required = true] */;
+  codeium_common_pb.EditorOptions editor_options = 3 /* [(validate.rules).message.required = true] */;
+  repeated Document other_documents = 5;
+  ExperimentConfig experiment_config = 7;
+
+  string model_name = 10;
+  MultilineConfig multiline_config = 13;
+}
+
+// Next ID: 5, Previous field: latency_info.
+message GetCompletionsResponse {
+  State state = 1;
+  repeated CompletionItem completion_items = 2;
+}
+
+// Next ID: 3, Previous field: completion_id.
+message AcceptCompletionRequest {
+  codeium_common_pb.Metadata metadata = 1 /* [(validate.rules).message.required = true] */;
+  string completion_id = 2;
+}
+
+// Next ID: 1, Previous field: N/A.
+message AcceptCompletionResponse {}
+
+// Next ID: 1, Previous field: N/A.
+message GetAuthTokenRequest {}
+
+// Next ID: 3, Previous field: uuid.
+message GetAuthTokenResponse {
+  string auth_token = 1;
+  string uuid = 2;
+}
+
+/*****************************************************************************/
+/* Helper Messages                                                           */
+/*****************************************************************************/
+
+message DocumentPosition {
+  // 0-indexed. Measured in UTF-8 bytes.
+  uint64 row = 1;
+  // 0-indexed. Measured in UTF-8 bytes.
+  uint64 col = 2;
+}
+
+// Next ID: 9, Previous field: cursor_position.
+message Document {
+  string absolute_path = 1;
+  // Path relative to the root of the workspace.
+  string relative_path = 2;
+  string text = 3;
+  // Language ID provided by the editor.
+  string editor_language = 4 /* [(validate.rules).string.min_len = 1] */;
+  // Language enum standardized across editors.
+  codeium_common_pb.Language language = 5;
+  // Measured in number of UTF-8 bytes.
+  uint64 cursor_offset = 6;
+  // May be present instead of cursor_offset.
+  DocumentPosition cursor_position = 8;
+  // \n or \r\n, if known.
+  string line_ending = 7 /* [(validate.rules).string = {
+    in: [
+      "",
+      "\n",
+      "\r\n"
+    ]
+  }] */;
+}
+
+message ExperimentConfig {
+  repeated codeium_common_pb.ExperimentKey force_enable_experiments = 1 /* [(validate.rules).repeated.unique = true] */;
+}
+
+enum CodeiumState {
+  CODEIUM_STATE_UNSPECIFIED = 0;
+  CODEIUM_STATE_INACTIVE = 1;
+  CODEIUM_STATE_PROCESSING = 2;
+  CODEIUM_STATE_SUCCESS = 3;
+  CODEIUM_STATE_WARNING = 4;
+  CODEIUM_STATE_ERROR = 5;
+}
+
+// Next ID: 3, Previous field: message.
+message State {
+  CodeiumState state = 1;
+  string message = 2;
+}
+
+enum LineType {
+  LINE_TYPE_UNSPECIFIED = 0;
+  LINE_TYPE_SINGLE = 1;
+  LINE_TYPE_MULTI = 2;
+}
+
+// Next ID: 5, Previous field: end_position.
+message Range {
+  uint64 start_offset = 1;
+  uint64 end_offset = 2;
+  DocumentPosition start_position = 3;
+  DocumentPosition end_position = 4;
+}
+
+message Suffix {
+  // Text to insert after the cursor when accepting the completion.
+  string text = 1;
+  // Cursor position delta (as signed offset) from the end of the inserted
+  // completion (including the suffix).
+  int64 delta_cursor_offset = 2;
+}
+
+enum CompletionPartType {
+  COMPLETION_PART_TYPE_UNSPECIFIED = 0;
+  // Single-line completion parts that appear within an existing line of text.
+  COMPLETION_PART_TYPE_INLINE = 1;
+  // Possibly multi-line completion parts that appear below an existing line of text.
+  COMPLETION_PART_TYPE_BLOCK = 2;
+  // Like COMPLETION_PART_TYPE_INLINE, but overwrites the existing text.
+  COMPLETION_PART_TYPE_INLINE_MASK = 3;
+}
+
+// Represents a contiguous part of the completion text that is not
+// already in the document.
+// Next ID: 4, Previous field: prefix.
+message CompletionPart {
+  string text = 1;
+  // Offset in the original document where the part starts. For block
+  // parts, this is always the end of the line before the block.
+  uint64 offset = 2;
+  CompletionPartType type = 3;
+  // The section of the original line that came before this part. Only valid for
+  // COMPLETION_PART_TYPE_INLINE.
+  string prefix = 4;
+  // In the case of COMPLETION_PART_TYPE_BLOCK, represents the line it is below.
+  uint64 line = 5;
+}
+
+// Next ID: 9, Previous field: completion_parts.
+message CompletionItem {
+  codeium_common_pb.Completion completion = 1;
+  Suffix suffix = 5;
+  Range range = 2;
+  codeium_common_pb.CompletionSource source = 3;
+  repeated CompletionPart completion_parts = 8;
+}

@@ -78,6 +78,13 @@
       "when": 1726808187994,
       "tag": "0010_create_apps",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1728410206740,
+      "tag": "0011_add_codeium_api_key_to_config",
+      "breakpoints": true
     }
   ]
 }

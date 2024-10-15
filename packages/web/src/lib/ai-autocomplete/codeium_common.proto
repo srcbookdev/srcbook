@@ -1,0 +1,166 @@
+// Copyright Exafunction, Inc.
+
+syntax = "proto3";
+
+package exa.codeium_common_pb;
+
+/* import "google/protobuf/duration.proto"; */
+/* import "google/protobuf/timestamp.proto"; */
+/* import "validate/validate.proto"; */
+
+option go_package = "github.com/Exafunction/Exafunction/exa/codeium_common_pb";
+
+enum ExperimentKey {
+  UNSPECIFIED = 0;
+  JUPYTER_FORMAT = 77;
+}
+
+// Next ID: 12, Previous field: entropy.
+message Completion {
+  string completion_id = 1;
+  string text = 2;
+  string prefix = 3;
+  string stop = 4;
+  double score = 5;
+  repeated uint64 tokens = 6;
+  repeated string decoded_tokens = 7;
+  repeated double probabilities = 8;
+  repeated double adjusted_probabilities = 9;
+  uint64 generated_length = 10;
+}
+
+// Authentication source for users on the cloud service.
+enum AuthSource {
+  AUTH_SOURCE_CODEIUM = 0;
+}
+
+// Next ID: 15, Previous field: url.
+message Metadata {
+  string ide_name = 1 /* [(validate.rules).string.min_len = 1] */;
+  string ide_version = 7 /* [(validate.rules).string.min_len = 1] */;
+  string extension_name = 12;
+  string extension_version = 2 /* [(validate.rules).string.min_len = 1] */;
+  string api_key = 3 /* [(validate.rules).string.uuid = true] */;
+  // Regex derived from https://stackoverflow.com/a/48300605.
+  // TODO(prem): Should this be mandatory?
+  string locale = 4 /* [(validate.rules).string = {
+    ignore_empty: true,
+    pattern: "^[A-Za-z]{2,4}([_-][A-Za-z]{4})?([_-]([A-Za-z]{2}|[0-9]{3}))?$"
+  }] */;
+  // UID identifying a single session for the given user.
+  string session_id = 10;
+
+  // Used purely in language server to cancel in flight requests.
+  // If request_id is 0, then the request is not cancelable.
+  // This should be a strictly monotonically increasing number
+  // for the duration of a session.
+  uint64 request_id = 9;
+
+  // Browser-specific information.
+  string user_agent = 13;
+  string url = 14 /* [(validate.rules).string = {
+    ignore_empty: true,
+    uri: true
+  }] */;
+
+  // Authentication source information.
+  AuthSource auth_source = 15;
+}
+
+// Next ID: 3, Previous field: insert_spaces.
+message EditorOptions {
+  uint64 tab_size = 1 /* [(validate.rules).uint64.gt = 0] */;
+  bool insert_spaces = 2;
+}
+
+message Event {
+  EventType event_type = 1;
+  string event_json = 2;
+  int64 timestamp_unix_ms = 3;
+}
+
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED = 0;
+  EVENT_TYPE_ENABLE_CODEIUM = 1;
+  EVENT_TYPE_DISABLE_CODEIUM = 2;
+  EVENT_TYPE_SHOW_PREVIOUS_COMPLETION = 3;
+  EVENT_TYPE_SHOW_NEXT_COMPLETION = 4;
+}
+
+enum CompletionSource {
+  COMPLETION_SOURCE_UNSPECIFIED = 0;
+  COMPLETION_SOURCE_TYPING_AS_SUGGESTED = 1;
+  COMPLETION_SOURCE_CACHE = 2;
+  COMPLETION_SOURCE_NETWORK = 3;
+}
+
+// Every time this list is updated, we should be redeploying the API server
+// since it uses the string representation for BQ.
+enum Language {
+  LANGUAGE_UNSPECIFIED = 0;
+  LANGUAGE_C = 1;
+  LANGUAGE_CLOJURE = 2;
+  LANGUAGE_COFFEESCRIPT = 3;
+  LANGUAGE_CPP = 4;
+  LANGUAGE_CSHARP = 5;
+  LANGUAGE_CSS = 6;
+  LANGUAGE_CUDACPP = 7;
+  LANGUAGE_DOCKERFILE = 8;
+  LANGUAGE_GO = 9;
+  LANGUAGE_GROOVY = 10;
+  LANGUAGE_HANDLEBARS = 11;
+  LANGUAGE_HASKELL = 12;
+  LANGUAGE_HCL = 13;
+  LANGUAGE_HTML = 14;
+  LANGUAGE_INI = 15;
+  LANGUAGE_JAVA = 16;
+  LANGUAGE_JAVASCRIPT = 17;
+  LANGUAGE_JSON = 18;
+  LANGUAGE_JULIA = 19;
+  LANGUAGE_KOTLIN = 20;
+  LANGUAGE_LATEX = 21;
+  LANGUAGE_LESS = 22;
+  LANGUAGE_LUA = 23;
+  LANGUAGE_MAKEFILE = 24;
+  LANGUAGE_MARKDOWN = 25;
+  LANGUAGE_OBJECTIVEC = 26;
+  LANGUAGE_OBJECTIVECPP = 27;
+  LANGUAGE_PERL = 28;
+  LANGUAGE_PHP = 29;
+  LANGUAGE_PLAINTEXT = 30;
+  LANGUAGE_PROTOBUF = 31;
+  LANGUAGE_PBTXT = 32;
+  LANGUAGE_PYTHON = 33;
+  LANGUAGE_R = 34;
+  LANGUAGE_RUBY = 35;
+  LANGUAGE_RUST = 36;
+  LANGUAGE_SASS = 37;
+  LANGUAGE_SCALA = 38;
+  LANGUAGE_SCSS = 39;
+  LANGUAGE_SHELL = 40;
+  LANGUAGE_SQL = 41;
+  LANGUAGE_STARLARK = 42;
+  LANGUAGE_SWIFT = 43;
+  LANGUAGE_TSX = 44;
+  LANGUAGE_TYPESCRIPT = 45;
+  LANGUAGE_VISUALBASIC = 46;
+  LANGUAGE_VUE = 47;
+  LANGUAGE_XML = 48;
+  LANGUAGE_XSL = 49;
+  LANGUAGE_YAML = 50;
+  LANGUAGE_SVELTE = 51;
+  LANGUAGE_TOML = 52;
+  LANGUAGE_DART = 53;
+  LANGUAGE_RST = 54;
+  LANGUAGE_OCAML = 55;
+  LANGUAGE_CMAKE = 56;
+  LANGUAGE_PASCAL = 57;
+  LANGUAGE_ELIXIR = 58;
+  LANGUAGE_FSHARP = 59;
+  LANGUAGE_LISP = 60;
+  LANGUAGE_MATLAB = 61;
+  LANGUAGE_POWERSHELL = 62;
+  LANGUAGE_SOLIDITY = 63;
+  LANGUAGE_ADA = 64;
+  LANGUAGE_OCAML_INTERFACE = 65;
+}

@@ -8,6 +8,7 @@ import Home, { loader as homeLoader } from './routes/home';
 import Apps from './routes/apps';
 import Session from './routes/session';
 import Settings from './routes/settings';
+import SettingsCodiumCallback from './routes/settings-codeium-callback';
 import Secrets from './routes/secrets';
 import ErrorPage from './error';
 import { DragAndDropSrcmdModal } from './components/drag-and-drop-srcmd-modal';
@@ -47,6 +48,11 @@ const router = createBrowserRouter([
         path: '/apps/:id',
         loader: Apps.loader,
         element: <Apps />,
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: '/settings/codeium-callback',
+        element: <SettingsCodiumCallback />,
         errorElement: <ErrorPage />,
       },
       {

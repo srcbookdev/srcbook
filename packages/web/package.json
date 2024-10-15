@@ -10,23 +10,28 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "check-types": "tsc"
+    "check-types": "tsc",
+    "generate-codeium-proto-json": "node --eval 'console.log(\"export default\", JSON.stringify(require(\"protobufjs\").loadSync(\"src/lib/ai-autocomplete/language_server.proto\").toJSON(), null, 2));' > src/lib/ai-autocomplete/languageServerProto.ts"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.1",
     "@codemirror/lang-css": "^6.3.0",
     "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/lang-markdown": "^6.2.5",
-    "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lint": "^6.8.1",
-    "@srcbook/shared": "workspace:^",
     "@srcbook/components": "workspace:^",
+    "@srcbook/shared": "workspace:^",
     "@uiw/codemirror-themes": "^4.23.2",
     "@uiw/react-codemirror": "^4.23.2",
     "clsx": "^2.1.1",
     "codemirror": "^6.0.1",
+    "codemirror-copilot": "^0.0.7",
+    "long": "^5.2.3",
     "lucide-react": "^0.439.0",
+    "marked": "catalog:",
+    "protobufjs": "^7.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.3",
@@ -37,8 +42,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.3",
-    "zod": "catalog:",
-    "marked": "catalog:"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/react": "^18.3.5",

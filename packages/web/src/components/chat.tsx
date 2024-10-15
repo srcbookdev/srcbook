@@ -172,16 +172,14 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     setIsChatVisible(true);
 
     const response = await aiEditApp(props.app.id, query);
-    console.log('AI app edit structured response', response);
 
     const plan = response.data as Array<PlanItemType>;
     if (response.data && Array.isArray(response.data)) {
-      console.log('plan:', response.data as Array<PlanItemType>);
       response.data.forEach(async (fileUpdate: PlanItemType) => {
-        console.log('updating file', fileUpdate);
         if (fileUpdate.type === 'file') {
           await createFile(fileUpdate.dirname, fileUpdate.basename, fileUpdate.content);
         } else if (fileUpdate.type === 'command') {
+          // TODO: execute the commands in the right order.
           console.log('command', fileUpdate.content);
         }
       });

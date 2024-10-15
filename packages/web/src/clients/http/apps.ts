@@ -214,7 +214,6 @@ export async function renameFile(
   return response.json();
 }
 
-
 export async function aiEditApp(id: string, query: string) {
   const response = await fetch(API_BASE_URL + `/apps/${id}/edit`, {
     method: 'POST',

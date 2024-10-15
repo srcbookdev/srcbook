@@ -143,9 +143,9 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
 
             <Button disabled={submitting} type="submit">
               {submitting ? (
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" /> Generating...
-                  </div>
+                </div>
               ) : (
                 'Create'
               )}

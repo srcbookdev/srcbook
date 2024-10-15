@@ -1,5 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
-import Path from 'node:path'
+import Path from 'node:path';
 
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
@@ -57,17 +57,19 @@ export interface Plan {
 
 interface ParsedResult {
   plan: {
-    action: {
-      '@_type': string;
-      description: string;
-      file?: { '@_filename': string; '#text': string };
-      command?: string;
-    }[] | {
-      '@_type': string;
-      description: string;
-      file?: { '@_filename': string; '#text': string };
-      command?: string;
-    };
+    action:
+      | {
+          '@_type': string;
+          description: string;
+          file?: { '@_filename': string; '#text': string };
+          command?: string;
+        }[]
+      | {
+          '@_type': string;
+          description: string;
+          file?: { '@_filename': string; '#text': string };
+          command?: string;
+        };
   };
 }
 

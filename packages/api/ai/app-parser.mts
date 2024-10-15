@@ -9,18 +9,18 @@ export interface FileContent {
 export type Project = {
   id: string;
   items: (File | Command)[];
-}
+};
 
 type File = {
   type: 'file';
   filename: string;
   content: string;
-}
+};
 
 type Command = {
   type: 'command';
   content: string;
-}
+};
 
 type ParsedResult = {
   project: {
@@ -28,7 +28,7 @@ type ParsedResult = {
     file?: { '@_filename': string; '#text': string }[] | { '@_filename': string; '#text': string };
     command?: string[] | string;
   };
-}
+};
 
 export function parseProjectXML(response: string): Project {
   try {
@@ -48,10 +48,14 @@ export function parseProjectXML(response: string): Project {
       items: [],
     };
 
-    const files = Array.isArray(result.project.file) ? result.project.file : [result.project.file].filter(Boolean);
-    const commands = Array.isArray(result.project.command) ? result.project.command : [result.project.command].filter(Boolean);
+    const files = Array.isArray(result.project.file)
+      ? result.project.file
+      : [result.project.file].filter(Boolean);
+    const commands = Array.isArray(result.project.command)
+      ? result.project.command
+      : [result.project.command].filter(Boolean);
 
-    // TODO this ruins the order as it makes all the file changes first. 
+    // TODO this ruins the order as it makes all the file changes first.
     // @FIXME: later
     for (const file of files) {
       if (file) {
@@ -80,13 +84,16 @@ export function parseProjectXML(response: string): Project {
 }
 
 export function buildProjectXml(files: FileContent[], projectId: string): string {
-
-  const fileXmls = files.map(file => `
+  const fileXmls = files
+    .map(
+      (file) => `
   <file filename="${file.filename}">
     <![CDATA[
 ${file.content}
     ]]>
-  </file>`).join('\n');
+  </file>`,
+    )
+    .join('\n');
 
   return `
 <project id="${projectId}">

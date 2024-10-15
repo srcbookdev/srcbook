@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import Path from 'node:path';
 import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
-import { buildProjectXml, type FileContent} from '../ai/app-parser.mjs'
+import { buildProjectXml, type FileContent } from '../ai/app-parser.mjs';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -30,7 +30,7 @@ const makeAppBuilderSystemPrompt = () => {
 };
 const makeAppEditorSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'app-editor.txt'), 'utf-8');
-};  
+};
 
 const makeAppEditorUserPrompt = (projectId: string, files: FileContent[], query: string) => {
   const projectXml = buildProjectXml(files, projectId);
@@ -41,7 +41,7 @@ ${projectXml}
 
 ${userRequestXml}
   `.trim();
-}
+};
 
 const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, query: string) => {
   // Make sure we copy cells so we don't mutate the session
@@ -241,7 +241,11 @@ export async function generateApp(query: string): Promise<string> {
   return result.text;
 }
 
-export async function editApp(projectId: string, files: FileContent[], query: string): Promise<string> {
+export async function editApp(
+  projectId: string,
+  files: FileContent[],
+  query: string,
+): Promise<string> {
   const model = await getModel();
   const systemPrompt = makeAppEditorSystemPrompt();
   const userPrompt = makeAppEditorUserPrompt(projectId, files, query);

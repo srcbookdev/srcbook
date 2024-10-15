@@ -11,7 +11,5 @@ export const CreateAppWithAiSchema = z.object({
   prompt: z.string(),
 });
 
-
 export type CreateAppSchemaType = z.infer<typeof CreateAppSchema>;
 export type CreateAppWithAiSchemaType = z.infer<typeof CreateAppWithAiSchema>;
-

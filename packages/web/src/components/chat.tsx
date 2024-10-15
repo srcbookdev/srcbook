@@ -31,12 +31,18 @@ type UserMessageType = {
   message: string;
 };
 
+type CommandMessageType = {
+  type: 'command';
+  command: string;
+  description: string;
+};
+
 type SummaryMessageType = {
   type: 'summary';
   summary: PlanType;
 };
 
-type MessageType = UserMessageType | SummaryMessageType;
+type MessageType = UserMessageType | SummaryMessageType | CommandMessageType;
 
 type HistoryType = Array<MessageType>;
 
@@ -55,7 +61,7 @@ function Chat({
 }) {
   return (
     <div className="rounded-xl bg-background w-[440px] border shadow-xl max-h-[75vh] overflow-y-hidden">
-      <div className="flex justify-between h-[40px] items-center border-b">
+      <div className="flex justify-between h-[40px] items-center border-b px-1">
         <span className="text-sm px-2">Chat</span>
         <span className="flex">
           <Button variant="icon" className="h-7 w-7 p-1.5 border-none">
@@ -74,6 +80,23 @@ function Chat({
                 <p className="text-sm bg-inline-code rounded-md p-2 w-fit" key={index}>
                   {message.message}
                 </p>
+              );
+            } else if (message.type === 'command') {
+              return (
+                <div className="text-sm space-y-1">
+                  <p className="">{message.description}</p>
+                  <div className="flex justify-between items-center gap-1">
+                    <p
+                      className="font-mono bg-inline-code rounded-md p-2 overflow-x-scroll whitespace-nowrap"
+                      key={index}
+                    >
+                      {message.command}
+                    </p>
+                    <Button onClick={() => alert('TODO: run command' + message.command)}>
+                      Run
+                    </Button>
+                  </div>
+                </div>
               );
             } else if (message.type === 'summary') {
               return <SummaryBox key={index} summary={message.summary} app={app} />;
@@ -135,7 +158,7 @@ function SummaryBox({ summary, app }: { summary: PlanType; app: AppType }) {
   return (
     <div className="px-2 py-1.5 rounded border overflow-y-auto bg-ai border border-ai-border text-ai-foreground">
       <div className="flex flex-col justify-between min-h-full gap-4">
-        <div className="text-sm font-mono">{app.name}</div>
+        <div className="">{app.name}</div>
         <div>
           {summary.map((item: PlanItemType) => {
             if (item.type === 'file') {
@@ -179,13 +202,16 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         if (fileUpdate.type === 'file') {
           await createFile(fileUpdate.dirname, fileUpdate.basename, fileUpdate.content);
         } else if (fileUpdate.type === 'command') {
-          // TODO: execute the commands in the right order.
-          console.log('command', fileUpdate.content);
+          setHistory((prevHistory) => [
+            ...prevHistory,
+            { type: 'command', command: fileUpdate.content, description: fileUpdate.description },
+          ]);
         }
       });
     }
 
-    setHistory((prevHistory) => [...prevHistory, { type: 'summary', summary: plan }]);
+    const fileUpdates = plan.filter((item: PlanItemType) => item.type === 'file');
+    setHistory((prevHistory) => [...prevHistory, { type: 'summary', summary: fileUpdates }]);
   };
 
   const handleClose = () => {

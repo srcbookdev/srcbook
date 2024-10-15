@@ -1,11 +1,13 @@
 import type { RmOptions } from 'node:fs';
 import fs from 'node:fs/promises';
+import type { Project } from '../ai/app-parser.mjs';
 import Path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { APPS_DIR } from '../constants.mjs';
 import { toValidPackageName } from './utils.mjs';
 import { DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
+import { FileContent } from '../ai/app-parser.mjs';
 
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
@@ -17,6 +19,38 @@ function pathToTemplate(template: string) {
 
 export function deleteViteApp(id: string) {
   return fs.rm(pathToApp(id), { recursive: true });
+}
+
+export async function createAppFromProject(app: DBAppType, project: Project) {
+  const appPath = pathToApp(app.externalId);
+
+  await fs.mkdir(appPath, { recursive: true });
+
+  for (const item of project.items) {
+    if (item.type === 'file') {
+      const filePath = Path.join(appPath, item.filename);
+      const dirPath = Path.dirname(filePath);
+
+      // Create nested directories if they don't exist
+      try {
+        await fs.stat(dirPath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          await fs.mkdir(dirPath, { recursive: true });
+        } else {
+          throw error;
+        }
+      }
+
+      // Write the file content
+      await fs.writeFile(filePath, item.content);
+    } else if (item.type === 'command') {
+      // For now, we'll just log the commands
+      // TODO: execute the commands in the right order.
+      console.log(`Command to execute: ${item.content}`);
+    }
+  }
+  return app;
 }
 
 export async function createViteApp(app: DBAppType) {
@@ -192,6 +226,10 @@ export async function createFile(
 ): Promise<FileEntryType> {
   const projectDir = Path.join(APPS_DIR, app.externalId);
   const filePath = Path.join(projectDir, dirname, basename);
+
+  // Create intermediate directories if they don't exist
+  await fs.mkdir(Path.dirname(filePath), { recursive: true });
+
   await fs.writeFile(filePath, source, 'utf-8');
   const relativePath = Path.relative(projectDir, filePath);
   return { type: 'file' as const, path: relativePath, name: Path.basename(filePath) };
@@ -249,4 +287,30 @@ function isBinary(basename: string) {
   const isDotfile = basename.startsWith('.'); // Assume these are text for now, e.g., .gitignore
   const isTextFile = TEXT_FILE_EXTENSIONS.includes(Path.extname(basename));
   return !(isDotfile || isTextFile);
+}
+
+export async function getFlatFilesForApp(id: string): Promise<FileContent[]> {
+  const appPath = pathToApp(id);
+  return getFlatFiles(appPath);
+}
+
+async function getFlatFiles(dir: string, basePath: string = ''): Promise<FileContent[]> {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  let files: FileContent[] = [];
+
+  for (const entry of entries) {
+    const relativePath = Path.join(basePath, entry.name);
+    const fullPath = Path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (entry.name !== 'node_modules') {
+        files = files.concat(await getFlatFiles(fullPath, relativePath));
+      }
+    } else if (entry.isFile() && entry.name !== 'package-lock.json') {
+      const content = await fs.readFile(fullPath, 'utf-8');
+      files.push({ filename: relativePath, content });
+    }
+  }
+
+  return files;
 }

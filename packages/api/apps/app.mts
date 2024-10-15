@@ -1,10 +1,12 @@
 import { CodeLanguageType, randomid, type AppType } from '@srcbook/shared';
 import { db } from '../db/index.mjs';
 import { type App as DBAppType, apps as appsTable } from '../db/schema.mjs';
-import { createViteApp, deleteViteApp, pathToApp } from './disk.mjs';
-import { CreateAppSchemaType } from './schemas.mjs';
+import { createViteApp, createAppFromProject, deleteViteApp, pathToApp } from './disk.mjs';
+import { CreateAppSchemaType, CreateAppWithAiSchemaType } from './schemas.mjs';
 import { asc, desc, eq } from 'drizzle-orm';
 import { npmInstall } from '../exec.mjs';
+import { generateApp } from '../ai/generate.mjs';
+import { parseProjectXML } from '../ai/app-parser.mjs';
 
 function toSecondsSinceEpoch(date: Date): number {
   return Math.floor(date.getTime() / 1000);
@@ -27,6 +29,36 @@ async function insert(
   return app!;
 }
 
+export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<DBAppType> {
+  const app = await insert({
+    name: data.name,
+    // Hardcode to typescript for now.
+    language: 'typescript',
+    externalId: randomid(),
+  });
+
+  const result = await generateApp(data.prompt);
+  const project = parseProjectXML(result);
+  await createAppFromProject(app, project);
+
+  // TODO: handle this better.
+  // This should be done somewhere else and surface issues or retries.
+  // Not awaiting here because it's "happening in the background".
+  npmInstall({
+    cwd: pathToApp(app.externalId),
+    stdout(data) {
+      console.log(data.toString('utf8'));
+    },
+    stderr(data) {
+      console.error(data.toString('utf8'));
+    },
+    onExit(code) {
+      console.log(`npm install exit code: ${code}`);
+    },
+  });
+
+  return app;
+}
 export async function createApp(data: CreateAppSchemaType): Promise<DBAppType> {
   const app = await insert({
     name: data.name,

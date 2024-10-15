@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@srcbook/components/src/components/ui/dialog';
 
-import { HelpCircle, Sparkles } from 'lucide-react';
+import { HelpCircle, Sparkles, Loader2 } from 'lucide-react';
 import { CodeLanguageType } from '@srcbook/shared';
 import { JavaScriptLogo, TypeScriptLogo } from '../logos';
 import { Textarea } from '@srcbook/components/src/components/ui/textarea';
@@ -140,8 +140,15 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
             <Button type="button" variant="secondary" onClick={onClose}>
               Cancel
             </Button>
+
             <Button disabled={submitting} type="submit">
-              Create
+              {submitting ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Generating...
+                </div>
+              ) : (
+                'Create'
+              )}
             </Button>
           </DialogFooter>
         </form>

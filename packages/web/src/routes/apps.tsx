@@ -79,7 +79,7 @@ function Apps(props: { app: AppType }) {
         <Editor app={props.app} />
         {previewVisible ? <Preview /> : null}
       </div>
-      <ChatPanel />
+      <ChatPanel app={props.app} />
     </div>
   );
 }

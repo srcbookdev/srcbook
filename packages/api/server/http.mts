@@ -13,7 +13,8 @@ import {
   listSessions,
   exportSrcmdText,
 } from '../session.mjs';
-import { generateCells, generateSrcbook, healthcheck } from '../ai/generate.mjs';
+import { generateCells, generateSrcbook, healthcheck, editApp } from '../ai/generate.mjs';
+import { parsePlan } from '../ai/plan-parser.mjs';
 import {
   getConfig,
   updateConfig,
@@ -35,7 +36,15 @@ import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 import { pathToSrcbook } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
-import { loadApps, loadApp, createApp, serializeApp, deleteApp } from '../apps/app.mjs';
+import {
+  loadApps,
+  loadApp,
+  createApp,
+  serializeApp,
+  deleteApp,
+  createAppWithAi,
+} from '../apps/app.mjs';
+import { toValidPackageName } from '../apps/utils.mjs';
 import {
   deleteFile,
   renameFile,
@@ -45,6 +54,7 @@ import {
   createDirectory,
   renameDirectory,
   deleteDirectory,
+  getFlatFilesForApp,
 } from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
 
@@ -428,8 +438,13 @@ router.post('/apps', cors(), async (req, res) => {
   });
 
   try {
-    const app = await createApp(attrs);
-    return res.json({ data: serializeApp(app) });
+    if (typeof attrs.prompt === 'string') {
+      const app = await createAppWithAi({ name: attrs.name, prompt: attrs.prompt });
+      return res.json({ data: serializeApp(app) });
+    } else {
+      const app = await createApp(attrs);
+      return res.json({ data: serializeApp(app) });
+    }
   } catch (e) {
     return error500(res, e as Error);
   }
@@ -493,6 +508,26 @@ router.get('/apps/:id/directories', cors(), async (req, res) => {
     const directory = await loadDirectory(app, path);
 
     return res.json({ data: directory });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/edit', cors());
+router.post('/apps/:id/edit', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { query } = req.body;
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+    const validName = toValidPackageName(app.name);
+    const files = await getFlatFilesForApp(String(app.externalId));
+    const result = await editApp(validName, files, query);
+    const parsedResult = parsePlan(result);
+    return res.json({ data: parsedResult.actions });
   } catch (e) {
     return error500(res, e as Error);
   }

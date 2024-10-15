@@ -53,11 +53,11 @@ export default function Sidebar() {
   const { tab } = useHeaderTab();
   const [sidePanelPreviousValue, setSidePanelPreviousValue] = useState<PanelType | null>(null);
   useEffect(() => {
-    if (tab === "code" && sidePanelPreviousValue !== null) {
+    if (tab === 'code' && sidePanelPreviousValue !== null) {
       _setPanel(sidePanelPreviousValue);
       setSidePanelPreviousValue(null);
       return;
-    };
+    }
 
     if (tab === 'preview' && panel !== null) {
       setSidePanelPreviousValue(panel);

@@ -22,7 +22,7 @@ export function Preview(props: PropsType) {
       }
 
       return (
-        <div className={cn("w-full h-full", props.className)}>
+        <div className={cn('w-full h-full', props.className)}>
           <iframe className="w-full h-full" src={url} title="App preview" />
         </div>
       );

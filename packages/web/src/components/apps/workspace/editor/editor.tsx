@@ -28,7 +28,7 @@ export function Editor(props: PropsType) {
         onChangeTab={switchTab}
         className="shrink-0 h-12 max-h-12"
       />
-      {tab === "code" ? (
+      {tab === 'code' ? (
         <div className="p-3 w-full flex-1">
           {openedFile ? (
             <CodeEditor file={openedFile} onChange={updateFile} />
@@ -39,9 +39,7 @@ export function Editor(props: PropsType) {
           )}
         </div>
       ) : null}
-      {tab === "preview" ? (
-        <Preview />
-      ) : null}
+      {tab === 'preview' ? <Preview /> : null}
     </div>
   );
 }

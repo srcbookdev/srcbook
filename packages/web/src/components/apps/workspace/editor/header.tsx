@@ -1,4 +1,11 @@
-import { ShareIcon, PlayIcon, StopCircleIcon, EllipsisIcon, CodeIcon, PlayCircleIcon } from 'lucide-react';
+import {
+  ShareIcon,
+  PlayIcon,
+  StopCircleIcon,
+  EllipsisIcon,
+  CodeIcon,
+  PlayCircleIcon,
+} from 'lucide-react';
 import type { AppType } from '@srcbook/shared';
 
 import { Button } from '@srcbook/components/src/components/ui/button';
@@ -37,19 +44,27 @@ export default function EditorHeader(props: PropsType) {
 
           <div className="flex bg-muted h-7 rounded-sm">
             <button
-              className={cn("flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm", {
-                "bg-foreground text-background rounded-sm border border-border": props.tab === "code",
-              })}
-              onClick={() => props.onChangeTab("code")}
+              className={cn(
+                'flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm',
+                {
+                  'bg-foreground text-background rounded-sm border border-border':
+                    props.tab === 'code',
+                },
+              )}
+              onClick={() => props.onChangeTab('code')}
             >
               <CodeIcon size={14} />
               Code
             </button>
             <button
-              className={cn("flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm", {
-                "bg-foreground text-background rounded-sm border border-border": props.tab === "preview",
-              })}
-              onClick={() => props.onChangeTab("preview")}
+              className={cn(
+                'flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm',
+                {
+                  'bg-foreground text-background rounded-sm border border-border':
+                    props.tab === 'preview',
+                },
+              )}
+              onClick={() => props.onChangeTab('preview')}
             >
               <PlayIcon size={14} />
               Preview
@@ -57,7 +72,7 @@ export default function EditorHeader(props: PropsType) {
           </div>
 
           <div className="flex items-center gap-2">
-            {props.tab === "preview" && previewStatus === "stopped" ? (
+            {props.tab === 'preview' && previewStatus === 'stopped' ? (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -70,11 +85,11 @@ export default function EditorHeader(props: PropsType) {
                       <PlayCircleIcon size={18} />
                     </Button>
                   </TooltipTrigger>
-                <TooltipContent>Start dev server</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  <TooltipContent>Start dev server</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : null}
-            {props.tab === "preview" && previewStatus !== "stopped" ? (
+            {props.tab === 'preview' && previewStatus !== 'stopped' ? (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -83,7 +98,7 @@ export default function EditorHeader(props: PropsType) {
                       size="icon"
                       onClick={stopPreview}
                       className="active:translate-y-0"
-                      disabled={previewStatus === "booting" || previewStatus === "connecting"}
+                      disabled={previewStatus === 'booting' || previewStatus === 'connecting'}
                     >
                       <StopCircleIcon size={18} />
                     </Button>
@@ -92,12 +107,14 @@ export default function EditorHeader(props: PropsType) {
                 </Tooltip>
               </TooltipProvider>
             ) : null}
-            {props.tab !== "preview" ? (
+            {props.tab !== 'preview' ? (
               // NOTE: render this button here as a "placeholder" to eliminate layout shift
               <Button variant="icon" size="icon" disabled className="invisible" />
             ) : null}
 
-            <div className={cn("w-[1px] h-6 bg-border mx-2", { "invisible": props.tab !== "preview" })} />
+            <div
+              className={cn('w-[1px] h-6 bg-border mx-2', { invisible: props.tab !== 'preview' })}
+            />
 
             <TooltipProvider>
               <Tooltip>

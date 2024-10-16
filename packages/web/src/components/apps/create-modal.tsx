@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@srcbook/components/src/components/ui/input';
 import { Button } from '@srcbook/components/src/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -12,8 +13,6 @@ import {
 } from '@srcbook/components/src/components/ui/dialog';
 
 import { HelpCircle, Sparkles, Loader2 } from 'lucide-react';
-import { CodeLanguageType } from '@srcbook/shared';
-import { JavaScriptLogo, TypeScriptLogo } from '../logos';
 import { Textarea } from '@srcbook/components/src/components/ui/textarea';
 import {
   TooltipContent,
@@ -21,16 +20,19 @@ import {
   TooltipTrigger,
   Tooltip,
 } from '@srcbook/components/src/components/ui/tooltip';
+import { useSettings } from '../use-settings';
 
 type PropsType = {
   onClose: () => void;
-  onCreate: (name: string, language: CodeLanguageType, prompt?: string) => Promise<void>;
+  onCreate: (name: string, prompt?: string) => Promise<void>;
 };
 
 export default function CreateAppModal({ onClose, onCreate }: PropsType) {
   const [name, setName] = useState('');
   const [prompt, setPrompt] = useState('');
-  const [language, setLanguage] = useState<CodeLanguageType>('typescript');
+
+  const { aiEnabled } = useSettings();
+  const navigate = useNavigate();
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -45,7 +47,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
     setSubmitting(true);
 
     try {
-      await onCreate(name, language, prompt.trim() === '' ? undefined : prompt);
+      await onCreate(name, prompt.trim() === '' ? undefined : prompt);
     } finally {
       setSubmitting(false);
     }
@@ -64,35 +66,22 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
         <DialogHeader>
           <DialogTitle>Create application</DialogTitle>
           <DialogDescription className="text-base">
-            Create a React app powered by Vite and Tailwind.
+            Create a web app powered by React, Vite and Tailwind.
           </DialogDescription>
-        </DialogHeader>
-        <form name="app" onSubmit={onSubmit} className="mt-3 flex flex-col gap-6">
-          <div className="grid grid-cols-2 gap-6">
-            <LanguageSelector
-              id="app-language-typescript"
-              name="app[language]"
-              value="typescript"
-              selected={language === 'typescript'}
-              onSelect={() => setLanguage('typescript')}
-              className="font-mono text-sm"
-            >
-              <TypeScriptLogo className="mb-2" />
-              TypeScript
-            </LanguageSelector>
-            <LanguageSelector
-              id="app-language-javascript"
-              name="app[language]"
-              value="javascript"
-              selected={language === 'javascript'}
-              onSelect={() => setLanguage('javascript')}
-              className="font-mono text-sm"
-            >
-              <JavaScriptLogo className="mb-2" />
-              JavaScript
-            </LanguageSelector>
-          </div>
 
+          {!aiEnabled && (
+            <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 mt-4">
+              <p>AI provider not configured.</p>
+              <button
+                className="font-medium underline cursor-pointer"
+                onClick={() => navigate('/settings')}
+              >
+                Settings
+              </button>
+            </div>
+          )}
+        </DialogHeader>
+        <form name="app" onSubmit={onSubmit} className="flex flex-col gap-6">
           <div className="space-y-1">
             <label htmlFor="name" className="text-sm text-tertiary-foreground">
               App name
@@ -122,7 +111,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
                     <HelpCircle size={16} className="text-tertiary-foreground" />
                   </TooltipTrigger>
                   <TooltipContent className="text-sm" side="left">
-                    Optionally use AI to scaffold your app
+                    Use AI to scaffold your app
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -141,7 +130,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
               Cancel
             </Button>
 
-            <Button disabled={submitting} type="submit">
+            <Button disabled={!aiEnabled || submitting} type="submit">
               {submitting ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" /> Generating...
@@ -154,38 +143,5 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function LanguageSelector(props: {
-  id: string;
-  name: string;
-  value: CodeLanguageType;
-  selected: boolean;
-  onSelect: () => void;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label
-      htmlFor={props.id}
-      className={cn(
-        'flex flex-col items-center justify-center w-full min-w-[216px] max-w-[216px] h-24 p-3 cursor-pointer',
-        'bg-background text-tertiary-foreground hover:text-foreground border rounded-sm hover:border-ring transition-colors',
-        props.selected && 'border-ring text-foreground',
-        props.className,
-      )}
-    >
-      <input
-        type="radio"
-        id={props.id}
-        name={props.name}
-        value={props.value}
-        checked={props.selected}
-        onChange={props.onSelect}
-        className="hidden"
-      />
-      {props.children}
-    </label>
   );
 }

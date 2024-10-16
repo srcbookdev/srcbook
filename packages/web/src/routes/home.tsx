@@ -81,8 +81,8 @@ export default function Home() {
     openSrcbook(result.path);
   }
 
-  async function onCreateApp(name: string, language: CodeLanguageType, prompt?: string) {
-    const { data: app } = await createApp({ name, language, prompt });
+  async function onCreateApp(name: string, prompt?: string) {
+    const { data: app } = await createApp({ name, prompt });
     navigate(`/apps/${app.id}`);
   }
 
@@ -129,7 +129,6 @@ export default function Home() {
             <AppCard
               key={app.id}
               name={app.name}
-              language={app.language}
               onClick={() => navigate(`/apps/${app.id}`)}
               onDelete={() => setAppToDelete(app)}
             />
@@ -154,7 +153,6 @@ export default function Home() {
               <AppCard
                 key={app.id}
                 name={app.name}
-                language={app.language}
                 onClick={() => navigate(`/apps/${app.id}`)}
                 onDelete={() => setAppToDelete(app)}
               />

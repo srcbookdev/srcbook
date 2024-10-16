@@ -128,6 +128,7 @@ function Query({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setQuery('');
     onSubmit(query);
   };
@@ -142,6 +143,11 @@ function Query({
         onChange={(e) => setQuery(e.target.value)}
         onFocus={onFocus}
         value={query}
+        onKeyDown={(e) => {
+          if (e.metaKey && e.key === 'Enter') {
+            handleSubmit(e);
+          }
+        }}
       />
       <span className="flex justify-end mt-2">
         <Button variant="icon" className="h-7 w-7 p-1.5 border-none">

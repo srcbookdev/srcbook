@@ -1,4 +1,4 @@
-import { CodeLanguageType, randomid, type AppType } from '@srcbook/shared';
+import { randomid, type AppType } from '@srcbook/shared';
 import { db } from '../db/index.mjs';
 import { type App as DBAppType, apps as appsTable } from '../db/schema.mjs';
 import { applyPlan, createViteApp, deleteViteApp, pathToApp, getFlatFilesForApp } from './disk.mjs';
@@ -17,15 +17,12 @@ export function serializeApp(app: DBAppType): AppType {
   return {
     id: app.externalId,
     name: app.name,
-    language: app.language as CodeLanguageType,
     createdAt: toSecondsSinceEpoch(app.createdAt),
     updatedAt: toSecondsSinceEpoch(app.updatedAt),
   };
 }
 
-async function insert(
-  attrs: Pick<DBAppType, 'name' | 'language' | 'externalId'>,
-): Promise<DBAppType> {
+async function insert(attrs: Pick<DBAppType, 'name' | 'externalId'>): Promise<DBAppType> {
   const [app] = await db.insert(appsTable).values(attrs).returning();
   return app!;
 }
@@ -33,12 +30,9 @@ async function insert(
 export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<DBAppType> {
   const app = await insert({
     name: data.name,
-    // Hardcode to typescript for now.
-    language: 'typescript',
     externalId: randomid(),
   });
 
-  // We start by using the VITE TypeScript template and kick off npm install
   await createViteApp(app);
   // Note: we don't surface issues or retries and this is "running in the background".
   // In this case it works in our favor because we'll kickoff generation while it happens
@@ -60,7 +54,6 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
   const plan = await parsePlan(result, app);
   await applyPlan(app, plan);
 
-  // TODO: handle this better.
   // Run npm install again since we don't have a good way of parsing the plan to know if we should...
   npmInstall({
     cwd: pathToApp(app.externalId),
@@ -80,7 +73,6 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
 export async function createApp(data: CreateAppSchemaType): Promise<DBAppType> {
   const app = await insert({
     name: data.name,
-    language: data.language,
     externalId: randomid(),
   });
 

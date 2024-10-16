@@ -48,7 +48,6 @@ export type SecretsToSession = typeof secretsToSession.$inferSelect;
 export const apps = sqliteTable('apps', {
   id: integer('id').primaryKey(),
   name: text('name').notNull(),
-  language: text('language').notNull(),
   externalId: text('external_id').notNull().unique(),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()

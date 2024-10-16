@@ -1,10 +1,4 @@
-import type {
-  AppType,
-  CodeLanguageType,
-  DirEntryType,
-  FileEntryType,
-  FileType,
-} from '@srcbook/shared';
+import type { AppType, DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
 import SRCBOOK_CONFIG from '@/config';
 import type { PlanType } from '@/components/apps/types';
 
@@ -13,7 +7,6 @@ const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
 export async function createApp(request: {
   name: string;
   prompt?: string;
-  language: CodeLanguageType;
 }): Promise<{ data: AppType }> {
   const response = await fetch(API_BASE_URL + '/apps', {
     method: 'POST',

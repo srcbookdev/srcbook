@@ -46,6 +46,6 @@ export function Editor(props: PropsType) {
           */}
         </div>
       </div>
-    </div>
+    
   );
 }

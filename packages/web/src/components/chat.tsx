@@ -145,7 +145,13 @@ function Query({
   );
 
   return (
-    <div className="rounded-xl bg-background w-[440px] border px-2 py-1 hover:border-sb-purple-60 shadow-xl">
+    <div
+      className={cn(
+        'rounded-xl w-[440px] border px-2 py-1 shadow-xl transition-all',
+        'bg-background hover:border-sb-purple-60 focus-within:border-sb-purple-60',
+        isLoading && 'hover:border-border',
+      )}
+    >
       <TextareaAutosize
         disabled={isLoading}
         placeholder="What do you want to change?"
@@ -237,11 +243,11 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       createFile(update.dirname, update.basename, update.modified);
     }
 
-    const fileDiffs = fileUpdates.map((file: FileType) => {
+    const fileDiffs: FileDiffType[] = fileUpdates.map((file: FileType) => {
       const { additions, deletions } = diffFiles(file.original ?? '', file.modified);
       return {
         modified: file.modified,
-        original: file.original || '',
+        original: file.original,
         basename: file.basename,
         dirname: file.dirname,
         path: file.path,
@@ -292,7 +298,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 grid gap-1">
+    <div className="fixed bottom-4 right-4 grid gap-1.5">
       {isChatVisible && (
         <Chat
           history={history}

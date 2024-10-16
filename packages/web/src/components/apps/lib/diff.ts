@@ -30,12 +30,14 @@ export function calculateSquares(
   deletions: number,
   maxSquares: number = 5,
 ): ChangeType[] {
-  const result: ChangeType[] = [0, 0, 0, 0, 0];
-
   const totalChanges = additions + deletions;
 
   if (totalChanges === 0) {
-    return result;
+    return Array(maxSquares).fill(0);
+  }
+
+  if (totalChanges <= maxSquares) {
+    return createSquares(additions, deletions, maxSquares);
   }
 
   // Calculate the proportion of added and removed lines
@@ -46,24 +48,39 @@ export function calculateSquares(
   addedSquares = additions > 0 ? Math.max(1, addedSquares) : 0;
 
   // Calculate removed squares, ensuring at least 1 if there are any removals
-  let removedSquares = maxSquares - addedSquares;
-  removedSquares = deletions > 0 ? Math.max(1, removedSquares) : 0;
+  let deletedSquares = maxSquares - addedSquares;
+  deletedSquares = deletions > 0 ? Math.max(1, deletedSquares) : 0;
 
   // Final adjustment to ensure we don't exceed maxSquares
-  if (addedSquares + removedSquares > maxSquares) {
+  if (addedSquares + deletedSquares > maxSquares) {
     if (additions > deletions) {
-      removedSquares = maxSquares - addedSquares;
+      deletedSquares = maxSquares - addedSquares;
     } else {
-      addedSquares = maxSquares - removedSquares;
+      addedSquares = maxSquares - deletedSquares;
     }
   }
 
-  for (let i = 0; i < addedSquares; i++) {
-    result[i] = 1;
+  return createSquares(addedSquares, deletedSquares, maxSquares);
+}
+
+function createSquares(added: number, deleted: number, max: number): ChangeType[] {
+  if (added + deleted > max) {
+    console.error(`Expected max ${max} squares but got ${added + deleted}`);
   }
 
-  for (let i = addedSquares; i < maxSquares; i++) {
-    result[i] = -1;
+  const result: ChangeType[] = [];
+
+  for (let i = 0; i < added; i++) {
+    result.push(1);
+  }
+
+  for (let i = 0; i < deleted; i++) {
+    result.push(-1);
+  }
+
+  // If there's remaining space, fill with 'unchanged'
+  for (let i = 0, len = max - result.length; i < len; i++) {
+    result.push(0);
   }
 
   return result;

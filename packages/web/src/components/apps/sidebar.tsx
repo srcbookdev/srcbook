@@ -38,27 +38,8 @@ function getTitleForPanel(panel: PanelType | null): string | null {
   }
 }
 
-function LightDarkModeDebugChanger() {
-  const { theme, toggleTheme } = useTheme();
-
-  if (process.env.NODE_ENV === 'production') {
-    return null;
-  }
-
-  return (
-    <div className="absolute left-1/2 -translate-x-1/2">
-      <button
-        onClick={toggleTheme}
-        className="border-none outline-none text-muted-foreground hover:text-foreground font-semibold transition-colors"
-      >
-        {theme === 'light' ? '(DEV) Dark mode' : '(DEV) Light mode'}
-      </button>
-    </div>
-  );
-}
-
 export default function Sidebar() {
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
   const { openedFile } = useFiles();
 
   const [showShortcuts, setShowShortcuts] = useState(false);

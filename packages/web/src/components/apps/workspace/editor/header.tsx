@@ -3,8 +3,8 @@ import {
   PlayIcon,
   StopCircleIcon,
   EllipsisIcon,
-  CodeIcon,
   PlayCircleIcon,
+  Code2Icon,
 } from 'lucide-react';
 import type { AppType } from '@srcbook/shared';
 
@@ -42,26 +42,24 @@ export default function EditorHeader(props: PropsType) {
             <h4 className="px-2 text-sm font-medium">{props.app.name}</h4>
           </div>
 
-          <div className="absolute left-1/2 -translate-x-1/2 flex bg-inline-code h-7 rounded-md">
+          <div className="absolute left-1/2 -translate-x-1/2 flex bg-inline-code h-7 rounded-sm">
             <button
               className={cn(
-                'flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm',
+                'flex gap-2 justify-center items-center w-24 text-foreground rounded-sm',
                 {
-                  'bg-foreground text-background rounded-md border border-border':
-                    props.tab === 'code',
+                  'bg-background border border-border': props.tab === 'code',
                 },
               )}
               onClick={() => props.onChangeTab('code')}
             >
-              <CodeIcon size={14} />
+              <Code2Icon size={14} />
               Code
             </button>
             <button
               className={cn(
-                'flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm',
+                'flex gap-2 justify-center items-center w-24 text-foreground rounded-sm',
                 {
-                  'bg-foreground text-background rounded-md border border-border':
-                    props.tab === 'preview',
+                  'bg-background border border-border': props.tab === 'preview',
                 },
               )}
               onClick={() => props.onChangeTab('preview')}

@@ -3,16 +3,16 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { PreviewStatusPayloadType } from '@srcbook/shared';
 
-export type ErrorMessage = {
+export type LogMessage = {
   type: 'npm_install_error' | 'vite_error'; // TODO: add more types like "warning" or "problem"
   timestamp: Date;
   contents: string;
 };
 
 export interface LogsContextValue {
-  logs: Array<ErrorMessage>;
+  logs: Array<LogMessage>;
   clearLogs: () => void;
-  addError: (message: Omit<ErrorMessage, 'timestamp'>) => void;
+  addError: (message: Omit<LogMessage, 'timestamp'>) => void;
   unreadLogsCount: number;
 
   open: boolean;
@@ -27,7 +27,7 @@ type ProviderPropsType = {
 };
 
 export function LogsProvider({ channel, children }: ProviderPropsType) {
-  const [logs, setLogs] = useState<Array<ErrorMessage>>([]);
+  const [logs, setLogs] = useState<Array<LogMessage>>([]);
   const [unreadLogsCount, setUnreadLogsCount] = useState(0);
 
   const [open, setOpen] = useState(false);
@@ -37,7 +37,7 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
     setUnreadLogsCount(0);
   }
 
-  function addError(error: Omit<ErrorMessage, 'timestamp'>) {
+  function addError(error: Omit<LogMessage, 'timestamp'>) {
     setLogs((logs) => [{ ...error, timestamp: new Date() }, ...logs]);
     setUnreadLogsCount((n) => n + 1);
   }

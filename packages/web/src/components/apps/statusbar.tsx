@@ -4,9 +4,9 @@ import { useHotkeys } from 'react-hotkeys-hook';
 
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { cn } from '@/lib/utils.ts';
-import { ErrorMessage, useLogs } from './use-logs';
+import { LogMessage, useLogs } from './use-logs';
 
-function getLabelForError(error: ErrorMessage) {
+function getLabelForError(error: LogMessage) {
   switch (error.type) {
     case 'vite_error':
       return 'Error running vite preview server!';
@@ -16,7 +16,7 @@ function getLabelForError(error: ErrorMessage) {
 }
 
 type CollapsibleErrorMessageProps = {
-  error: ErrorMessage;
+  error: LogMessage;
 };
 
 function CollapsibleErrorMessage({ error }: CollapsibleErrorMessageProps) {

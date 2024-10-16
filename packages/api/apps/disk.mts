@@ -84,16 +84,21 @@ export async function createViteApp(app: DBAppType) {
 }
 
 /**
- * Scaffolds a new Vite app with the specified language.
- * Uses the react-typescript/ or react-javascript dirs as templates,
- * then updates the package.json name and index.html with the app name.
+ * Scaffolds a new Vite app using a predefined template.
+ *
+ * The current template includes: React, TypeScript, Vite, Tailwind CSS
+ *
+ * This function performs the following steps:
+ * 1. Copies all template files to the destination directory
+ * 2. Updates the package.json with the new app name
+ * 3. Updates the index.html title with the app name
  *
  * @param {DBAppType} app - The database app object.
  * @param {string} destDir - The destination directory for the app.
  * @returns {Promise<void>}
  */
 async function scaffold(app: DBAppType, destDir: string) {
-  const template = `react-${app.language}`;
+  const template = `react-typescript`;
 
   function write(file: string, content?: string) {
     const targetPath = Path.join(destDir, file);

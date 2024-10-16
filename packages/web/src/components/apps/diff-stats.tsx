@@ -16,9 +16,9 @@ export function DiffSquares(props: { additions: number; deletions: number; class
   return (
     <div className={cn('flex items-center gap-0.5', props.className)}>
       {squares.map((square, index) => (
-        <Square
+        <span
           key={index}
-          className={cn({
+          className={cn('w-3 h-3 rounded-sm', {
             'bg-border': square === 0,
             'bg-red-400': square === -1,
             'bg-green-400': square === 1,
@@ -27,8 +27,4 @@ export function DiffSquares(props: { additions: number; deletions: number; class
       ))}
     </div>
   );
-}
-
-function Square(props: { className?: string }) {
-  return <span className={cn('w-3 h-3 rounded-sm', props.className)} />;
 }

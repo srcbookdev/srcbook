@@ -75,7 +75,15 @@ function FileDiff({ file }: { file: FileDiffType }) {
         </div>
       </div>
       <div className="flex flex-col">
-        <DiffEditor path={file.path} modified={file.modified} original={file.original} />
+        <DiffEditor
+          path={file.path}
+          modified={file.modified}
+          original={file.original}
+          collapseUnchanged={{
+            margin: 3,
+            minSize: 4,
+          }}
+        />
       </div>
     </div>
   );

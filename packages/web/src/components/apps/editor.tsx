@@ -33,10 +33,15 @@ export function DiffEditor({
   path,
   modified,
   original,
+  collapseUnchanged,
 }: {
   path: string;
   modified: string;
-  original: string;
+  original: string | null;
+  collapseUnchanged?: {
+    minSize: number;
+    margin: number;
+  };
 }) {
   const { codeTheme } = useTheme();
 
@@ -44,9 +49,10 @@ export function DiffEditor({
     EditorView.editable.of(false),
     EditorState.readOnly.of(true),
     unifiedMergeView({
-      original: original,
+      original: original ?? '',
       mergeControls: false,
       highlightChanges: false,
+      collapseUnchanged: collapseUnchanged,
     }),
   ];
 

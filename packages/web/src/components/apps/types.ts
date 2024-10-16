@@ -23,7 +23,7 @@ export type PlanType = {
 
 export type FileDiffType = {
   modified: string;
-  original: string;
+  original: string | null;
   basename: string;
   dirname: string;
   path: string;

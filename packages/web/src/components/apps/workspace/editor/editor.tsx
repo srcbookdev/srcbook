@@ -38,14 +38,13 @@ export function Editor(props: PropsType) {
         </div>
       ) : null}
 
-        <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
-          <Preview />
-          {/*
+      <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
+        <Preview />
+        {/*
           NOTE: applying hidden conditional like this keeps the iframe from getting mounted/unmounted
           and causing a flash of unstyled content
           */}
-        </div>
       </div>
-    
+    </div>
   );
 }

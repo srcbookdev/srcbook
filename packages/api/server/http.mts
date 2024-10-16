@@ -526,7 +526,7 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
     const validName = toValidPackageName(app.name);
     const files = await getFlatFilesForApp(String(app.externalId));
     const result = await editApp(validName, files, query);
-    const parsedResult = parsePlan(result);
+    const parsedResult = await parsePlan(result, app);
     return res.json({ data: parsedResult.actions });
   } catch (e) {
     return error500(res, e as Error);

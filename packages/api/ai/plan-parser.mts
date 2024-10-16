@@ -1,5 +1,7 @@
 import { XMLParser } from 'fast-xml-parser';
 import Path from 'node:path';
+import { type App as DBAppType } from '../db/schema.mjs';
+import { loadFile } from '../apps/disk.mjs';
 
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
@@ -36,12 +38,13 @@ import Path from 'node:path';
  * </plan>
  */
 
-interface File {
+interface FileAction {
   type: 'file';
   dirname: string;
   basename: string;
-  filename: string;
-  content: string;
+  path: string;
+  modified: string;
+  original: string | null; // null if this is a new file. Consider using an enum for 'edit' | 'create' | 'delete' instead.
   description: string;
 }
 
@@ -52,7 +55,7 @@ interface Command {
 }
 
 export interface Plan {
-  actions: (File | Command)[];
+  actions: (FileAction | Command)[];
 }
 
 interface ParsedResult {
@@ -73,7 +76,7 @@ interface ParsedResult {
   };
 }
 
-export function parsePlan(response: string): Plan {
+export async function parsePlan(response: string, app: DBAppType): Promise<Plan> {
   try {
     const parser = new XMLParser({
       ignoreAttributes: false,
@@ -91,12 +94,24 @@ export function parsePlan(response: string): Plan {
 
     for (const action of actions) {
       if (action['@_type'] === 'file' && action.file) {
+        const filePath = action.file['@_filename'];
+        let originalContent = null;
+
+        try {
+          const fileContent = await loadFile(app, filePath);
+          originalContent = fileContent.source;
+        } catch (error) {
+          console.error(`Error reading original file ${filePath}:`, error);
+          // If the file doesn't exist, we'll leave the original content as null
+        }
+
         plan.actions.push({
           type: 'file',
-          filename: action.file['@_filename'],
-          dirname: Path.dirname(action.file['@_filename']),
-          basename: Path.basename(action.file['@_filename']),
-          content: action.file['#text'],
+          path: filePath,
+          dirname: Path.dirname(filePath),
+          basename: Path.basename(filePath),
+          modified: action.file['#text'],
+          original: originalContent,
           description: action.description,
         });
       } else if (action['@_type'] === 'command' && action.command) {

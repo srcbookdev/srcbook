@@ -61,10 +61,10 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
         <DialogHeader>
           <DialogTitle>Create application</DialogTitle>
           <DialogDescription className="text-base">
-            Create a React app powered by Vite and Tailwind.
+            Create a web app powered by React, Vite and Tailwind.
           </DialogDescription>
         </DialogHeader>
-        <form name="app" onSubmit={onSubmit} className="mt-3 flex flex-col gap-6">
+        <form name="app" onSubmit={onSubmit} className="flex flex-col gap-6">
           <div className="space-y-1">
             <label htmlFor="name" className="text-sm text-tertiary-foreground">
               App name
@@ -94,7 +94,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
                     <HelpCircle size={16} className="text-tertiary-foreground" />
                   </TooltipTrigger>
                   <TooltipContent className="text-sm" side="left">
-                    Optionally use AI to scaffold your app
+                    Use AI to scaffold your app
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

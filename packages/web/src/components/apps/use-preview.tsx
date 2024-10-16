@@ -11,6 +11,7 @@ export interface PreviewContextValue {
   status: PreviewStatusType;
   stop: () => void;
   start: () => void;
+  lastStoppedError: string | null;
 }
 
 const PreviewContext = createContext<PreviewContextValue | undefined>(undefined);
@@ -23,11 +24,18 @@ type ProviderPropsType = {
 export function PreviewProvider({ channel, children }: ProviderPropsType) {
   const [url, setUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<PreviewStatusType>('connecting');
+  const [lastStoppedError, setLastStoppedError] = useState<string | null>(null);
 
   useEffect(() => {
     function onStatusUpdate(payload: PreviewStatusPayloadType) {
       setUrl(payload.url);
       setStatus(payload.status);
+
+      if (payload.status === "stopped" && !payload.ok) {
+        setLastStoppedError(payload.contents ?? "")
+      } else {
+        setLastStoppedError(null);
+      }
     }
 
     channel.on('preview:status', onStatusUpdate);
@@ -49,7 +57,7 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
   });
 
   return (
-    <PreviewContext.Provider value={{ url, status, stop, start }}>
+    <PreviewContext.Provider value={{ url, status, stop, start, lastStoppedError }}>
       {children}
     </PreviewContext.Provider>
   );

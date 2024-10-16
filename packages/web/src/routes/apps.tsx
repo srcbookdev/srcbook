@@ -60,7 +60,7 @@ export function AppsPage() {
       rootDirEntries={rootDirEntries}
     >
       <PreviewProvider channel={channelRef.current}>
-        <LogsProvider>
+        <LogsProvider channel={channelRef.current}>
           <Apps app={app} />
         </LogsProvider>
       </PreviewProvider>

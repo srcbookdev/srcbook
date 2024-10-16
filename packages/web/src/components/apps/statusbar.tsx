@@ -38,7 +38,7 @@ function CollapsibleErrorMessage({ error }: CollapsibleErrorMessageProps) {
         {getLabelForError(error)}
       </button>
       {open ? (
-        <pre className={cn("p-2", { "border-b border-b-border": open })}>
+        <pre className={cn("text-sm p-2", { "ml-[15px] pl-4 mb-4 border-l": open })}>
           {error.contents}
         </pre>
       ) : null}
@@ -47,11 +47,10 @@ function CollapsibleErrorMessage({ error }: CollapsibleErrorMessageProps) {
 }
 
 export default function Statusbar() {
-  const { logs, clearLogs, unreadLogsCount, clearUnreadCount } = useLogs();
-  const [open, setOpen] = useState(false);
+  const { logs, clearLogs, unreadLogsCount, open, togglePane } = useLogs();
 
   useHotkeys('mod+shift+y', () => {
-    setOpen(n => !n);
+    togglePane();
   });
 
   return (
@@ -61,8 +60,7 @@ export default function Statusbar() {
           size="sm"
           variant={open ? "default" : "icon"}
           onClick={() => {
-            setOpen(n => !n);
-            clearUnreadCount();
+            togglePane();
           }}
           className="active:translate-y-0"
         >

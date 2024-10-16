@@ -167,10 +167,15 @@ export const FileDeletedPayloadSchema = z.object({
   path: z.string(),
 });
 
-export const PreviewStatusPayloadSchema = z.object({
-  url: z.string().nullable(),
-  status: z.enum(['booting', 'running', 'stopped']),
-});
+export const PreviewStatusPayloadSchema = z.union([
+  z.object({ url: z.string().nullable(), status: z.enum(['booting', 'running']) }),
+  z.object({
+    url: z.string().nullable(),
+    status: z.literal('stopped'),
+    ok: z.boolean(),
+    contents: z.string().nullable(),
+  }),
+]);
 
 export const PreviewStartPayloadSchema = z.object({});
 export const PreviewStopPayloadSchema = z.object({});

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
-// import { AppChannel } from '@/clients/websocket';
+import { AppChannel } from '@/clients/websocket';
+import { PreviewStatusPayloadType } from '@srcbook/shared';
 
 export type LogsStatusType = 'booting' | 'connecting' | 'running' | 'stopped';
 
@@ -15,32 +16,23 @@ export interface LogsContextValue {
   clearLogs: () => void;
   addError: (message: Omit<ErrorMessage, 'timestamp'>) => void;
   unreadLogsCount: number;
-  clearUnreadCount: () => void;
+
+  open: boolean;
+  togglePane: () => void;
 }
 
 const LogsContext = createContext<LogsContextValue | undefined>(undefined);
 
 type ProviderPropsType = {
-  // channel: AppChannel;
+  channel: AppChannel;
   children: React.ReactNode;
 };
 
-export function LogsProvider({ /* channel, */ children }: ProviderPropsType) {
+export function LogsProvider({ channel, children }: ProviderPropsType) {
   const [logs, setLogs] = useState<Array<ErrorMessage>>([]);
   const [unreadLogsCount, setUnreadLogsCount] = useState(0);
 
-  // TODO: get error logs from vite via the `channel` and auto log them
-
-  // useEffect(() => {
-  //   function onStatusUpdate(payload: LogsStatusPayloadType) {
-  //     setUrl(payload.url);
-  //     setStatus(payload.status);
-  //   }
-
-  //   channel.on('logs:status', onStatusUpdate);
-
-  //   return () => channel.off('logs:status', onStatusUpdate);
-  // }, [channel, setUrl, setStatus]);
+  const [open, setOpen] = useState(false);
 
   function clearLogs() {
     setLogs([]);
@@ -52,12 +44,29 @@ export function LogsProvider({ /* channel, */ children }: ProviderPropsType) {
     setUnreadLogsCount(n => n + 1);
   }
 
-  function clearUnreadCount() {
+  function togglePane() {
+    setOpen(n => !n);
     setUnreadLogsCount(0);
   }
 
+  // If vite crashes, then create an error log
+  useEffect(() => {
+    function onViteError(payload: PreviewStatusPayloadType) {
+      if (payload.status !== 'stopped' || payload.ok) {
+        return;
+      }
+      addError({ type: "vite_error", contents: payload.contents ?? "" });
+    }
+
+    channel.on('preview:status', onViteError);
+
+    return () => channel.off('preview:status', onViteError);
+  }, [channel]);
+
+  // TODO: if npm install fails, add an error log
+
   return (
-    <LogsContext.Provider value={{ logs, clearLogs, addError, unreadLogsCount, clearUnreadCount }}>
+    <LogsContext.Provider value={{ logs, clearLogs, addError, unreadLogsCount, open, togglePane }}>
       {children}
     </LogsContext.Provider>
   );

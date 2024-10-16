@@ -63,12 +63,15 @@ async function previewStart(
     });
   };
 
+  let bufferedLogs: Array<String> = [];
+
   const process = vite({
     args: [],
     cwd: pathToApp(app.externalId),
     stdout: (data) => {
       const encodedData = data.toString('utf8');
       console.log(encodedData);
+      bufferedLogs.push(encodedData);
 
       const potentialPortMatch = VITE_PORT_REGEX.exec(encodedData);
       if (potentialPortMatch) {
@@ -78,13 +81,18 @@ async function previewStart(
       }
     },
     stderr: (data) => {
-      console.error(data.toString('utf8'));
+      const encodedData = data.toString('utf8');
+      console.error(encodedData);
+      bufferedLogs.push(encodedData);
     },
-    onExit: (_code) => {
+    onExit: (code) => {
       processMetadata.delete(app.externalId);
+
       conn.reply(`app:${app.externalId}`, 'preview:status', {
         url: null,
         status: 'stopped',
+        ok: code === 0,
+        contents: code !== 0 ? bufferedLogs.join('\n') : null,
       });
     },
   });
@@ -106,13 +114,13 @@ async function previewStop(
   const result = processMetadata.get(app.externalId);
 
   if (!result) {
-    conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped' });
+    conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped', ok: true });
     return;
   }
 
   result.process.kill('SIGTERM');
 
-  conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped' });
+  conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped', ok: true });
 }
 
 async function onFileUpdated(payload: FileUpdatedPayloadType, context: AppContextType) {
@@ -147,7 +155,7 @@ export function register(wss: WebSocketServer) {
           'preview:status',
           existingProcess
             ? { status: 'running', url: `http://localhost:${existingProcess.port}/` }
-            : { url: null, status: 'stopped' },
+            : { url: null, status: 'stopped', ok: true },
         ]),
       );
     });

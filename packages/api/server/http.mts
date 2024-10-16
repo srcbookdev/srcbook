@@ -2,7 +2,7 @@ import Path from 'node:path';
 import { posthog } from '../posthog-client.mjs';
 import fs from 'node:fs/promises';
 import { SRCBOOKS_DIR } from '../constants.mjs';
-import express, { type Application, type Response } from 'express';
+import express, { type Application, type Response, type Request } from 'express';
 import cors from 'cors';
 import {
   createSession,
@@ -57,6 +57,7 @@ import {
   getFlatFilesForApp,
 } from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
+import { streamResponse } from '../ai/stream.mjs';
 
 const app: Application = express();
 
@@ -65,6 +66,11 @@ const router = express.Router();
 router.use(express.json());
 
 router.options('/file', cors());
+
+router.options('/ai/generate', cors());
+router.get('/ai/generate', cors(), async (_req: Request, res: Response) => {
+  return streamResponse(res);
+});
 
 router.post('/file', cors(), async (req, res) => {
   const { file } = req.body as {

@@ -3,8 +3,6 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { PreviewStatusPayloadType } from '@srcbook/shared';
 
-export type LogsStatusType = 'booting' | 'connecting' | 'running' | 'stopped';
-
 export type ErrorMessage = {
   type: 'npm_install_error' | 'vite_error'; // TODO: add more types like "warning" or "problem"
   timestamp: Date;

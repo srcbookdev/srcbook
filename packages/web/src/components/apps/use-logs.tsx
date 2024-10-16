@@ -4,16 +4,16 @@ import React, { createContext, useContext, useState } from 'react';
 
 export type LogsStatusType = 'booting' | 'connecting' | 'running' | 'stopped';
 
-type LogMessage = {
-  type: "error"; // TODO: add more types like "warning" or "problem"
+export type ErrorMessage = {
+  type: "npm_install_error" | "vite_error"; // TODO: add more types like "warning" or "problem"
   timestamp: Date;
-  message: string;
+  contents: string;
 };
 
 export interface LogsContextValue {
-  logs: Array<LogMessage>;
+  logs: Array<ErrorMessage>;
   clearLogs: () => void;
-  addError: (message: string) => void;
+  addError: (message: Omit<ErrorMessage, 'timestamp'>) => void;
   unreadLogsCount: number;
   clearUnreadCount: () => void;
 }
@@ -26,7 +26,7 @@ type ProviderPropsType = {
 };
 
 export function LogsProvider({ /* channel, */ children }: ProviderPropsType) {
-  const [logs, setLogs] = useState<Array<LogMessage>>([]);
+  const [logs, setLogs] = useState<Array<ErrorMessage>>([]);
   const [unreadLogsCount, setUnreadLogsCount] = useState(0);
 
   // TODO: get error logs from vite via the `channel` and auto log them
@@ -44,10 +44,11 @@ export function LogsProvider({ /* channel, */ children }: ProviderPropsType) {
 
   function clearLogs() {
     setLogs([]);
+    setUnreadLogsCount(0);
   }
 
-  function addError(message: string) {
-    setLogs(logs => [...logs, { type: "error", timestamp: new Date(), message }]);
+  function addError(error: Omit<ErrorMessage, 'timestamp'>) {
+    setLogs(logs => [{ ...error, timestamp: new Date() }, ...logs]);
     setUnreadLogsCount(n => n + 1);
   }
 

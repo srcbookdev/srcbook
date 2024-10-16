@@ -1,10 +1,50 @@
 import { useState } from "react";
-import { BugIcon, TrashIcon } from "lucide-react";
+import { BugIcon, ChevronDownIcon, ChevronRightIcon, TrashIcon } from "lucide-react";
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { Button } from "@srcbook/components/src/components/ui/button";
 import { cn } from '@/lib/utils.ts';
-import { useLogs } from "./use-logs";
+import { ErrorMessage, useLogs } from "./use-logs";
+
+function getLabelForError(error: ErrorMessage) {
+  switch (error.type) {
+    case "vite_error":
+      return "Error running vite preview server!";
+    case "npm_install_error":
+      return "Error running npm install!";
+  }
+}
+
+type CollapsibleErrorMessageProps = {
+  error: ErrorMessage;
+};
+
+function CollapsibleErrorMessage({ error }: CollapsibleErrorMessageProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        className={cn("flex items-center gap-2 font-mono p-2 first:border-t first:border-t-border focus-visible:outline-none ring-inset focus-visible:ring-1 focus-visible:ring-ring", {
+          "border-b border-b-border": !open,
+        })}
+        onClick={() => setOpen(n => !n)}
+      >
+        {open ? (
+          <ChevronDownIcon size={16} />
+        ) : (
+          <ChevronRightIcon size={16} />
+        )}
+        <span className="text-tertiary-foreground select-none pointer-events-none">{error.timestamp.toISOString()} </span>
+        {getLabelForError(error)}
+      </button>
+      {open ? (
+        <pre className={cn("p-2", { "border-b border-b-border": open })}>
+          {error.contents}
+        </pre>
+      ) : null}
+    </>
+  );
+}
 
 export default function Statusbar() {
   const { logs, clearLogs, unreadLogsCount, clearUnreadCount } = useLogs();
@@ -47,18 +87,15 @@ export default function Statusbar() {
       </div>
 
       <div
-        className={cn("flex flex-col-reverse px-2 overflow-auto cursor-text", "h-0", { "h-[320px] py-2": open })}
+        className={cn("flex flex-col overflow-auto cursor-text", "h-0", { "h-[320px]": open })}
         style={{ transition: "all 100ms ease-in-out" }}
       >
-        {logs.map(log => (
+        {logs.map(error => (
           // FIXME: add a better explicit key, maybe a uuid in each log message?
-          <pre
-            className={cn("font-mono", { "text-red-500": log.type === "error" })}
-            key={`${log.timestamp.toISOString()},${log.type},${log.message}`}
-          >
-            <span className="text-tertiary-foreground select-none pointer-events-none">{log.timestamp.toISOString()} </span>
-            {log.message}
-          </pre>
+          <CollapsibleErrorMessage
+            key={error.timestamp.toISOString()}
+            error={error}
+          />
         ))}
 
         {logs.length === 0 ? (

@@ -37,7 +37,7 @@ export function Preview(props: PropsType) {
       return (
         <div className={cn('w-full h-full', props.className)}>
           <div className="absolute">
-            <button onClick={() => addError("Example error!")}>Trigger</button>
+            <button onClick={() => addError({ type: "vite_error", contents: "Bogus error" })}>Trigger</button>
           </div>
           <iframe className="w-full h-full" src={url} title="App preview" />
         </div>

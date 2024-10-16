@@ -197,7 +197,7 @@ export function AppCard(props: AppCardPropsType) {
         <h5 className="font-semibold leading-[18px] line-clamp-2">{props.name}</h5>
       </span>
       <div className="flex justify-end">
-        <code className="font-mono group-hover:hidden text-tertiary-foreground">'TS'</code>
+        <code className="font-mono group-hover:hidden text-tertiary-foreground">TS</code>
         <button
           type="button"
           onClick={onDelete}

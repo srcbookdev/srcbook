@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@srcbook/components/src/components/ui/input';
 import { Button } from '@srcbook/components/src/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import {
   TooltipTrigger,
   Tooltip,
 } from '@srcbook/components/src/components/ui/tooltip';
+import { useSettings } from '../use-settings';
 
 type PropsType = {
   onClose: () => void;
@@ -28,6 +30,9 @@ type PropsType = {
 export default function CreateAppModal({ onClose, onCreate }: PropsType) {
   const [name, setName] = useState('');
   const [prompt, setPrompt] = useState('');
+
+  const { aiEnabled } = useSettings();
+  const navigate = useNavigate();
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -63,6 +68,18 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
           <DialogDescription className="text-base">
             Create a web app powered by React, Vite and Tailwind.
           </DialogDescription>
+
+          {!aiEnabled && (
+            <div className="flex items-center justify-between bg-warning text-warning-foreground rounded-sm text-sm px-3 py-1 mt-4">
+              <p>AI provider not configured.</p>
+              <button
+                className="font-medium underline cursor-pointer"
+                onClick={() => navigate('/settings')}
+              >
+                Settings
+              </button>
+            </div>
+          )}
         </DialogHeader>
         <form name="app" onSubmit={onSubmit} className="flex flex-col gap-6">
           <div className="space-y-1">
@@ -113,7 +130,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
               Cancel
             </Button>
 
-            <Button disabled={submitting} type="submit">
+            <Button disabled={!aiEnabled || submitting} type="submit">
               {submitting ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" /> Generating...

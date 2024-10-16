@@ -6,17 +6,20 @@ const ROOT_PATH = '.';
 export function dirname(path: string): string {
   path = path.trim();
 
-  if (path === '' || path === ROOT_PATH) {
+  if (path === '' || path === './' || path === ROOT_PATH) {
     return ROOT_PATH;
   }
 
   const parts = path.split('/');
 
-  if (parts.length === 1) {
-    return '.';
-  }
+  return parts
+    .slice(0, parts.length - 1)
+    .join('/')
+    .trim();
+}
 
-  return parts.slice(0, parts.length - 1).join('/');
+export function basename() {
+  return '';
 }
 
 export function extname(path: string) {

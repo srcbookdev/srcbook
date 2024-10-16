@@ -56,7 +56,7 @@ function Chat({
     <div className="rounded-xl bg-background w-[440px] border shadow-xl max-h-[75vh] overflow-y-hidden">
       <div className="flex justify-between h-[40px] items-center border-b px-1">
         <span className="text-sm px-2">Chat</span>
-        <span className="flex">
+        <span className="flex items-center">
           <Button variant="icon" className="h-7 w-7 p-1.5 border-none">
             <History size={18} className="text-sb-core-80" />
           </Button>
@@ -149,7 +149,7 @@ function Query({
           }
         }}
       />
-      <span className="flex justify-end mt-2">
+      <span className="flex items-center justify-end gap-2 mt-2">
         <Button variant="icon" className="h-7 w-7 p-1.5 border-none">
           <Paperclip size={18} />
         </Button>

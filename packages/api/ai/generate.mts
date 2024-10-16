@@ -242,7 +242,11 @@ export async function fixDiagnostics(
   return result.text;
 }
 
-export async function generateApp(projectId: string, files: FileContent[], query: string): Promise<string> {
+export async function generateApp(
+  projectId: string,
+  files: FileContent[],
+  query: string,
+): Promise<string> {
   const model = await getModel();
   console.log('generating app, system prompt', makeAppBuilderSystemPrompt());
   console.log('generating app, user prompt', makeAppCreateUserPrompt(projectId, files, query));

@@ -5,26 +5,7 @@ import * as React from 'react';
 import { aiEditApp } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
-
-// TODO PUT THIS IN SHARED
-type FileType = {
-  basename: string;
-  dirname: string;
-  type: 'file';
-  content: string;
-  filename: string;
-  description: string;
-};
-
-type CommandType = {
-  type: 'command';
-  content: string;
-  description: string;
-};
-
-type PlanItemType = FileType | CommandType;
-
-type PlanType = Array<PlanItemType>;
+import type { PlanItemType, PlanType, DiffType } from './apps/types.js';
 
 type UserMessageType = {
   type: 'user';
@@ -54,10 +35,14 @@ function Chat({
   history,
   onClose,
   app,
+  diff,
+  revertDiff,
 }: {
   history: HistoryType;
   onClose: () => void;
   app: AppType;
+  diff: DiffType;
+  revertDiff: () => Promise<void>;
 }) {
   return (
     <div className="rounded-xl bg-background w-[440px] border shadow-xl max-h-[75vh] overflow-y-hidden">
@@ -102,6 +87,9 @@ function Chat({
               return <SummaryBox key={index} summary={message.summary} app={app} />;
             }
           })}
+          <Button className={diff.length > 0 ? '' : 'hidden'} onClick={revertDiff}>
+            Revert
+          </Button>
         </div>
       </ScrollArea>
     </div>
@@ -164,7 +152,7 @@ function SummaryBox({ summary, app }: { summary: PlanType; app: AppType }) {
             if (item.type === 'file') {
               return (
                 <p key={item.basename}>
-                  <span className="text-sm font-mono">{item.filename}</span>:{' '}
+                  <span className="text-sm font-mono">{item.path}</span>:{' '}
                   <span className="text-sm opacity-60 line-clamp-1">{item.description}</span>
                 </p>
               );
@@ -187,8 +175,9 @@ function SummaryBox({ summary, app }: { summary: PlanType; app: AppType }) {
 
 export function ChatPanel(props: PropsType): React.JSX.Element {
   const [history, setHistory] = React.useState<HistoryType>([]);
+  const [diff, setDiff] = React.useState<DiffType>([]);
   const [isChatVisible, setIsChatVisible] = React.useState(false);
-  const { createFile } = useFiles();
+  const { createFile, deleteFile } = useFiles();
 
   const handleSubmit = async (query: string) => {
     setHistory((prevHistory) => [...prevHistory, { type: 'user', message: query }]);
@@ -197,10 +186,11 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     const response = await aiEditApp(props.app.id, query);
 
     const plan = response.data as Array<PlanItemType>;
+    console.log('plan', plan);
     if (response.data && Array.isArray(response.data)) {
       response.data.forEach(async (fileUpdate: PlanItemType) => {
         if (fileUpdate.type === 'file') {
-          await createFile(fileUpdate.dirname, fileUpdate.basename, fileUpdate.content);
+          await createFile(fileUpdate.dirname, fileUpdate.basename, fileUpdate.modified);
         } else if (fileUpdate.type === 'command') {
           setHistory((prevHistory) => [
             ...prevHistory,
@@ -212,6 +202,19 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
 
     const fileUpdates = plan.filter((item: PlanItemType) => item.type === 'file');
     setHistory((prevHistory) => [...prevHistory, { type: 'summary', summary: fileUpdates }]);
+    setDiff(fileUpdates);
+  };
+
+  const revertDiff = async () => {
+    for (const file of diff) {
+      if (file.original) {
+        await createFile(file.dirname, file.basename, file.original);
+      } else {
+        // TODO: this needs some testing, this shows the idea only
+        await deleteFile({ type: 'file', name: file.basename, path: file.path });
+      }
+    }
+    setDiff([]);
   };
 
   const handleClose = () => {
@@ -226,7 +229,15 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
 
   return (
     <div className="fixed bottom-4 right-4 grid gap-1">
-      {isChatVisible && <Chat history={history} onClose={handleClose} app={props.app} />}
+      {isChatVisible && (
+        <Chat
+          history={history}
+          onClose={handleClose}
+          app={props.app}
+          revertDiff={revertDiff}
+          diff={diff}
+        />
+      )}
       <Query onSubmit={handleSubmit} onFocus={handleFocus} />
     </div>
   );

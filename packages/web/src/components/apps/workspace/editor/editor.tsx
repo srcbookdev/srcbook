@@ -36,7 +36,7 @@ export function Editor({ tab }: EditorProps) {
         and causing a flash of unstyled content
         */}
       <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
-        <Preview isActive={tab === "preview"} />
+        <Preview isActive={tab === 'preview'} />
       </div>
     </div>
   );

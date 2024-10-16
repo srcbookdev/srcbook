@@ -14,7 +14,7 @@ export function Preview(props: PropsType) {
   const isActive = props.isActive ?? true;
 
   useEffect(() => {
-    if (isActive && status === "stopped") {
+    if (isActive && status === 'stopped') {
       start();
     }
   }, [isActive]);

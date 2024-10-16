@@ -102,7 +102,7 @@ export default function EditorHeader(props: PropsType) {
                       size="icon"
                       onClick={() => {
                         stopPreview();
-                        props.onChangeTab("code");
+                        props.onChangeTab('code');
                       }}
                       className="active:translate-y-0"
                       disabled={previewStatus === 'booting' || previewStatus === 'connecting'}

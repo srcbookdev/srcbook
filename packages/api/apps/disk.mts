@@ -8,6 +8,7 @@ import { APPS_DIR } from '../constants.mjs';
 import { toValidPackageName } from './utils.mjs';
 import { DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
 import { FileContent } from '../ai/app-parser.mjs';
+import type { Plan } from '../ai/plan-parser.mjs';
 
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
@@ -19,6 +20,23 @@ function pathToTemplate(template: string) {
 
 export function deleteViteApp(id: string) {
   return fs.rm(pathToApp(id), { recursive: true });
+}
+
+export async function applyPlan(app: DBAppType, plan: Plan) {
+  const appPath = pathToApp(app.externalId);
+  try {
+    for (const item of plan.actions) {
+      if (item.type === 'file') {
+        const filePath = Path.join(appPath, item.path);
+        const dirPath = Path.dirname(filePath);
+        await fs.mkdir(dirPath, { recursive: true });
+        await fs.writeFile(filePath, item.modified);
+      }
+    }
+  } catch (e) {
+    console.error('Error applying plan to app', app.externalId, e);
+    throw e;
+  }
 }
 
 export async function createAppFromProject(app: DBAppType, project: Project) {
@@ -65,6 +83,15 @@ export async function createViteApp(app: DBAppType) {
   return app;
 }
 
+/**
+ * Scaffolds a new Vite app with the specified language.
+ * Uses the react-typescript/ or react-javascript dirs as templates,
+ * then updates the package.json name and index.html with the app name.
+ *
+ * @param {DBAppType} app - The database app object.
+ * @param {string} destDir - The destination directory for the app.
+ * @returns {Promise<void>}
+ */
 async function scaffold(app: DBAppType, destDir: string) {
   const template = `react-${app.language}`;
 

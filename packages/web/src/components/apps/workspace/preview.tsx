@@ -1,12 +1,22 @@
 import { cn } from '@/lib/utils';
 import { usePreview } from '../use-preview';
+import { useEffect } from 'react';
 
 type PropsType = {
+  isActive?: boolean;
   className?: string;
 };
 
 export function Preview(props: PropsType) {
-  const { url, status } = usePreview();
+  const { url, status, start } = usePreview();
+
+  const isActive = props.isActive ?? true;
+
+  useEffect(() => {
+    if (isActive && status === "stopped") {
+      start();
+    }
+  }, [isActive]);
 
   switch (status) {
     case 'connecting':

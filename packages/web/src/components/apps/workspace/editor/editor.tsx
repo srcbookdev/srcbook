@@ -31,12 +31,12 @@ export function Editor({ tab }: EditorProps) {
         </div>
       ) : null}
 
+      {/*
+        NOTE: applying hidden conditional like this keeps the iframe from getting mounted/unmounted
+        and causing a flash of unstyled content
+        */}
       <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
-        <Preview />
-        {/*
-          NOTE: applying hidden conditional like this keeps the iframe from getting mounted/unmounted
-          and causing a flash of unstyled content
-          */}
+        <Preview isActive={tab === "preview"} />
       </div>
     </div>
   );

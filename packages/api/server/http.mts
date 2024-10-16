@@ -434,7 +434,7 @@ router.post('/apps', cors(), async (req, res) => {
 
   posthog.capture({
     event: 'user created app',
-    properties: { language: attrs.language, withPrompt: typeof attrs.prompt === 'string' },
+    properties: { prompt: typeof attrs.prompt === 'string' ? attrs.prompt : 'N/A' },
   });
 
   try {
@@ -442,6 +442,7 @@ router.post('/apps', cors(), async (req, res) => {
       const app = await createAppWithAi({ name: attrs.name, prompt: attrs.prompt });
       return res.json({ data: serializeApp(app) });
     } else {
+      // TODO do we really need to keep this?
       const app = await createApp(attrs);
       return res.json({ data: serializeApp(app) });
     }

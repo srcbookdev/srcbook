@@ -78,6 +78,13 @@
       "when": 1726808187994,
       "tag": "0010_create_apps",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1729112512747,
+      "tag": "0011_remove_language_from_apps",
+      "breakpoints": true
     }
   ]
 }

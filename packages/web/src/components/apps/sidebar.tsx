@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-
+import useTheme from '@srcbook/components/src/components/use-theme';
 import {
   ChevronsLeftIcon,
   FlagIcon,
   FolderTreeIcon,
   KeyboardIcon,
+  MoonIcon,
   SettingsIcon,
 } from 'lucide-react';
 import { Button } from '@srcbook/components/src/components/ui/button';
@@ -37,7 +38,27 @@ function getTitleForPanel(panel: PanelType | null): string | null {
   }
 }
 
+function LightDarkModeDebugChanger() {
+  const { theme, toggleTheme } = useTheme();
+
+  if (process.env.NODE_ENV === 'production') {
+    return null;
+  }
+
+  return (
+    <div className="absolute left-1/2 -translate-x-1/2">
+      <button
+        onClick={toggleTheme}
+        className="border-none outline-none text-muted-foreground hover:text-foreground font-semibold transition-colors"
+      >
+        {theme === 'light' ? '(DEV) Dark mode' : '(DEV) Light mode'}
+      </button>
+    </div>
+  );
+}
+
 export default function Sidebar() {
+  const { theme, toggleTheme } = useTheme();
   const { openedFile } = useFiles();
 
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -103,6 +124,14 @@ export default function Sidebar() {
             </NavItemWithTooltip>
           </div>
           <div className="flex flex-col items-center w-full gap-2">
+            {process.env.NODE_ENV !== 'production' && (
+              <NavItemWithTooltip tooltipContent="DEV ONLY - Switch theme" onClick={toggleTheme}>
+                <MoonIcon
+                  size={18}
+                  className="text-tertiary-foreground hover:text-secondary-foreground transition-colors"
+                />
+              </NavItemWithTooltip>
+            )}
             <NavItemWithTooltip
               tooltipContent="Keyboard shortcuts"
               onClick={() => setShowShortcuts(true)}

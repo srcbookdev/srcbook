@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { usePreview } from '../use-preview';
 import { useEffect } from 'react';
+import { Loader2Icon } from 'lucide-react';
 
 type PropsType = {
   isActive?: boolean;
@@ -23,7 +24,7 @@ export function Preview(props: PropsType) {
     case 'booting':
       return (
         <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
-          <span className="text-tertiary-foreground">Booting...</span>
+          <Loader2Icon size={18} className="animate-spin" />
         </div>
       );
     case 'running':

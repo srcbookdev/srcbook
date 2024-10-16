@@ -19,13 +19,14 @@ import {
 } from '@srcbook/components/src/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { usePreview } from '../../use-preview';
-import { HeaderTab } from '../../use-header-tab';
+
+export type EditorHeaderTab = 'code' | 'preview';
 
 type PropsType = {
   app: AppType;
   className?: string;
-  tab: HeaderTab;
-  onChangeTab: (newTab: HeaderTab) => void;
+  tab: EditorHeaderTab;
+  onChangeTab: (newTab: EditorHeaderTab) => void;
 };
 
 export default function EditorHeader(props: PropsType) {

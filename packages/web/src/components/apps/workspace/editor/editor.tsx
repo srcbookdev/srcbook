@@ -1,11 +1,15 @@
 import { useFiles } from '../../use-files';
+import { AppType, FileType } from '@srcbook/shared';
+import { EditorHeaderTab } from './header';
+import { extname } from '../../lib/path';
+import { useState } from 'react';
 import { Preview } from '../preview';
-import { useHeaderTab } from '../../use-header-tab';
 import { cn } from '@/lib/utils.ts';
 import { CodeEditor } from '../../editor';
 
-export function Editor() {
-  const { tab } = useHeaderTab();
+type EditorProps = { tab: EditorHeaderTab }
+
+export function Editor({ tab }: EditorProps) {
   const { openedFile, updateFile } = useFiles();
 
   return (

@@ -10,11 +10,9 @@ import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
 import { ChatPanel } from '@/components/chat';
-import { HeaderTabProvider } from '@/components/apps/use-header-tab';
 import DiffModal from '@/components/apps/diff-modal';
 import { FileDiffType } from '@/components/apps/types';
-import { useHeaderTab } from '../components/apps/use-header-tab';
-import EditorHeader from '../components/apps/workspace/editor/header';
+import EditorHeader, { EditorHeaderTab } from '../components/apps/workspace/editor/header';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
@@ -60,20 +58,18 @@ export function AppsPage() {
       rootDirEntries={rootDirEntries}
     >
       <PreviewProvider channel={channelRef.current}>
-        <HeaderTabProvider>
-          <Apps app={app} />
-        </HeaderTabProvider>
+        <Apps app={app} />
       </PreviewProvider>
     </FilesProvider>
   );
 }
 
 function Apps(props: { app: AppType }) {
+  const [tab, setTab] = useState<EditorHeaderTab>('code');
   const [diffModalProps, triggerDiffModal] = useState<{
     files: FileDiffType[];
     onUndoAll: () => void;
   } | null>(null);
-  const { tab, switchTab } = useHeaderTab();
 
   return (
     <>
@@ -81,13 +77,13 @@ function Apps(props: { app: AppType }) {
       <EditorHeader
         app={props.app}
         tab={tab}
-        onChangeTab={switchTab}
+        onChangeTab={setTab}
         className="shrink-0 h-12 max-h-12"
       />
       <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar />
         <div className="w-full h-full">
-          <Editor />
+          <Editor tab={tab} />
         </div>
         <ChatPanel app={props.app} triggerDiffModal={triggerDiffModal} />
       </div>

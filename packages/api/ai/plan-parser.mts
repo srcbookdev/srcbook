@@ -63,7 +63,7 @@ export interface Plan {
 
 interface ParsedResult {
   plan: {
-    description: string;
+    planDescription: string;
     action:
       | {
           '@_type': string;
@@ -93,7 +93,7 @@ export async function parsePlan(response: string, app: DBAppType): Promise<Plan>
       throw new Error('Invalid response: missing plan tag');
     }
 
-    const plan: Plan = { actions: [], description: result.plan.description };
+    const plan: Plan = { actions: [], description: result.plan.planDescription };
     const actions = Array.isArray(result.plan.action) ? result.plan.action : [result.plan.action];
 
     for (const action of actions) {

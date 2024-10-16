@@ -38,6 +38,8 @@ export default function KeyboardShortcutsDialog({
               <ShortcutRow keys={['?']} description="show this dialog" />
               <ShortcutRow keys={['mod', ';']} description="open package.json" />
               <ShortcutRow keys={['mod', 'i']} description="open npm package install modal" />
+              <h5 className="font-semibold pt-6 pb-2">AI chat</h5>
+              <ShortcutRow keys={['mod', 'enter']} description="send current message to the AI" />
               {!readOnly ? (
                 <>
                   <h5 className="font-semibold pt-6 pb-2">Markdown edit</h5>

@@ -114,7 +114,11 @@ async function previewStop(
   const result = processMetadata.get(app.externalId);
 
   if (!result) {
-    conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped', ok: true });
+    conn.reply(`app:${app.externalId}`, 'preview:status', {
+      url: null,
+      status: 'stopped',
+      ok: true,
+    });
     return;
   }
 

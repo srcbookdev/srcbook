@@ -38,7 +38,9 @@ export function Preview(props: PropsType) {
       return (
         <div className={cn('w-full h-full', props.className)}>
           <div className="absolute">
-            <button onClick={() => addError({ type: "vite_error", contents: "Bogus error" })}>Trigger</button>
+            <button onClick={() => addError({ type: 'vite_error', contents: 'Bogus error' })}>
+              Trigger
+            </button>
           </div>
           <iframe className="w-full h-full" src={url} title="App preview" />
         </div>
@@ -51,7 +53,9 @@ export function Preview(props: PropsType) {
           ) : (
             <div className="flex flex-col gap-6 items-center border border-border p-8 border-dashed rounded-md">
               <span className="text-red-400">Preview server stopped with an error!</span>
-              <Button variant="secondary" onClick={togglePane}>Open errors pane</Button>
+              <Button variant="secondary" onClick={togglePane}>
+                Open errors pane
+              </Button>
             </div>
           )}
         </div>

@@ -31,8 +31,8 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
       setUrl(payload.url);
       setStatus(payload.status);
 
-      if (payload.status === "stopped" && !payload.ok) {
-        setLastStoppedError(payload.contents ?? "")
+      if (payload.status === 'stopped' && !payload.ok) {
+        setLastStoppedError(payload.contents ?? '');
       } else {
         setLastStoppedError(null);
       }

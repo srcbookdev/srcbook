@@ -1,17 +1,17 @@
-import { useState } from "react";
-import { BugIcon, ChevronDownIcon, ChevronRightIcon, TrashIcon } from "lucide-react";
+import { useState } from 'react';
+import { BugIcon, ChevronDownIcon, ChevronRightIcon, TrashIcon } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
-import { Button } from "@srcbook/components/src/components/ui/button";
+import { Button } from '@srcbook/components/src/components/ui/button';
 import { cn } from '@/lib/utils.ts';
-import { ErrorMessage, useLogs } from "./use-logs";
+import { ErrorMessage, useLogs } from './use-logs';
 
 function getLabelForError(error: ErrorMessage) {
   switch (error.type) {
-    case "vite_error":
-      return "Error running vite preview server!";
-    case "npm_install_error":
-      return "Error running npm install!";
+    case 'vite_error':
+      return 'Error running vite preview server!';
+    case 'npm_install_error':
+      return 'Error running npm install!';
   }
 }
 
@@ -24,21 +24,22 @@ function CollapsibleErrorMessage({ error }: CollapsibleErrorMessageProps) {
   return (
     <>
       <button
-        className={cn("flex items-center gap-2 font-mono p-2 first:border-t first:border-t-border focus-visible:outline-none ring-inset focus-visible:ring-1 focus-visible:ring-ring", {
-          "border-b border-b-border": !open,
-        })}
-        onClick={() => setOpen(n => !n)}
-      >
-        {open ? (
-          <ChevronDownIcon size={16} />
-        ) : (
-          <ChevronRightIcon size={16} />
+        className={cn(
+          'flex items-center gap-2 font-mono p-2 first:border-t first:border-t-border focus-visible:outline-none ring-inset focus-visible:ring-1 focus-visible:ring-ring',
+          {
+            'border-b border-b-border': !open,
+          },
         )}
-        <span className="text-tertiary-foreground select-none pointer-events-none">{error.timestamp.toISOString()} </span>
+        onClick={() => setOpen((n) => !n)}
+      >
+        {open ? <ChevronDownIcon size={16} /> : <ChevronRightIcon size={16} />}
+        <span className="text-tertiary-foreground select-none pointer-events-none">
+          {error.timestamp.toISOString()}{' '}
+        </span>
         {getLabelForError(error)}
       </button>
       {open ? (
-        <pre className={cn("text-sm p-2", { "ml-[15px] pl-4 mb-4 border-l": open })}>
+        <pre className={cn('text-sm p-2', { 'ml-[15px] pl-4 mb-4 border-l': open })}>
           {error.contents}
         </pre>
       ) : null}
@@ -58,7 +59,7 @@ export default function Statusbar() {
       <div className="flex items-center justify-between h-8 border-t border-t-border px-2">
         <Button
           size="sm"
-          variant={open ? "default" : "icon"}
+          variant={open ? 'default' : 'icon'}
           onClick={() => {
             togglePane();
           }}
@@ -85,15 +86,12 @@ export default function Statusbar() {
       </div>
 
       <div
-        className={cn("flex flex-col overflow-auto cursor-text", "h-0", { "h-[320px]": open })}
-        style={{ transition: "all 100ms ease-in-out" }}
+        className={cn('flex flex-col overflow-auto cursor-text', 'h-0', { 'h-[320px]': open })}
+        style={{ transition: 'all 100ms ease-in-out' }}
       >
-        {logs.map(error => (
+        {logs.map((error) => (
           // FIXME: add a better explicit key, maybe a uuid in each log message?
-          <CollapsibleErrorMessage
-            key={error.timestamp.toISOString()}
-            error={error}
-          />
+          <CollapsibleErrorMessage key={error.timestamp.toISOString()} error={error} />
         ))}
 
         {logs.length === 0 ? (

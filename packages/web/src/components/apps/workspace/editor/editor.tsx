@@ -17,7 +17,7 @@ export function Editor({ tab }: EditorProps) {
       return;
     }
     setTab('code');
-  }, [openedFile])
+  }, [openedFile]);
 
   return (
     <div className="grow shrink flex flex-col w-full h-full overflow-hidden">

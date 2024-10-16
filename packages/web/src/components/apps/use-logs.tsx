@@ -6,7 +6,7 @@ import { PreviewStatusPayloadType } from '@srcbook/shared';
 export type LogsStatusType = 'booting' | 'connecting' | 'running' | 'stopped';
 
 export type ErrorMessage = {
-  type: "npm_install_error" | "vite_error"; // TODO: add more types like "warning" or "problem"
+  type: 'npm_install_error' | 'vite_error'; // TODO: add more types like "warning" or "problem"
   timestamp: Date;
   contents: string;
 };
@@ -40,12 +40,12 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
   }
 
   function addError(error: Omit<ErrorMessage, 'timestamp'>) {
-    setLogs(logs => [{ ...error, timestamp: new Date() }, ...logs]);
-    setUnreadLogsCount(n => n + 1);
+    setLogs((logs) => [{ ...error, timestamp: new Date() }, ...logs]);
+    setUnreadLogsCount((n) => n + 1);
   }
 
   function togglePane() {
-    setOpen(n => !n);
+    setOpen((n) => !n);
     setUnreadLogsCount(0);
   }
 
@@ -55,7 +55,7 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
       if (payload.status !== 'stopped' || payload.ok) {
         return;
       }
-      addError({ type: "vite_error", contents: payload.contents ?? "" });
+      addError({ type: 'vite_error', contents: payload.contents ?? '' });
     }
 
     channel.on('preview:status', onViteError);

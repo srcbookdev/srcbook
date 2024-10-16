@@ -307,6 +307,12 @@ importers:
       '@codemirror/lint':
         specifier: ^6.8.1
         version: 6.8.1
+      '@codemirror/merge':
+        specifier: ^6.7.0
+        version: 6.7.0
+      '@codemirror/state':
+        specifier: ^6.4.1
+        version: 6.4.1
       '@srcbook/components':
         specifier: workspace:^
         version: link:../components

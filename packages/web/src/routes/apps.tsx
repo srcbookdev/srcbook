@@ -4,13 +4,15 @@ import type { AppType, DirEntryType } from '@srcbook/shared';
 
 import { loadApp, loadDirectory } from '@/clients/http/apps';
 import Sidebar from '@/components/apps/sidebar';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
 import { ChatPanel } from '@/components/chat';
 import { HeaderTabProvider } from '@/components/apps/use-header-tab';
+import DiffModal from '@/components/apps/diff-modal';
+import { FileDiffType } from '@/components/apps/types';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
@@ -65,14 +67,22 @@ export function AppsPage() {
 }
 
 function Apps(props: { app: AppType }) {
+  const [diffModalProps, triggerDiffModal] = useState<{
+    files: FileDiffType[];
+    onUndoAll: () => void;
+  } | null>(null);
+
   return (
-    <div className="h-screen max-h-screen flex">
-      <Sidebar />
-      <div className="w-full h-full grid">
-        <Editor app={props.app} />
+    <>
+      {diffModalProps && <DiffModal {...diffModalProps} onClose={() => triggerDiffModal(null)} />}
+      <div className="h-screen max-h-screen flex">
+        <Sidebar />
+        <div className="w-full h-full grid">
+          <Editor app={props.app} />
+        </div>
+        <ChatPanel app={props.app} triggerDiffModal={triggerDiffModal} />
       </div>
-      <ChatPanel app={props.app} />
-    </div>
+    </>
   );
 }
 

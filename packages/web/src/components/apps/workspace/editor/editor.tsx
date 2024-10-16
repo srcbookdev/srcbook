@@ -12,6 +12,7 @@ import { extname } from '../../lib/path';
 import { Preview } from '../preview';
 import { useHeaderTab } from '../../use-header-tab';
 import { cn } from '@/lib/utils.ts';
+import { useEffect, useRef } from 'react';
 
 type PropsType = {
   app: AppType;
@@ -28,9 +29,7 @@ export function Editor(props: PropsType) {
         {tab === 'code' ? (
           <div className="w-full h-full overflow-hidden">
             {openedFile ? (
-              <div className="w-full h-full overflow-auto">
-                <CodeEditor file={openedFile} onChange={updateFile} />
-              </div>
+              <CodeEditor file={openedFile} onChange={updateFile} />
             ) : (
               <div className="h-full flex items-center justify-center text-tertiary-foreground">
                 Use the file explorer to open a file for editing
@@ -55,17 +54,40 @@ function CodeEditor({
   onChange: (file: FileType, attrs: Partial<FileType>) => void;
 }) {
   const { codeTheme } = useTheme();
+  const editorRef = useRef<HTMLDivElement>(null);
 
   const languageExtension = getCodeMirrorLanguageExtension(file);
   const extensions = languageExtension ? [languageExtension] : [];
 
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      if (editorRef.current) {
+        const cmEditor = editorRef.current.querySelector('.cm-editor');
+        const cmScroller = editorRef.current.querySelector('.cm-scroller');
+        if (cmEditor && cmScroller) {
+          (cmEditor as HTMLElement).style.height = '100%';
+          (cmScroller as HTMLElement).style.height = '100%';
+        }
+      }
+    });
+
+    if (editorRef.current) {
+      resizeObserver.observe(editorRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   return (
-    <div className="min-w-full inline-block">
+    <div ref={editorRef} className="w-full h-full overflow-hidden">
       <CodeMirror
         value={file.source}
         theme={codeTheme}
         extensions={extensions}
         onChange={(source) => onChange(file, { source })}
+        className="h-full"
       />
     </div>
   );

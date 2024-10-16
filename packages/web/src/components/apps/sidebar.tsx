@@ -182,7 +182,7 @@ function Panel(props: {
           className="p-2 text-tertiary-foreground hover:text-foreground hover:bg-sb-core-20 dark:hover:bg-sb-core-110 rounded-sm"
           onClick={props.onClose}
         >
-          <ChevronsLeftIcon size={18} />
+          <ChevronsLeftIcon size={14} />
         </button>
       </div>
       <div className="w-60 py-3 pr-1.5 flex-1 overflow-auto">{props.children}</div>

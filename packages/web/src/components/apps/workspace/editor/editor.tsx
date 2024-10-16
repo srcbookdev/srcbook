@@ -2,7 +2,7 @@ import { useFiles } from '../../use-files';
 import { AppType, FileType } from '@srcbook/shared';
 import { EditorHeaderTab } from './header';
 import { extname } from '../../lib/path';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Preview } from '../preview';
 import { cn } from '@/lib/utils.ts';
 import { CodeEditor } from '../../editor';
@@ -11,6 +11,13 @@ type EditorProps = { tab: EditorHeaderTab }
 
 export function Editor({ tab }: EditorProps) {
   const { openedFile, updateFile } = useFiles();
+
+  useEffect(() => {
+    if (!openedFile) {
+      return;
+    }
+    setTab('code');
+  }, [openedFile])
 
   return (
     <div className="grow shrink flex flex-col w-full h-full overflow-hidden">

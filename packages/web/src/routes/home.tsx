@@ -153,7 +153,6 @@ export default function Home() {
               <AppCard
                 key={app.id}
                 name={app.name}
-                language={app.language}
                 onClick={() => navigate(`/apps/${app.id}`)}
                 onDelete={() => setAppToDelete(app)}
               />

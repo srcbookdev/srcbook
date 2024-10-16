@@ -1,4 +1,5 @@
 import { Button, cn, ScrollArea } from '@srcbook/components';
+import { Markdown } from '../components/markdown';
 import { diffFiles } from './apps/lib/diff.js';
 import TextareaAutosize from 'react-textarea-autosize';
 import { ArrowUp, X, Paperclip, History, LoaderCircle } from 'lucide-react';
@@ -6,7 +7,7 @@ import * as React from 'react';
 import { aiEditApp } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
-import type { FileType, PlanItemType, DiffType, FileDiffType } from './apps/types.js';
+import type { FileType, PlanItemType, DiffType, FileDiffType, PlanType } from './apps/types.js';
 
 type UserMessageType = {
   type: 'user';
@@ -24,7 +25,12 @@ type DiffMessageType = {
   diff: DiffType;
 };
 
-type MessageType = UserMessageType | DiffMessageType | CommandMessageType;
+type PlanMessageType = {
+  type: 'plan';
+  content: string;
+};
+
+type MessageType = UserMessageType | DiffMessageType | CommandMessageType | PlanMessageType;
 
 type HistoryType = Array<MessageType>;
 
@@ -86,8 +92,10 @@ function Chat({
                   </div>
                 </div>
               );
+            } else if (message.type === 'plan') {
+              return <Markdown>{message.content}</Markdown>;
             } else if (message.type === 'diff') {
-              return <DiffBox key={index} diff={message.diff} app={app} />;
+              return <DiffBox diff={message.diff} app={app} />;
             }
           })}
           <div className={cn('flex gap-2 w-full', diff.length > 0 ? '' : 'hidden')}>
@@ -164,7 +172,7 @@ function DiffBox({ diff, app }: { diff: DiffType; app: AppType }) {
         <div>
           {diff.map((item: FileDiffType) => {
             return (
-              <div>
+              <div key={item.basename}>
                 <div className="flex justify-between text-sm font-mono">
                   <p className="font-mono" key={item.basename}>
                     {item.path}
@@ -197,7 +205,8 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
 
     const response = await aiEditApp(props.app.id, query);
 
-    const plan = response.data as Array<PlanItemType>;
+    const plan = response.data as PlanType;
+    setHistory((prevHistory) => [...prevHistory, { type: 'plan', content: plan.description }]);
     if (response.data && Array.isArray(response.data)) {
       response.data.forEach(async (fileUpdate: PlanItemType) => {
         if (fileUpdate.type === 'file') {
@@ -211,7 +220,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       });
     }
 
-    const fileUpdates = plan.filter((item: PlanItemType) => item.type === 'file');
+    const fileUpdates = plan.actions.filter((item: PlanItemType) => item.type === 'file');
 
     const fileDiffs = fileUpdates.map((file: FileType) => {
       const { additions, deletions } = diffFiles(file.modified, file.original || '');

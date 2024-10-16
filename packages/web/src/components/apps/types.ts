@@ -16,7 +16,10 @@ export type CommandType = {
 
 export type PlanItemType = FileType | CommandType;
 
-export type PlanType = Array<PlanItemType>;
+export type PlanType = {
+  description: string;
+  actions: Array<PlanItemType>;
+};
 
 export type FileDiffType = {
   modified: string;

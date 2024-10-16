@@ -43,6 +43,17 @@ ${userRequestXml}
   `.trim();
 };
 
+const makeAppCreateUserPrompt = (projectId: string, files: FileContent[], query: string) => {
+  const projectXml = buildProjectXml(files, projectId);
+  const userRequestXml = `<userRequest>${query}</userRequest>`;
+  return `Following below are the project XML and the user request.
+
+${projectXml}
+
+${userRequestXml}
+  `.trim();
+};
+
 const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, query: string) => {
   // Make sure we copy cells so we don't mutate the session
   const cellsWithPlaceholder: CellWithPlaceholderType[] = [...session.cells];
@@ -231,12 +242,18 @@ export async function fixDiagnostics(
   return result.text;
 }
 
-export async function generateApp(query: string): Promise<string> {
+export async function generateApp(
+  projectId: string,
+  files: FileContent[],
+  query: string,
+): Promise<string> {
   const model = await getModel();
+  console.log('generating app, system prompt', makeAppBuilderSystemPrompt());
+  console.log('generating app, user prompt', makeAppCreateUserPrompt(projectId, files, query));
   const result = await generateText({
     model,
     system: makeAppBuilderSystemPrompt(),
-    prompt: query,
+    prompt: makeAppCreateUserPrompt(projectId, files, query),
   });
   return result.text;
 }

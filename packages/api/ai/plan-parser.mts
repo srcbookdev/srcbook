@@ -55,11 +55,15 @@ interface Command {
 }
 
 export interface Plan {
+  // The high level description of the plan
+  // Will be shown to the user above the diff box.
+  description: string;
   actions: (FileAction | Command)[];
 }
 
 interface ParsedResult {
   plan: {
+    planDescription: string;
     action:
       | {
           '@_type': string;
@@ -89,7 +93,7 @@ export async function parsePlan(response: string, app: DBAppType): Promise<Plan>
       throw new Error('Invalid response: missing plan tag');
     }
 
-    const plan: Plan = { actions: [] };
+    const plan: Plan = { actions: [], description: result.plan.planDescription };
     const actions = Array.isArray(result.plan.action) ? result.plan.action : [result.plan.action];
 
     for (const action of actions) {
@@ -123,6 +127,7 @@ export async function parsePlan(response: string, app: DBAppType): Promise<Plan>
       }
     }
 
+    console.log('parsed plan', plan);
     return plan;
   } catch (error) {
     console.error('Error parsing XML:', error);

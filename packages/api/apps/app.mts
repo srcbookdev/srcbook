@@ -1,12 +1,13 @@
 import { CodeLanguageType, randomid, type AppType } from '@srcbook/shared';
 import { db } from '../db/index.mjs';
 import { type App as DBAppType, apps as appsTable } from '../db/schema.mjs';
-import { createViteApp, createAppFromProject, deleteViteApp, pathToApp } from './disk.mjs';
+import { applyPlan, createViteApp, deleteViteApp, pathToApp, getFlatFilesForApp } from './disk.mjs';
 import { CreateAppSchemaType, CreateAppWithAiSchemaType } from './schemas.mjs';
 import { asc, desc, eq } from 'drizzle-orm';
 import { npmInstall } from '../exec.mjs';
 import { generateApp } from '../ai/generate.mjs';
-import { parseProjectXML } from '../ai/app-parser.mjs';
+import { toValidPackageName } from '../apps/utils.mjs';
+import { parsePlan } from '../ai/plan-parser.mjs';
 
 function toSecondsSinceEpoch(date: Date): number {
   return Math.floor(date.getTime() / 1000);
@@ -37,13 +38,30 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
     externalId: randomid(),
   });
 
-  const result = await generateApp(data.prompt);
-  const project = parseProjectXML(result);
-  await createAppFromProject(app, project);
+  // We start by using the VITE TypeScript template and kick off npm install
+  await createViteApp(app);
+  // Note: we don't surface issues or retries and this is "running in the background".
+  // In this case it works in our favor because we'll kickoff generation while it happens
+  npmInstall({
+    cwd: pathToApp(app.externalId),
+    stdout(data) {
+      console.log(data.toString('utf8'));
+    },
+    stderr(data) {
+      console.error(data.toString('utf8'));
+    },
+    onExit(code) {
+      console.log(`npm install exit code: ${code}`);
+    },
+  });
+
+  const files = await getFlatFilesForApp(app.externalId);
+  const result = await generateApp(toValidPackageName(app.name), files, data.prompt);
+  const plan = await parsePlan(result, app);
+  await applyPlan(app, plan);
 
   // TODO: handle this better.
-  // This should be done somewhere else and surface issues or retries.
-  // Not awaiting here because it's "happening in the background".
+  // Run npm install again since we don't have a good way of parsing the plan to know if we should...
   npmInstall({
     cwd: pathToApp(app.externalId),
     stdout(data) {

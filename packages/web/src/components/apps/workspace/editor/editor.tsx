@@ -22,31 +22,26 @@ export function Editor(props: PropsType) {
   const { openedFile, updateFile } = useFiles();
 
   return (
-    <div className="flex flex-col">
-      <EditorHeader
-        app={props.app}
-        tab={tab}
-        onChangeTab={switchTab}
-        className="shrink-0 h-12 max-h-12"
-      />
-      {tab === 'code' ? (
-        <div className="p-3 w-full flex-1">
-          {openedFile ? (
-            <CodeEditor file={openedFile} onChange={updateFile} />
-          ) : (
-            <div className="h-full flex items-center justify-center text-tertiary-foreground">
-              Use the file explorer to open a file for editing
-            </div>
-          )}
-        </div>
-      ) : null}
+    <div className="flex flex-col h-full w-full overflow-hidden">
+      <EditorHeader app={props.app} tab={tab} onChangeTab={switchTab} className="shrink-0 h-12" />
+      <div className="flex-1 overflow-hidden">
+        {tab === 'code' ? (
+          <div className="w-full h-full overflow-hidden">
+            {openedFile ? (
+              <div className="w-full h-full overflow-auto">
+                <CodeEditor file={openedFile} onChange={updateFile} />
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center text-tertiary-foreground">
+                Use the file explorer to open a file for editing
+              </div>
+            )}
+          </div>
+        ) : null}
 
-      {/*
-      NOTE: applying hidden conditional like this keeps the iframe from getting mounted/unmounted
-      and causing a flash of unstyled content
-      */}
-      <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
-        <Preview />
+        <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
+          <Preview />
+        </div>
       </div>
     </div>
   );
@@ -65,12 +60,14 @@ function CodeEditor({
   const extensions = languageExtension ? [languageExtension] : [];
 
   return (
-    <CodeMirror
-      value={file.source}
-      theme={codeTheme}
-      extensions={extensions}
-      onChange={(source) => onChange(file, { source })}
-    />
+    <div className="min-w-full inline-block">
+      <CodeMirror
+        value={file.source}
+        theme={codeTheme}
+        extensions={extensions}
+        onChange={(source) => onChange(file, { source })}
+      />
+    </div>
   );
 }
 

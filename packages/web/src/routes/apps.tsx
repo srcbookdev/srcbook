@@ -66,7 +66,7 @@ export function AppsPage() {
 
 function Apps(props: { app: AppType }) {
   return (
-    <div className="h-screen max-h-screen flex">
+    <div className="h-screen w-screen max-w-screen max-h-screen flex">
       <Sidebar />
       <div className="w-full h-full grid">
         <Editor app={props.app} />

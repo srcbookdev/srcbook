@@ -12,7 +12,6 @@ import { extname } from '../../lib/path';
 import { Preview } from '../preview';
 import { useHeaderTab } from '../../use-header-tab';
 import { cn } from '@/lib/utils.ts';
-import { useEffect, useRef } from 'react';
 
 type PropsType = {
   app: AppType;
@@ -40,6 +39,10 @@ export function Editor(props: PropsType) {
 
         <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
           <Preview />
+          {/*
+          NOTE: applying hidden conditional like this keeps the iframe from getting mounted/unmounted
+          and causing a flash of unstyled content
+          */}
         </div>
       </div>
     </div>
@@ -54,34 +57,12 @@ function CodeEditor({
   onChange: (file: FileType, attrs: Partial<FileType>) => void;
 }) {
   const { codeTheme } = useTheme();
-  const editorRef = useRef<HTMLDivElement>(null);
 
   const languageExtension = getCodeMirrorLanguageExtension(file);
   const extensions = languageExtension ? [languageExtension] : [];
 
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      if (editorRef.current) {
-        const cmEditor = editorRef.current.querySelector('.cm-editor');
-        const cmScroller = editorRef.current.querySelector('.cm-scroller');
-        if (cmEditor && cmScroller) {
-          (cmEditor as HTMLElement).style.height = '100%';
-          (cmScroller as HTMLElement).style.height = '100%';
-        }
-      }
-    });
-
-    if (editorRef.current) {
-      resizeObserver.observe(editorRef.current);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
   return (
-    <div ref={editorRef} className="w-full h-full overflow-hidden">
+    <div className="w-full h-full overflow-hidden">
       <CodeMirror
         value={file.source}
         theme={codeTheme}

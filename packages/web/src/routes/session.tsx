@@ -30,6 +30,7 @@ import { SessionNavbar } from '@/components/navbar';
 import { toast } from 'sonner';
 import { TsConfigProvider } from '@/components/use-tsconfig-json';
 import { VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY } from '@/lib/environment';
+import { useSettings } from '@/components/use-settings';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ result: config }, { result: srcbooks }, { result: session }] = await Promise.all([
@@ -133,14 +134,14 @@ function Session(props: SessionProps) {
     setTsServerDiagnostics,
     setTsServerSuggestions,
   } = useCells();
-
+  const { autoInstallDependencies } = useSettings();
   const {
     npmInstall,
     failed: dependencyInstallFailed,
     outdated: outdatedDependencies,
     installing: installingDependencies,
   } = usePackageJson();
-
+  const [initialInstallAttempt, setInitialInstallAttempt] = useState(false);
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
   const [[selectedPanelName, selectedPanelOpen], setSelectedPanelNameAndOpen] = useState<
     [Panel['name'], boolean]
@@ -292,7 +293,9 @@ function Session(props: SessionProps) {
     if (depsInstallModalOpen || isPanelOpen('packages')) {
       return result;
     }
-
+    if (!initialInstallAttempt) {
+      return;
+    }
     if (installingDependencies) {
       const toastId = toast.loading('Installing dependencies...');
       result = () => toast.dismiss(toastId);
@@ -330,6 +333,7 @@ function Session(props: SessionProps) {
 
     return result;
   }, [
+    initialInstallAttempt,
     outdatedDependencies,
     installingDependencies,
     dependencyInstallFailed,
@@ -338,6 +342,16 @@ function Session(props: SessionProps) {
     npmInstall,
   ]);
 
+  useEffect(() => {
+    const handleAutoInstallation = () => {
+      if (autoInstallDependencies) {
+        npmInstall();
+      }
+      setInitialInstallAttempt(true);
+    };
+    setTimeout(() => handleAutoInstallation(), 1500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <div className="flex flex-col">
       <SessionNavbar

@@ -1,0 +1,1 @@
+ALTER TABLE `config` ADD `auto_install_dependencies` integer DEFAULT true NOT NULL;

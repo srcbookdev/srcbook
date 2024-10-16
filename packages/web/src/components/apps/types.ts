@@ -18,4 +18,15 @@ export type PlanItemType = FileType | CommandType;
 
 export type PlanType = Array<PlanItemType>;
 
-export type DiffType = Array<FileType>;
+export type FileDiffType = {
+  modified: string;
+  original: string;
+  basename: string;
+  dirname: string;
+  path: string;
+  additions: number; // lines added
+  deletions: number; // lines deleted
+  type: 'edit' | 'create' | 'delete';
+};
+
+export type DiffType = Array<FileDiffType>;

@@ -14,6 +14,8 @@ const buttonVariants = cva(
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
         run: 'bg-run text-run-foreground border border-run hover:bg-sb-yellow-30',
         ai: 'bg-ai-btn text-sb-core-0 border-ai-btn hover:bg-ai-btn/90',
+        'ai-secondary':
+          'bg-secondary text-ai-ring border border-ai-ring hover:bg-muted hover:text-ai-foreground',
         secondary:
           'bg-secondary text-secondary-foreground border border-border hover:bg-muted hover:text-secondary-hover',
         link: 'text-primary underline-offset-4 hover:underline',

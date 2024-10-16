@@ -1,11 +1,12 @@
-import { Button, ScrollArea } from '@srcbook/components';
+import { Button, cn, ScrollArea } from '@srcbook/components';
+import { diffFiles } from './apps/lib/diff.js';
 import TextareaAutosize from 'react-textarea-autosize';
 import { ArrowUp, X, Paperclip, History, LoaderCircle } from 'lucide-react';
 import * as React from 'react';
 import { aiEditApp } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
-import type { PlanItemType, PlanType, DiffType } from './apps/types.js';
+import type { FileType, PlanItemType, DiffType, FileDiffType } from './apps/types.js';
 
 type UserMessageType = {
   type: 'user';
@@ -18,12 +19,12 @@ type CommandMessageType = {
   description: string;
 };
 
-type SummaryMessageType = {
-  type: 'summary';
-  summary: PlanType;
+type DiffMessageType = {
+  type: 'diff';
+  diff: DiffType;
 };
 
-type MessageType = UserMessageType | SummaryMessageType | CommandMessageType;
+type MessageType = UserMessageType | DiffMessageType | CommandMessageType;
 
 type HistoryType = Array<MessageType>;
 
@@ -33,12 +34,14 @@ type PropsType = {
 
 function Chat({
   history,
+  isLoading,
   onClose,
   app,
   diff,
   revertDiff,
 }: {
   history: HistoryType;
+  isLoading: boolean;
   onClose: () => void;
   app: AppType;
   diff: DiffType;
@@ -83,13 +86,24 @@ function Chat({
                   </div>
                 </div>
               );
-            } else if (message.type === 'summary') {
-              return <SummaryBox key={index} summary={message.summary} app={app} />;
+            } else if (message.type === 'diff') {
+              return <DiffBox key={index} diff={message.diff} app={app} />;
             }
           })}
-          <Button className={diff.length > 0 ? '' : 'hidden'} onClick={revertDiff}>
-            Revert
-          </Button>
+          <div className={cn('flex gap-2 w-full', diff.length > 0 ? '' : 'hidden')}>
+            <Button variant="ai-secondary" onClick={revertDiff} className="flex-1">
+              Undo
+            </Button>
+            <Button variant="ai" onClick={() => alert('TODO: view diff')} className="flex-1">
+              Review changes
+            </Button>
+          </div>
+          {isLoading && (
+            <div className="flex items-center gap-2 text-sm">
+              <p>Loading...</p>
+              <LoaderCircle size={18} className="animate-spin" />
+            </div>
+          )}
         </div>
       </ScrollArea>
     </div>
@@ -99,25 +113,25 @@ function Chat({
 function Query({
   onSubmit,
   onFocus,
+  isLoading,
 }: {
   onSubmit: (query: string) => Promise<void>;
   onFocus: () => void;
+  isLoading: boolean;
 }) {
   const [query, setQuery] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
   const first = false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    await onSubmit(query);
     setQuery('');
-    setIsLoading(false);
+    await onSubmit(query);
   };
 
   return (
     <div className="rounded-xl bg-background w-[440px] border px-2 py-1 hover:border-sb-purple-60 shadow-xl">
       <TextareaAutosize
+        disabled={isLoading}
         placeholder={first ? 'Ask anything or select ...' : 'Ask a follow up'}
         className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
         maxRows={20}
@@ -142,30 +156,26 @@ function Query({
   );
 }
 
-function SummaryBox({ summary, app }: { summary: PlanType; app: AppType }) {
+function DiffBox({ diff, app }: { diff: DiffType; app: AppType }) {
   return (
     <div className="px-2 py-1.5 rounded border overflow-y-auto bg-ai border border-ai-border text-ai-foreground">
       <div className="flex flex-col justify-between min-h-full gap-4">
         <div className="">{app.name}</div>
         <div>
-          {summary.map((item: PlanItemType) => {
-            if (item.type === 'file') {
-              return (
-                <p key={item.basename}>
-                  <span className="text-sm font-mono">{item.path}</span>:{' '}
-                  <span className="text-sm opacity-60 line-clamp-1">{item.description}</span>
-                </p>
-              );
-            } else if (item.type === 'command') {
-              return (
-                <div key={item.content}>
-                  <p className="text-sm font-mono">
-                    Run command: <span className="font-mono">{item.content}</span>
+          {diff.map((item: FileDiffType) => {
+            return (
+              <div>
+                <div className="flex justify-between text-sm font-mono">
+                  <p className="font-mono" key={item.basename}>
+                    {item.path}
                   </p>
-                  <p className="text-xs opacity-50">{item.description}</p>
+                  <div className="flex gap-2">
+                    <p className="text-green-400">-{item.deletions}</p>
+                    <p className="text-red-400">+{item.additions}</p>
+                  </div>
                 </div>
-              );
-            }
+              </div>
+            );
           })}
         </div>
       </div>
@@ -177,16 +187,17 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   const [history, setHistory] = React.useState<HistoryType>([]);
   const [diff, setDiff] = React.useState<DiffType>([]);
   const [isChatVisible, setIsChatVisible] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const { createFile, deleteFile } = useFiles();
 
   const handleSubmit = async (query: string) => {
+    setIsLoading(true);
     setHistory((prevHistory) => [...prevHistory, { type: 'user', message: query }]);
     setIsChatVisible(true);
 
     const response = await aiEditApp(props.app.id, query);
 
     const plan = response.data as Array<PlanItemType>;
-    console.log('plan', plan);
     if (response.data && Array.isArray(response.data)) {
       response.data.forEach(async (fileUpdate: PlanItemType) => {
         if (fileUpdate.type === 'file') {
@@ -201,8 +212,24 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     }
 
     const fileUpdates = plan.filter((item: PlanItemType) => item.type === 'file');
-    setHistory((prevHistory) => [...prevHistory, { type: 'summary', summary: fileUpdates }]);
-    setDiff(fileUpdates);
+
+    const fileDiffs = fileUpdates.map((file: FileType) => {
+      const { additions, deletions } = diffFiles(file.modified, file.original || '');
+
+      return {
+        modified: file.modified,
+        original: file.original || '',
+        basename: file.basename,
+        dirname: file.dirname,
+        path: file.path,
+        additions,
+        deletions,
+        type: file.original ? 'edit' : ('create' as 'edit' | 'create'),
+      };
+    });
+    setHistory((prevHistory) => [...prevHistory, { type: 'diff', diff: fileDiffs }]);
+    setDiff(fileDiffs);
+    setIsLoading(false);
   };
 
   const revertDiff = async () => {
@@ -232,13 +259,14 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       {isChatVisible && (
         <Chat
           history={history}
+          isLoading={isLoading}
           onClose={handleClose}
           app={props.app}
           revertDiff={revertDiff}
           diff={diff}
         />
       )}
-      <Query onSubmit={handleSubmit} onFocus={handleFocus} />
+      <Query onSubmit={handleSubmit} isLoading={isLoading} onFocus={handleFocus} />
     </div>
   );
 }

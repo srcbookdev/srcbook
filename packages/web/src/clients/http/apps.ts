@@ -6,6 +6,7 @@ import type {
   FileType,
 } from '@srcbook/shared';
 import SRCBOOK_CONFIG from '@/config';
+import type { PlanType } from '@/components/apps/types';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
 
@@ -214,7 +215,7 @@ export async function renameFile(
   return response.json();
 }
 
-export async function aiEditApp(id: string, query: string) {
+export async function aiEditApp(id: string, query: string): Promise<{ data: PlanType }> {
   const response = await fetch(API_BASE_URL + `/apps/${id}/edit`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

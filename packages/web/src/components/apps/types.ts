@@ -31,5 +31,3 @@ export type FileDiffType = {
   deletions: number; // lines deleted
   type: 'edit' | 'create' | 'delete';
 };
-
-export type DiffType = Array<FileDiffType>;

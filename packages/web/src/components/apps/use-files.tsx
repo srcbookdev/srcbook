@@ -23,19 +23,19 @@ import {
 
 export interface FilesContextValue {
   fileTree: DirEntryType;
-  openFile: (entry: FileEntryType) => void;
-  createFile: (dirname: string, basename: string, source?: string) => void;
-  renameFile: (entry: FileEntryType, name: string) => void;
-  deleteFile: (entry: FileEntryType) => void;
-  openFolder: (entry: DirEntryType) => void;
+  openedFile: FileType | null;
+  openFile: (entry: FileEntryType) => Promise<void>;
+  createFile: (dirname: string, basename: string, source?: string) => Promise<void>;
+  updateFile: (file: FileType, attrs: Partial<FileType>) => void;
+  renameFile: (entry: FileEntryType, name: string) => Promise<void>;
+  deleteFile: (entry: FileEntryType) => Promise<void>;
+  createFolder: (dirname: string, basename: string) => Promise<void>;
+  renameFolder: (entry: DirEntryType, name: string) => Promise<void>;
+  deleteFolder: (entry: DirEntryType) => Promise<void>;
+  openFolder: (entry: DirEntryType) => Promise<void>;
   closeFolder: (entry: DirEntryType) => void;
   toggleFolder: (entry: DirEntryType) => void;
   isFolderOpen: (entry: DirEntryType) => boolean;
-  createFolder: (dirname: string, basename: string) => void;
-  deleteFolder: (entry: DirEntryType) => void;
-  renameFolder: (entry: DirEntryType, name: string) => void;
-  openedFile: FileType | null;
-  updateFile: (file: FileType, attrs: Partial<FileType>) => void;
 }
 
 const FilesContext = createContext<FilesContextValue | undefined>(undefined);
@@ -202,19 +202,19 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
 
   const context: FilesContextValue = {
     fileTree: fileTreeRef.current,
+    openedFile,
     openFile,
+    createFile,
+    updateFile,
     renameFile,
     deleteFile,
-    openedFile,
+    createFolder,
+    renameFolder,
+    deleteFolder,
     openFolder,
     closeFolder,
     toggleFolder,
     isFolderOpen,
-    createFolder,
-    deleteFolder,
-    renameFolder,
-    createFile,
-    updateFile,
   };
 
   return <FilesContext.Provider value={context}>{children}</FilesContext.Provider>;

@@ -7,7 +7,8 @@ import * as React from 'react';
 import { aiEditApp } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
-import type { FileType, PlanItemType, DiffType, FileDiffType, PlanType } from './apps/types.js';
+import type { FileType, FileDiffType } from './apps/types.js';
+import { DiffStats } from './apps/diff-stats.js';
 
 type UserMessageType = {
   type: 'user';
@@ -22,7 +23,7 @@ type CommandMessageType = {
 
 type DiffMessageType = {
   type: 'diff';
-  diff: DiffType;
+  diff: FileDiffType[];
 };
 
 type PlanMessageType = {
@@ -34,24 +35,22 @@ type MessageType = UserMessageType | DiffMessageType | CommandMessageType | Plan
 
 type HistoryType = Array<MessageType>;
 
-type PropsType = {
-  app: AppType;
-};
-
 function Chat({
   history,
   isLoading,
   onClose,
   app,
-  diff,
+  fileDiffs,
   revertDiff,
+  openDiffModal,
 }: {
   history: HistoryType;
   isLoading: boolean;
   onClose: () => void;
   app: AppType;
-  diff: DiffType;
-  revertDiff: () => Promise<void>;
+  fileDiffs: FileDiffType[];
+  revertDiff: () => void;
+  openDiffModal: () => void;
 }) {
   return (
     <div className="rounded-xl bg-background w-[440px] border shadow-xl max-h-[75vh] overflow-y-hidden">
@@ -68,6 +67,7 @@ function Chat({
       </div>
       <ScrollArea className="max-h-[calc(75vh-40px)] overflow-y-auto p-2">
         <div className="flex flex-col gap-2">
+          {/* TODO: each message object needs a unique identifier */}
           {history.map((message: MessageType, index: number) => {
             if (message.type === 'user') {
               return (
@@ -77,13 +77,10 @@ function Chat({
               );
             } else if (message.type === 'command') {
               return (
-                <div className="text-sm space-y-1">
-                  <p className="">{message.description}</p>
+                <div className="text-sm space-y-1" key={index}>
+                  <p>{message.description}</p>
                   <div className="flex justify-between items-center gap-1">
-                    <p
-                      className="font-mono bg-inline-code rounded-md p-2 overflow-x-scroll whitespace-nowrap"
-                      key={index}
-                    >
+                    <p className="font-mono bg-inline-code rounded-md p-2 overflow-x-scroll whitespace-nowrap">
                       {message.command}
                     </p>
                     <Button onClick={() => alert('TODO: run command' + message.command)}>
@@ -93,16 +90,16 @@ function Chat({
                 </div>
               );
             } else if (message.type === 'plan') {
-              return <Markdown>{message.content}</Markdown>;
+              return <Markdown key={index}>{message.content}</Markdown>;
             } else if (message.type === 'diff') {
-              return <DiffBox diff={message.diff} app={app} />;
+              return <DiffBox key={index} files={message.diff} app={app} />;
             }
           })}
-          <div className={cn('flex gap-2 w-full', diff.length > 0 ? '' : 'hidden')}>
+          <div className={cn('flex gap-2 w-full', fileDiffs.length > 0 ? '' : 'hidden')}>
             <Button variant="ai-secondary" onClick={revertDiff} className="flex-1">
               Undo
             </Button>
-            <Button variant="ai" onClick={() => alert('TODO: view diff')} className="flex-1">
+            <Button variant="ai" onClick={openDiffModal} className="flex-1">
               Review changes
             </Button>
           </div>
@@ -128,19 +125,18 @@ function Query({
   isLoading: boolean;
 }) {
   const [query, setQuery] = React.useState('');
-  const first = false;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setQuery('');
-    await onSubmit(query);
+    onSubmit(query);
   };
 
   return (
     <div className="rounded-xl bg-background w-[440px] border px-2 py-1 hover:border-sb-purple-60 shadow-xl">
       <TextareaAutosize
         disabled={isLoading}
-        placeholder={first ? 'Ask anything or select ...' : 'Ask a follow up'}
+        placeholder="What do you want to change?"
         className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
         maxRows={20}
         onChange={(e) => setQuery(e.target.value)}
@@ -164,36 +160,34 @@ function Query({
   );
 }
 
-function DiffBox({ diff, app }: { diff: DiffType; app: AppType }) {
+function DiffBox({ files, app }: { files: FileDiffType[]; app: AppType }) {
   return (
-    <div className="px-2 py-1.5 rounded border overflow-y-auto bg-ai border border-ai-border text-ai-foreground">
+    <div className="px-2 py-1.5 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
       <div className="flex flex-col justify-between min-h-full gap-4">
         <div className="">{app.name}</div>
         <div>
-          {diff.map((item: FileDiffType) => {
-            return (
-              <div key={item.basename}>
-                <div className="flex justify-between text-sm font-mono">
-                  <p className="font-mono" key={item.basename}>
-                    {item.path}
-                  </p>
-                  <div className="flex gap-2">
-                    <p className="text-green-400">-{item.deletions}</p>
-                    <p className="text-red-400">+{item.additions}</p>
-                  </div>
-                </div>
+          {files.map((file) => (
+            <div key={file.path}>
+              <div className="flex justify-between text-sm font-mono">
+                <p className="font-mono">{file.path}</p>
+                <DiffStats additions={file.additions} deletions={file.deletions} />
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
+type PropsType = {
+  app: AppType;
+  triggerDiffModal: (props: { files: FileDiffType[]; onUndoAll: () => void } | null) => void;
+};
+
 export function ChatPanel(props: PropsType): React.JSX.Element {
   const [history, setHistory] = React.useState<HistoryType>([]);
-  const [diff, setDiff] = React.useState<DiffType>([]);
+  const [fileDiffs, setFileDiffs] = React.useState<FileDiffType[]>([]);
   const [isChatVisible, setIsChatVisible] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const { createFile, deleteFile } = useFiles();
@@ -203,28 +197,30 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     setHistory((prevHistory) => [...prevHistory, { type: 'user', message: query }]);
     setIsChatVisible(true);
 
-    const response = await aiEditApp(props.app.id, query);
+    const { data: plan } = await aiEditApp(props.app.id, query);
 
-    const plan = response.data as PlanType;
     setHistory((prevHistory) => [...prevHistory, { type: 'plan', content: plan.description }]);
-    if (response.data && Array.isArray(response.data)) {
-      response.data.forEach(async (fileUpdate: PlanItemType) => {
-        if (fileUpdate.type === 'file') {
-          await createFile(fileUpdate.dirname, fileUpdate.basename, fileUpdate.modified);
-        } else if (fileUpdate.type === 'command') {
-          setHistory((prevHistory) => [
-            ...prevHistory,
-            { type: 'command', command: fileUpdate.content, description: fileUpdate.description },
-          ]);
-        }
-      });
+
+    const fileUpdates = plan.actions.filter((item) => item.type === 'file');
+    const commandUpdates = plan.actions.filter((item) => item.type === 'command');
+
+    const historyEntries = commandUpdates.map((update) => {
+      const entry: CommandMessageType = {
+        type: 'command',
+        command: update.content,
+        description: update.description,
+      };
+      return entry;
+    });
+
+    setHistory((prevHistory) => prevHistory.concat(historyEntries));
+
+    for (const update of fileUpdates) {
+      createFile(update.dirname, update.basename, update.modified);
     }
 
-    const fileUpdates = plan.actions.filter((item: PlanItemType) => item.type === 'file');
-
     const fileDiffs = fileUpdates.map((file: FileType) => {
-      const { additions, deletions } = diffFiles(file.modified, file.original || '');
-
+      const { additions, deletions } = diffFiles(file.original ?? '', file.modified);
       return {
         modified: file.modified,
         original: file.original || '',
@@ -236,21 +232,25 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         type: file.original ? 'edit' : ('create' as 'edit' | 'create'),
       };
     });
+
     setHistory((prevHistory) => [...prevHistory, { type: 'diff', diff: fileDiffs }]);
-    setDiff(fileDiffs);
+    setFileDiffs(fileDiffs);
     setIsLoading(false);
   };
 
-  const revertDiff = async () => {
-    for (const file of diff) {
+  // TODO: this closes over state that might be stale.
+  // This probably needs to use a ref for file diffs to
+  // ensure the most recent state is always referenced.
+  const revertDiff = () => {
+    for (const file of fileDiffs) {
       if (file.original) {
-        await createFile(file.dirname, file.basename, file.original);
+        createFile(file.dirname, file.basename, file.original);
       } else {
         // TODO: this needs some testing, this shows the idea only
-        await deleteFile({ type: 'file', name: file.basename, path: file.path });
+        deleteFile({ type: 'file', name: file.basename, path: file.path });
       }
     }
-    setDiff([]);
+    setFileDiffs([]);
   };
 
   const handleClose = () => {
@@ -263,6 +263,16 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     }
   };
 
+  function openDiffModal() {
+    props.triggerDiffModal({
+      files: fileDiffs,
+      onUndoAll: () => {
+        revertDiff();
+        props.triggerDiffModal(null);
+      },
+    });
+  }
+
   return (
     <div className="fixed bottom-4 right-4 grid gap-1">
       {isChatVisible && (
@@ -272,7 +282,8 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
           onClose={handleClose}
           app={props.app}
           revertDiff={revertDiff}
-          diff={diff}
+          fileDiffs={fileDiffs}
+          openDiffModal={openDiffModal}
         />
       )}
       <Query onSubmit={handleSubmit} isLoading={isLoading} onFocus={handleFocus} />

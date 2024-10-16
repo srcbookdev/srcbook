@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 import { usePreview } from '../use-preview';
 import { useEffect } from 'react';
 import { Loader2Icon } from 'lucide-react';
+import { useLogs } from '../use-logs';
 
 type PropsType = {
   isActive?: boolean;
@@ -10,6 +11,7 @@ type PropsType = {
 
 export function Preview(props: PropsType) {
   const { url, status, start } = usePreview();
+  const { addError } = useLogs();
 
   const isActive = props.isActive ?? true;
 
@@ -34,6 +36,9 @@ export function Preview(props: PropsType) {
 
       return (
         <div className={cn('w-full h-full', props.className)}>
+          <div className="absolute">
+            <button onClick={() => addError("Example error!")}>Trigger</button>
+          </div>
           <iframe className="w-full h-full" src={url} title="App preview" />
         </div>
       );

@@ -5,10 +5,12 @@ import type { AppType, DirEntryType } from '@srcbook/shared';
 import { loadApp, loadDirectory } from '@/clients/http/apps';
 import Sidebar from '@/components/apps/sidebar';
 import { useEffect, useRef, useState } from 'react';
+import Statusbar from '@/components/apps/statusbar';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
+import { LogsProvider } from '@/components/apps/use-logs';
 import { ChatPanel } from '@/components/chat';
 import DiffModal from '@/components/apps/diff-modal';
 import { FileDiffType } from '@/components/apps/types';
@@ -58,7 +60,9 @@ export function AppsPage() {
       rootDirEntries={rootDirEntries}
     >
       <PreviewProvider channel={channelRef.current}>
-        <Apps app={app} />
+        <LogsProvider>
+          <Apps app={app} />
+        </LogsProvider>
       </PreviewProvider>
     </FilesProvider>
   );
@@ -82,8 +86,9 @@ function Apps(props: { app: AppType }) {
       />
       <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar />
-        <div className="w-full h-full">
+        <div className="w-full h-full flex flex-col">
           <Editor tab={tab} />
+          <Statusbar />
         </div>
         <ChatPanel app={props.app} triggerDiffModal={triggerDiffModal} />
       </div>

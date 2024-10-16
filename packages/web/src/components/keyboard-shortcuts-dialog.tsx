@@ -55,6 +55,8 @@ export default function KeyboardShortcutsDialog({
                     description="format code using Prettier"
                   />
                   <ShortcutRow keys={['alt', 'click']} description="go to definition" />
+                  <h5 className="font-semibold pt-6 pb-2">App Builder</h5>
+                  <ShortcutRow keys={['mod', 'shift', 'y']} description="toggle errors panel" />
                 </>
               ) : null}
             </div>

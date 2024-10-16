@@ -15,7 +15,7 @@ export function Editor(props: PropsType) {
   const { openedFile, updateFile } = useFiles();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full overflow-hidden">
       <EditorHeader
         app={props.app}
         tab={tab}
@@ -23,7 +23,7 @@ export function Editor(props: PropsType) {
         className="shrink-0 h-12 max-h-12"
       />
       {tab === 'code' ? (
-        <div className="p-3 w-full flex-1">
+        <div className="w-full h-full overflow-hidden">
           {openedFile ? (
             <CodeEditor
               path={openedFile.path}
@@ -38,13 +38,14 @@ export function Editor(props: PropsType) {
         </div>
       ) : null}
 
-      {/*
-      NOTE: applying hidden conditional like this keeps the iframe from getting mounted/unmounted
-      and causing a flash of unstyled content
-      */}
-      <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
-        <Preview />
+        <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
+          <Preview />
+          {/*
+          NOTE: applying hidden conditional like this keeps the iframe from getting mounted/unmounted
+          and causing a flash of unstyled content
+          */}
+        </div>
       </div>
-    </div>
+    
   );
 }

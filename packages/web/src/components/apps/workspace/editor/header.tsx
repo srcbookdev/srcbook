@@ -37,17 +37,17 @@ export default function EditorHeader(props: PropsType) {
           props.className,
         )}
       >
-        <nav className="flex items-center justify-between px-4 flex-1">
+        <nav className="flex items-center justify-between px-2 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="px-1.5 font-semibold">{props.app.name}</h3>
+            <h4 className="px-2 text-sm font-medium">{props.app.name}</h4>
           </div>
 
-          <div className="absolute left-1/2 -translate-x-1/2 flex bg-muted h-7 rounded-sm">
+          <div className="absolute left-1/2 -translate-x-1/2 flex bg-inline-code h-7 rounded-md">
             <button
               className={cn(
                 'flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm',
                 {
-                  'bg-foreground text-background rounded-sm border border-border':
+                  'bg-foreground text-background rounded-md border border-border':
                     props.tab === 'code',
                 },
               )}
@@ -60,7 +60,7 @@ export default function EditorHeader(props: PropsType) {
               className={cn(
                 'flex gap-2 justify-center items-center w-24 text-foreground rounded-l-sm',
                 {
-                  'bg-foreground text-background rounded-sm border border-border':
+                  'bg-foreground text-background rounded-md border border-border':
                     props.tab === 'preview',
                 },
               )}

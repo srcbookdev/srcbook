@@ -156,37 +156,37 @@
   .title {
     font-size: 3rem;
     line-height: 1;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .h1 {
     font-size: 2.25rem;
     line-height: 2.5rem;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .h2 {
     font-size: 2rem;
     line-height: 2.25rem;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .h3 {
     font-size: 1.75rem;
     line-height: 2.125rem;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .h4 {
     font-size: 1.5rem;
     line-height: 2rem;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .h5 {
     font-size: 1.125rem;
     line-height: 1.75rem;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .code {
@@ -495,6 +495,7 @@
 .cm-editor {
   @apply rounded-b;
   max-height: 80vh;
+  height: 100%;
 }
 
 .cm-editor.cm-focused {
@@ -511,6 +512,7 @@
   @apply px-1.5;
   padding-top: 1px;
   font-size: 12px;
+  min-width: 2rem;
 }
 
 .cm-editor .cm-gutters .cm-activeLineGutter {
@@ -519,6 +521,7 @@
 
 .cm-editor .cm-scroller {
   overflow: auto;
+  height: 100%;
 }
 
 .cm-editor .cm-gutters,

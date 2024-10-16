@@ -73,6 +73,7 @@ function Apps(props: { app: AppType }) {
   } | null>(null);
 
   return (
+
     <>
       {diffModalProps && <DiffModal {...diffModalProps} onClose={() => triggerDiffModal(null)} />}
       <div className="h-screen max-h-screen flex">

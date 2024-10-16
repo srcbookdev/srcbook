@@ -177,12 +177,12 @@ function Panel(props: {
   return (
     <div className="h-full flex flex-col bg-muted animate-in slide-in-from-left duration-75">
       <div className="flex items-center justify-between h-12 px-3">
-        <h4 className="font-semibold leading-none">{props.title}</h4>
+        <h4 className="px-2 text-sm font-medium leading-none">{props.title}</h4>
         <button
           className="p-2 text-tertiary-foreground hover:text-foreground hover:bg-sb-core-20 dark:hover:bg-sb-core-110 rounded-sm"
           onClick={props.onClose}
         >
-          <ChevronsLeftIcon size={18} />
+          <ChevronsLeftIcon size={14} />
         </button>
       </div>
       <div className="w-60 py-3 pr-1.5 flex-1 overflow-auto">{props.children}</div>

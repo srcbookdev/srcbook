@@ -20,7 +20,7 @@ export function Preview(props: PropsType) {
     if (isActive && status === 'stopped') {
       start();
     }
-  }, [isActive]);
+  }, [isActive, status, start]);
 
   switch (status) {
     case 'connecting':

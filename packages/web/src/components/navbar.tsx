@@ -102,7 +102,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
       <DeleteSrcbookModal open={showDelete} onOpenChange={setShowDelete} session={props.session} />
       <ExportSrcbookModal open={showSave} onOpenChange={setShowSave} session={props.session} />
 
-      <header className="h-12 w-full flex items-center justify-between fixed bg-background z-50 border-b border-border text-sm">
+      <header className="h-12 w-full flex items-center justify-between fixed bg-background z-50 border-b border-border text-sm font-medium">
         <nav className="flex items-center justify-between px-4 flex-1">
           <div className="flex items-center gap-2">
             <NavLink to="/">
@@ -120,7 +120,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="icon" className="font-normal px-1.5 active:translate-y-0">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 font-medium">
                       {props.title}
                       <ChevronDownIcon size={12} />
                     </div>
@@ -273,7 +273,7 @@ function SocialDiscordIcon() {
 
 export function Navbar() {
   return (
-    <header className="h-12 w-full flex items-center justify-between fixed bg-background z-50 border-b border-border text-sm">
+    <header className="h-12 w-full flex items-center justify-between fixed bg-background z-50 border-b border-border text-sm ">
       <nav className="flex items-center justify-between px-4 flex-1">
         <div className="flex items-center gap-6">
           <NavLink to="/">

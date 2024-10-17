@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import useTheme from '@srcbook/components/src/components/use-theme';
+
 import {
   ChevronsLeftIcon,
   FlagIcon,
@@ -21,7 +22,6 @@ import { cn } from '@/lib/utils';
 import ExplorerPanel from './panels/explorer';
 import SettingsPanel from './panels/settings';
 import { useFiles } from './use-files';
-import { useHeaderTab } from './use-header-tab';
 
 type PanelType = 'explorer' | 'settings';
 
@@ -44,25 +44,7 @@ export default function Sidebar() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [panel, _setPanel] = useState<PanelType | null>(openedFile === null ? 'explorer' : null);
 
-  // When the user changes to the preview, close the open side panel
-  // When the user goes back to the code, re-open the side panel if it was already opened
-  const { tab, switchTab } = useHeaderTab();
-  const [sidePanelPreviousValue, setSidePanelPreviousValue] = useState<PanelType | null>(null);
-  useEffect(() => {
-    if (tab === 'code' && sidePanelPreviousValue !== null) {
-      _setPanel(sidePanelPreviousValue);
-      setSidePanelPreviousValue(null);
-      return;
-    }
-
-    if (tab === 'preview' && panel !== null) {
-      setSidePanelPreviousValue(panel);
-      _setPanel(null);
-    }
-  }, [tab, panel, sidePanelPreviousValue]);
-
   function setPanel(nextPanel: PanelType) {
-    switchTab('code');
     _setPanel(nextPanel === panel ? null : nextPanel);
   }
 

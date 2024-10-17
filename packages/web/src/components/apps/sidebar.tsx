@@ -21,8 +21,6 @@ import { cn } from '@/lib/utils';
 import ExplorerPanel from './panels/explorer';
 import SettingsPanel from './panels/settings';
 import { useFiles } from './use-files';
-import { SrcbookLogo } from '../logos';
-import { Link } from 'react-router-dom';
 import { useHeaderTab } from './use-header-tab';
 
 type PanelType = 'explorer' | 'settings';
@@ -76,11 +74,6 @@ export default function Sidebar() {
       <div className="flex h-full border-r border-border">
         <div className="flex flex-col items-center justify-between w-12 h-full py-3 bg-muted z-10">
           <div className="flex flex-col items-center w-full gap-2">
-            <div className="flex items-start h-10">
-              <Link to="/" className="p-0.5" title="Home">
-                <SrcbookLogo size={20} />
-              </Link>
-            </div>
             <NavItemWithTooltip tooltipContent="Explorer" onClick={() => setPanel('explorer')}>
               <FolderTreeIcon
                 size={18}
@@ -186,7 +179,7 @@ function Panel(props: {
 
   return (
     <div className="h-full flex flex-col bg-muted animate-in slide-in-from-left duration-75">
-      <div className="flex items-center justify-between h-12 px-3">
+      <div className="flex items-center justify-between h-14 px-3 border-l">
         <h4 className="px-2 text-sm font-medium leading-none">{props.title}</h4>
         <button
           className="p-2 text-tertiary-foreground hover:text-foreground hover:bg-sb-core-20 dark:hover:bg-sb-core-110 rounded-sm"
@@ -195,7 +188,7 @@ function Panel(props: {
           <ChevronsLeftIcon size={14} />
         </button>
       </div>
-      <div className="w-60 py-3 pr-1.5 flex-1 overflow-auto">{props.children}</div>
+      <div className="w-[200px] border-l pr-1.5 flex-1 overflow-auto">{props.children}</div>
     </div>
   );
 }

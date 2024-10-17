@@ -9,9 +9,9 @@ import { LogMessage, useLogs } from './use-logs';
 function getLabelForError(error: LogMessage) {
   switch (error.type) {
     case 'vite_error':
-      return 'Error running vite preview server!';
+      return 'Error running vite preview server';
     case 'npm_install_error':
-      return 'Error running npm install!';
+      return 'Error running npm install';
   }
 }
 

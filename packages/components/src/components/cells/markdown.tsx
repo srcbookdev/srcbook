@@ -181,7 +181,7 @@ export default function MarkdownCell(props: MarkdownCellProps) {
               ) : null}
             </div>
           </div>
-          <div className="sb-prose px-3 pt-10 group-hover/cell:pt-0">
+          <div className="sb-prose p-3 group-hover/cell:pt-0">
             <Markdown renderer={markdownRenderer}>{cell.text}</Markdown>
           </div>
         </div>

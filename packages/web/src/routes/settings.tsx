@@ -86,19 +86,21 @@ function Settings() {
       <h4 className="h4 mx-auto mb-6">Settings</h4>
       <div className="space-y-10">
         <div>
-          <h2 className="text-xl pb-2">Theme</h2>
+          <h2 className="text-base font-medium">Theme</h2>
           <label className="opacity-70 text-sm" htmlFor="theme-switch">
             Select light or dark mode for the Srcbook app.
           </label>
-          <div className="flex items-center gap-2 mt-4">
+          <div className="flex items-center gap-2 mt-2">
             <Switch id="theme-switch" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-            <label htmlFor="theme-switch">Dark mode</label>
+            <label htmlFor="theme-switch">
+              <span className="text-sm font-medium">Dark mode</span>
+            </label>
           </div>
         </div>
 
         <div>
-          <h2 className="text-xl pb-2">Default Language</h2>
-          <label className="opacity-70 block pb-4 text-sm" htmlFor="language-selector">
+          <h2 className="text-base font-medium">Default Language</h2>
+          <label className="opacity-70 block pb-3 text-sm" htmlFor="language-selector">
             The default language to use when creating new Srcbooks.
           </label>
           <Select onValueChange={updateDefaultLanguage}>
@@ -115,9 +117,9 @@ function Settings() {
         </div>
 
         <div>
-          <h2 className="text-xl pb-2">AI</h2>
+          <h2 className="text-base font-medium">AI</h2>
           <div className="flex flex-col">
-            <label className="opacity-70 text-sm pb-4" htmlFor="ai-provider-selector">
+            <label className="opacity-70 text-sm pb-3" htmlFor="ai-provider-selector">
               Select your preferred LLM and enter your credentials to use Srcbook's AI features.
             </label>
             <div className="flex items-center justify-between w-full mb-2 min-h-10">
@@ -208,13 +210,13 @@ function Settings() {
         </div>
 
         <div>
-          <h2 className="text-xl pb-2">Get product updates</h2>
+          <h2 className="text-base font-medium">Get product updates</h2>
           <div>
             <label className="opacity-70 text-sm" htmlFor="mailing-list-email">
               Subscribe to our mailing list to get the latest updates, early access features, and
               expert tips delivered to your inbox.
             </label>
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-3">
               <Input
                 id="mailing-list-email"
                 type="text"

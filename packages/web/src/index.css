@@ -154,39 +154,45 @@
 
 @layer components {
   .title {
-    font-size: 3rem;
+    font-size: 2rem;
     line-height: 1;
     font-weight: 500;
   }
 
   .h1 {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
+    font-size: 1.875rem;
+    line-height: 2.375rem;
     font-weight: 500;
   }
 
   .h2 {
-    font-size: 2rem;
-    line-height: 2.25rem;
-    font-weight: 500;
-  }
-
-  .h3 {
-    font-size: 1.75rem;
-    line-height: 2.125rem;
-    font-weight: 500;
-  }
-
-  .h4 {
     font-size: 1.5rem;
     line-height: 2rem;
     font-weight: 500;
   }
 
-  .h5 {
+  .h3 {
+    font-size: 1.25rem;
+    line-height: 1.875rem;
+    font-weight: 500;
+  }
+
+  .h4 {
     font-size: 1.125rem;
     line-height: 1.75rem;
     font-weight: 500;
+  }
+
+  .h5 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 500;
+  }
+
+  .p {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 300;
   }
 
   .code {
@@ -219,7 +225,7 @@
 
 .sb-prose {
   @apply font-sans;
-  @apply text-lg;
+  @apply text-base;
   @apply leading-7;
 }
 
@@ -373,7 +379,7 @@
 }
 
 .sb-prose-mini a {
-  font-weight: bold;
+  font-weight: 50;
   @apply underline;
   @apply decoration-1;
   @apply underline-offset-1;

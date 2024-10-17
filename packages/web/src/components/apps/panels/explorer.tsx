@@ -20,7 +20,7 @@ export default function ExplorerPanel() {
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <ul className="w-full h-full text-sm text-tertiary-foreground overflow-auto">
+        <ul className="w-full h-full text-sm font-medium text-tertiary-foreground overflow-auto">
           <FileTree
             depth={1}
             tree={fileTree}

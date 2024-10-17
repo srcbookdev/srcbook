@@ -65,7 +65,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
       <DialogContent className={cn('flex flex-col transition-height w-[800px]')}>
         <DialogHeader>
           <DialogTitle>Create application</DialogTitle>
-          <DialogDescription className="text-base">
+          <DialogDescription className="text-sm">
             Create a web app powered by React, Vite and Tailwind.
           </DialogDescription>
 
@@ -83,7 +83,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
         </DialogHeader>
         <form name="app" onSubmit={onSubmit} className="flex flex-col gap-6">
           <div className="space-y-1">
-            <label htmlFor="name" className="text-sm text-tertiary-foreground">
+            <label htmlFor="name" className="text-sm font-medium text-tertiary-foreground">
               App name
             </label>
             <Input
@@ -101,9 +101,9 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
             <div className="flex justify-between items-center">
               <label
                 htmlFor="name"
-                className="text-sm text-tertiary-foreground flex items-center gap-1.5"
+                className="text-sm text-tertiary-foreground font-medium flex items-center gap-1.5"
               >
-                What are you building? <Sparkles size={16} />
+                What are you building? <Sparkles size={14} />
               </label>
               <TooltipProvider>
                 <Tooltip>

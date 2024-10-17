@@ -2,7 +2,7 @@ import { Button, cn, ScrollArea } from '@srcbook/components';
 import { Markdown } from '../components/markdown';
 import { diffFiles } from './apps/lib/diff.js';
 import TextareaAutosize from 'react-textarea-autosize';
-import { ArrowUp, X, Paperclip, History, LoaderCircle } from 'lucide-react';
+import { ArrowUp, X, Paperclip, History, LoaderCircle, ViewIcon, Undo2Icon } from 'lucide-react';
 import * as React from 'react';
 import { aiEditApp } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
@@ -97,11 +97,21 @@ function Chat({
             }
           })}
           <div className={cn('flex gap-2 w-full', fileDiffs.length > 0 ? '' : 'hidden')}>
-            <Button variant="ai-secondary" onClick={revertDiff} className="flex-1">
-              Undo
+            <Button
+              variant="ai-secondary"
+              onClick={revertDiff}
+              className="flex-1 flex items-center gap-1.5"
+            >
+              <Undo2Icon size={16} />
+              <span>Undo</span>
             </Button>
-            <Button variant="ai" onClick={openDiffModal} className="flex-1">
-              Review changes
+            <Button
+              variant="ai"
+              onClick={openDiffModal}
+              className="flex-1 flex items-center gap-1.5"
+            >
+              <ViewIcon size={16} />
+              <span>Review changes</span>
             </Button>
           </div>
           {isLoading && (

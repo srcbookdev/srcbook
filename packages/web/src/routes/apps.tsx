@@ -86,7 +86,7 @@ function Apps(props: { app: AppType }) {
       />
       <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar />
-        <div className="w-full h-full flex flex-col">
+        <div className="grow shrink h-full flex flex-col w-0">
           <Editor tab={tab} />
           <Statusbar />
         </div>

@@ -25,7 +25,7 @@ function CollapsibleErrorMessage({ error }: CollapsibleErrorMessageProps) {
     <>
       <button
         className={cn(
-          'flex items-center gap-2 font-mono p-2 first:border-t focus-visible:outline-none ring-inset focus-visible:ring-1 focus-visible:ring-ring',
+          'flex items-center gap-2 font-mono p-2 border-b first:border-b-0 focus-visible:outline-none ring-inset focus-visible:ring-1 focus-visible:ring-ring',
           {
             'border-b': !open,
           },
@@ -56,7 +56,7 @@ export default function Statusbar() {
 
   return (
     <>
-      <div className="flex items-center justify-between h-8 border-t px-2">
+      <div className="flex items-center justify-between h-8 border-t border-b px-2 w-full">
         <Button
           size="sm"
           variant={open ? 'default' : 'icon'}
@@ -86,7 +86,7 @@ export default function Statusbar() {
       </div>
 
       <div
-        className={cn('flex flex-col overflow-auto cursor-text', 'h-0', { 'h-[320px]': open })}
+        className={cn('flex flex-col w-full overflow-auto cursor-text', 'h-0', { 'h-[320px]': open })}
         style={{ transition: 'all 100ms ease-in-out' }}
       >
         {logs.map((error) => (

@@ -281,7 +281,12 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         createFile(file.dirname, file.basename, file.original);
       } else {
         // TODO: this needs some testing, this shows the idea only
-        deleteFile({ type: 'file', name: file.basename, path: file.path });
+        deleteFile({
+          type: 'file',
+          path: file.path,
+          dirname: file.dirname,
+          basename: file.basename,
+        });
       }
     }
     setFileDiffs([]);

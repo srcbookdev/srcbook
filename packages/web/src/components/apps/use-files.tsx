@@ -109,7 +109,7 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
       const { data: newEntry } = await doRenameFile(app.id, entry.path, name);
       setOpenedFile((openedFile) => {
         if (openedFile && openedFile.path === entry.path) {
-          return { ...openedFile, path: newEntry.path, name: newEntry.name };
+          return { ...openedFile, path: newEntry.path, name: newEntry.basename };
         }
         return openedFile;
       });

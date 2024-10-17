@@ -1,7 +1,5 @@
 import type { DirEntryType, FileEntryType, FsEntryTreeType } from '@srcbook/shared';
 
-import { dirname } from './path';
-
 /**
  * Sorts a file tree (in place) by name. Folders come first, then files.
  */
@@ -11,7 +9,7 @@ export function sortTree(tree: DirEntryType): DirEntryType {
     if (b.type === 'directory') sortTree(b);
     if (a.type === 'directory' && b.type === 'file') return -1;
     if (a.type === 'file' && b.type === 'directory') return 1;
-    return a.name.localeCompare(b.name);
+    return a.basename.localeCompare(b.basename);
   });
 
   return tree;
@@ -204,19 +202,15 @@ export function deleteNode(tree: DirEntryType, path: string): DirEntryType {
  * Create a new node in the file tree.
  */
 export function createNode(tree: DirEntryType, node: DirEntryType | FileEntryType): DirEntryType {
-  return sortTree(doCreateNode(tree, node, dirname(node.path)));
+  return sortTree(doCreateNode(tree, node));
 }
 
-function doCreateNode(
-  tree: DirEntryType,
-  node: DirEntryType | FileEntryType,
-  dirname: string,
-): DirEntryType {
+function doCreateNode(tree: DirEntryType, node: DirEntryType | FileEntryType): DirEntryType {
   if (tree.children === null) {
     return tree;
   }
 
-  if (tree.path === dirname) {
+  if (tree.path === node.dirname) {
     // To avoid duplicate entries in the tree, ensure that we 'upsert' here.
     const children = tree.children.map((entry) => {
       return entry.path === node.path ? node : entry;
@@ -227,7 +221,7 @@ function doCreateNode(
 
   const children = tree.children.map((entry) => {
     if (entry.type === 'directory') {
-      return doCreateNode(entry, node, dirname);
+      return doCreateNode(entry, node);
     } else {
       return entry;
     }

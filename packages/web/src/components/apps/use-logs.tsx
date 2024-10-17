@@ -50,10 +50,10 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
   // If vite crashes, then create an error log
   useEffect(() => {
     function onViteError(payload: PreviewStatusPayloadType) {
-      if (payload.status !== 'stopped' || payload.ok) {
+      if (payload.status !== 'stopped' || payload.stoppedSuccessfully) {
         return;
       }
-      addError({ type: 'vite_error', contents: payload.contents ?? '' });
+      addError({ type: 'vite_error', contents: payload.logs ?? '' });
     }
 
     channel.on('preview:status', onViteError);

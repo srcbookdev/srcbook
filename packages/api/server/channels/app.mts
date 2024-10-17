@@ -93,8 +93,8 @@ async function previewStart(
       conn.reply(`app:${app.externalId}`, 'preview:status', {
         url: null,
         status: 'stopped',
-        ok: code === 0,
-        contents: code !== 0 ? bufferedLogs.join('\n') : null,
+        stoppedSuccessfully: code === 0,
+        logs: code !== 0 ? bufferedLogs.join('\n') : null,
       });
     },
   });
@@ -119,14 +119,14 @@ async function previewStop(
     conn.reply(`app:${app.externalId}`, 'preview:status', {
       url: null,
       status: 'stopped',
-      ok: true,
+      stoppedSuccessfully: true,
     });
     return;
   }
 
   result.process.kill('SIGTERM');
 
-  conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped', ok: true });
+  conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped', stoppedSuccessfully: true });
 }
 
 async function onFileUpdated(payload: FileUpdatedPayloadType, context: AppContextType) {
@@ -161,7 +161,7 @@ export function register(wss: WebSocketServer) {
           'preview:status',
           existingProcess
             ? { status: 'running', url: `http://localhost:${existingProcess.port}/` }
-            : { url: null, status: 'stopped', ok: true },
+            : { url: null, status: 'stopped', stoppedSuccessfully: true },
         ]),
       );
     });

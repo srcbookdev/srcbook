@@ -13,7 +13,7 @@ import { PreviewProvider } from '@/components/apps/use-preview';
 import { LogsProvider } from '@/components/apps/use-logs';
 import { ChatPanel } from '@/components/chat';
 import DiffModal from '@/components/apps/diff-modal';
-import { FileDiffType } from '@/components/apps/types';
+import { FileDiffType } from '@srcbook/shared';
 import EditorHeader, { EditorHeaderTab } from '../components/apps/workspace/editor/header';
 
 async function loader({ params }: LoaderFunctionArgs) {

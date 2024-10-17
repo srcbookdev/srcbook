@@ -1,6 +1,7 @@
 import type { AppType, DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
 import SRCBOOK_CONFIG from '@/config';
-import type { HistoryType, MessageType, PlanType } from '@/components/apps/types';
+import type { PlanType } from '@/components/apps/types';
+import type { HistoryType, MessageType } from '@srcbook/shared';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
 

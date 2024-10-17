@@ -1,5 +1,6 @@
 import { eq, and, inArray } from 'drizzle-orm';
 import { type SecretWithAssociatedSessions, randomid } from '@srcbook/shared';
+import { MessageType, HistoryType } from '@srcbook/shared';
 import {
   configs,
   type Config,
@@ -51,41 +52,6 @@ export async function updateConfig(attrs: Partial<Config>) {
   return db.update(configs).set(attrs).returning();
 }
 
-// TODO: put this in shared
-export type FileDiffType = {
-  modified: string;
-  original: string | null;
-  basename: string;
-  dirname: string;
-  path: string;
-  additions: number; // lines added
-  deletions: number; // lines deleted
-  type: 'edit' | 'create' | 'delete';
-};
-export type UserMessageType = {
-  type: 'user';
-  message: string;
-};
-
-export type CommandMessageType = {
-  type: 'command';
-  command: string;
-  description: string;
-};
-
-export type DiffMessageType = {
-  type: 'diff';
-  diff: FileDiffType[];
-};
-
-export type PlanMessageType = {
-  type: 'plan';
-  content: string;
-};
-
-export type MessageType = UserMessageType | DiffMessageType | CommandMessageType | PlanMessageType;
-
-export type HistoryType = Array<MessageType>;
 export async function getHistory(appId: string): Promise<HistoryType> {
   const results = await db.select().from(apps).where(eq(apps.externalId, appId)).limit(1);
   const history = results[0]!.history;

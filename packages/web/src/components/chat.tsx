@@ -7,8 +7,8 @@ import * as React from 'react';
 import { aiEditApp, loadHistory, appendToHistory } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
+import { type FileType } from './apps/types';
 import type {
-  FileType,
   FileDiffType,
   UserMessageType,
   MessageType,
@@ -16,7 +16,7 @@ import type {
   CommandMessageType,
   PlanMessageType,
   DiffMessageType,
-} from './apps/types.js';
+} from '@srcbook/shared';
 import { DiffStats } from './apps/diff-stats.js';
 
 function Chat({

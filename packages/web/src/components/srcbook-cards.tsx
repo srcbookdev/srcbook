@@ -118,7 +118,7 @@ export function CardContainer({
         className,
       )}
     >
-      <div className="px-5 py-4 h-full flex flex-col justify-between">{children}</div>
+      <div className="px-4 py-3 h-full flex flex-col justify-between">{children}</div>
     </div>
   );
 }
@@ -146,8 +146,8 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
         props.running ? 'border-run' : 'hover:border-foreground',
       )}
     >
-      <h5 className="font-semibold leading-[18px] line-clamp-2">{props.title}</h5>
-      <div className="flex items-center justify-between text-tertiary-foreground">
+      <h5 className="font-medium leading-[18px] line-clamp-2">{props.title}</h5>
+      <div className="flex align-bottom items-center justify-between text-tertiary-foreground">
         <div className="text-[13px] flex items-center gap-2">
           {props.running ? (
             <>
@@ -194,7 +194,7 @@ export function AppCard(props: AppCardPropsType) {
     >
       <span className="flex items-center">
         <LayoutGrid size={20} className="mr-2 text-sb-purple-60" />
-        <h5 className="font-semibold leading-[18px] line-clamp-2">{props.name}</h5>
+        <h5 className="font-medium leading-[18px] line-clamp-2">{props.name}</h5>
       </span>
       <div className="flex justify-end">
         <code className="font-mono group-hover:hidden text-tertiary-foreground">TS</code>

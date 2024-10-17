@@ -19,7 +19,7 @@ export default function ExplorerPanel() {
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <ul className="w-full h-full text-sm text-tertiary-foreground overflow-auto">
+        <ul className="w-full h-full text-sm font-medium text-tertiary-foreground overflow-auto">
           <FileTree
             depth={1}
             tree={fileTree}
@@ -374,7 +374,7 @@ function Node(props: {
       style={{ paddingLeft: `${depth * 12}px` }}
       title={label}
     >
-      {icon} <span className="truncate">{label}</span>
+      {icon} <span className="truncate font-light">{label}</span>
     </button>
   );
 }

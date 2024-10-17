@@ -57,7 +57,7 @@ function Secrets() {
         are available in code cells via <code className="code">process.env.SECRET_NAME</code>.
       </p>
 
-      <div className="mt-12 space-y-6">
+      <div className="mt-8 space-y-3">
         <NewSecretForm setError={setError} />
         {error && <ErrorMessage message={error} />}
         <SecretsTable secrets={secrets} setError={setError} />
@@ -109,9 +109,9 @@ function SecretsTable(props: {
         <table className="w-full space-y-2">
           <thead>
             <tr className="text-sm text-tertiary-foreground">
-              <th className="h-10 pl-3 text-left align-middle">Name</th>
-              <th className="h-10 pl-3 text-left align-middle">Value</th>
-              <th className="h-10 pl-3 text-right align-middle w-[52px]"></th>
+              <th className="h-10 pl-3 text-left font-medium align-middle">Name</th>
+              <th className="h-10 pl-3 text-left font-medium align-middle">Value</th>
+              <th className="h-10 pl-3 text-rightfont-medium align-middle w-[52px]"></th>
             </tr>
           </thead>
           <tbody>

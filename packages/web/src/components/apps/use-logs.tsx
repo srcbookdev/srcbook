@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { AppChannel } from '@/clients/websocket';
 import { PreviewStatusPayloadType } from '@srcbook/shared';
@@ -37,10 +37,10 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
     setUnreadLogsCount(0);
   }
 
-  function addError(error: Omit<LogMessage, 'timestamp'>) {
+  const addError = useCallback((error: Omit<LogMessage, 'timestamp'>) => {
     setLogs((logs) => [{ ...error, timestamp: new Date() }, ...logs]);
     setUnreadLogsCount((n) => n + 1);
-  }
+  }, []);
 
   function togglePane() {
     setOpen((n) => !n);

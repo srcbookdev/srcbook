@@ -11,6 +11,7 @@ import { FilesProvider } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
 import { LogsProvider } from '@/components/apps/use-logs';
+import { PackageJsonProvider } from '@/components/apps/use-package-json';
 import { ChatPanel } from '@/components/chat';
 import DiffModal from '@/components/apps/diff-modal';
 import { FileDiffType } from '@/components/apps/types';
@@ -61,7 +62,9 @@ export function AppsPage() {
     >
       <PreviewProvider channel={channelRef.current}>
         <LogsProvider channel={channelRef.current}>
-          <Apps app={app} />
+          <PackageJsonProvider channel={channelRef.current}>
+            <Apps app={app} />
+          </PackageJsonProvider>
         </LogsProvider>
       </PreviewProvider>
     </FilesProvider>

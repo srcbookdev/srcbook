@@ -179,3 +179,19 @@ export const PreviewStatusPayloadSchema = z.union([
 
 export const PreviewStartPayloadSchema = z.object({});
 export const PreviewStopPayloadSchema = z.object({});
+
+export const DependenciesInstallPayloadSchema = z.object({
+  packages: z.array(z.string()).nullish(),
+});
+
+export const DependenciesInstallLogPayloadSchema = z.object({
+  log: z.union([
+    z.object({ type: z.literal('stdout'), data: z.string() }),
+    z.object({ type: z.literal('stderr'), data: z.string() }),
+  ]),
+});
+
+export const DependenciesInstallStatusPayloadSchema = z.object({
+  status: z.enum(['complete', 'failed']),
+  code: z.number().int(),
+});

@@ -170,7 +170,7 @@ function Panel(props: {
           <ChevronsLeftIcon size={14} />
         </button>
       </div>
-      <div className="w-[200px] border-l pr-1.5 flex-1 overflow-auto">{props.children}</div>
+      <div className="min-w-[200px] border-l pr-1.5 flex-1 overflow-auto">{props.children}</div>
     </div>
   );
 }

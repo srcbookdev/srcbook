@@ -35,6 +35,9 @@ import {
   PreviewStatusPayloadSchema,
   PreviewStartPayloadSchema,
   PreviewStopPayloadSchema,
+  DependenciesInstallPayloadSchema,
+  DependenciesInstallLogPayloadSchema,
+  DependenciesInstallStatusPayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -94,6 +97,8 @@ export class SessionChannel extends Channel<
 const IncomingAppEvents = {
   file: FilePayloadSchema,
   'preview:status': PreviewStatusPayloadSchema,
+  'dependencies:install:log': DependenciesInstallLogPayloadSchema,
+  'dependencies:install:status': DependenciesInstallStatusPayloadSchema,
 };
 
 const OutgoingAppEvents = {
@@ -103,6 +108,7 @@ const OutgoingAppEvents = {
   'file:deleted': FileDeletedPayloadSchema,
   'preview:start': PreviewStartPayloadSchema,
   'preview:stop': PreviewStopPayloadSchema,
+  'dependencies:install': DependenciesInstallPayloadSchema,
 };
 
 export class AppChannel extends Channel<typeof IncomingAppEvents, typeof OutgoingAppEvents> {

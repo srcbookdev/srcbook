@@ -1,27 +1,15 @@
 import { useFiles } from '../../use-files';
-import { AppType } from '@srcbook/shared';
-import EditorHeader from './header';
 import { Preview } from '../preview';
 import { useHeaderTab } from '../../use-header-tab';
 import { cn } from '@/lib/utils.ts';
 import { CodeEditor } from '../../editor';
 
-type PropsType = {
-  app: AppType;
-};
-
-export function Editor(props: PropsType) {
-  const { tab, switchTab } = useHeaderTab();
+export function Editor() {
+  const { tab } = useHeaderTab();
   const { openedFile, updateFile } = useFiles();
 
   return (
     <div className="flex flex-col w-full overflow-hidden">
-      <EditorHeader
-        app={props.app}
-        tab={tab}
-        onChangeTab={switchTab}
-        className="shrink-0 h-12 max-h-12"
-      />
       {tab === 'code' ? (
         <div className="w-full h-full overflow-hidden">
           {openedFile ? (

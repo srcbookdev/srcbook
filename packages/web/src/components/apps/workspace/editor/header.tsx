@@ -6,6 +6,8 @@ import {
   PlayCircleIcon,
   Code2Icon,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { SrcbookLogo } from '@/components/logos';
 import type { AppType } from '@srcbook/shared';
 
 import { Button } from '@srcbook/components/src/components/ui/button';
@@ -37,6 +39,9 @@ export default function EditorHeader(props: PropsType) {
           props.className,
         )}
       >
+        <Link to="/" className="px-4" title="Home">
+          <SrcbookLogo size={20} />
+        </Link>
         <nav className="flex items-center justify-between px-2 flex-1">
           <div className="flex items-center gap-2">
             <h4 className="px-2 text-sm font-medium">{props.app.name}</h4>

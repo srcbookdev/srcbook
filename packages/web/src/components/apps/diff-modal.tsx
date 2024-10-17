@@ -7,7 +7,7 @@ import {
   DialogDescription,
 } from '@srcbook/components/src/components/ui/dialog';
 import { Undo2Icon, XIcon } from 'lucide-react';
-import type { FileDiffType } from './types';
+import type { FileDiffType } from '@srcbook/shared';
 import { DiffSquares, DiffStats } from './diff-stats';
 import { DiffEditor } from './editor';
 

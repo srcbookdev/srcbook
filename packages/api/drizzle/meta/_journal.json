@@ -85,6 +85,13 @@
       "when": 1729112512747,
       "tag": "0011_remove_language_from_apps",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1729193497907,
+      "tag": "0012_add_app_history",
+      "breakpoints": true
     }
   ]
 }

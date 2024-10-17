@@ -20,6 +20,8 @@ import {
   updateConfig,
   getSecrets,
   addSecret,
+  getHistory,
+  appendToHistory,
   removeSecret,
   associateSecretWithSession,
   disassociateSecretWithSession,
@@ -693,3 +695,17 @@ router.post('/apps/:id/files/rename', cors(), async (req, res) => {
 app.use('/api', router);
 
 export default app;
+
+router.options('/apps/:id/history', cors());
+router.get('/apps/:id/history', cors(), async (req, res) => {
+  const { id } = req.params;
+  const history = await getHistory(id);
+  return res.json({ data: history });
+});
+
+router.post('/apps/:id/history', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { messages } = req.body;
+  await appendToHistory(id, messages);
+  return res.json({ data: { success: true } });
+});

@@ -1,6 +1,14 @@
 import { eq, and, inArray } from 'drizzle-orm';
 import { type SecretWithAssociatedSessions, randomid } from '@srcbook/shared';
-import { configs, type Config, secrets, type Secret, secretsToSession } from './db/schema.mjs';
+import { MessageType, HistoryType } from '@srcbook/shared';
+import {
+  configs,
+  type Config,
+  secrets,
+  type Secret,
+  secretsToSession,
+  apps,
+} from './db/schema.mjs';
 import { db } from './db/index.mjs';
 import { HOME_DIR } from './constants.mjs';
 
@@ -42,6 +50,25 @@ export async function getConfig(): Promise<Config> {
 
 export async function updateConfig(attrs: Partial<Config>) {
   return db.update(configs).set(attrs).returning();
+}
+
+export async function getHistory(appId: string): Promise<HistoryType> {
+  const results = await db.select().from(apps).where(eq(apps.externalId, appId)).limit(1);
+  const history = results[0]!.history;
+  return JSON.parse(history);
+}
+
+export async function appendToHistory(appId: string, messages: MessageType | MessageType[]) {
+  const results = await db.select().from(apps).where(eq(apps.externalId, appId)).limit(1);
+  const history = results[0]!.history;
+  const decodedHistory = JSON.parse(history);
+  const newHistory = Array.isArray(messages)
+    ? [...decodedHistory, ...messages]
+    : [...decodedHistory, messages];
+  await db
+    .update(apps)
+    .set({ history: JSON.stringify(newHistory) })
+    .where(eq(apps.externalId, appId));
 }
 
 export async function getSecrets(): Promise<Array<SecretWithAssociatedSessions>> {

@@ -1,6 +1,7 @@
 import type { AppType, DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
 import SRCBOOK_CONFIG from '@/config';
 import type { PlanType } from '@/components/apps/types';
+import type { HistoryType, MessageType } from '@srcbook/shared';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
 
@@ -220,5 +221,28 @@ export async function aiEditApp(id: string, query: string): Promise<{ data: Plan
     throw new Error('Request failed');
   }
 
+  return response.json();
+}
+
+export async function loadHistory(id: string): Promise<{ data: HistoryType }> {
+  const response = await fetch(API_BASE_URL + `/apps/${id}/history`, {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
+export async function appendToHistory(id: string, messages: MessageType | MessageType[]) {
+  const response = await fetch(API_BASE_URL + `/apps/${id}/history`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ messages }),
+  });
   return response.json();
 }

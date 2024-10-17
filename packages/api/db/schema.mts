@@ -49,6 +49,8 @@ export const apps = sqliteTable('apps', {
   id: integer('id').primaryKey(),
   name: text('name').notNull(),
   externalId: text('external_id').notNull().unique(),
+  history: text('history').notNull().default('[]'), // JSON encoded value of the history
+  historyVersion: integer('history_version').notNull().default(1), // internal versioning of history type for migrations
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),

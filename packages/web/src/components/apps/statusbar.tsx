@@ -25,9 +25,9 @@ function CollapsibleErrorMessage({ error }: CollapsibleErrorMessageProps) {
     <>
       <button
         className={cn(
-          'flex items-center gap-2 font-mono p-2 first:border-t first:border-t-border focus-visible:outline-none ring-inset focus-visible:ring-1 focus-visible:ring-ring',
+          'flex items-center gap-2 font-mono p-2 first:border-t focus-visible:outline-none ring-inset focus-visible:ring-1 focus-visible:ring-ring',
           {
-            'border-b border-b-border': !open,
+            'border-b': !open,
           },
         )}
         onClick={() => setOpen((n) => !n)}
@@ -56,7 +56,7 @@ export default function Statusbar() {
 
   return (
     <>
-      <div className="flex items-center justify-between h-8 border-t border-t-border px-2">
+      <div className="flex items-center justify-between h-8 border-t px-2">
         <Button
           size="sm"
           variant={open ? 'default' : 'icon'}

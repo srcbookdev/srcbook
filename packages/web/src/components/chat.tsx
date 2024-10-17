@@ -2,7 +2,16 @@ import { Button, cn, ScrollArea } from '@srcbook/components';
 import Markdown from './apps/markdown.js';
 import { diffFiles } from './apps/lib/diff.js';
 import TextareaAutosize from 'react-textarea-autosize';
-import { ArrowUp, X, Paperclip, History, LoaderCircle, ViewIcon, Undo2Icon } from 'lucide-react';
+import {
+  ArrowUp,
+  X,
+  Paperclip,
+  History,
+  LoaderCircle,
+  ViewIcon,
+  Undo2Icon,
+  Redo2Icon,
+} from 'lucide-react';
 import * as React from 'react';
 import { aiEditApp, loadHistory, appendToHistory } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
@@ -25,7 +34,9 @@ function Chat({
   onClose,
   app,
   fileDiffs,
+  diffApplied,
   revertDiff,
+  reApplyDiff,
   openDiffModal,
 }: {
   history: HistoryType;
@@ -33,7 +44,9 @@ function Chat({
   onClose: () => void;
   app: AppType;
   fileDiffs: FileDiffType[];
+  diffApplied: boolean;
   revertDiff: () => void;
+  reApplyDiff: () => void;
   openDiffModal: () => void;
 }) {
   return (
@@ -82,11 +95,11 @@ function Chat({
           <div className={cn('flex gap-2 w-full', fileDiffs.length > 0 ? '' : 'hidden')}>
             <Button
               variant="ai-secondary"
-              onClick={revertDiff}
+              onClick={diffApplied ? revertDiff : reApplyDiff}
               className="flex-1 flex items-center gap-1.5"
             >
-              <Undo2Icon size={16} />
-              <span>Undo</span>
+              {diffApplied ? <Undo2Icon size={16} /> : <Redo2Icon size={16} />}
+              <span>{diffApplied ? 'Undo' : 'Re-apply'}</span>
             </Button>
             <Button
               variant="ai"
@@ -199,6 +212,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   const [fileDiffs, setFileDiffs] = React.useState<FileDiffType[]>([]);
   const [visible, setVisible] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [diffApplied, setDiffApplied] = React.useState(false);
   const { createFile, deleteFile } = useFiles();
 
   // Initialize history from the DB
@@ -261,6 +275,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     appendToHistory(props.app.id, diffMessage);
 
     setFileDiffs(fileDiffs);
+    setDiffApplied(true);
     setIsLoading(false);
   };
 
@@ -281,7 +296,14 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         });
       }
     }
-    setFileDiffs([]);
+    setDiffApplied(false);
+  };
+
+  const reApplyDiff = () => {
+    for (const file of fileDiffs) {
+      createFile(file.dirname, file.basename, file.modified);
+    }
+    setDiffApplied(true);
   };
 
   const handleClose = () => {
@@ -312,6 +334,8 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
           isLoading={isLoading}
           onClose={handleClose}
           app={props.app}
+          diffApplied={diffApplied}
+          reApplyDiff={reApplyDiff}
           revertDiff={revertDiff}
           fileDiffs={fileDiffs}
           openDiffModal={openDiffModal}

@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@srcbook/components/src/components/ui/dialog';
-import { Undo2Icon, XIcon } from 'lucide-react';
+import { Undo2Icon } from 'lucide-react';
 import type { FileDiffType } from '@srcbook/shared';
 import { DiffSquares, DiffStats } from './diff-stats';
 import { DiffEditor } from './editor';
@@ -33,7 +33,7 @@ export default function DiffModal({ files, onClose, onUndoAll }: PropsType) {
       >
         {/* Got browser console warnings without this */}
         <DialogDescription className="sr-only">View diff of files changed</DialogDescription>
-        <DiffModalHeader onClose={onClose} onUndoAll={onUndoAll} />
+        <DiffModalHeader numFiles={files.length} onClose={onClose} onUndoAll={onUndoAll} />
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
           {files.map((file) => (
             <FileDiff key={file.path} file={file} />
@@ -44,21 +44,26 @@ export default function DiffModal({ files, onClose, onUndoAll }: PropsType) {
   );
 }
 
-function DiffModalHeader({ onClose, onUndoAll }: { onClose: () => void; onUndoAll: () => void }) {
+function DiffModalHeader({
+  numFiles,
+  onClose,
+  onUndoAll,
+}: {
+  numFiles: number;
+  onClose: () => void;
+  onUndoAll: () => void;
+}) {
   return (
     <div className="h-12 px-4 flex items-center justify-between border-b border-border">
       <div>
-        <DialogTitle className="font-semibold">Files changed</DialogTitle>
+        <DialogTitle className="font-semibold">{`${numFiles} files changed`}</DialogTitle>
       </div>
       <div className="flex items-center space-x-3">
         <Button variant="secondary" className="flex items-center space-x-1.5" onClick={onUndoAll}>
           <Undo2Icon size={16} />
           <span>Undo all</span>
         </Button>
-        <Button variant="icon" className="h-8 w-8 p-1.5 border-none" onClick={onClose}>
-          <XIcon size={16} />
-          <span className="sr-only">Close</span>
-        </Button>
+        <Button onClick={onClose}>Done</Button>
       </div>
     </div>
   );

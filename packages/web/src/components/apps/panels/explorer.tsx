@@ -189,8 +189,9 @@ function FileTree(props: {
         <EditNameNode
           depth={depth}
           name={newEntry.basename}
-          onSubmit={(name) => {
-            createFile(tree.path, name);
+          onSubmit={async (name) => {
+            const diskEntry = await createFile(tree.path, name);
+            openFile(diskEntry);
             setNewEntry(null);
           }}
           onCancel={() => setNewEntry(null)}

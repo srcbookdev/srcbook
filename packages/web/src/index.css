@@ -493,9 +493,10 @@
 }
 
 .cm-editor {
+  @apply h-full;
   @apply rounded-b;
-  max-height: 80vh;
-  height: 100%;
+  @apply text-sm;
+  @apply overflow-auto;
 }
 
 .cm-editor.cm-focused {
@@ -545,10 +546,6 @@
 .cm-editor * {
   font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas',
     'Liberation Mono', 'Courier New', 'monospace';
-}
-
-.cm-editor {
-  font-size: 14px;
 }
 
 .cm-tooltip {

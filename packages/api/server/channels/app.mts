@@ -169,8 +169,6 @@ async function dependenciesInstall(
       });
     },
   });
-
-  processMetadata.set(app.externalId, { process, port: null });
 }
 
 async function onFileUpdated(payload: FileUpdatedPayloadType, context: AppContextType) {

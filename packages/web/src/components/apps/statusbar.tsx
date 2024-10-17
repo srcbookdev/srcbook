@@ -57,7 +57,7 @@ export default function Statusbar() {
 
   return (
     <>
-      <div className="flex items-center justify-between h-8 border-t border-b px-2 w-full">
+      <div className="grow-0 shrink-0 flex items-center justify-between h-8 border-t border-b px-2 w-full">
         <Button
           size="sm"
           variant={open ? 'default' : 'icon'}

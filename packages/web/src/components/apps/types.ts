@@ -32,7 +32,8 @@ export type FileDiffType = {
   type: 'edit' | 'create' | 'delete';
 };
 
-// New types moved from chat.tsx
+// Chat types, used in the history and for the AI chat component
+// TODO put this in shared
 export type UserMessageType = {
   type: 'user';
   message: string;

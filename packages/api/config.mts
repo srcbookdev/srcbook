@@ -1,6 +1,13 @@
 import { eq, and, inArray } from 'drizzle-orm';
 import { type SecretWithAssociatedSessions, randomid } from '@srcbook/shared';
-import { configs, type Config, secrets, type Secret, secretsToSession } from './db/schema.mjs';
+import {
+  configs,
+  type Config,
+  secrets,
+  type Secret,
+  secretsToSession,
+  apps,
+} from './db/schema.mjs';
 import { db } from './db/index.mjs';
 import { HOME_DIR } from './constants.mjs';
 
@@ -42,6 +49,60 @@ export async function getConfig(): Promise<Config> {
 
 export async function updateConfig(attrs: Partial<Config>) {
   return db.update(configs).set(attrs).returning();
+}
+
+// TODO: put this in shared
+export type FileDiffType = {
+  modified: string;
+  original: string | null;
+  basename: string;
+  dirname: string;
+  path: string;
+  additions: number; // lines added
+  deletions: number; // lines deleted
+  type: 'edit' | 'create' | 'delete';
+};
+export type UserMessageType = {
+  type: 'user';
+  message: string;
+};
+
+export type CommandMessageType = {
+  type: 'command';
+  command: string;
+  description: string;
+};
+
+export type DiffMessageType = {
+  type: 'diff';
+  diff: FileDiffType[];
+};
+
+export type PlanMessageType = {
+  type: 'plan';
+  content: string;
+};
+
+export type MessageType = UserMessageType | DiffMessageType | CommandMessageType | PlanMessageType;
+
+export type HistoryType = Array<MessageType>;
+export async function getHistory(appId: string): Promise<HistoryType> {
+  const results = await db.select().from(apps).where(eq(apps.externalId, appId)).limit(1);
+  const history = results[0]!.history;
+  return JSON.parse(history);
+}
+
+export async function appendToHistory(appId: string, messages: MessageType | MessageType[]) {
+  const results = await db.select().from(apps).where(eq(apps.externalId, appId)).limit(1);
+  const history = results[0]!.history;
+  const decodedHistory = JSON.parse(history);
+  const newHistory = Array.isArray(messages)
+    ? [...decodedHistory, ...messages]
+    : [...decodedHistory, messages];
+  await db
+    .update(apps)
+    .set({ history: JSON.stringify(newHistory) })
+    .where(eq(apps.externalId, appId));
 }
 
 export async function getSecrets(): Promise<Array<SecretWithAssociatedSessions>> {

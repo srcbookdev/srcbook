@@ -1,5 +1,5 @@
 import { Button, cn, ScrollArea } from '@srcbook/components';
-import { Markdown } from '../components/markdown';
+import Markdown from './apps/markdown.js';
 import { diffFiles } from './apps/lib/diff.js';
 import TextareaAutosize from 'react-textarea-autosize';
 import { ArrowUp, X, Paperclip, History, LoaderCircle, ViewIcon, Undo2Icon } from 'lucide-react';
@@ -90,7 +90,7 @@ function Chat({
                 </div>
               );
             } else if (message.type === 'plan') {
-              return <Markdown key={index}>{message.content}</Markdown>;
+              return <Markdown key={index} source={message.content} />;
             } else if (message.type === 'diff') {
               return <DiffBox key={index} files={message.diff} app={app} />;
             }

@@ -9,7 +9,6 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@srcbook/components/src/components/ui/context-menu';
-import { dirname } from '../lib/path';
 
 export default function ExplorerPanel() {
   const { fileTree } = useFiles();
@@ -33,13 +32,21 @@ export default function ExplorerPanel() {
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem
-          onClick={() => setNewEntry({ type: 'file', path: 'untitled', name: 'untitled' })}
+          onClick={() =>
+            setNewEntry({ type: 'file', path: 'untitled', dirname: '.', basename: 'untitled' })
+          }
         >
           New file...
         </ContextMenuItem>
         <ContextMenuItem
           onClick={() =>
-            setNewEntry({ type: 'directory', path: 'untitled', name: 'untitled', children: null })
+            setNewEntry({
+              type: 'directory',
+              path: 'untitled',
+              dirname: '.',
+              basename: 'untitled',
+              children: null,
+            })
           }
         >
           New folder...
@@ -90,12 +97,12 @@ function FileTree(props: {
 
   const elements = [];
 
-  if (newEntry !== null && newEntry.type === 'directory' && dirname(newEntry.path) === tree.path) {
+  if (newEntry !== null && newEntry.type === 'directory' && newEntry.dirname === tree.path) {
     elements.push(
       <li key={newEntry.path}>
         <EditNameNode
           depth={depth}
-          name={newEntry.name}
+          name={newEntry.basename}
           onSubmit={(name) => {
             createFolder(tree.path, name);
             setNewEntry(null);
@@ -114,7 +121,7 @@ function FileTree(props: {
         <li key={entry.path}>
           <EditNameNode
             depth={depth}
-            name={entry.name}
+            name={entry.basename}
             onSubmit={(name) => {
               renameFolder(entry, name);
               setEditingEntry(null);
@@ -128,7 +135,7 @@ function FileTree(props: {
         <li key={entry.path}>
           <FolderNode
             depth={depth}
-            label={entry.name}
+            label={entry.basename}
             opened={opened}
             onClick={() => toggleFolder(entry)}
             onDelete={() => deleteFolder(entry)}
@@ -137,7 +144,12 @@ function FileTree(props: {
               if (!isFolderOpen(entry)) {
                 openFolder(entry);
               }
-              setNewEntry({ type: 'file', path: entry.path + '/untitled', name: 'untitled' });
+              setNewEntry({
+                type: 'file',
+                path: entry.path + '/untitled',
+                dirname: entry.path,
+                basename: 'untitled',
+              });
             }}
             onNewfolder={() => {
               if (!isFolderOpen(entry)) {
@@ -146,7 +158,8 @@ function FileTree(props: {
               setNewEntry({
                 type: 'directory',
                 path: entry.path + '/untitled',
-                name: 'untitled',
+                dirname: entry.path,
+                basename: 'untitled',
                 children: null,
               });
             }}
@@ -170,12 +183,12 @@ function FileTree(props: {
     }
   }
 
-  if (newEntry !== null && newEntry.type === 'file' && dirname(newEntry.path) === tree.path) {
+  if (newEntry !== null && newEntry.type === 'file' && newEntry.dirname === tree.path) {
     elements.push(
       <li key={newEntry.path}>
         <EditNameNode
           depth={depth}
-          name={newEntry.name}
+          name={newEntry.basename}
           onSubmit={(name) => {
             createFile(tree.path, name);
             setNewEntry(null);
@@ -192,7 +205,7 @@ function FileTree(props: {
         <li key={entry.path}>
           <EditNameNode
             depth={depth}
-            name={entry.name}
+            name={entry.basename}
             onSubmit={(name) => {
               renameFile(entry, name);
               setEditingEntry(null);
@@ -206,7 +219,7 @@ function FileTree(props: {
         <li key={entry.path}>
           <FileNode
             depth={depth}
-            label={entry.name}
+            label={entry.basename}
             active={openedFile?.path === entry.path}
             onClick={() => openFile(entry)}
             onDelete={() => deleteFile(entry)}

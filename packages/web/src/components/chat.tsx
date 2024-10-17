@@ -1,15 +1,14 @@
 import { Button, cn, ScrollArea } from '@srcbook/components';
-import { Markdown } from '../components/markdown';
+import Markdown from './apps/markdown.js';
 import { diffFiles } from './apps/lib/diff.js';
 import TextareaAutosize from 'react-textarea-autosize';
-import { ArrowUp, X, Paperclip, History, LoaderCircle } from 'lucide-react';
+import { ArrowUp, X, Paperclip, History, LoaderCircle, ViewIcon, Undo2Icon } from 'lucide-react';
 import * as React from 'react';
 import { aiEditApp } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
 import type { FileType, FileDiffType } from './apps/types.js';
 import { DiffStats } from './apps/diff-stats.js';
-import { useHotkeys } from 'react-hotkeys-hook';
 
 type UserMessageType = {
   type: 'user';
@@ -91,17 +90,27 @@ function Chat({
                 </div>
               );
             } else if (message.type === 'plan') {
-              return <Markdown key={index}>{message.content}</Markdown>;
+              return <Markdown key={index} source={message.content} />;
             } else if (message.type === 'diff') {
               return <DiffBox key={index} files={message.diff} app={app} />;
             }
           })}
           <div className={cn('flex gap-2 w-full', fileDiffs.length > 0 ? '' : 'hidden')}>
-            <Button variant="ai-secondary" onClick={revertDiff} className="flex-1">
-              Undo
+            <Button
+              variant="ai-secondary"
+              onClick={revertDiff}
+              className="flex-1 flex items-center gap-1.5"
+            >
+              <Undo2Icon size={16} />
+              <span>Undo</span>
             </Button>
-            <Button variant="ai" onClick={openDiffModal} className="flex-1">
-              Review changes
+            <Button
+              variant="ai"
+              onClick={openDiffModal}
+              className="flex-1 flex items-center gap-1.5"
+            >
+              <ViewIcon size={16} />
+              <span>Review changes</span>
             </Button>
           </div>
           {isLoading && (
@@ -127,22 +136,13 @@ function Query({
 }) {
   const [query, setQuery] = React.useState('');
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    if (query.trim()) {
+  const handleSubmit = () => {
+    const value = query.trim();
+    if (value) {
       setQuery('');
-      onSubmit(query);
+      onSubmit(value);
     }
   };
-
-  useHotkeys(
-    'mod+enter',
-    () => {
-      handleSubmit();
-    },
-    { enableOnFormTags: ['textarea'] },
-  );
 
   return (
     <div
@@ -161,8 +161,9 @@ function Query({
         onFocus={onFocus}
         value={query}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
+          if (e.metaKey && !e.shiftKey && e.key === 'Enter') {
             e.preventDefault();
+            e.stopPropagation();
             handleSubmit();
           }
         }}
@@ -271,7 +272,12 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         createFile(file.dirname, file.basename, file.original);
       } else {
         // TODO: this needs some testing, this shows the idea only
-        deleteFile({ type: 'file', name: file.basename, path: file.path });
+        deleteFile({
+          type: 'file',
+          path: file.path,
+          dirname: file.dirname,
+          basename: file.basename,
+        });
       }
     }
     setFileDiffs([]);

@@ -171,30 +171,17 @@ export async function loadDirectory(
     .map((entry) => {
       const fullPath = Path.join(dirPath, entry.name);
       const relativePath = Path.relative(projectDir, fullPath);
-
-      if (entry.isDirectory()) {
-        return {
-          type: 'directory' as const,
-          name: entry.name,
-          path: relativePath,
-          children: null,
-        };
-      } else {
-        return {
-          type: 'file' as const,
-          name: entry.name,
-          path: relativePath,
-        };
-      }
+      const paths = getPathInfo(relativePath);
+      return entry.isDirectory()
+        ? { ...paths, type: 'directory' as const, children: null }
+        : { ...paths, type: 'file' as const };
     });
 
   const relativePath = Path.relative(projectDir, dirPath);
-  const basename = Path.basename(relativePath);
 
   return {
+    ...getPathInfo(relativePath),
     type: 'directory' as const,
-    name: basename === '' ? '.' : basename,
-    path: relativePath === '' ? '.' : relativePath,
     children: children,
   };
 }
@@ -212,9 +199,8 @@ export async function createDirectory(
   const relativePath = Path.relative(projectDir, dirPath);
 
   return {
+    ...getPathInfo(relativePath),
     type: 'directory' as const,
-    name: Path.basename(relativePath),
-    path: relativePath,
     children: null,
   };
 }
@@ -264,7 +250,7 @@ export async function createFile(
 
   await fs.writeFile(filePath, source, 'utf-8');
   const relativePath = Path.relative(projectDir, filePath);
-  return { type: 'file' as const, path: relativePath, name: Path.basename(filePath) };
+  return { ...getPathInfo(relativePath), type: 'file' as const };
 }
 
 export function deleteFile(app: DBAppType, path: string) {
@@ -287,8 +273,7 @@ async function rename(app: DBAppType, path: string, name: string) {
   const newPath = Path.join(dirname, name);
   await fs.rename(oldPath, newPath);
   const relativePath = Path.relative(projectDir, newPath);
-  const basename = Path.basename(newPath);
-  return { name: basename, path: relativePath };
+  return getPathInfo(relativePath);
 }
 
 function deleteEntry(app: DBAppType, path: string, options: RmOptions = {}) {
@@ -319,6 +304,20 @@ function isBinary(basename: string) {
   const isDotfile = basename.startsWith('.'); // Assume these are text for now, e.g., .gitignore
   const isTextFile = TEXT_FILE_EXTENSIONS.includes(Path.extname(basename));
   return !(isDotfile || isTextFile);
+}
+
+function getPathInfo(path: string) {
+  if (Path.isAbsolute(path)) {
+    throw new Error(`Expected a relative path but got '${path}'`);
+  }
+
+  path = path === '' ? '.' : path;
+
+  return {
+    path: path,
+    dirname: Path.dirname(path),
+    basename: Path.basename(path),
+  };
 }
 
 export async function getFlatFilesForApp(id: string): Promise<FileContent[]> {

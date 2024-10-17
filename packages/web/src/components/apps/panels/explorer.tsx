@@ -361,7 +361,7 @@ function Node(props: {
       style={{ paddingLeft: `${depth * 12}px` }}
       title={label}
     >
-      {icon} <span className="truncate">{label}</span>
+      {icon} <span className="truncate font-light">{label}</span>
     </button>
   );
 }

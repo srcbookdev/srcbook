@@ -45,7 +45,7 @@ export default function EditorHeader(props: PropsType) {
           <div className="absolute left-1/2 -translate-x-1/2 flex bg-inline-code h-7 rounded-sm">
             <button
               className={cn(
-                'flex gap-2 justify-center items-center w-24 text-foreground rounded-sm',
+                'flex gap-2 justify-center items-center w-24 text-foreground rounded-sm font-medium',
                 {
                   'bg-background border border-border': props.tab === 'code',
                 },
@@ -57,7 +57,7 @@ export default function EditorHeader(props: PropsType) {
             </button>
             <button
               className={cn(
-                'flex gap-2 justify-center items-center w-24 text-foreground rounded-sm',
+                'flex gap-2 justify-center items-center w-24 text-foreground rounded-sm font-medium',
                 {
                   'bg-background border border-border': props.tab === 'preview',
                 },

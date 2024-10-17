@@ -103,17 +103,21 @@ export default function GenerateSrcbookModal({
           </Button>
           {error !== null && <ErrorMessage type={error} onRetry={generate} />}
           <div className="border-t">
-            <p className="py-3 font-bold">Examples</p>
-            {EXAMPLES.map((example) => (
-              <button
-                onClick={() => setQuery(example)}
-                className="flex items-center justify-center gap-6 cursor-pointer hover:bg-muted rounded px-1.5 py-2"
-                key={JSON.stringify(example)}
-              >
-                <Sparkles size={16} className="shrink-0" />
-                <p className="text-sm text-left">{example}</p>
-              </button>
-            ))}
+            <p className="py-3 font-medium">Examples</p>
+            <div className="flex flex-col gap-2">
+              {EXAMPLES.map((example) => (
+                <button
+                  onClick={() => setQuery(example)}
+                  className="border border-border flex items-center justify-center gap-3 cursor-pointer hover:bg-muted rounded px-1.5 py-2"
+                  key={JSON.stringify(example)}
+                >
+                  <div className="flex items-center relative justify-center p-2.5 w-8 h-8">
+                    <Sparkles size={18} className="absolute" />
+                  </div>
+                  <p className="text-sm text-left">{example}</p>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </DialogContent>

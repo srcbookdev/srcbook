@@ -6,34 +6,19 @@ import { ArrowUp, X, Paperclip, History, LoaderCircle, ViewIcon, Undo2Icon } fro
 import * as React from 'react';
 import { aiEditApp } from '@/clients/http/apps.js';
 import { AppType } from '@srcbook/shared';
+import { getHistory, persistHistory, appendHistory } from './apps/lib/history.js';
 import { useFiles } from './apps/use-files';
-import type { FileType, FileDiffType } from './apps/types.js';
+import type {
+  FileType,
+  FileDiffType,
+  UserMessageType,
+  MessageType,
+  HistoryType,
+  CommandMessageType,
+  PlanMessageType,
+  DiffMessageType,
+} from './apps/types.js';
 import { DiffStats } from './apps/diff-stats.js';
-
-type UserMessageType = {
-  type: 'user';
-  message: string;
-};
-
-type CommandMessageType = {
-  type: 'command';
-  command: string;
-  description: string;
-};
-
-type DiffMessageType = {
-  type: 'diff';
-  diff: FileDiffType[];
-};
-
-type PlanMessageType = {
-  type: 'plan';
-  content: string;
-};
-
-type MessageType = UserMessageType | DiffMessageType | CommandMessageType | PlanMessageType;
-
-type HistoryType = Array<MessageType>;
 
 function Chat({
   history,
@@ -211,7 +196,7 @@ type PropsType = {
 };
 
 export function ChatPanel(props: PropsType): React.JSX.Element {
-  const [history, setHistory] = React.useState<HistoryType>([]);
+  const [history, setHistory] = React.useState<HistoryType>(() => getHistory(props.app));
   const [fileDiffs, setFileDiffs] = React.useState<FileDiffType[]>([]);
   const [isChatVisible, setIsChatVisible] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -219,12 +204,16 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
 
   const handleSubmit = async (query: string) => {
     setIsLoading(true);
-    setHistory((prevHistory) => [...prevHistory, { type: 'user', message: query }]);
+    const userMessage = { type: 'user', message: query } as UserMessageType;
+    setHistory((prevHistory) => [...prevHistory, userMessage]);
+    appendHistory(props.app, userMessage);
     setIsChatVisible(true);
 
     const { data: plan } = await aiEditApp(props.app.id, query);
 
-    setHistory((prevHistory) => [...prevHistory, { type: 'plan', content: plan.description }]);
+    const planMessage = { type: 'plan', content: plan.description } as PlanMessageType;
+    setHistory((prevHistory) => [...prevHistory, planMessage]);
+    appendHistory(props.app, planMessage);
 
     const fileUpdates = plan.actions.filter((item) => item.type === 'file');
     const commandUpdates = plan.actions.filter((item) => item.type === 'command');
@@ -238,7 +227,11 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       return entry;
     });
 
-    setHistory((prevHistory) => prevHistory.concat(historyEntries));
+    setHistory((prevHistory) => {
+      const newHistory = prevHistory.concat(historyEntries);
+      persistHistory(props.app, newHistory);
+      return newHistory;
+    });
 
     for (const update of fileUpdates) {
       createFile(update.dirname, update.basename, update.modified);
@@ -258,7 +251,11 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       };
     });
 
-    setHistory((prevHistory) => [...prevHistory, { type: 'diff', diff: fileDiffs }]);
+    setHistory((prevHistory) => {
+      const newHistory = [...prevHistory, { type: 'diff', diff: fileDiffs } as DiffMessageType];
+      persistHistory(props.app, newHistory);
+      return newHistory;
+    });
     setFileDiffs(fileDiffs);
     setIsLoading(false);
   };

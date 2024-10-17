@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { usePreview } from '../use-preview';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2Icon } from 'lucide-react';
 import { useLogs } from '../use-logs';
 import { Button } from '@srcbook/components/src/components/ui/button';
@@ -16,11 +16,15 @@ export function Preview(props: PropsType) {
 
   const isActive = props.isActive ?? true;
 
+  const [startAttempted, setStartAttempted] = useState(false);
   useEffect(() => {
-    if (isActive && status === 'stopped') {
+    if (isActive && status === 'stopped' && !startAttempted) {
+      setStartAttempted(true);
       start();
+    } else if (!isActive) {
+      setStartAttempted(false);
     }
-  }, [isActive, status, start]);
+  }, [isActive, status, start, startAttempted]);
 
   switch (status) {
     case 'connecting':

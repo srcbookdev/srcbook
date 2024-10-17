@@ -57,7 +57,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
       setStatus('installing');
       channel.push('dependencies:install', { packages });
     },
-    [channel, output, addError],
+    [channel, addError],
   );
 
   const context: PackageJsonContextValue = {

@@ -59,7 +59,7 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
     channel.on('preview:status', onViteError);
 
     return () => channel.off('preview:status', onViteError);
-  }, [channel]);
+  }, [channel, addError]);
 
   // TODO: if npm install fails, add an error log
 

@@ -9,7 +9,6 @@ import { AppType } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
 import type { FileType, FileDiffType } from './apps/types.js';
 import { DiffStats } from './apps/diff-stats.js';
-import { useHotkeys } from 'react-hotkeys-hook';
 
 type UserMessageType = {
   type: 'user';
@@ -137,22 +136,13 @@ function Query({
 }) {
   const [query, setQuery] = React.useState('');
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    if (query.trim()) {
+  const handleSubmit = () => {
+    const value = query.trim();
+    if (value) {
       setQuery('');
-      onSubmit(query);
+      onSubmit(value);
     }
   };
-
-  useHotkeys(
-    'mod+enter',
-    () => {
-      handleSubmit();
-    },
-    { enableOnFormTags: ['textarea'] },
-  );
 
   return (
     <div
@@ -171,8 +161,9 @@ function Query({
         onFocus={onFocus}
         value={query}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
+          if (e.metaKey && !e.shiftKey && e.key === 'Enter') {
             e.preventDefault();
+            e.stopPropagation();
             handleSubmit();
           }
         }}

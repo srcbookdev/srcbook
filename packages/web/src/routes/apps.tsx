@@ -84,7 +84,7 @@ function Apps(props: { app: AppType }) {
         onChangeTab={switchTab}
         className="shrink-0 h-12 max-h-12"
       />
-      <div className="h-screen max-h-screen flex">
+      <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar />
         <div className="w-full h-full">
           <Editor />

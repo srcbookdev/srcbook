@@ -86,7 +86,7 @@ function Apps(props: { app: AppType }) {
       />
       <div className="h-screen max-h-screen flex">
         <Sidebar />
-        <div className="w-full h-full grid">
+        <div className="w-full h-full">
           <Editor />
         </div>
         <ChatPanel app={props.app} triggerDiffModal={triggerDiffModal} />

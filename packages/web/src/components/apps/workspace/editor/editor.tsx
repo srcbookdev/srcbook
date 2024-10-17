@@ -9,9 +9,10 @@ export function Editor() {
   const { openedFile, updateFile } = useFiles();
 
   return (
-    <div className="flex flex-col w-full overflow-hidden">
+    <div className="flex flex-col w-full h-full overflow-hidden">
       {tab === 'code' ? (
-        <div className="w-full h-full overflow-hidden">
+        /* Careful to ensure this div always consumes full height of parent container and only overflows via scroll */
+        <div className="w-full flex-1 overflow-auto">
           {openedFile ? (
             <CodeEditor
               path={openedFile.path}

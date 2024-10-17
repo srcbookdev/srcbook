@@ -7,7 +7,7 @@ import { Preview } from '../preview';
 import { cn } from '@/lib/utils.ts';
 import { CodeEditor } from '../../editor';
 
-type EditorProps = { tab: EditorHeaderTab }
+type EditorProps = { tab: EditorHeaderTab };
 
 export function Editor({ tab }: EditorProps) {
   const { openedFile, updateFile } = useFiles();

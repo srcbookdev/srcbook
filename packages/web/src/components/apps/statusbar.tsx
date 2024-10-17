@@ -69,7 +69,9 @@ export default function Statusbar() {
             <BugIcon size={14} />
             Errors
             {!open && unreadLogsCount > 0 ? (
-              <div className="px-1 min-w-4 h-4 text-white bg-red-500 rounded-[8px]">{unreadLogsCount}</div>
+              <div className="px-1 min-w-4 h-4 text-white bg-red-500 rounded-[8px]">
+                {unreadLogsCount}
+              </div>
             ) : null}
           </div>
         </Button>
@@ -86,7 +88,9 @@ export default function Statusbar() {
       </div>
 
       <div
-        className={cn('flex flex-col w-full overflow-auto cursor-text', 'h-0', { 'h-[320px]': open })}
+        className={cn('flex flex-col w-full overflow-auto cursor-text', 'h-0', {
+          'h-[320px]': open,
+        })}
         style={{ transition: 'all 100ms ease-in-out' }}
       >
         {logs.map((error) => (

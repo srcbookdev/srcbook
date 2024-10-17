@@ -63,6 +63,8 @@ async function previewStart(
     });
   };
 
+  // NOTE: Buffering all logs into an array like this might be a bad idea given this could grow in
+  // an unbounded fashion.
   let bufferedLogs: Array<String> = [];
 
   const process = vite({

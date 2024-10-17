@@ -217,7 +217,12 @@ function doCreateNode(
   }
 
   if (tree.path === dirname) {
-    return { ...tree, children: [...tree.children, node] };
+    // To avoid duplicate entries in the tree, ensure that we 'upsert' here.
+    const children = tree.children.map((entry) => {
+      return entry.path === node.path ? node : entry;
+    });
+
+    return { ...tree, children };
   }
 
   const children = tree.children.map((entry) => {

@@ -148,7 +148,7 @@ async function dependenciesInstall(
     return;
   }
 
-  const process = npmInstall({
+  npmInstall({
     args: [],
     cwd: pathToApp(app.externalId),
     packages: payload.packages ?? undefined,

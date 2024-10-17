@@ -210,11 +210,16 @@ function doCreateNode(tree: DirEntryType, node: DirEntryType | FileEntryType): D
     return tree;
   }
 
+  // To avoid duplicate entries in the tree, ensure that we 'upsert' here.
   if (tree.path === node.dirname) {
-    // To avoid duplicate entries in the tree, ensure that we 'upsert' here.
-    const children = tree.children.map((entry) => {
-      return entry.path === node.path ? node : entry;
-    });
+    const idx = tree.children.findIndex((entry) => entry.path === node.path);
+    const children = [...tree.children];
+
+    if (idx === -1) {
+      children.push(node);
+    } else {
+      children.splice(idx, 1, node);
+    }
 
     return { ...tree, children };
   }

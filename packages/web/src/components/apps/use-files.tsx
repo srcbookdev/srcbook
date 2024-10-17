@@ -25,7 +25,7 @@ export interface FilesContextValue {
   fileTree: DirEntryType;
   openedFile: FileType | null;
   openFile: (entry: FileEntryType) => Promise<void>;
-  createFile: (dirname: string, basename: string, source?: string) => Promise<void>;
+  createFile: (dirname: string, basename: string, source?: string) => Promise<FileEntryType>;
   updateFile: (file: FileType, attrs: Partial<FileType>) => void;
   renameFile: (entry: FileEntryType, name: string) => Promise<void>;
   deleteFile: (entry: FileEntryType) => Promise<void>;
@@ -74,9 +74,9 @@ export function FilesProvider({ app, channel, rootDirEntries, children }: Provid
       const { data: fileEntry } = await doCreateFile(app.id, dirname, basename, source);
       fileTreeRef.current = createNode(fileTreeRef.current, fileEntry);
       forceComponentRerender(); // required
-      openFile(fileEntry);
+      return fileEntry;
     },
-    [app.id, openFile],
+    [app.id],
   );
 
   const updateFile = useCallback(

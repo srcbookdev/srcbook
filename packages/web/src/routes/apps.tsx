@@ -87,7 +87,7 @@ function Apps(props: { app: AppType }) {
       <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar />
         <div className="grow shrink h-full flex flex-col w-0">
-          <Editor tab={tab} />
+          <Editor tab={tab} onChangeTab={setTab} />
           <Statusbar />
         </div>
         <ChatPanel app={props.app} triggerDiffModal={triggerDiffModal} />

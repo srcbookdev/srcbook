@@ -22,8 +22,6 @@ import { cn } from '@/lib/utils';
 import ExplorerPanel from './panels/explorer';
 import SettingsPanel from './panels/settings';
 import { useFiles } from './use-files';
-import { SrcbookLogo } from '../logos';
-import { Link } from 'react-router-dom';
 
 type PanelType = 'explorer' | 'settings';
 

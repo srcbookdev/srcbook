@@ -1,23 +1,21 @@
 import { useFiles } from '../../use-files';
-import { AppType, FileType } from '@srcbook/shared';
 import { EditorHeaderTab } from './header';
-import { extname } from '../../lib/path';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Preview } from '../preview';
 import { cn } from '@/lib/utils.ts';
 import { CodeEditor } from '../../editor';
 
-type EditorProps = { tab: EditorHeaderTab };
+type EditorProps = { tab: EditorHeaderTab; onChangeTab: (newTab: EditorHeaderTab) => void };
 
-export function Editor({ tab }: EditorProps) {
+export function Editor({ tab, onChangeTab }: EditorProps) {
   const { openedFile, updateFile } = useFiles();
 
   useEffect(() => {
     if (!openedFile) {
       return;
     }
-    setTab('code');
-  }, [openedFile]);
+    onChangeTab('code');
+  }, [openedFile, onChangeTab]);
 
   return (
     <div className="grow shrink flex flex-col w-full h-full overflow-hidden">

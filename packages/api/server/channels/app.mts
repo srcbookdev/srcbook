@@ -127,7 +127,12 @@ async function previewStop(
 
   result.process.kill('SIGTERM');
 
-  conn.reply(`app:${app.externalId}`, 'preview:status', { url: null, status: 'stopped', stoppedSuccessfully: true, logs: null });
+  conn.reply(`app:${app.externalId}`, 'preview:status', {
+    url: null,
+    status: 'stopped',
+    stoppedSuccessfully: true,
+    logs: null,
+  });
 }
 
 async function onFileUpdated(payload: FileUpdatedPayloadType, context: AppContextType) {

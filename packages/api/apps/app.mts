@@ -111,3 +111,12 @@ export async function loadApp(id: string) {
   const [app] = await db.select().from(appsTable).where(eq(appsTable.externalId, id));
   return app;
 }
+
+export async function updateApp(id: string, attrs: { name: string }) {
+  const [updatedApp] = await db
+    .update(appsTable)
+    .set({ name: attrs.name })
+    .where(eq(appsTable.externalId, id))
+    .returning();
+  return updatedApp;
+}

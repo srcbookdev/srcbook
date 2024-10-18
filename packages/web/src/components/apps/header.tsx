@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SrcbookLogo } from '@/components/logos';
-import type { AppType } from '@srcbook/shared';
 
 import { Button } from '@srcbook/components/src/components/ui/button';
 import {
@@ -17,23 +16,47 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@srcbook/components/src/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@srcbook/components/src/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { usePreview } from '../../use-preview';
+import { usePreview } from './use-preview';
+import { useApp } from './use-app';
+import { Input } from '@srcbook/components';
+import { useState } from 'react';
 
 export type EditorHeaderTab = 'code' | 'preview';
 
 type PropsType = {
-  app: AppType;
   className?: string;
   tab: EditorHeaderTab;
   onChangeTab: (newTab: EditorHeaderTab) => void;
 };
 
 export default function EditorHeader(props: PropsType) {
+  const { app, updateApp } = useApp();
   const { start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
+
+  const [nameChangeDialogOpen, setNameChangeDialogOpen] = useState(false);
 
   return (
     <>
+      {nameChangeDialogOpen && (
+        <UpdateAppNameDialog
+          name={app.name}
+          onUpdate={(name) => {
+            updateApp({ name });
+            setNameChangeDialogOpen(false);
+          }}
+          onClose={() => {
+            setNameChangeDialogOpen(false);
+          }}
+        />
+      )}
       <header
         className={cn(
           'w-full flex items-center justify-between bg-background z-50 text-sm border-b border-b-border relative',
@@ -45,7 +68,16 @@ export default function EditorHeader(props: PropsType) {
         </Link>
         <nav className="flex items-center justify-between px-2 flex-1">
           <div className="flex items-center gap-2">
-            <h4 className="px-2 text-sm font-medium">{props.app.name}</h4>
+            <button
+              className="px-2 text-sm font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setNameChangeDialogOpen(true);
+              }}
+            >
+              {app.name}
+            </button>
           </div>
 
           <div className="absolute left-1/2 -translate-x-1/2 flex bg-inline-code h-7 rounded-sm">
@@ -153,5 +185,42 @@ export default function EditorHeader(props: PropsType) {
         </nav>
       </header>
     </>
+  );
+}
+
+function UpdateAppNameDialog(props: {
+  name: string;
+  onClose: () => void;
+  onUpdate: (name: string) => void;
+}) {
+  const [name, setName] = useState(props.name);
+
+  return (
+    <Dialog
+      defaultOpen={true}
+      onOpenChange={(open) => {
+        if (!open) {
+          props.onClose();
+        }
+      }}
+    >
+      <DialogContent hideClose>
+        <DialogHeader>
+          <DialogTitle>Rename app</DialogTitle>
+          <DialogDescription className="sr-only">Rename this app</DialogDescription>
+          <div className="pt-2">
+            <Input value={name} onChange={(e) => setName(e.currentTarget.value)} />
+          </div>
+          <div className="flex w-full justify-end items-center gap-2 pt-4 bg-background">
+            <Button variant="secondary" onClick={props.onClose}>
+              Cancel
+            </Button>
+            <Button onClick={() => props.onUpdate(name)} disabled={name.trim() === ''}>
+              Save
+            </Button>
+          </div>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
   );
 }

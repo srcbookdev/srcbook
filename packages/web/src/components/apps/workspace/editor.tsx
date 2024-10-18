@@ -1,9 +1,9 @@
-import { useFiles } from '../../use-files';
-import { EditorHeaderTab } from './header';
+import { useFiles } from '../use-files';
+import { EditorHeaderTab } from '../header';
 import { useEffect } from 'react';
-import { Preview } from '../preview';
+import { Preview } from './preview';
 import { cn } from '@/lib/utils.ts';
-import { CodeEditor } from '../../editor';
+import { CodeEditor } from '../editor';
 
 type EditorProps = { tab: EditorHeaderTab; onChangeTab: (newTab: EditorHeaderTab) => void };
 

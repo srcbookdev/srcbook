@@ -27,6 +27,7 @@ import type {
   DiffMessageType,
 } from '@srcbook/shared';
 import { DiffStats } from './apps/diff-stats.js';
+import { useApp } from './apps/use-app.js';
 
 function Chat({
   history,
@@ -203,11 +204,12 @@ function DiffBox({ files, app }: { files: FileDiffType[]; app: AppType }) {
 }
 
 type PropsType = {
-  app: AppType;
   triggerDiffModal: (props: { files: FileDiffType[]; onUndoAll: () => void } | null) => void;
 };
 
 export function ChatPanel(props: PropsType): React.JSX.Element {
+  const { app } = useApp();
+
   const [history, setHistory] = React.useState<HistoryType>([]);
   const [fileDiffs, setFileDiffs] = React.useState<FileDiffType[]>([]);
   const [visible, setVisible] = React.useState(false);
@@ -217,25 +219,25 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
 
   // Initialize history from the DB
   React.useEffect(() => {
-    loadHistory(props.app.id)
+    loadHistory(app.id)
       .then(({ data }) => setHistory(data))
       .catch((error) => {
         console.error('Error fetching chat history:', error);
       });
-  }, [props.app]);
+  }, [app]);
 
   const handleSubmit = async (query: string) => {
     setIsLoading(true);
     const userMessage = { type: 'user', message: query } as UserMessageType;
     setHistory((prevHistory) => [...prevHistory, userMessage]);
-    appendToHistory(props.app.id, userMessage);
+    appendToHistory(app.id, userMessage);
     setVisible(true);
 
-    const { data: plan } = await aiEditApp(props.app.id, query);
+    const { data: plan } = await aiEditApp(app.id, query);
 
     const planMessage = { type: 'plan', content: plan.description } as PlanMessageType;
     setHistory((prevHistory) => [...prevHistory, planMessage]);
-    appendToHistory(props.app.id, planMessage);
+    appendToHistory(app.id, planMessage);
 
     const fileUpdates = plan.actions.filter((item) => item.type === 'file');
     const commandUpdates = plan.actions.filter((item) => item.type === 'command');
@@ -250,7 +252,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     });
 
     setHistory((prevHistory) => [...prevHistory, ...historyEntries]);
-    appendToHistory(props.app.id, historyEntries);
+    appendToHistory(app.id, historyEntries);
 
     for (const update of fileUpdates) {
       createFile(update.dirname, update.basename, update.modified);
@@ -272,7 +274,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
 
     const diffMessage = { type: 'diff', diff: fileDiffs } as DiffMessageType;
     setHistory((prevHistory) => [...prevHistory, diffMessage]);
-    appendToHistory(props.app.id, diffMessage);
+    appendToHistory(app.id, diffMessage);
 
     setFileDiffs(fileDiffs);
     setDiffApplied(true);
@@ -333,7 +335,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
           history={history}
           isLoading={isLoading}
           onClose={handleClose}
-          app={props.app}
+          app={app}
           diffApplied={diffApplied}
           reApplyDiff={reApplyDiff}
           revertDiff={revertDiff}

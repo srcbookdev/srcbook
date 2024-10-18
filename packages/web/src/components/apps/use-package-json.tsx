@@ -87,6 +87,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
 
   const clearNodeModules = useCallback(() => {
     channel.push('deps:clear', {});
+    setOutput([]);
   }, [channel]);
 
   const context: PackageJsonContextValue = {

@@ -18,7 +18,7 @@ const PackageInstallNote: React.FunctionComponent = () => {
     ) {
       setShowPackageInstallNote(true);
     }
-  }, [nodeModulesExists]);
+  }, [nodeModulesExists, npmInstallStatus]);
 
   switch (npmInstallStatus) {
     case 'installing':

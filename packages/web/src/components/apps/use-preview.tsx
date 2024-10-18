@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { AppChannel } from '@/clients/websocket';
 import { PreviewStatusPayloadType } from '@srcbook/shared';
@@ -53,9 +53,9 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
     channel.push('preview:start', {});
   }
 
-  function stop() {
+  const stop = useCallback(() => {
     channel.push('preview:stop', {});
-  }
+  }, [channel]);
 
   // If the node_modules directory gets deleted, then stop the preview server
   useEffect(() => {
@@ -63,7 +63,7 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
       return;
     }
     stop();
-  }, [nodeModulesExists]);
+  }, [nodeModulesExists, stop]);
 
   // When the page initially loads, start the vite server
   useEffectOnce(() => {

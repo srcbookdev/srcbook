@@ -22,7 +22,6 @@ import FeedbackDialog from '../feedback-dialog';
 import { cn } from '@/lib/utils';
 import ExplorerPanel from './panels/explorer';
 import SettingsPanel from './panels/settings';
-import { useFiles } from './use-files';
 
 export type PanelType = 'explorer' | 'settings';
 

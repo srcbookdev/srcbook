@@ -56,7 +56,7 @@ function DiffModalHeader({
   return (
     <div className="h-12 px-4 flex items-center justify-between border-b border-border">
       <div>
-        <DialogTitle className="font-semibold">{`${numFiles} files changed`}</DialogTitle>
+        <DialogTitle className="font-semibold">{`${numFiles} ${numFiles === 1 ? 'file' : 'files'} changed`}</DialogTitle>
       </div>
       <div className="flex items-center space-x-3">
         <Button variant="secondary" className="flex items-center space-x-1.5" onClick={onUndoAll}>

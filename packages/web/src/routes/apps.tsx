@@ -55,13 +55,13 @@ export function AppsPage() {
   return (
     <AppProvider key={app.id} app={app}>
       <FilesProvider channel={channelRef.current} rootDirEntries={rootDirEntries}>
-        <PreviewProvider channel={channelRef.current}>
-          <LogsProvider channel={channelRef.current}>
-            <PackageJsonProvider channel={channelRef.current}>
+        <LogsProvider channel={channelRef.current}>
+          <PackageJsonProvider channel={channelRef.current}>
+            <PreviewProvider channel={channelRef.current}>
               <Apps />
-            </PackageJsonProvider>
-          </LogsProvider>
-        </PreviewProvider>
+            </PreviewProvider>
+          </PackageJsonProvider>
+        </LogsProvider>
       </FilesProvider>
     </AppProvider>
   );

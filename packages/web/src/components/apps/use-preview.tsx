@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AppChannel } from '@/clients/websocket';
 import { PreviewStatusPayloadType } from '@srcbook/shared';
 import useEffectOnce from '@/components/use-effect-once';
+import { usePackageJson } from './use-package-json';
 
 export type PreviewStatusType = 'booting' | 'connecting' | 'running' | 'stopped';
 
@@ -26,6 +27,8 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
   const [status, setStatus] = useState<PreviewStatusType>('connecting');
   const [lastStoppedError, setLastStoppedError] = useState<string | null>(null);
 
+  const { npmInstall, nodeModulesExists } = usePackageJson();
+
   useEffect(() => {
     function onStatusUpdate(payload: PreviewStatusPayloadType) {
       setUrl(payload.url);
@@ -43,13 +46,24 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
     return () => channel.off('preview:status', onStatusUpdate);
   }, [channel, setUrl, setStatus]);
 
-  function start() {
+  async function start() {
+    if (nodeModulesExists === false) {
+      await npmInstall();
+    }
     channel.push('preview:start', {});
   }
 
   function stop() {
     channel.push('preview:stop', {});
   }
+
+  // If the node_modules directory gets deleted, then stop the preview server
+  useEffect(() => {
+    if (nodeModulesExists !== false) {
+      return;
+    }
+    stop();
+  }, [nodeModulesExists]);
 
   // When the page initially loads, start the vite server
   useEffectOnce(() => {

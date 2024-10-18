@@ -255,7 +255,7 @@ export function DraggableChatPanel(props: { children: React.ReactNode }): React.
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, showOverlay]);
+  }, [isDragging, showOverlay, handleMouseMove, handleMouseUp]);
 
   // Note: we show a full screen overlay otherwise the mouse events
   // don't fire correctly when hovering over the iframe.

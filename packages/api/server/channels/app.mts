@@ -8,8 +8,8 @@ import {
   FileUpdatedPayloadType,
   PreviewStartPayloadType,
   PreviewStopPayloadType,
-  DependenciesInstallPayloadType,
-  DependenciesInstallPayloadSchema,
+  DepsInstallPayloadType,
+  DepsInstallPayloadSchema,
 } from '@srcbook/shared';
 
 import WebSocketServer, {
@@ -138,7 +138,7 @@ async function previewStop(
 }
 
 async function dependenciesInstall(
-  payload: DependenciesInstallPayloadType,
+  payload: DepsInstallPayloadType,
   context: AppContextType,
   conn: ConnectionContextType,
 ) {
@@ -153,17 +153,17 @@ async function dependenciesInstall(
     cwd: pathToApp(app.externalId),
     packages: payload.packages ?? undefined,
     stdout: (data) => {
-      conn.reply(`app:${app.externalId}`, 'dependencies:install:log', {
+      conn.reply(`app:${app.externalId}`, 'deps:install:log', {
         log: { type: 'stdout', data: data.toString('utf8') },
       });
     },
     stderr: (data) => {
-      conn.reply(`app:${app.externalId}`, 'dependencies:install:log', {
+      conn.reply(`app:${app.externalId}`, 'deps:install:log', {
         log: { type: 'stderr', data: data.toString('utf8') },
       });
     },
     onExit: (code) => {
-      conn.reply(`app:${app.externalId}`, 'dependencies:install:status', {
+      conn.reply(`app:${app.externalId}`, 'deps:install:status', {
         status: code === 0 ? 'complete' : 'failed',
         code,
       });
@@ -186,7 +186,7 @@ export function register(wss: WebSocketServer) {
     .channel('app:<appId>')
     .on('preview:start', PreviewStartPayloadSchema, previewStart)
     .on('preview:stop', PreviewStopPayloadSchema, previewStop)
-    .on('dependencies:install', DependenciesInstallPayloadSchema, dependenciesInstall)
+    .on('deps:install', DepsInstallPayloadSchema, dependenciesInstall)
     .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated)
     .onJoin(async (topic, ws) => {
       const app = await loadApp(topic.split(':')[1]!);

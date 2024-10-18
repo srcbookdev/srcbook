@@ -1,10 +1,7 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 import { OutputType } from '@srcbook/components/src/types';
 import { AppChannel } from '@/clients/websocket';
-import {
-  DependenciesInstallLogPayloadType,
-  DependenciesInstallStatusPayloadType,
-} from '@srcbook/shared';
+import { DepsInstallLogPayloadType, DepsInstallStatusPayloadType } from '@srcbook/shared';
 import { useLogs } from './use-logs';
 
 type NpmInstallStatus = 'idle' | 'installing' | 'complete' | 'failed';
@@ -36,26 +33,26 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
       // functions in here hold on to old scope values
       let contents = '';
 
-      const logCallback = ({ log }: DependenciesInstallLogPayloadType) => {
+      const logCallback = ({ log }: DepsInstallLogPayloadType) => {
         setOutput((old) => [...old, log]);
         contents += log.data;
       };
-      channel.on('dependencies:install:log', logCallback);
+      channel.on('deps:install:log', logCallback);
 
-      const statusCallback = ({ status }: DependenciesInstallStatusPayloadType) => {
-        channel.off('dependencies:install:log', logCallback);
-        channel.off('dependencies:install:status', statusCallback);
+      const statusCallback = ({ status }: DepsInstallStatusPayloadType) => {
+        channel.off('deps:install:log', logCallback);
+        channel.off('deps:install:status', statusCallback);
         setStatus(status);
 
         if (status === 'failed') {
           addError({ type: 'npm_install_error', contents });
         }
       };
-      channel.on('dependencies:install:status', statusCallback);
+      channel.on('deps:install:status', statusCallback);
 
       setOutput([]);
       setStatus('installing');
-      channel.push('dependencies:install', { packages });
+      channel.push('deps:install', { packages });
     },
     [channel, addError],
   );

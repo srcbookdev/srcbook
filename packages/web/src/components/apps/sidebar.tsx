@@ -8,6 +8,7 @@ import {
   KeyboardIcon,
   MoonIcon,
   SettingsIcon,
+  SunIcon,
 } from 'lucide-react';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import {
@@ -37,7 +38,7 @@ function getTitleForPanel(panel: PanelType | null): string | null {
 }
 
 export default function Sidebar() {
-  const { toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const { openedFile } = useFiles();
 
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -80,14 +81,22 @@ export default function Sidebar() {
             </NavItemWithTooltip>
           </div>
           <div className="flex flex-col items-center w-full gap-2">
-            {process.env.NODE_ENV !== 'production' && (
-              <NavItemWithTooltip tooltipContent="DEV ONLY - Switch theme" onClick={toggleTheme}>
+            <NavItemWithTooltip
+              tooltipContent={theme === 'light' ? 'Dark mode' : 'Light mode'}
+              onClick={toggleTheme}
+            >
+              {theme === 'light' ? (
                 <MoonIcon
                   size={18}
                   className="text-tertiary-foreground hover:text-secondary-foreground transition-colors"
                 />
-              </NavItemWithTooltip>
-            )}
+              ) : (
+                <SunIcon
+                  size={18}
+                  className="text-tertiary-foreground hover:text-secondary-foreground transition-colors"
+                />
+              )}
+            </NavItemWithTooltip>
             <NavItemWithTooltip
               tooltipContent="Keyboard shortcuts"
               onClick={() => setShowShortcuts(true)}

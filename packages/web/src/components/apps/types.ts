@@ -1,3 +1,5 @@
+import { CommandMessageType } from '@srcbook/shared';
+
 export type FileType = {
   type: 'file';
   modified: string;
@@ -8,16 +10,8 @@ export type FileType = {
   description: string;
 };
 
-type NpmInstallCommandType = {
-  type: 'command';
-  command: 'npm install';
-  packages: string[];
-  description: string;
-};
-
-export type CommandType = NpmInstallCommandType;
-
-export type PlanItemType = FileType | CommandType;
+// TODO this should likely all be shared types eventually.
+export type PlanItemType = FileType | CommandMessageType;
 
 export type PlanType = {
   description: string;

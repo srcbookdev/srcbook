@@ -1,3 +1,5 @@
+import path from 'node:path';
+import fs from 'node:fs/promises';
 import { ChildProcess } from 'node:child_process';
 
 import {
@@ -10,6 +12,8 @@ import {
   PreviewStopPayloadType,
   DepsInstallPayloadType,
   DepsInstallPayloadSchema,
+  DepsClearPayloadType,
+  DepsStatusPayloadSchema,
 } from '@srcbook/shared';
 
 import WebSocketServer, {
@@ -19,6 +23,7 @@ import WebSocketServer, {
 import { loadApp } from '../../apps/app.mjs';
 import { fileUpdated, pathToApp } from '../../apps/disk.mjs';
 import { vite, npmInstall } from '../../exec.mjs';
+import { directoryExists } from '../../fs-utils.mjs';
 
 const VITE_PORT_REGEX = /Local:.*http:\/\/localhost:([0-9]{1,4})/;
 
@@ -167,7 +172,51 @@ async function dependenciesInstall(
         status: code === 0 ? 'complete' : 'failed',
         code,
       });
+
+      if (code === 0) {
+        conn.reply(`app:${app.externalId}`, 'deps:status:response', {
+          nodeModulesExists: true,
+        });
+      }
     },
+  });
+}
+
+async function clearNodeModules(
+  _payload: DepsClearPayloadType,
+  context: AppContextType,
+  conn: ConnectionContextType,
+) {
+  const app = await loadApp(context.params.appId);
+
+  if (!app) {
+    return;
+  }
+
+  const appPath = pathToApp(app.externalId);
+  const nodeModulesPath = path.join(appPath, 'node_modules');
+  await fs.rm(nodeModulesPath, { recursive: true, force: true });
+
+  conn.reply(`app:${app.externalId}`, 'deps:status:response', {
+    nodeModulesExists: false,
+  });
+}
+
+async function dependenciesStatus(
+  _payload: DepsClearPayloadType,
+  context: AppContextType,
+  conn: ConnectionContextType,
+) {
+  const app = await loadApp(context.params.appId);
+
+  if (!app) {
+    return;
+  }
+
+  const appPath = pathToApp(app.externalId);
+  const nodeModulesPath = path.join(appPath, 'node_modules');
+  conn.reply(`app:${app.externalId}`, 'deps:status:response', {
+    nodeModulesExists: await directoryExists(nodeModulesPath),
   });
 }
 
@@ -187,6 +236,8 @@ export function register(wss: WebSocketServer) {
     .on('preview:start', PreviewStartPayloadSchema, previewStart)
     .on('preview:stop', PreviewStopPayloadSchema, previewStop)
     .on('deps:install', DepsInstallPayloadSchema, dependenciesInstall)
+    .on('deps:clear', DepsInstallPayloadSchema, clearNodeModules)
+    .on('deps:status', DepsStatusPayloadSchema, dependenciesStatus)
     .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated)
     .onJoin(async (topic, ws) => {
       const app = await loadApp(topic.split(':')[1]!);

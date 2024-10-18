@@ -188,6 +188,12 @@ export const DepsInstallStatusPayloadSchema = z.object({
   code: z.number().int(),
 });
 
+export const DepsClearPayloadSchema = z.object({});
+export const DepsStatusPayloadSchema = z.object({});
+export const DepsStatusResponsePayloadSchema = z.object({
+  nodeModulesExists: z.boolean(),
+});
+
 ///////////////////////
 // APPS & NOTEBOOKS //
 ///////////////////////

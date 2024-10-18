@@ -1,13 +1,20 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { OutputType } from '@srcbook/components/src/types';
 import { AppChannel } from '@/clients/websocket';
-import { DepsInstallLogPayloadType, DepsInstallStatusPayloadType } from '@srcbook/shared';
+import {
+  DepsInstallLogPayloadType,
+  DepsInstallStatusPayloadType,
+  DepsStatusResponsePayloadType,
+} from '@srcbook/shared';
 import { useLogs } from './use-logs';
 
 type NpmInstallStatus = 'idle' | 'installing' | 'complete' | 'failed';
 
 export interface PackageJsonContextValue {
-  npmInstall: (packages?: string[]) => void;
+  npmInstall: (packages?: string[]) => Promise<void>;
+  clearNodeModules: () => void;
+
+  nodeModulesExists: boolean | null;
   status: NpmInstallStatus;
   installing: boolean;
   failed: boolean;
@@ -24,41 +31,69 @@ type ProviderPropsType = {
 export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
   const [status, setStatus] = useState<NpmInstallStatus>('idle');
   const [output, setOutput] = useState<Array<OutputType>>([]);
+  const [nodeModulesExists, setNodeModulesExists] = useState<boolean | null>(null);
 
   const { addError } = useLogs();
 
+  useEffect(() => {
+    channel.push('deps:status', {});
+  }, [channel]);
+
+  useEffect(() => {
+    const callback = (data: DepsStatusResponsePayloadType) => {
+      setNodeModulesExists(data.nodeModulesExists);
+    };
+    channel.on('deps:status:response', callback);
+
+    return () => {
+      channel.off('deps:status:response', callback);
+    };
+  }, [channel]);
+
   const npmInstall = useCallback(
-    (packages?: Array<string>) => {
+    async (packages?: Array<string>) => {
       // NOTE: caching of the log output is required here because socket events that call callback
       // functions in here hold on to old scope values
       let contents = '';
 
-      const logCallback = ({ log }: DepsInstallLogPayloadType) => {
-        setOutput((old) => [...old, log]);
-        contents += log.data;
-      };
-      channel.on('deps:install:log', logCallback);
+      return new Promise<void>((resolve, reject) => {
+        const logCallback = ({ log }: DepsInstallLogPayloadType) => {
+          setOutput((old) => [...old, log]);
+          contents += log.data;
+        };
+        channel.on('deps:install:log', logCallback);
 
-      const statusCallback = ({ status }: DepsInstallStatusPayloadType) => {
-        channel.off('deps:install:log', logCallback);
-        channel.off('deps:install:status', statusCallback);
-        setStatus(status);
+        const statusCallback = ({ status }: DepsInstallStatusPayloadType) => {
+          channel.off('deps:install:log', logCallback);
+          channel.off('deps:install:status', statusCallback);
+          setStatus(status);
 
-        if (status === 'failed') {
-          addError({ type: 'npm_install_error', contents });
-        }
-      };
-      channel.on('deps:install:status', statusCallback);
+          if (status === 'complete') {
+            resolve();
+          } else {
+            addError({ type: 'npm_install_error', contents });
+            reject(new Error(`Error running npm install: ${contents}`));
+          }
+        };
+        channel.on('deps:install:status', statusCallback);
 
-      setOutput([]);
-      setStatus('installing');
-      channel.push('deps:install', { packages });
+        setOutput([]);
+        setStatus('installing');
+        channel.push('deps:install', { packages });
+      });
     },
     [channel, addError],
   );
 
+  const clearNodeModules = useCallback(() => {
+    channel.push('deps:clear', {});
+    setOutput([]);
+  }, [channel]);
+
   const context: PackageJsonContextValue = {
     npmInstall,
+    clearNodeModules,
+    nodeModulesExists,
     status,
     installing: status === 'installing',
     failed: status === 'failed',

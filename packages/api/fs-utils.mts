@@ -9,6 +9,15 @@ export async function fileExists(filepath: string) {
   }
 }
 
+export async function directoryExists(dirpath: string) {
+  try {
+    const result = await fs.stat(dirpath);
+    return result.isDirectory();
+  } catch (error) {
+    return false;
+  }
+}
+
 export async function readFile(
   path: string,
 ): Promise<{ exists: true; contents: string } | { exists: false }> {

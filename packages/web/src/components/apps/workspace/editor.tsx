@@ -4,10 +4,15 @@ import { useEffect } from 'react';
 import { Preview } from './preview';
 import { cn } from '@/lib/utils.ts';
 import { CodeEditor } from '../editor';
+import PackageInstallNote from '../package-install-note';
 
-type EditorProps = { tab: EditorHeaderTab; onChangeTab: (newTab: EditorHeaderTab) => void };
+type EditorProps = {
+  tab: EditorHeaderTab;
+  onChangeTab: (newTab: EditorHeaderTab) => void;
+  onShowPackagesPanel: () => void;
+};
 
-export function Editor({ tab, onChangeTab }: EditorProps) {
+export function Editor({ tab, onChangeTab, onShowPackagesPanel }: EditorProps) {
   const { openedFile, updateFile } = useFiles();
 
   useEffect(() => {
@@ -18,7 +23,9 @@ export function Editor({ tab, onChangeTab }: EditorProps) {
   }, [openedFile, onChangeTab]);
 
   return (
-    <div className="grow shrink flex flex-col w-full h-full overflow-hidden">
+    <div className="relative grow shrink flex flex-col w-full h-full overflow-hidden">
+      <PackageInstallNote />
+
       {tab === 'code' ? (
         /* Careful to ensure this div always consumes full height of parent container and only overflows via scroll */
         <div className="w-full flex-1 overflow-auto">
@@ -41,7 +48,7 @@ export function Editor({ tab, onChangeTab }: EditorProps) {
         and causing a flash of unstyled content
         */}
       <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
-        <Preview isActive={tab === 'preview'} />
+        <Preview isActive={tab === 'preview'} onShowPackagesPanel={onShowPackagesPanel} />
       </div>
     </div>
   );

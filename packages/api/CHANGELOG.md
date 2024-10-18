@@ -1,5 +1,18 @@
 # @srcbook/api
 
+## 0.1.0
+
+### Minor Changes
+
+- 73cd6e8: support backend hmr
+
+### Patch Changes
+
+- c3e857b: Add typing support and errors for environment variables
+- 89e4c7b: fix server crash when stopping the cell
+- Updated dependencies [73cd6e8]
+  - @srcbook/shared@0.1.0
+
 ## 0.0.9
 
 ### Patch Changes

@@ -25,18 +25,19 @@ function CollapsibleErrorMessage({ error }: CollapsibleErrorMessageProps) {
     <>
       <button
         className={cn(
-          'flex items-center gap-2 font-mono p-2 border-b first:border-b-0 focus-visible:outline-none ring-inset focus-visible:ring-1 focus-visible:ring-ring',
+          'flex items-center gap-2 font-mono p-2 border-b focus-visible:outline-none',
+          'ring-inset focus-visible:ring-1 focus-visible:ring-ring',
           {
-            'border-b': !open,
+            'border-b-0': open,
           },
         )}
         onClick={() => setOpen((n) => !n)}
       >
         {open ? <ChevronDownIcon size={16} /> : <ChevronRightIcon size={16} />}
-        <span className="text-tertiary-foreground select-none pointer-events-none">
+        <span className="text-tertiary-foreground select-none pointer-events-none whitespace-nowrap">
           {error.timestamp.toISOString()}{' '}
         </span>
-        {getLabelForError(error)}
+        <span className="whitespace-nowrap">{getLabelForError(error)}</span>
       </button>
       {open ? (
         <pre className={cn('text-sm p-2', { 'ml-[15px] pl-4 mb-4 border-l': open })}>
@@ -56,7 +57,7 @@ export default function Statusbar() {
 
   return (
     <>
-      <div className="flex items-center justify-between h-8 border-t border-b px-2 w-full">
+      <div className="grow-0 shrink-0 flex items-center justify-between h-8 border-t border-b px-2 w-full">
         <Button
           size="sm"
           variant={open ? 'default' : 'icon'}

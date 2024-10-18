@@ -8,6 +8,8 @@ import {
   FileUpdatedPayloadType,
   PreviewStartPayloadType,
   PreviewStopPayloadType,
+  DependenciesInstallPayloadType,
+  DependenciesInstallPayloadSchema,
 } from '@srcbook/shared';
 
 import WebSocketServer, {
@@ -16,7 +18,7 @@ import WebSocketServer, {
 } from '../ws-client.mjs';
 import { loadApp } from '../../apps/app.mjs';
 import { fileUpdated, pathToApp } from '../../apps/disk.mjs';
-import { vite } from '../../exec.mjs';
+import { vite, npmInstall } from '../../exec.mjs';
 
 const VITE_PORT_REGEX = /Local:.*http:\/\/localhost:([0-9]{1,4})/;
 
@@ -135,6 +137,40 @@ async function previewStop(
   });
 }
 
+async function dependenciesInstall(
+  payload: DependenciesInstallPayloadType,
+  context: AppContextType,
+  conn: ConnectionContextType,
+) {
+  const app = await loadApp(context.params.appId);
+
+  if (!app) {
+    return;
+  }
+
+  npmInstall({
+    args: [],
+    cwd: pathToApp(app.externalId),
+    packages: payload.packages ?? undefined,
+    stdout: (data) => {
+      conn.reply(`app:${app.externalId}`, 'dependencies:install:log', {
+        log: { type: 'stdout', data: data.toString('utf8') },
+      });
+    },
+    stderr: (data) => {
+      conn.reply(`app:${app.externalId}`, 'dependencies:install:log', {
+        log: { type: 'stderr', data: data.toString('utf8') },
+      });
+    },
+    onExit: (code) => {
+      conn.reply(`app:${app.externalId}`, 'dependencies:install:status', {
+        status: code === 0 ? 'complete' : 'failed',
+        code,
+      });
+    },
+  });
+}
+
 async function onFileUpdated(payload: FileUpdatedPayloadType, context: AppContextType) {
   const app = await loadApp(context.params.appId);
 
@@ -150,6 +186,7 @@ export function register(wss: WebSocketServer) {
     .channel('app:<appId>')
     .on('preview:start', PreviewStartPayloadSchema, previewStart)
     .on('preview:stop', PreviewStopPayloadSchema, previewStop)
+    .on('dependencies:install', DependenciesInstallPayloadSchema, dependenciesInstall)
     .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated)
     .onJoin(async (topic, ws) => {
       const app = await loadApp(topic.split(':')[1]!);

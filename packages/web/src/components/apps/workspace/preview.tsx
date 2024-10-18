@@ -12,7 +12,7 @@ type PropsType = {
 
 export function Preview(props: PropsType) {
   const { url, status, start, lastStoppedError } = usePreview();
-  const { addError, togglePane } = useLogs();
+  const { togglePane } = useLogs();
 
   const isActive = props.isActive ?? true;
 
@@ -41,11 +41,6 @@ export function Preview(props: PropsType) {
 
       return (
         <div className={cn('w-full h-full', props.className)}>
-          <div className="absolute">
-            <button onClick={() => addError({ type: 'vite_error', contents: 'Bogus error' })}>
-              Trigger
-            </button>
-          </div>
           <iframe className="w-full h-full" src={url} title="App preview" />
         </div>
       );

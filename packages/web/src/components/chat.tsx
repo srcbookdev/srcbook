@@ -29,6 +29,7 @@ import type {
 } from '@srcbook/shared';
 import { DiffStats } from './apps/diff-stats.js';
 import { useApp } from './apps/use-app.js';
+import { usePackageJson } from './apps/use-package-json.js';
 
 function Chat({
   history,
@@ -51,6 +52,7 @@ function Chat({
   reApplyDiff: () => void;
   openDiffModal: () => void;
 }) {
+  const { npmInstall } = usePackageJson();
   return (
     <div className="rounded-xl bg-background w-[440px] border shadow-xl max-h-[75vh] overflow-y-hidden">
       <div className="flex justify-between h-[40px] items-center border-b px-1">
@@ -75,23 +77,34 @@ function Chat({
                 </p>
               );
             } else if (message.type === 'command') {
+              const packages = message.command.match(/npm install (.+)/)?.[1];
+              if (!packages) {
+                console.error(
+                  'The only supported command is `npm install <packages>`. Got:',
+                  message.command,
+                );
+                return;
+              }
               return (
                 <div className="text-sm space-y-1" key={index}>
                   <p>{message.description}</p>
                   <div className="flex justify-between items-center gap-1">
-                    <p className="font-mono bg-inline-code rounded-md p-2 overflow-x-scroll whitespace-nowrap">
+                    <p className="font-mono bg-inline-code rounded-md p-2 overflow-x-scroll whitespace-nowrap flex-grow">
                       {message.command}
                     </p>
-                    <Button onClick={() => alert('TODO: run command' + message.command)}>
-                      Run
-                    </Button>
+                    <Button onClick={() => npmInstall(packages.split(' '))}>Run</Button>
                   </div>
                 </div>
               );
             } else if (message.type === 'plan') {
               return <Markdown key={index} source={message.content} />;
             } else if (message.type === 'diff') {
-              return <DiffBox key={index} files={message.diff} app={app} />;
+              // TODO this is really jank
+              const diffIndex = history
+                .filter((msg) => msg.type === 'diff')
+                .findIndex((msg) => msg === message);
+
+              return <DiffBox key={index} files={message.diff} app={app} version={diffIndex + 1} />;
             }
           })}
           <div className={cn('flex gap-2 w-full', fileDiffs.length > 0 ? '' : 'hidden')}>
@@ -184,11 +197,22 @@ function Query({
   );
 }
 
-function DiffBox({ files, app }: { files: FileDiffType[]; app: AppType }) {
+function DiffBox({
+  files,
+  app,
+  version,
+}: {
+  files: FileDiffType[];
+  app: AppType;
+  version: number;
+}) {
   return (
     <div className="px-2 py-1.5 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
       <div className="flex flex-col justify-between min-h-full gap-4">
-        <div className="">{app.name}</div>
+        <div>
+          <span className="font-medium">{app.name}</span>
+          <span className="font-mono px-1.5">v{version}</span>
+        </div>
         <div>
           {files.map((file) => (
             <div key={file.path}>

@@ -4,7 +4,7 @@ import { calculateSquares } from './lib/diff';
 export function DiffStats(props: { additions: number; deletions: number; className?: string }) {
   return (
     <div className={cn('flex items-center gap-2', props.className)}>
-      <span className="text-green-400">-{props.additions}</span>
+      <span className="text-green-500">-{props.additions}</span>
       <span className="text-red-400">+{props.deletions}</span>
     </div>
   );

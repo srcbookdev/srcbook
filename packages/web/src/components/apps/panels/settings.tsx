@@ -22,7 +22,11 @@ export default function SettingsPanel() {
       </div>
       <div>
         exists={JSON.stringify(nodeModulesExists)}
-        <Button onClick={() => clearNodeModules()} variant="secondary" disabled={nodeModulesExists !== true}>
+        <Button
+          onClick={() => clearNodeModules()}
+          variant="secondary"
+          disabled={nodeModulesExists !== true}
+        >
           Clear node_modules
         </Button>
       </div>

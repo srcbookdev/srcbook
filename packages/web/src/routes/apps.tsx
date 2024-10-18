@@ -86,16 +86,12 @@ function Apps() {
         tab={tab}
         onChangeTab={setTab}
         className="shrink-0 h-12 max-h-12"
-        onShowPackagesPanel={() => setPanel("settings")}
+        onShowPackagesPanel={() => setPanel('settings')}
       />
       <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar panel={panel} onChangePanel={setPanel} />
         <div className="grow shrink h-full flex flex-col w-0">
-          <Editor
-            tab={tab}
-            onChangeTab={setTab}
-            onShowPackagesPanel={() => setPanel("settings")}
-          />
+          <Editor tab={tab} onChangeTab={setTab} onShowPackagesPanel={() => setPanel('settings')} />
           <Statusbar />
         </div>
         <ChatPanel triggerDiffModal={triggerDiffModal} />

@@ -61,7 +61,7 @@ export default function EditorHeader(props: PropsType) {
         />
       )}
 
-      {npmInstallStatus === "installing" ? (
+      {npmInstallStatus === 'installing' ? (
         <div className="fixed top-0 left-0 right-0 z-[51] h-0.5 pointer-events-none">
           <div className="h-full w-full bg-white animate-indeterminate" />
         </div>

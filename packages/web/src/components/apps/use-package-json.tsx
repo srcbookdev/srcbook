@@ -1,7 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { OutputType } from '@srcbook/components/src/types';
 import { AppChannel } from '@/clients/websocket';
-import { DepsInstallLogPayloadType, DepsInstallStatusPayloadType, DepsStatusResponsePayloadType } from '@srcbook/shared';
+import {
+  DepsInstallLogPayloadType,
+  DepsInstallStatusPayloadType,
+  DepsStatusResponsePayloadType,
+} from '@srcbook/shared';
 import { useLogs } from './use-logs';
 
 type NpmInstallStatus = 'idle' | 'installing' | 'complete' | 'failed';
@@ -32,7 +36,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
   const { addError } = useLogs();
 
   useEffect(() => {
-    channel.push("deps:status", {});
+    channel.push('deps:status', {});
   }, [channel]);
 
   useEffect(() => {

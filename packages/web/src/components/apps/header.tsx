@@ -43,7 +43,7 @@ type PropsType = {
 export default function EditorHeader(props: PropsType) {
   const { app, updateApp } = useApp();
   const { start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
-  const { status: npmInstallStatus } = usePackageJson();
+  const { status: npmInstallStatus, nodeModulesExists } = usePackageJson();
 
   const [nameChangeDialogOpen, setNameChangeDialogOpen] = useState(false);
 
@@ -134,6 +134,7 @@ export default function EditorHeader(props: PropsType) {
                       size="icon"
                       onClick={startPreview}
                       className="active:translate-y-0"
+                      disabled={nodeModulesExists !== true}
                     >
                       <PlayCircleIcon size={18} />
                     </Button>

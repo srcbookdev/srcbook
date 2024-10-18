@@ -4,14 +4,17 @@ import { useEffect, useState } from 'react';
 import { Loader2Icon } from 'lucide-react';
 import { useLogs } from '../use-logs';
 import { Button } from '@srcbook/components/src/components/ui/button';
+import { usePackageJson } from '../use-package-json';
 
 type PropsType = {
   isActive?: boolean;
+  onShowPackagesPanel: () => void;
   className?: string;
 };
 
 export function Preview(props: PropsType) {
   const { url, status, start, lastStoppedError } = usePreview();
+  const { status: npmInstallStatus, nodeModulesExists } = usePackageJson();
   const { togglePane } = useLogs();
 
   const isActive = props.isActive ?? true;
@@ -25,6 +28,36 @@ export function Preview(props: PropsType) {
       setStartAttempted(false);
     }
   }, [isActive, status, start, startAttempted]);
+
+  if (nodeModulesExists === false) {
+    switch (npmInstallStatus) {
+      case "idle":
+      case "complete":
+        break;
+      case "installing":
+        return (
+          <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
+            <div className="flex flex-col gap-6 items-center border border-border p-8 border-dashed rounded-md">
+              <span>Dependencies installing...</span>
+              <Button variant="secondary" onClick={props.onShowPackagesPanel}>
+                View logs
+              </Button>
+            </div>
+          </div>
+        );
+      case "failed":
+        return (
+          <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
+            <div className="flex flex-col gap-6 items-center border border-border p-8 border-dashed rounded-md">
+              <span className="text-red-400">Dependencies installation failed</span>
+              <Button variant="secondary" onClick={togglePane}>
+                Open errors pane
+              </Button>
+            </div>
+          </div>
+        );
+    }
+  }
 
   switch (status) {
     case 'connecting':

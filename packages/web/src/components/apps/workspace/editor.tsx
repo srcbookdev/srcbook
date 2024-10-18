@@ -5,9 +5,13 @@ import { Preview } from './preview';
 import { cn } from '@/lib/utils.ts';
 import { CodeEditor } from '../editor';
 
-type EditorProps = { tab: EditorHeaderTab; onChangeTab: (newTab: EditorHeaderTab) => void };
+type EditorProps = {
+  tab: EditorHeaderTab;
+  onChangeTab: (newTab: EditorHeaderTab) => void;
+  onShowPackagesPanel: () => void;
+};
 
-export function Editor({ tab, onChangeTab }: EditorProps) {
+export function Editor({ tab, onChangeTab, onShowPackagesPanel }: EditorProps) {
   const { openedFile, updateFile } = useFiles();
 
   useEffect(() => {
@@ -41,7 +45,7 @@ export function Editor({ tab, onChangeTab }: EditorProps) {
         and causing a flash of unstyled content
         */}
       <div className={cn('w-full h-full', { hidden: tab !== 'preview' })}>
-        <Preview isActive={tab === 'preview'} />
+        <Preview isActive={tab === 'preview'} onShowPackagesPanel={onShowPackagesPanel} />
       </div>
     </div>
   );

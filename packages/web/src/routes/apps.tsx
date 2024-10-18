@@ -90,7 +90,11 @@ function Apps() {
       <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar panel={panel} onChangePanel={setPanel} />
         <div className="grow shrink h-full flex flex-col w-0">
-          <Editor tab={tab} onChangeTab={setTab} />
+          <Editor
+            tab={tab}
+            onChangeTab={setTab}
+            onShowPackagesPanel={() => setPanel("settings")}
+          />
           <Statusbar />
         </div>
         <ChatPanel triggerDiffModal={triggerDiffModal} />

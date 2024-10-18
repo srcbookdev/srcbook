@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useReducer, useRef, useState } from 'react';
 
-import type { FileType, DirEntryType, FileEntryType, AppType } from '@srcbook/shared';
+import type { FileType, DirEntryType, FileEntryType } from '@srcbook/shared';
 import { AppChannel } from '@/clients/websocket';
 import {
   createFile as doCreateFile,
@@ -20,6 +20,7 @@ import {
   updateDirNode,
   updateFileNode,
 } from './lib/file-tree';
+import { useApp } from './use-app';
 
 export interface FilesContextValue {
   fileTree: DirEntryType;
@@ -41,19 +42,20 @@ export interface FilesContextValue {
 const FilesContext = createContext<FilesContextValue | undefined>(undefined);
 
 type ProviderPropsType = {
-  app: AppType;
   channel: AppChannel;
   children: React.ReactNode;
   rootDirEntries: DirEntryType;
 };
 
-export function FilesProvider({ app, channel, rootDirEntries, children }: ProviderPropsType) {
+export function FilesProvider({ channel, rootDirEntries, children }: ProviderPropsType) {
   // Because we use refs for our state, we need a way to trigger
   // component re-renders when the ref state changes.
   //
   // https://legacy.reactjs.org/docs/hooks-faq.html#is-there-something-like-forceupdate
   //
   const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
+
+  const { app } = useApp();
 
   const fileTreeRef = useRef<DirEntryType>(sortTree(rootDirEntries));
   const openedDirectoriesRef = useRef<Set<string>>(new Set());

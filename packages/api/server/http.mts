@@ -45,6 +45,7 @@ import {
   serializeApp,
   deleteApp,
   createAppWithAi,
+  updateApp,
 } from '../apps/app.mjs';
 import { toValidPackageName } from '../apps/utils.mjs';
 import {
@@ -471,6 +472,28 @@ router.get('/apps/:id', cors(), async (req, res) => {
 
   try {
     const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    return res.json({ data: serializeApp(app) });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id', cors());
+router.put('/apps/:id', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (typeof name !== 'string' || name.trim() === '') {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+
+  try {
+    const app = await updateApp(id, { name });
 
     if (!app) {
       return res.status(404).json({ error: 'App not found' });

@@ -8,14 +8,15 @@ import { useEffect, useRef, useState } from 'react';
 import Statusbar from '@/components/apps/statusbar';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider } from '@/components/apps/use-files';
-import { Editor } from '@/components/apps/workspace/editor/editor';
+import { Editor } from '@/components/apps/workspace/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
 import { LogsProvider } from '@/components/apps/use-logs';
 import { PackageJsonProvider } from '@/components/apps/use-package-json';
 import { ChatPanel } from '@/components/chat';
 import DiffModal from '@/components/apps/diff-modal';
 import { FileDiffType } from '@srcbook/shared';
-import EditorHeader, { EditorHeaderTab } from '../components/apps/workspace/editor/header';
+import EditorHeader, { EditorHeaderTab } from '../components/apps/header';
+import { AppProvider } from '@/components/apps/use-app';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
@@ -52,26 +53,21 @@ export function AppsPage() {
   }, [app.id]);
 
   return (
-    <FilesProvider
-      // Key can be used to remount a fresh provider if the app changes.
-      // This ensures we get a clean set of state for the new app.
-      key={app.id}
-      app={app}
-      channel={channelRef.current}
-      rootDirEntries={rootDirEntries}
-    >
-      <PreviewProvider channel={channelRef.current}>
-        <LogsProvider channel={channelRef.current}>
-          <PackageJsonProvider channel={channelRef.current}>
-            <Apps app={app} />
-          </PackageJsonProvider>
-        </LogsProvider>
-      </PreviewProvider>
-    </FilesProvider>
+    <AppProvider key={app.id} app={app}>
+      <FilesProvider channel={channelRef.current} rootDirEntries={rootDirEntries}>
+        <PreviewProvider channel={channelRef.current}>
+          <LogsProvider channel={channelRef.current}>
+            <PackageJsonProvider channel={channelRef.current}>
+              <Apps />
+            </PackageJsonProvider>
+          </LogsProvider>
+        </PreviewProvider>
+      </FilesProvider>
+    </AppProvider>
   );
 }
 
-function Apps(props: { app: AppType }) {
+function Apps() {
   const [tab, setTab] = useState<EditorHeaderTab>('code');
   const [diffModalProps, triggerDiffModal] = useState<{
     files: FileDiffType[];
@@ -81,19 +77,14 @@ function Apps(props: { app: AppType }) {
   return (
     <>
       {diffModalProps && <DiffModal {...diffModalProps} onClose={() => triggerDiffModal(null)} />}
-      <EditorHeader
-        app={props.app}
-        tab={tab}
-        onChangeTab={setTab}
-        className="shrink-0 h-12 max-h-12"
-      />
+      <EditorHeader tab={tab} onChangeTab={setTab} className="shrink-0 h-12 max-h-12" />
       <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar />
         <div className="grow shrink h-full flex flex-col w-0">
           <Editor tab={tab} onChangeTab={setTab} />
           <Statusbar />
         </div>
-        <ChatPanel app={props.app} triggerDiffModal={triggerDiffModal} />
+        <ChatPanel triggerDiffModal={triggerDiffModal} />
       </div>
     </>
   );

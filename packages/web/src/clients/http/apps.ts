@@ -63,6 +63,21 @@ export async function loadApp(id: string): Promise<{ data: AppType }> {
   return response.json();
 }
 
+export async function updateApp(id: string, attrs: { name: string }): Promise<{ data: AppType }> {
+  const response = await fetch(API_BASE_URL + '/apps/' + id, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(attrs),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Request failed');
+  }
+
+  return response.json();
+}
+
 export async function loadDirectory(id: string, path: string): Promise<{ data: DirEntryType }> {
   const queryParams = new URLSearchParams({ path });
 

@@ -1,5 +1,11 @@
 # @srcbook/shared
 
+## 0.1.0
+
+### Minor Changes
+
+- 73cd6e8: support backend hmr
+
 ## 0.0.9
 
 ### Patch Changes

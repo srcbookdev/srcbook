@@ -274,6 +274,7 @@ export function DraggableChatPanel(props: { children: React.ReactNode }): React.
           }}
         />
       )}
+      {/* eslint-disable-next-line */}
       <div
         ref={chatRef}
         className="fixed"

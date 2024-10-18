@@ -11,6 +11,7 @@ import {
   ViewIcon,
   Undo2Icon,
   Redo2Icon,
+  GripHorizontal,
 } from 'lucide-react';
 import * as React from 'react';
 import { aiEditApp, loadHistory, appendToHistory } from '@/clients/http/apps.js';
@@ -203,6 +204,97 @@ function DiffBox({ files, app }: { files: FileDiffType[]; app: AppType }) {
   );
 }
 
+export function DraggableChatPanel(props: { children: React.ReactNode }): React.JSX.Element {
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [position, setPosition] = React.useState({ x: 20, y: 20 });
+  const chatRef = React.useRef<HTMLDivElement>(null);
+  const dragStartPos = React.useRef({ x: 0, y: 0 });
+  const [showOverlay, setShowOverlay] = React.useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.target instanceof Element && e.target.closest('.drag-handle')) {
+      setIsDragging(true);
+      setShowOverlay(true);
+      dragStartPos.current = {
+        x: e.clientX + position.x,
+        y: e.clientY + position.y,
+      };
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging && chatRef.current) {
+      const newX = dragStartPos.current.x - e.clientX;
+      const newY = dragStartPos.current.y - e.clientY;
+
+      // Ensure the chat panel stays within the viewport
+      const maxX = window.innerWidth - chatRef.current.offsetWidth;
+      const maxY = window.innerHeight - chatRef.current.offsetHeight;
+
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setShowOverlay(false);
+  };
+
+  React.useEffect(() => {
+    if (showOverlay) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, showOverlay]);
+
+  // Note: we show a full screen overlay otherwise the mouse events
+  // don't fire correctly when hovering over the iframe.
+
+  return (
+    <>
+      {showOverlay && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 90,
+          }}
+        />
+      )}
+      <div
+        ref={chatRef}
+        className="fixed"
+        style={{
+          bottom: `${position.y}px`,
+          right: `${position.x}px`,
+          cursor: isDragging ? 'grabbing' : 'grab',
+          userSelect: 'none',
+          zIndex: 100,
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="flex items-end gap-1">
+          <GripHorizontal className="text-gray-400 drag-handle bg-background" />
+          {props.children}
+        </div>
+      </div>
+    </>
+  );
+}
+
 type PropsType = {
   triggerDiffModal: (props: { files: FileDiffType[]; onUndoAll: () => void } | null) => void;
 };
@@ -329,21 +421,23 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 grid gap-1.5">
-      {visible && (
-        <Chat
-          history={history}
-          isLoading={isLoading}
-          onClose={handleClose}
-          app={app}
-          diffApplied={diffApplied}
-          reApplyDiff={reApplyDiff}
-          revertDiff={revertDiff}
-          fileDiffs={fileDiffs}
-          openDiffModal={openDiffModal}
-        />
-      )}
-      <Query onSubmit={handleSubmit} isLoading={isLoading} onFocus={handleFocus} />
-    </div>
+    <DraggableChatPanel>
+      <div className="flex flex-col gap-2">
+        {visible && (
+          <Chat
+            history={history}
+            isLoading={isLoading}
+            onClose={handleClose}
+            app={app}
+            diffApplied={diffApplied}
+            reApplyDiff={reApplyDiff}
+            revertDiff={revertDiff}
+            fileDiffs={fileDiffs}
+            openDiffModal={openDiffModal}
+          />
+        )}
+        <Query onSubmit={handleSubmit} isLoading={isLoading} onFocus={handleFocus} />
+      </div>
+    </DraggableChatPanel>
   );
 }

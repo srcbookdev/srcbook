@@ -37,9 +37,8 @@ import {
   PreviewStatusPayloadSchema,
   PreviewStopPayloadSchema,
   PreviewStartPayloadSchema,
-  DependenciesInstallPayloadSchema,
-  DependenciesInstallLogPayloadSchema,
-  DependenciesInstallStatusPayloadSchema,
+  DepsInstallLogPayloadSchema,
+  DepsInstallStatusPayloadSchema,
 } from '../schemas/websockets.mjs';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -104,8 +103,5 @@ export type FileDeletedPayloadType = z.infer<typeof FileDeletedPayloadSchema>;
 export type PreviewStatusPayloadType = z.infer<typeof PreviewStatusPayloadSchema>;
 export type PreviewStartPayloadType = z.infer<typeof PreviewStartPayloadSchema>;
 export type PreviewStopPayloadType = z.infer<typeof PreviewStopPayloadSchema>;
-export type DependenciesInstallPayloadType = z.infer<typeof DependenciesInstallPayloadSchema>;
-export type DependenciesInstallLogPayloadType = z.infer<typeof DependenciesInstallLogPayloadSchema>;
-export type DependenciesInstallStatusPayloadType = z.infer<
-  typeof DependenciesInstallStatusPayloadSchema
->;
+export type DepsInstallLogPayloadType = z.infer<typeof DepsInstallLogPayloadSchema>;
+export type DepsInstallStatusPayloadType = z.infer<typeof DepsInstallStatusPayloadSchema>;

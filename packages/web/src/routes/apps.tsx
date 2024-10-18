@@ -15,8 +15,9 @@ import { PackageJsonProvider } from '@/components/apps/use-package-json';
 import { ChatPanel } from '@/components/chat';
 import DiffModal from '@/components/apps/diff-modal';
 import { FileDiffType } from '@srcbook/shared';
-import EditorHeader, { EditorHeaderTab } from '../components/apps/header';
+import EditorHeader, { EditorHeaderTab } from '@/components/apps/header';
 import { AppProvider } from '@/components/apps/use-app';
+import PackageInstallNote from '@/components/apps/package-install-note';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([

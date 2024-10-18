@@ -14,49 +14,27 @@ type PropsType = {
 
 export function Preview(props: PropsType) {
   const { url, status, start, lastStoppedError } = usePreview();
-  const { status: npmInstallStatus, nodeModulesExists } = usePackageJson();
+  const { nodeModulesExists } = usePackageJson();
   const { togglePane } = useLogs();
 
   const isActive = props.isActive ?? true;
 
   const [startAttempted, setStartAttempted] = useState(false);
   useEffect(() => {
-    if (isActive && status === 'stopped' && !startAttempted) {
+    if (isActive && nodeModulesExists && status === 'stopped' && !startAttempted) {
       setStartAttempted(true);
       start();
     } else if (!isActive) {
       setStartAttempted(false);
     }
-  }, [isActive, status, start, startAttempted]);
+  }, [isActive, nodeModulesExists, status, start, startAttempted]);
 
   if (nodeModulesExists === false) {
-    switch (npmInstallStatus) {
-      case "idle":
-      case "complete":
-        break;
-      case "installing":
-        return (
-          <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
-            <div className="flex flex-col gap-6 items-center border border-border p-8 border-dashed rounded-md">
-              <span>Dependencies installing...</span>
-              <Button variant="secondary" onClick={props.onShowPackagesPanel}>
-                View logs
-              </Button>
-            </div>
-          </div>
-        );
-      case "failed":
-        return (
-          <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
-            <div className="flex flex-col gap-6 items-center border border-border p-8 border-dashed rounded-md">
-              <span className="text-red-400">Dependencies installation failed</span>
-              <Button variant="secondary" onClick={togglePane}>
-                Open errors pane
-              </Button>
-            </div>
-          </div>
-        );
-    }
+    return (
+      <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
+        <span className="text-tertiary-foreground">Dependencies not installed</span>
+      </div>
+    );
   }
 
   switch (status) {

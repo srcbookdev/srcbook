@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Preview } from './preview';
 import { cn } from '@/lib/utils.ts';
 import { CodeEditor } from '../editor';
+import PackageInstallNote from '../../package-install-note';
 
 type EditorProps = {
   tab: EditorHeaderTab;
@@ -22,7 +23,9 @@ export function Editor({ tab, onChangeTab, onShowPackagesPanel }: EditorProps) {
   }, [openedFile, onChangeTab]);
 
   return (
-    <div className="grow shrink flex flex-col w-full h-full overflow-hidden">
+    <div className="relative grow shrink flex flex-col w-full h-full overflow-hidden">
+      <PackageInstallNote />
+
       {tab === 'code' ? (
         /* Careful to ensure this div always consumes full height of parent container and only overflows via scroll */
         <div className="w-full flex-1 overflow-auto">

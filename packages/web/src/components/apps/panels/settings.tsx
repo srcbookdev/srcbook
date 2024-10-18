@@ -2,7 +2,7 @@ import { Button } from '@srcbook/components/src/components/ui/button';
 import { usePackageJson } from '../use-package-json';
 
 export default function SettingsPanel() {
-  const { status, output, npmInstall } = usePackageJson();
+  const { status, output, npmInstall, clearNodeModules, nodeModulesExists } = usePackageJson();
 
   return (
     <div className="flex flex-col gap-4 px-5 w-[360px]">
@@ -18,6 +18,12 @@ export default function SettingsPanel() {
           disabled={status === 'installing'}
         >
           Run npm install uuid
+        </Button>
+      </div>
+      <div>
+        exists={nodeModulesExists ? 'true' : 'false'}
+        <Button onClick={() => clearNodeModules()} variant="secondary" disabled={!nodeModulesExists}>
+          Clear node_modules
         </Button>
       </div>
 

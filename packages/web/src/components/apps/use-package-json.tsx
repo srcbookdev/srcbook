@@ -10,7 +10,7 @@ export interface PackageJsonContextValue {
   npmInstall: (packages?: string[]) => void;
   clearNodeModules: () => void;
 
-  nodeModulesExists: boolean;
+  nodeModulesExists: boolean | null;
   status: NpmInstallStatus;
   installing: boolean;
   failed: boolean;
@@ -27,7 +27,7 @@ type ProviderPropsType = {
 export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
   const [status, setStatus] = useState<NpmInstallStatus>('idle');
   const [output, setOutput] = useState<Array<OutputType>>([]);
-  const [nodeModulesExists, setNodeModulesExists] = useState<boolean>(false);
+  const [nodeModulesExists, setNodeModulesExists] = useState<boolean | null>(null);
 
   const { addError } = useLogs();
 

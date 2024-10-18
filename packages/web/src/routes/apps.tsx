@@ -3,11 +3,11 @@ import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import type { AppType, DirEntryType } from '@srcbook/shared';
 
 import { loadApp, loadDirectory } from '@/clients/http/apps';
-import Sidebar from '@/components/apps/sidebar';
+import Sidebar, { PanelType } from '@/components/apps/sidebar';
 import { useEffect, useRef, useState } from 'react';
 import Statusbar from '@/components/apps/statusbar';
 import { AppChannel } from '@/clients/websocket';
-import { FilesProvider } from '@/components/apps/use-files';
+import { FilesProvider, useFiles } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
 import { LogsProvider } from '@/components/apps/use-logs';
@@ -69,6 +69,10 @@ export function AppsPage() {
 
 function Apps() {
   const [tab, setTab] = useState<EditorHeaderTab>('code');
+
+  const { openedFile } = useFiles();
+  const [panel, setPanel] = useState<PanelType | null>(openedFile === null ? 'explorer' : null);
+
   const [diffModalProps, triggerDiffModal] = useState<{
     files: FileDiffType[];
     onUndoAll: () => void;
@@ -77,9 +81,14 @@ function Apps() {
   return (
     <>
       {diffModalProps && <DiffModal {...diffModalProps} onClose={() => triggerDiffModal(null)} />}
-      <EditorHeader tab={tab} onChangeTab={setTab} className="shrink-0 h-12 max-h-12" />
+      <EditorHeader
+        tab={tab}
+        onChangeTab={setTab}
+        className="shrink-0 h-12 max-h-12"
+        onShowPackagesPanel={() => setPanel("settings")}
+      />
       <div className="h-[calc(100vh-3rem)] flex">
-        <Sidebar />
+        <Sidebar panel={panel} onChangePanel={setPanel} />
         <div className="grow shrink h-full flex flex-col w-0">
           <Editor tab={tab} onChangeTab={setTab} />
           <Statusbar />

@@ -5,6 +5,7 @@ import {
   EllipsisIcon,
   PlayCircleIcon,
   Code2Icon,
+  Loader2Icon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SrcbookLogo } from '@/components/logos';
@@ -24,10 +25,11 @@ import {
   DialogDescription,
 } from '@srcbook/components/src/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { usePreview } from './use-preview';
+import { usePackageJson } from './use-package-json';
 import { useApp } from './use-app';
 import { Input } from '@srcbook/components';
 import { useState } from 'react';
+import { usePreview } from './use-preview';
 
 export type EditorHeaderTab = 'code' | 'preview';
 
@@ -35,11 +37,13 @@ type PropsType = {
   className?: string;
   tab: EditorHeaderTab;
   onChangeTab: (newTab: EditorHeaderTab) => void;
+  onShowPackagesPanel: () => void;
 };
 
 export default function EditorHeader(props: PropsType) {
   const { app, updateApp } = useApp();
   const { start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
+  const { status: npmInstallStatus } = usePackageJson();
 
   const [nameChangeDialogOpen, setNameChangeDialogOpen] = useState(false);
 
@@ -108,6 +112,19 @@ export default function EditorHeader(props: PropsType) {
           </div>
 
           <div className="flex items-center gap-2">
+            {npmInstallStatus === "installing" ? (
+              <button
+                className={cn(
+                  "flex items-center gap-2 rounded-full border border-run px-2 h-8 bg-muted text-run",
+                  "outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                )}
+                onClick={props.onShowPackagesPanel}
+              >
+                <Loader2Icon size={18} className="animate-spin" />
+                <span>Installing packages...</span>
+              </button>
+            ) : null}
+
             {props.tab === 'preview' && previewStatus === 'stopped' ? (
               <TooltipProvider>
                 <Tooltip>

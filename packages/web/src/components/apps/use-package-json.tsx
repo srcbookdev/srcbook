@@ -7,7 +7,7 @@ import { useLogs } from './use-logs';
 type NpmInstallStatus = 'idle' | 'installing' | 'complete' | 'failed';
 
 export interface PackageJsonContextValue {
-  npmInstall: (packages?: string[]) => void;
+  npmInstall: (packages?: string[]) => Promise<void>;
   clearNodeModules: () => void;
 
   nodeModulesExists: boolean | null;
@@ -47,31 +47,36 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
   }, [channel]);
 
   const npmInstall = useCallback(
-    (packages?: Array<string>) => {
+    async (packages?: Array<string>) => {
       // NOTE: caching of the log output is required here because socket events that call callback
       // functions in here hold on to old scope values
       let contents = '';
 
-      const logCallback = ({ log }: DepsInstallLogPayloadType) => {
-        setOutput((old) => [...old, log]);
-        contents += log.data;
-      };
-      channel.on('deps:install:log', logCallback);
+      return new Promise<void>((resolve, reject) => {
+        const logCallback = ({ log }: DepsInstallLogPayloadType) => {
+          setOutput((old) => [...old, log]);
+          contents += log.data;
+        };
+        channel.on('deps:install:log', logCallback);
 
-      const statusCallback = ({ status }: DepsInstallStatusPayloadType) => {
-        channel.off('deps:install:log', logCallback);
-        channel.off('deps:install:status', statusCallback);
-        setStatus(status);
+        const statusCallback = ({ status }: DepsInstallStatusPayloadType) => {
+          channel.off('deps:install:log', logCallback);
+          channel.off('deps:install:status', statusCallback);
+          setStatus(status);
 
-        if (status === 'failed') {
-          addError({ type: 'npm_install_error', contents });
-        }
-      };
-      channel.on('deps:install:status', statusCallback);
+          if (status === 'complete') {
+            resolve();
+          } else {
+            addError({ type: 'npm_install_error', contents });
+            reject(new Error(`Error running npm install: ${contents}`));
+          }
+        };
+        channel.on('deps:install:status', statusCallback);
 
-      setOutput([]);
-      setStatus('installing');
-      channel.push('deps:install', { packages });
+        setOutput([]);
+        setStatus('installing');
+        channel.push('deps:install', { packages });
+      });
     },
     [channel, addError],
   );

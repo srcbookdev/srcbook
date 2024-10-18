@@ -14,11 +14,14 @@ export type UserMessageType = {
   message: string;
 };
 
-export type CommandMessageType = {
+type NpmInstallCommand = {
   type: 'command';
-  command: string;
+  command: 'npm install';
+  packages: string[];
   description: string;
 };
+
+export type CommandMessageType = NpmInstallCommand;
 
 export type DiffMessageType = {
   type: 'diff';

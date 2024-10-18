@@ -26,14 +26,17 @@ import { loadFile } from '../apps/disk.mjs';
  *       ]]>
  *     </file>
  *   </action>
- *   <action type="command">
- *     <description>![CDATA[{Install dependencies}]]></description>
- *     <command>
- *       <![CDATA[
- *         npm install
- *       ]]>
- *     </command>
- *   </action>
+ *
+ *  <action type="command">
+ *    <description>
+ *      <![CDATA[
+ *        Install required packages for state management and routing
+ *      ]]>
+ *    </description>
+ *    <commandType>npm install</commandType>
+ *    <package>react-redux</package>
+ *    <package>react-router-dom</package>
+ *  </action>
  *   ...
  * </plan>
  */
@@ -48,11 +51,15 @@ interface FileAction {
   description: string;
 }
 
-interface Command {
+type NpmInstallCommand = {
   type: 'command';
-  content: string;
+  command: 'npm install';
+  packages: string[];
   description: string;
-}
+};
+
+// Later we can add more commands. For now, we only support npm install
+type Command = NpmInstallCommand;
 
 export interface Plan {
   // The high level description of the plan
@@ -69,13 +76,15 @@ interface ParsedResult {
           '@_type': string;
           description: string;
           file?: { '@_filename': string; '#text': string };
-          command?: string;
+          commandType?: string;
+          package?: string | string[];
         }[]
       | {
           '@_type': string;
           description: string;
           file?: { '@_filename': string; '#text': string };
-          command?: string;
+          commandType?: string;
+          package?: string | string[];
         };
   };
 }
@@ -118,10 +127,15 @@ export async function parsePlan(response: string, app: DBAppType): Promise<Plan>
           original: originalContent,
           description: action.description,
         });
-      } else if (action['@_type'] === 'command' && action.command) {
+      } else if (action['@_type'] === 'command' && action.commandType === 'npm install') {
+        if (!action.package) {
+          console.error('Invalid response: missing package tag');
+          continue;
+        }
         plan.actions.push({
           type: 'command',
-          content: action.command,
+          command: 'npm install',
+          packages: Array.isArray(action.package) ? action.package : [action.package],
           description: action.description,
         });
       }

@@ -77,7 +77,7 @@ function Chat({
                 </p>
               );
             } else if (message.type === 'command') {
-              const packages = message.command.match(/npm install (.+)/)?.[1];
+              const packages = message.packages;
               if (!packages) {
                 console.error(
                   'The only supported command is `npm install <packages>`. Got:',
@@ -87,12 +87,12 @@ function Chat({
               }
               return (
                 <div className="text-sm space-y-1" key={index}>
-                  <p>{message.description}</p>
+                  <p>Install dependencies</p>
                   <div className="flex justify-between items-center gap-1">
                     <p className="font-mono bg-inline-code rounded-md p-2 overflow-x-scroll whitespace-nowrap flex-grow">
-                      {message.command}
+                      {`npm install ${packages.join(' ')}`}
                     </p>
-                    <Button onClick={() => npmInstall(packages.split(' '))}>Run</Button>
+                    <Button onClick={() => npmInstall(packages)}>Run</Button>
                   </div>
                 </div>
               );
@@ -306,14 +306,18 @@ export function DraggableChatPanel(props: { children: React.ReactNode }): React.
         style={{
           bottom: `${position.y}px`,
           right: `${position.x}px`,
-          cursor: isDragging ? 'grabbing' : 'grab',
           userSelect: 'none',
           zIndex: 100,
         }}
         onMouseDown={handleMouseDown}
       >
         <div className="flex items-end gap-1">
-          <GripHorizontal className="text-gray-400 drag-handle bg-background" />
+          <GripHorizontal
+            className={cn(
+              'text-gray-400 drag-handle bg-background/10 rounded-sm',
+              isDragging ? 'cursor-grabbing' : 'cursor-grab',
+            )}
+          />
           {props.children}
         </div>
       </div>
@@ -363,7 +367,8 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     const historyEntries = commandUpdates.map((update) => {
       const entry: CommandMessageType = {
         type: 'command',
-        command: update.content,
+        command: update.command,
+        packages: update.packages,
         description: update.description,
       };
       return entry;

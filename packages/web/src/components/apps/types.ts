@@ -8,11 +8,14 @@ export type FileType = {
   description: string;
 };
 
-export type CommandType = {
+type NpmInstallCommandType = {
   type: 'command';
-  content: string;
+  command: 'npm install';
+  packages: string[];
   description: string;
 };
+
+export type CommandType = NpmInstallCommandType;
 
 export type PlanItemType = FileType | CommandType;
 

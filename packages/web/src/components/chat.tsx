@@ -77,7 +77,7 @@ function Chat({
   }, [history, isLoading]);
 
   return (
-    <div className="rounded-xl bg-background w-[440px] border shadow-xl max-h-[75vh]">
+    <div className="rounded-lg bg-background w-[440px] border shadow-xl max-h-[75vh]">
       <div className="flex justify-between h-[40px] items-center border-b px-1">
         <span className="text-sm px-2">Chat</span>
         <span className="flex items-center">
@@ -128,7 +128,7 @@ function Chat({
             }
           })}
 
-          <div className={cn('flex gap-2 w-full', fileDiffs.length > 0 ? '' : 'hidden')}>
+          <div className={cn('flex gap-2 w-full px-2', fileDiffs.length > 0 ? '' : 'hidden')}>
             <Button
               variant="ai-secondary"
               onClick={diffApplied ? revertDiff : reApplyDiff}
@@ -187,7 +187,7 @@ function Query({
   return (
     <div
       className={cn(
-        'rounded-xl w-[440px] border px-2 py-1 shadow-xl transition-all',
+        'rounded-lg w-[440px] border p-2 shadow-xl transition-all',
         'bg-background hover:border-ai-ring focus-within:border-ai-ring',
         isLoading && 'hover:border-border',
       )}
@@ -195,7 +195,7 @@ function Query({
       <TextareaAutosize
         disabled={isLoading}
         placeholder="What do you want to change?"
-        className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm caret-ai-btn placeholder:text-muted-foreground focus-visible:outline-none resize-none"
+        className="flex w-full rounded-sm bg-transparent px-2 mb-2 text-sm caret-ai-btn placeholder:text-muted-foreground focus-visible:outline-none resize-none"
         maxRows={20}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={onFocus}
@@ -208,8 +208,8 @@ function Query({
           }
         }}
       />
-      <span className="flex items-center justify-end gap-2 mt-2">
-        <Button variant="icon" className="h-7 w-7 p-1.5 border-none">
+      <span className="flex items-center justify-end gap-1.5 mt-2">
+        <Button variant="icon" className="h-7 w-7 p-1.5 border-none text-tertiary-foreground">
           {isVisible ? (
             <PanelTopOpen size={18} onClick={() => setVisible(false)} />
           ) : (
@@ -219,7 +219,7 @@ function Query({
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="icon" className="h-7 w-7 p-1.5 border-none">
+              <Button variant="icon" className="h-7 w-7 p-1.5 border-none text-tertiary-foreground">
                 <Paperclip size={18} />
               </Button>
             </TooltipTrigger>
@@ -250,7 +250,7 @@ function DiffBox({
 }) {
   return (
     <>
-      <div className="px-2 pb-2 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
+      <div className="px-2 mx-2 pb-2 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
         <div className="flex flex-col justify-between min-h-full">
           <div className="flex gap-2 items-center text-sm h-10">
             <span className="font-medium">{app.name}</span>
@@ -268,7 +268,7 @@ function DiffBox({
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2 my-2">
+      <div className="flex px-2 items-center gap-2 my-2">
         <Button
           variant="icon"
           className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"

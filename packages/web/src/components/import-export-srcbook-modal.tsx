@@ -204,7 +204,7 @@ export function ImportSrcbookModal({
             <SrcMdUploadDropZone onDrop={onCreateSrcbookFromFilesystem} className="h-[160px]" />
           </TabsContent>
           <TabsContent className="mt-0" value="url">
-            <div className="flex gap-2 w-full">
+            <div className="flex gap-2 w-full px-2">
               <Input
                 ref={urlInputRef}
                 value={url}

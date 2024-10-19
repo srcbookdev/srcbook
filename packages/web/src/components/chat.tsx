@@ -1,17 +1,28 @@
-import { Button, cn, ScrollArea } from '@srcbook/components';
+import {
+  Button,
+  cn,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@srcbook/components';
 import Markdown from './apps/markdown.js';
 import { diffFiles } from './apps/lib/diff.js';
 import TextareaAutosize from 'react-textarea-autosize';
 import {
   ArrowUp,
-  X,
+  Minus,
   Paperclip,
-  History,
   LoaderCircle,
+  History,
+  PanelTopOpen,
+  Loader,
   ViewIcon,
   Undo2Icon,
   Redo2Icon,
   GripHorizontal,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
 import * as React from 'react';
 import { aiEditApp, loadHistory, appendToHistory } from '@/clients/http/apps.js';
@@ -53,20 +64,29 @@ function Chat({
   openDiffModal: () => void;
 }) {
   const { npmInstall } = usePackageJson();
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  // Tried scrolling with flex-direction: column-reverse but it didn't work
+  // with generated content, so fallback to using JS
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  React.useEffect(() => {
+    scrollToBottom();
+  }, [history, isLoading]);
+
   return (
-    <div className="rounded-xl bg-background w-[440px] border shadow-xl max-h-[75vh] overflow-y-hidden">
+    <div className="rounded-xl bg-background w-[440px] border shadow-xl max-h-[75vh]">
       <div className="flex justify-between h-[40px] items-center border-b px-1">
         <span className="text-sm px-2">Chat</span>
         <span className="flex items-center">
-          <Button variant="icon" className="h-7 w-7 p-1.5 border-none">
-            <History size={18} className="text-sb-core-80" />
-          </Button>
           <Button variant="icon" className="h-7 w-7 p-1.5 border-none" onClick={onClose}>
-            <X size={18} className="text-sb-core-80" />
+            <Minus size={18} className="text-sb-core-80" />
           </Button>
         </span>
       </div>
-      <ScrollArea className="max-h-[calc(75vh-40px)] overflow-y-auto p-2">
+      <div className="max-h-[calc(75vh-40px)] p-2 overflow-y-auto">
         <div className="flex flex-col gap-2">
           {/* TODO: each message object needs a unique identifier */}
           {history.map((message: MessageType, index: number) => {
@@ -97,7 +117,7 @@ function Chat({
                 </div>
               );
             } else if (message.type === 'plan') {
-              return <Markdown key={index} source={message.content} />;
+              return <Markdown key={index} source={message.content.trim()} />;
             } else if (message.type === 'diff') {
               // TODO this is really jank
               const diffIndex = history
@@ -107,6 +127,7 @@ function Chat({
               return <DiffBox key={index} files={message.diff} app={app} version={diffIndex + 1} />;
             }
           })}
+
           <div className={cn('flex gap-2 w-full', fileDiffs.length > 0 ? '' : 'hidden')}>
             <Button
               variant="ai-secondary"
@@ -125,14 +146,17 @@ function Chat({
               <span>Review changes</span>
             </Button>
           </div>
+
           {isLoading && (
-            <div className="flex items-center gap-2 text-sm">
-              <p>Loading...</p>
-              <LoaderCircle size={18} className="animate-spin" />
+            <div className="flex items-center gap-2 text-sm pt-3">
+              <Loader size={18} className="animate-spin text-ai-btn" />{' '}
+              <p className="text-xs">(loading can be slow, streaming coming soon!)</p>
             </div>
           )}
+          {/* empty div for scrolling */}
+          <div ref={messagesEndRef} />
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
@@ -141,10 +165,14 @@ function Query({
   onSubmit,
   onFocus,
   isLoading,
+  isVisible,
+  setVisible,
 }: {
   onSubmit: (query: string) => Promise<void>;
   onFocus: () => void;
   isLoading: boolean;
+  isVisible: boolean;
+  setVisible: (visible: boolean) => void;
 }) {
   const [query, setQuery] = React.useState('');
 
@@ -160,14 +188,14 @@ function Query({
     <div
       className={cn(
         'rounded-xl w-[440px] border px-2 py-1 shadow-xl transition-all',
-        'bg-background hover:border-sb-purple-60 focus-within:border-sb-purple-60',
+        'bg-background hover:border-ai-ring focus-within:border-ai-ring',
         isLoading && 'hover:border-border',
       )}
     >
       <TextareaAutosize
         disabled={isLoading}
         placeholder="What do you want to change?"
-        className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none resize-none"
+        className="flex w-full rounded-sm bg-transparent px-3 py-2 text-sm caret-ai-btn placeholder:text-muted-foreground focus-visible:outline-none resize-none"
         maxRows={20}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={onFocus}
@@ -182,8 +210,22 @@ function Query({
       />
       <span className="flex items-center justify-end gap-2 mt-2">
         <Button variant="icon" className="h-7 w-7 p-1.5 border-none">
-          <Paperclip size={18} />
+          {isVisible ? (
+            <PanelTopOpen size={18} onClick={() => setVisible(false)} />
+          ) : (
+            <History size={18} onClick={() => setVisible(true)} />
+          )}
         </Button>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="icon" className="h-7 w-7 p-1.5 border-none">
+                <Paperclip size={18} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Coming soon!</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <Button
           variant="ai"
           className={'h-7 w-7 p-1.5 foxus:outline-none border-none'}
@@ -207,24 +249,42 @@ function DiffBox({
   version: number;
 }) {
   return (
-    <div className="px-2 py-1.5 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
-      <div className="flex flex-col justify-between min-h-full gap-4">
-        <div>
-          <span className="font-medium">{app.name}</span>
-          <span className="font-mono px-1.5">v{version}</span>
-        </div>
-        <div>
-          {files.map((file) => (
-            <div key={file.path}>
-              <div className="flex justify-between text-sm font-mono">
-                <p className="font-mono">{file.path}</p>
-                <DiffStats additions={file.additions} deletions={file.deletions} />
+    <>
+      <div className="px-2 pb-2 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
+        <div className="flex flex-col justify-between min-h-full">
+          <div className="flex gap-2 items-center text-sm h-10">
+            <span className="font-medium">{app.name}</span>
+            <span className="font-mono px-1 bg-ai-border rounded-sm">v{version}</span>
+          </div>
+          <div>
+            {files.map((file) => (
+              <div key={file.path}>
+                <div className="flex justify-between items-center text-sm font-mono h-8">
+                  <p className="font-mono">{file.path}</p>
+                  <DiffStats additions={file.additions} deletions={file.deletions} />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+      <div className="flex items-center gap-2 my-2">
+        <Button
+          variant="icon"
+          className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"
+          aria-label="Upvote"
+        >
+          <ThumbsUp size={18} />
+        </Button>
+        <Button
+          variant="icon"
+          className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"
+          aria-label="Downvote"
+        >
+          <ThumbsDown size={18} />
+        </Button>
+      </div>
+    </>
   );
 }
 
@@ -295,7 +355,6 @@ export function DraggableChatPanel(props: { children: React.ReactNode }): React.
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 90,
           }}
         />
       )}
@@ -306,8 +365,7 @@ export function DraggableChatPanel(props: { children: React.ReactNode }): React.
         style={{
           bottom: `${position.y}px`,
           right: `${position.x}px`,
-          userSelect: 'none',
-          zIndex: 100,
+          userSelect: `${isDragging ? 'none' : 'auto'}`,
         }}
         onMouseDown={handleMouseDown}
       >
@@ -467,7 +525,13 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
             openDiffModal={openDiffModal}
           />
         )}
-        <Query onSubmit={handleSubmit} isLoading={isLoading} onFocus={handleFocus} />
+        <Query
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          onFocus={handleFocus}
+          isVisible={visible}
+          setVisible={setVisible}
+        />
       </div>
     </DraggableChatPanel>
   );

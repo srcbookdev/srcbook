@@ -218,6 +218,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -496,6 +497,158 @@
 
 .sb-prose-mini img {
   border-radius: 1.5px;
+}
+
+.sb-prose-chat {
+  @apply font-sans;
+  @apply text-sm;
+  @apply leading-5;
+}
+
+.sb-prose-chat > *:first-child {
+  margin-top: 0;
+}
+
+.sb-prose-chat > *:last-child {
+  margin-bottom: 0;
+}
+
+.sb-prose-chat p {
+  @apply my-2;
+}
+
+.sb-prose-chat a {
+  font-weight: bold;
+  @apply underline;
+  @apply decoration-2;
+  @apply underline-offset-2;
+}
+
+.sb-prose-chat a:hover {
+  @apply text-primary-hover;
+}
+
+.sb-prose-chat blockquote {
+  @apply font-medium;
+  @apply my-3;
+  @apply italic;
+  @apply text-tertiary-foreground;
+  @apply ps-4;
+  @apply border-s-2;
+  @apply border-s-border;
+  quotes: '\201C' '\201D' '\2018' '\2019';
+}
+
+.sb-prose-chat blockquote p:first-of-type::before {
+  content: open-quote;
+}
+
+.sb-prose-chat blockquote p:last-of-type::after {
+  content: close-quote;
+}
+
+.sb-prose-chat pre {
+  @apply overflow-x-auto;
+  @apply bg-muted;
+  @apply text-foreground;
+  @apply p-3;
+  @apply rounded-sm;
+  @apply my-3;
+}
+
+.sb-prose-chat code:not(pre code) {
+  @apply text-sm;
+  @apply rounded-sm;
+  @apply px-1;
+  @apply py-0.5;
+  @apply mx-0.5;
+  @apply bg-muted;
+  @apply text-inline-code-foreground;
+}
+
+.sb-prose-chat h1 > code,
+.sb-prose-chat h2 > code,
+.sb-prose-chat h3 > code,
+.sb-prose-chat h4 > code,
+.sb-prose-chat h5 > code {
+  @apply font-mono;
+  /* No way to avoid !important given specificity priority and the fact that we don't generate the HTML */
+  font-size: 80% !important;
+  @apply px-1.5 !important;
+  @apply font-normal;
+}
+
+.sb-prose-chat h1 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 500;
+  @apply my-3;
+}
+
+.sb-prose-chat h2 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+  @apply my-3;
+}
+
+.sb-prose-chat h3 {
+  font-size: 1.1rem;
+  line-height: 1.675rem;
+  font-weight: 500;
+  @apply my-2;
+}
+
+.sb-prose-chat h4 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  @apply my-2;
+}
+
+.sb-prose-chat h5 {
+  font-size: 0.9rem;
+  line-height: 1.4rem;
+  font-weight: 500;
+  @apply my-2;
+}
+
+.sb-prose-chat hr {
+  @apply my-3;
+}
+
+.sb-prose-chat ol {
+  @apply list-decimal;
+  @apply ps-6;
+  margin: 1em 0;
+}
+
+.sb-prose-chat ol > li:marker {
+  @apply font-normal;
+}
+
+.sb-prose-chat ul {
+  @apply list-disc;
+  @apply ps-6;
+  margin: 1em 0;
+}
+
+.sb-prose-chat li {
+  margin: 3px 0;
+}
+
+.sb-prose-chat ol > li {
+  @apply ps-1.5;
+  @apply my-1;
+}
+
+.sb-prose-chat ul > li {
+  @apply ps-1.5;
+  @apply my-1;
+}
+
+.sb-prose-chat img {
+  border-radius: 3px;
 }
 
 .cm-editor {

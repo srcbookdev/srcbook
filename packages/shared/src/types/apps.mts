@@ -9,7 +9,7 @@ export type AppType = {
   updatedAt: number;
 };
 
-export type DirEntryType = {
+export interface DirEntryType {
   type: 'directory';
   // The full path relative to app root, e.g. src/assets
   path: string;
@@ -19,9 +19,9 @@ export type DirEntryType = {
   basename: string;
   // null if not loaded
   children: FsEntryTreeType | null;
-};
+}
 
-export type FileEntryType = {
+export interface FileEntryType {
   type: 'file';
   // The full path relative to app root, e.g. src/components/input.tsx
   path: string;
@@ -29,7 +29,7 @@ export type FileEntryType = {
   dirname: string;
   // The path basename relative to app root, e.g. input.tsx
   basename: string;
-};
+}
 
 export type FsEntryTreeType = Array<FileEntryType | DirEntryType>;
 

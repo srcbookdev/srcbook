@@ -7,7 +7,7 @@ import {
   FolderTreeIcon,
   KeyboardIcon,
   MoonIcon,
-  SettingsIcon,
+  PackageIcon,
   SunIcon,
 } from 'lucide-react';
 import { Button } from '@srcbook/components/src/components/ui/button';
@@ -21,16 +21,17 @@ import KeyboardShortcutsDialog from '../keyboard-shortcuts-dialog';
 import FeedbackDialog from '../feedback-dialog';
 import { cn } from '@/lib/utils';
 import ExplorerPanel from './panels/explorer';
-import SettingsPanel from './panels/settings';
+import PackagesPanel from './panels/settings';
+import { usePackageJson } from './use-package-json';
 
-export type PanelType = 'explorer' | 'settings';
+export type PanelType = 'explorer' | 'packages';
 
 function getTitleForPanel(panel: PanelType | null): string | null {
   switch (panel) {
     case 'explorer':
       return 'Files';
-    case 'settings':
-      return 'Settings';
+    case 'packages':
+      return 'Manage Packages';
     default:
       return null;
   }
@@ -46,6 +47,7 @@ export default function Sidebar({ panel, onChangePanel }: SidebarProps) {
 
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const { status } = usePackageJson();
 
   function setPanel(nextPanel: PanelType) {
     onChangePanel(nextPanel === panel ? null : nextPanel);
@@ -70,14 +72,16 @@ export default function Sidebar({ panel, onChangePanel }: SidebarProps) {
                 )}
               />
             </NavItemWithTooltip>
-            <NavItemWithTooltip tooltipContent="Settings" onClick={() => setPanel('settings')}>
-              <SettingsIcon
+            <NavItemWithTooltip tooltipContent="Packages" onClick={() => setPanel('packages')}>
+              <PackageIcon
                 size={18}
                 className={cn(
                   'transition-colors',
-                  panel === 'settings'
+                  panel === 'packages'
                     ? 'text-secondary-foreground'
                     : 'text-tertiary-foreground hover:text-secondary-foreground',
+                  status === 'installing' && 'text-run',
+                  status === 'failed' && 'text-error',
                 )}
               />
             </NavItemWithTooltip>
@@ -129,7 +133,7 @@ export default function Sidebar({ panel, onChangePanel }: SidebarProps) {
           }}
         >
           {panel === 'explorer' && <ExplorerPanel />}
-          {panel === 'settings' && <SettingsPanel />}
+          {panel === 'packages' && <PackagesPanel />}
         </Panel>
       </div>
     </>

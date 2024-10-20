@@ -281,7 +281,17 @@ function FolderNode(props: {
           }
         />
       </ContextMenuTrigger>
-      <ContextMenuContent>
+      <ContextMenuContent
+        onCloseAutoFocus={(e) => {
+          // This is an important line of code. It is needed to prevent focus
+          // from returning to other elements when this menu is closed. Without this,
+          // when a user clicks "New [file|folder]" or "Rename", the input box will
+          // render and sometimes immediately dismiss because this returns focus to
+          // the button element the user right clicked on, causing the input's onBlur
+          // to trigger.
+          e.preventDefault();
+        }}
+      >
         <ContextMenuItem onClick={props.onNewFile}>New file...</ContextMenuItem>
         <ContextMenuItem onClick={props.onNewfolder}>New folder...</ContextMenuItem>
         <ContextMenuItem onClick={props.onRename}>Rename</ContextMenuItem>
@@ -300,37 +310,21 @@ function EditNameNode(props: {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const input = ref.current;
-    if (!input) return;
+    function focusAndSelect() {
+      const input = ref.current;
 
-    const focusAndSelect = () => {
-      input.focus();
-      const idx = input.value.lastIndexOf('.');
-      input.setSelectionRange(0, idx === -1 ? input.value.length : idx);
-    };
-
-    focusAndSelect();
-
-    // Re-focus if the input loses focus
-    const handleFocusOut = () => {
-      if (document.activeElement !== input) {
-        focusAndSelect();
+      if (input) {
+        input.focus();
+        const idx = input.value.lastIndexOf('.');
+        input.setSelectionRange(0, idx === -1 ? input.value.length : idx);
       }
-    };
-
-    document.addEventListener('focusin', handleFocusOut);
-
-    return () => {
-      document.removeEventListener('focusin', handleFocusOut);
-    };
-  }, []);
-
-  function onBlur(e: React.FocusEvent<HTMLInputElement>) {
-    // Only cancel if the new active element is outside this component
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      props.onCancel();
     }
-  }
+
+    // This setTimeout is intentional. We need to draw focus to this
+    // input after the current event loop clears out because other elements
+    // are getting focused in some situations immediately after this renders.
+    setTimeout(focusAndSelect, 0);
+  }, []);
 
   return (
     <input
@@ -342,7 +336,7 @@ function EditNameNode(props: {
         '[&::selection]:bg-accent [&::selection]:text-accent-foreground',
       )}
       style={{ paddingLeft: `${props.depth * 12}px` }}
-      onBlur={onBlur}
+      onBlur={props.onCancel}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && ref.current) {
           e.preventDefault();

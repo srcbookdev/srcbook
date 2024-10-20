@@ -14,6 +14,8 @@ export type FileType = {
 export type PlanItemType = FileType | CommandMessageType;
 
 export type PlanType = {
+  id: string;
+  query: string;
   description: string;
   actions: Array<PlanItemType>;
 };

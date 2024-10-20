@@ -542,7 +542,7 @@ router.get('/apps/:id/directories', cors(), async (req, res) => {
 router.options('/apps/:id/edit', cors());
 router.post('/apps/:id/edit', cors(), async (req, res) => {
   const { id } = req.params;
-  const { query } = req.body;
+  const { query, planId } = req.body;
   try {
     const app = await loadApp(id);
 
@@ -552,7 +552,7 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
     const validName = toValidPackageName(app.name);
     const files = await getFlatFilesForApp(String(app.externalId));
     const result = await editApp(validName, files, query);
-    const parsedResult = await parsePlan(result, app);
+    const parsedResult = await parsePlan(result, app, query, planId);
     return res.json({ data: parsedResult });
   } catch (e) {
     return error500(res, e as Error);

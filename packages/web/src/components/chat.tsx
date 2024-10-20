@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 import { aiEditApp, loadHistory, appendToHistory } from '@/clients/http/apps.js';
-import { AppType } from '@srcbook/shared';
+import { AppType, randomid } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
 import { type FileType } from './apps/types';
 import type {
@@ -124,7 +124,15 @@ function Chat({
                 .filter((msg) => msg.type === 'diff')
                 .findIndex((msg) => msg === message);
 
-              return <DiffBox key={index} files={message.diff} app={app} version={diffIndex + 1} />;
+              return (
+                <DiffBox
+                  key={index}
+                  files={message.diff}
+                  app={app}
+                  version={diffIndex + 1}
+                  planId={message.planId}
+                />
+              );
             }
           })}
 
@@ -243,10 +251,12 @@ function DiffBox({
   files,
   app,
   version,
+  planId,
 }: {
   files: FileDiffType[];
   app: AppType;
   version: number;
+  planId: string;
 }) {
   return (
     <>
@@ -273,6 +283,7 @@ function DiffBox({
           variant="icon"
           className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"
           aria-label="Upvote"
+          onClick={() => console.log('upvote', planId)}
         >
           <ThumbsUp size={18} />
         </Button>
@@ -280,6 +291,7 @@ function DiffBox({
           variant="icon"
           className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"
           aria-label="Downvote"
+          onClick={() => console.log('downvote', planId)}
         >
           <ThumbsDown size={18} />
         </Button>
@@ -407,15 +419,20 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   }, [app]);
 
   const handleSubmit = async (query: string) => {
+    const planId = randomid();
     setIsLoading(true);
-    const userMessage = { type: 'user', message: query } as UserMessageType;
+    const userMessage = { type: 'user', message: query, planId } as UserMessageType;
     setHistory((prevHistory) => [...prevHistory, userMessage]);
     appendToHistory(app.id, userMessage);
     setVisible(true);
 
-    const { data: plan } = await aiEditApp(app.id, query);
+    const { data: plan } = await aiEditApp(app.id, query, planId);
 
-    const planMessage = { type: 'plan', content: plan.description } as PlanMessageType;
+    const planMessage = {
+      type: 'plan',
+      content: plan.description,
+      planId,
+    } as PlanMessageType;
     setHistory((prevHistory) => [...prevHistory, planMessage]);
     appendToHistory(app.id, planMessage);
 
@@ -428,6 +445,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         command: update.command,
         packages: update.packages,
         description: update.description,
+        planId,
       };
       return entry;
     });
@@ -453,7 +471,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       };
     });
 
-    const diffMessage = { type: 'diff', diff: fileDiffs } as DiffMessageType;
+    const diffMessage = { type: 'diff', diff: fileDiffs, planId } as DiffMessageType;
     setHistory((prevHistory) => [...prevHistory, diffMessage]);
     appendToHistory(app.id, diffMessage);
 

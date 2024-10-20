@@ -64,6 +64,8 @@ type Command = NpmInstallCommand;
 export interface Plan {
   // The high level description of the plan
   // Will be shown to the user above the diff box.
+  id: string;
+  query: string;
   description: string;
   actions: (FileAction | Command)[];
 }
@@ -89,7 +91,12 @@ interface ParsedResult {
   };
 }
 
-export async function parsePlan(response: string, app: DBAppType): Promise<Plan> {
+export async function parsePlan(
+  response: string,
+  app: DBAppType,
+  query: string,
+  planId: string,
+): Promise<Plan> {
   try {
     const parser = new XMLParser({
       ignoreAttributes: false,
@@ -102,7 +109,12 @@ export async function parsePlan(response: string, app: DBAppType): Promise<Plan>
       throw new Error('Invalid response: missing plan tag');
     }
 
-    const plan: Plan = { actions: [], description: result.plan.planDescription };
+    const plan: Plan = {
+      id: planId,
+      query,
+      actions: [],
+      description: result.plan.planDescription,
+    };
     const actions = Array.isArray(result.plan.action) ? result.plan.action : [result.plan.action];
 
     for (const action of actions) {

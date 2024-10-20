@@ -12,24 +12,29 @@ export type FileDiffType = {
 export type UserMessageType = {
   type: 'user';
   message: string;
+  planId: string;
 };
 
-type NpmInstallCommand = {
+export type NpmInstallCommand = {
   type: 'command';
   command: 'npm install';
   packages: string[];
   description: string;
 };
 
-export type CommandMessageType = NpmInstallCommand;
+export type CommandMessageType = NpmInstallCommand & {
+  planId: string;
+};
 
 export type DiffMessageType = {
   type: 'diff';
+  planId: string;
   diff: FileDiffType[];
 };
 
 export type PlanMessageType = {
   type: 'plan';
+  planId: string;
   content: string;
 };
 

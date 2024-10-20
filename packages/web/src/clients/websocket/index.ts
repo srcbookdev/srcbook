@@ -37,6 +37,9 @@ import {
   PreviewStopPayloadSchema,
   DepsInstallLogPayloadSchema,
   DepsInstallStatusPayloadSchema,
+  DepsClearPayloadSchema,
+  DepsStatusResponsePayloadSchema,
+  DepsStatusPayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -98,6 +101,7 @@ const IncomingAppEvents = {
   'preview:status': PreviewStatusPayloadSchema,
   'deps:install:log': DepsInstallLogPayloadSchema,
   'deps:install:status': DepsInstallStatusPayloadSchema,
+  'deps:status:response': DepsStatusResponsePayloadSchema,
 };
 
 const OutgoingAppEvents = {
@@ -108,6 +112,8 @@ const OutgoingAppEvents = {
   'preview:start': PreviewStartPayloadSchema,
   'preview:stop': PreviewStopPayloadSchema,
   'deps:install': DepsInstallPayloadSchema,
+  'deps:clear': DepsClearPayloadSchema,
+  'deps:status': DepsStatusPayloadSchema,
 };
 
 export class AppChannel extends Channel<typeof IncomingAppEvents, typeof OutgoingAppEvents> {

@@ -4,27 +4,38 @@ import { useEffect, useState } from 'react';
 import { Loader2Icon } from 'lucide-react';
 import { useLogs } from '../use-logs';
 import { Button } from '@srcbook/components/src/components/ui/button';
+import { usePackageJson } from '../use-package-json';
 
 type PropsType = {
   isActive?: boolean;
+  onShowPackagesPanel: () => void;
   className?: string;
 };
 
 export function Preview(props: PropsType) {
   const { url, status, start, lastStoppedError } = usePreview();
+  const { nodeModulesExists } = usePackageJson();
   const { togglePane } = useLogs();
 
   const isActive = props.isActive ?? true;
 
   const [startAttempted, setStartAttempted] = useState(false);
   useEffect(() => {
-    if (isActive && status === 'stopped' && !startAttempted) {
+    if (isActive && nodeModulesExists && status === 'stopped' && !startAttempted) {
       setStartAttempted(true);
       start();
     } else if (!isActive) {
       setStartAttempted(false);
     }
-  }, [isActive, status, start, startAttempted]);
+  }, [isActive, nodeModulesExists, status, start, startAttempted]);
+
+  if (nodeModulesExists === false) {
+    return (
+      <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
+        <span className="text-tertiary-foreground">Dependencies not installed</span>
+      </div>
+    );
+  }
 
   switch (status) {
     case 'connecting':

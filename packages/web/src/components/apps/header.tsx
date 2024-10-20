@@ -24,10 +24,11 @@ import {
   DialogDescription,
 } from '@srcbook/components/src/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { usePreview } from './use-preview';
+import { usePackageJson } from './use-package-json';
 import { useApp } from './use-app';
 import { Input } from '@srcbook/components';
 import { useState } from 'react';
+import { usePreview } from './use-preview';
 
 export type EditorHeaderTab = 'code' | 'preview';
 
@@ -35,11 +36,13 @@ type PropsType = {
   className?: string;
   tab: EditorHeaderTab;
   onChangeTab: (newTab: EditorHeaderTab) => void;
+  onShowPackagesPanel: () => void;
 };
 
 export default function EditorHeader(props: PropsType) {
   const { app, updateApp } = useApp();
   const { start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
+  const { status: npmInstallStatus, nodeModulesExists } = usePackageJson();
 
   const [nameChangeDialogOpen, setNameChangeDialogOpen] = useState(false);
 
@@ -57,6 +60,13 @@ export default function EditorHeader(props: PropsType) {
           }}
         />
       )}
+
+      {npmInstallStatus === 'installing' ? (
+        <div className="fixed top-0 left-0 right-0 z-[51] h-0.5 pointer-events-none">
+          <div className="h-full w-full bg-white animate-indeterminate" />
+        </div>
+      ) : null}
+
       <header
         className={cn(
           'w-full flex items-center justify-between bg-background z-50 text-sm border-b border-b-border relative',
@@ -117,6 +127,7 @@ export default function EditorHeader(props: PropsType) {
                       size="icon"
                       onClick={startPreview}
                       className="active:translate-y-0"
+                      disabled={nodeModulesExists !== true}
                     >
                       <PlayCircleIcon size={18} />
                     </Button>

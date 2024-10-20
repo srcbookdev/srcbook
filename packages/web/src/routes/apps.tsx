@@ -3,11 +3,11 @@ import { useLoaderData, type LoaderFunctionArgs } from 'react-router-dom';
 import type { AppType, DirEntryType } from '@srcbook/shared';
 
 import { loadApp, loadDirectory } from '@/clients/http/apps';
-import Sidebar from '@/components/apps/sidebar';
+import Sidebar, { PanelType } from '@/components/apps/sidebar';
 import { useEffect, useRef, useState } from 'react';
 import Statusbar from '@/components/apps/statusbar';
 import { AppChannel } from '@/clients/websocket';
-import { FilesProvider } from '@/components/apps/use-files';
+import { FilesProvider, useFiles } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
 import { LogsProvider } from '@/components/apps/use-logs';
@@ -15,7 +15,7 @@ import { PackageJsonProvider } from '@/components/apps/use-package-json';
 import { ChatPanel } from '@/components/chat';
 import DiffModal from '@/components/apps/diff-modal';
 import { FileDiffType } from '@srcbook/shared';
-import EditorHeader, { EditorHeaderTab } from '../components/apps/header';
+import EditorHeader, { EditorHeaderTab } from '@/components/apps/header';
 import { AppProvider } from '@/components/apps/use-app';
 
 async function loader({ params }: LoaderFunctionArgs) {
@@ -55,13 +55,13 @@ export function AppsPage() {
   return (
     <AppProvider key={app.id} app={app}>
       <FilesProvider channel={channelRef.current} rootDirEntries={rootDirEntries}>
-        <PreviewProvider channel={channelRef.current}>
-          <LogsProvider channel={channelRef.current}>
-            <PackageJsonProvider channel={channelRef.current}>
+        <LogsProvider channel={channelRef.current}>
+          <PackageJsonProvider channel={channelRef.current}>
+            <PreviewProvider channel={channelRef.current}>
               <Apps />
-            </PackageJsonProvider>
-          </LogsProvider>
-        </PreviewProvider>
+            </PreviewProvider>
+          </PackageJsonProvider>
+        </LogsProvider>
       </FilesProvider>
     </AppProvider>
   );
@@ -69,6 +69,10 @@ export function AppsPage() {
 
 function Apps() {
   const [tab, setTab] = useState<EditorHeaderTab>('code');
+
+  const { openedFile } = useFiles();
+  const [panel, setPanel] = useState<PanelType | null>(openedFile === null ? 'explorer' : null);
+
   const [diffModalProps, triggerDiffModal] = useState<{
     files: FileDiffType[];
     onUndoAll: () => void;
@@ -77,11 +81,16 @@ function Apps() {
   return (
     <>
       {diffModalProps && <DiffModal {...diffModalProps} onClose={() => triggerDiffModal(null)} />}
-      <EditorHeader tab={tab} onChangeTab={setTab} className="shrink-0 h-12 max-h-12" />
+      <EditorHeader
+        tab={tab}
+        onChangeTab={setTab}
+        className="shrink-0 h-12 max-h-12"
+        onShowPackagesPanel={() => setPanel('settings')}
+      />
       <div className="h-[calc(100vh-3rem)] flex">
-        <Sidebar />
+        <Sidebar panel={panel} onChangePanel={setPanel} />
         <div className="grow shrink h-full flex flex-col w-0">
-          <Editor tab={tab} onChangeTab={setTab} />
+          <Editor tab={tab} onChangeTab={setTab} onShowPackagesPanel={() => setPanel('settings')} />
           <Statusbar />
         </div>
         <ChatPanel triggerDiffModal={triggerDiffModal} />

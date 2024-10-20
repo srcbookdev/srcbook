@@ -22,9 +22,8 @@ import FeedbackDialog from '../feedback-dialog';
 import { cn } from '@/lib/utils';
 import ExplorerPanel from './panels/explorer';
 import SettingsPanel from './panels/settings';
-import { useFiles } from './use-files';
 
-type PanelType = 'explorer' | 'settings';
+export type PanelType = 'explorer' | 'settings';
 
 function getTitleForPanel(panel: PanelType | null): string | null {
   switch (panel) {
@@ -37,16 +36,19 @@ function getTitleForPanel(panel: PanelType | null): string | null {
   }
 }
 
-export default function Sidebar() {
+type SidebarProps = {
+  panel: PanelType | null;
+  onChangePanel: (newPanel: PanelType | null) => void;
+};
+
+export default function Sidebar({ panel, onChangePanel }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
-  const { openedFile } = useFiles();
 
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [panel, _setPanel] = useState<PanelType | null>(openedFile === null ? 'explorer' : null);
 
   function setPanel(nextPanel: PanelType) {
-    _setPanel(nextPanel === panel ? null : nextPanel);
+    onChangePanel(nextPanel === panel ? null : nextPanel);
   }
 
   return (

@@ -738,7 +738,7 @@ router.options('/apps/:id/feedback', cors());
 router.post('/apps/:id/feedback', cors(), async (req, res) => {
   const { id } = req.params;
   const { planId, feedback } = req.body as AppGenerationFeedbackType;
-  // check for privacy env var SRCBOOK_DISABLE_ANALYTICS and return 403 if true
+
   if (process.env.SRCBOOK_DISABLE_ANALYTICS === 'true') {
     return res.status(403).json({ error: 'Analytics are disabled' });
   }

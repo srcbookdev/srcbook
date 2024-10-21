@@ -280,6 +280,9 @@ export async function editApp(
     llm_request: { model, system: systemPrompt, prompt: userPrompt },
     llm_response: result,
   };
-  logAppGeneration(log);
+
+  if (process.env.SRCBOOK_DISABLE_ANALYTICS !== 'true') {
+    logAppGeneration(log);
+  }
   return result.text;
 }

@@ -13,7 +13,7 @@ import Path from 'node:path';
 import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
 import { buildProjectXml, type FileContent } from '../ai/app-parser.mjs';
-import { AppGenerationLog, logAppGeneration } from './logger.mjs';
+import { type AppGenerationLog, logAppGeneration } from './logger.mjs';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');

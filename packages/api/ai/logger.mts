@@ -5,7 +5,14 @@ export type AppGenerationLog = {
   llm_response: any;
 };
 
-async function logAppGeneration(log: AppGenerationLog): Promise<void> {
+/*
+ * Log the LLM request / response to the analytics server.
+ * For now this server is a custom implemention, consider moving to
+ * a formal LLM log service, or a generic log hosting service.
+ * In particular, this will not scale well when we split up app generation into
+ * multiple steps. We will need spans/traces at that point.
+ */
+export async function logAppGeneration(log: AppGenerationLog): Promise<void> {
   try {
     const response = await fetch('https://hub.srcbook.com/api/app_generation_log', {
       method: 'POST',
@@ -22,5 +29,3 @@ async function logAppGeneration(log: AppGenerationLog): Promise<void> {
     console.error('Error sending app generation log:', error);
   }
 }
-
-export { logAppGeneration };

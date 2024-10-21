@@ -1,4 +1,10 @@
-import type { AppType, DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
+import type {
+  AppGenerationFeedbackType,
+  AppType,
+  DirEntryType,
+  FileEntryType,
+  FileType,
+} from '@srcbook/shared';
 import SRCBOOK_CONFIG from '@/config';
 import type { PlanType } from '@/components/apps/types';
 import type { HistoryType, MessageType } from '@srcbook/shared';
@@ -262,6 +268,15 @@ export async function appendToHistory(id: string, messages: MessageType | Messag
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ messages }),
+  });
+  return response.json();
+}
+
+export async function aiGenerationFeedback(id: string, feedback: AppGenerationFeedbackType) {
+  const response = await fetch(API_BASE_URL + `/apps/${id}/feedback`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(feedback),
   });
   return response.json();
 }

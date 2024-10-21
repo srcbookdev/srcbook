@@ -9,6 +9,7 @@ import {
 import Markdown from './apps/markdown.js';
 import { diffFiles } from './apps/lib/diff.js';
 import TextareaAutosize from 'react-textarea-autosize';
+import { toast } from 'sonner';
 import {
   ArrowUp,
   Minus,
@@ -25,7 +26,12 @@ import {
   ThumbsDown,
 } from 'lucide-react';
 import * as React from 'react';
-import { aiEditApp, loadHistory, appendToHistory } from '@/clients/http/apps.js';
+import {
+  aiEditApp,
+  loadHistory,
+  appendToHistory,
+  aiGenerationFeedback,
+} from '@/clients/http/apps.js';
 import { AppType, randomid } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
 import { type FileType } from './apps/types';
@@ -285,13 +291,22 @@ function DiffBox({
           aria-label="Upvote"
           onClick={() => console.log('upvote', planId)}
         >
-          <ThumbsUp size={18} />
+          <ThumbsUp
+            size={18}
+            onClick={() => {
+              aiGenerationFeedback(app.id, { planId, feedback: { type: 'positive' } });
+              toast.success('thanks for the feedback!');
+            }}
+          />
         </Button>
         <Button
           variant="icon"
           className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"
           aria-label="Downvote"
-          onClick={() => console.log('downvote', planId)}
+          onClick={() => {
+            aiGenerationFeedback(app.id, { planId, feedback: { type: 'negative' } });
+            toast.success('Thanks for the feedback!');
+          }}
         >
           <ThumbsDown size={18} />
         </Button>

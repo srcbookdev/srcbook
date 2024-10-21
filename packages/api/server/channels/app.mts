@@ -82,6 +82,13 @@ async function previewStart(
       console.log(encodedData);
       bufferedLogs.push(encodedData);
 
+      conn.reply(`app:${app.externalId}`, 'preview:log', {
+        log: {
+          type: 'stdout',
+          data: encodedData,
+        },
+      });
+
       const potentialPortMatch = VITE_PORT_REGEX.exec(encodedData);
       if (potentialPortMatch) {
         const portString = potentialPortMatch[1]!;
@@ -93,6 +100,13 @@ async function previewStart(
       const encodedData = data.toString('utf8');
       console.error(encodedData);
       bufferedLogs.push(encodedData);
+
+      conn.reply(`app:${app.externalId}`, 'preview:log', {
+        log: {
+          type: 'stderr',
+          data: encodedData,
+        },
+      });
     },
     onExit: (code) => {
       processMetadata.delete(app.externalId);

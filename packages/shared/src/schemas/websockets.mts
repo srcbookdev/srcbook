@@ -176,6 +176,13 @@ export const PreviewStatusPayloadSchema = z.union([
 export const PreviewStartPayloadSchema = z.object({});
 export const PreviewStopPayloadSchema = z.object({});
 
+export const PreviewLogPayloadSchema = z.object({
+  log: z.union([
+    z.object({ type: z.literal('stdout'), data: z.string() }),
+    z.object({ type: z.literal('stderr'), data: z.string() }),
+  ]),
+});
+
 export const DepsInstallLogPayloadSchema = z.object({
   log: z.union([
     z.object({ type: z.literal('stdout'), data: z.string() }),

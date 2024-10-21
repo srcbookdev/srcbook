@@ -40,6 +40,7 @@ import {
   DepsClearPayloadSchema,
   DepsStatusResponsePayloadSchema,
   DepsStatusPayloadSchema,
+  PreviewLogPayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -99,6 +100,7 @@ export class SessionChannel extends Channel<
 const IncomingAppEvents = {
   file: FilePayloadSchema,
   'preview:status': PreviewStatusPayloadSchema,
+  'preview:log': PreviewLogPayloadSchema,
   'deps:install:log': DepsInstallLogPayloadSchema,
   'deps:install:status': DepsInstallStatusPayloadSchema,
   'deps:status:response': DepsStatusResponsePayloadSchema,

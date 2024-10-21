@@ -205,12 +205,8 @@ export default function EditorHeader(props: PropsType) {
                     onClick={togglePane}
                     className="active:translate-y-0"
                   >
-                    {panelIcon === 'default' && !open ? (
-                      <PanelBottomOpenIcon size={18} />
-                    ) : null}
-                    {panelIcon === 'default' && open ? (
-                      <PanelBottomCloseIcon size={18} />
-                    ) : null}
+                    {panelIcon === 'default' && !open ? <PanelBottomOpenIcon size={18} /> : null}
+                    {panelIcon === 'default' && open ? <PanelBottomCloseIcon size={18} /> : null}
                     {panelIcon === 'error' ? (
                       <CircleAlertIcon size={18} className="text-red-600" />
                     ) : null}

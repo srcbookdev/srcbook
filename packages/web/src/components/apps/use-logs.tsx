@@ -43,13 +43,16 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
     setUnreadLogsCount(0);
   }
 
-  const addLog = useCallback((type: LogMessage['type'], source: LogMessage['source'], message: LogMessage['message']) => {
-    setLogs((logs) => [ ...logs, { type, message, source, timestamp: new Date() } ]);
-    if (type === 'stderr') {
-      setPanelIcon('error');
-    }
-    setUnreadLogsCount((n) => n + 1);
-  }, []);
+  const addLog = useCallback(
+    (type: LogMessage['type'], source: LogMessage['source'], message: LogMessage['message']) => {
+      setLogs((logs) => [...logs, { type, message, source, timestamp: new Date() }]);
+      if (type === 'stderr') {
+        setPanelIcon('error');
+      }
+      setUnreadLogsCount((n) => n + 1);
+    },
+    [],
+  );
 
   function togglePane() {
     setOpen((n) => !n);
@@ -87,18 +90,20 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
   }, [channel, addLog]);
 
   return (
-    <LogsContext.Provider value={{
-      logs,
-      clearLogs,
-      unreadLogsCount,
-      panelIcon,
+    <LogsContext.Provider
+      value={{
+        logs,
+        clearLogs,
+        unreadLogsCount,
+        panelIcon,
 
-      addLog,
+        addLog,
 
-      open,
-      togglePane,
-      closePane,
-    }}>
+        open,
+        togglePane,
+        closePane,
+      }}
+    >
       {children}
     </LogsContext.Provider>
   );

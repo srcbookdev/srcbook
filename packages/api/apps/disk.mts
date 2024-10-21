@@ -9,6 +9,7 @@ import { toValidPackageName } from './utils.mjs';
 import { DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
 import { FileContent } from '../ai/app-parser.mjs';
 import type { Plan } from '../ai/plan-parser.mjs';
+import archiver from 'archiver';
 
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
@@ -85,6 +86,7 @@ export async function createViteApp(app: DBAppType) {
 
 /**
  * Scaffolds a new Vite app using a predefined template.
+ *
  *
  * The current template includes: React, TypeScript, Vite, Tailwind CSS
  *
@@ -344,4 +346,28 @@ async function getFlatFiles(dir: string, basePath: string = ''): Promise<FileCon
   }
 
   return files;
+}
+
+export async function createZipFromApp(app: DBAppType): Promise<Buffer> {
+  const appPath = pathToApp(app.externalId);
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  const chunks: any[] = [];
+
+  return new Promise((resolve, reject) => {
+    archive.directory(appPath, false);
+
+    archive.on('error', (err) => {
+      console.error('Error creating zip archive:', err);
+      reject(err);
+    });
+
+    archive.on('data', (chunk: Buffer) => chunks.push(chunk));
+
+    archive.on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      resolve(buffer);
+    });
+
+    archive.finalize();
+  });
 }

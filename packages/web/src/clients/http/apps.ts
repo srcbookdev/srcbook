@@ -280,3 +280,18 @@ export async function aiGenerationFeedback(id: string, feedback: AppGenerationFe
   });
   return response.json();
 }
+
+export async function exportApp(id: string, name: string): Promise<Blob> {
+  const response = await fetch(API_BASE_URL + `/apps/${id}/export`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    throw new Error('Export failed');
+  }
+
+  return response.blob();
+}

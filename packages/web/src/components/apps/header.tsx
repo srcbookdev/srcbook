@@ -5,6 +5,7 @@ import {
   EllipsisIcon,
   PlayCircleIcon,
   Code2Icon,
+  Loader2Icon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SrcbookLogo } from '@/components/logos';
@@ -29,6 +30,8 @@ import { useApp } from './use-app';
 import { Input } from '@srcbook/components';
 import { useState } from 'react';
 import { usePreview } from './use-preview';
+import { exportApp } from '@/clients/http/apps';
+import { toast } from 'sonner';
 
 export type EditorHeaderTab = 'code' | 'preview';
 
@@ -43,8 +46,35 @@ export default function EditorHeader(props: PropsType) {
   const { app, updateApp } = useApp();
   const { start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
   const { status: npmInstallStatus, nodeModulesExists } = usePackageJson();
+  const [isExporting, setIsExporting] = useState(false);
 
   const [nameChangeDialogOpen, setNameChangeDialogOpen] = useState(false);
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const blob = await exportApp(app.id, app.name);
+      const url = window.URL.createObjectURL(blob);
+
+      // Create a temporary anchor element to trigger the download
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${app.name}.zip`;
+
+      // Append to the document, trigger click, and remove
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('App exported successfully!');
+      setIsExporting(false);
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export app. Please try again.');
+    }
+  };
 
   return (
     <>
@@ -168,10 +198,14 @@ export default function EditorHeader(props: PropsType) {
                   <Button
                     variant="icon"
                     size="icon"
-                    onClick={() => alert('Export')}
+                    onClick={handleExport}
                     className="active:translate-y-0"
                   >
-                    <ShareIcon size={18} />
+                    {isExporting ? (
+                      <Loader2Icon size={18} className="animate-spin" />
+                    ) : (
+                      <ShareIcon size={18} />
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Export app</TooltipContent>

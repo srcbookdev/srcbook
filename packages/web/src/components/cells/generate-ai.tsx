@@ -62,7 +62,7 @@ export default function GenerateAiCell(props: {
           ? 'ring-1 ring-ai-ring border-ai-ring'
           : 'focus-within:ring-1 focus-within:ring-ring focus-within:border-ring',
         error &&
-          'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30 focus-within:border-sb-red-30 focus-within:ring-sb-red-30',
+        'ring-1 ring-sb-red-30 border-sb-red-30 hover:border-sb-red-30 focus-within:border-sb-red-30 focus-within:ring-sb-red-30',
       )}
     >
       <div className="flex flex-col">
@@ -75,7 +75,7 @@ export default function GenerateAiCell(props: {
               className="border-secondary hover:border-muted"
               onClick={() => removeCell(cell)}
             >
-              <Trash2 size={16} />
+              <Trash2 color='#EE4B2B' size={16} />
             </Button>
           </div>
 

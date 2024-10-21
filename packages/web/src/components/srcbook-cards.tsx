@@ -168,7 +168,7 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
           onClick={onDelete}
           className="hidden group-hover:block hover:text-foreground"
         >
-          <Trash2 size={16} />
+          <Trash2 color='#EE4B2B' size={16} />
         </button>
       </div>
     </CardContainer>
@@ -203,7 +203,7 @@ export function AppCard(props: AppCardPropsType) {
           onClick={onDelete}
           className="hidden group-hover:block hover:text-foreground"
         >
-          <Trash2 size={16} />
+          <Trash2 color='#EE4B2B' size={16} />
         </button>
       </div>
     </CardContainer>

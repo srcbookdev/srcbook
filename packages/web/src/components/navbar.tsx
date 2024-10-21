@@ -91,6 +91,7 @@ export function SessionNavbar(props: SessionNavbarProps) {
     openSrcbook(result.path);
   }
 
+
   return (
     <>
       <GenerateSrcbookModal
@@ -223,9 +224,9 @@ export function SessionNavbar(props: SessionNavbarProps) {
                       variant="icon"
                       size="icon"
                       onClick={() => setShowDelete(true)}
-                      className="active:translate-y-0"
+                      className="active:translate-y-0 hover:border-2 hover:border-red-500"
                     >
-                      <TrashIcon size={18} />
+                      <TrashIcon color='#EE4B2B' size={18} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Delete this Srcbook</TooltipContent>

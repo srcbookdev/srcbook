@@ -268,8 +268,8 @@ function SecretRow(props: {
         )}
       </td>
       <td className="h-10 pl-3 text-right align-middle w-[52px]">
-        <Button variant="icon" onClick={() => setOpen(true)}>
-          <Trash2 size={18} />
+        <Button className='bg-red-800 hover:bg-red-700' variant="icon" onClick={() => setOpen(true)}>
+          <Trash2 color='white' size={18} />
         </Button>
       </td>
     </tr>

@@ -63,7 +63,12 @@ export default function BottomDrawer() {
       style={{ maxHeight: open ? `${maxHeightInPx}px` : '2rem' }}
     >
       <div className="flex-shrink-0 flex items-center justify-between border-t border-b h-8 px-1 w-full bg-muted">
-        <span className="text-sm font-medium ml-2 select-none pointer-events-none">Logs</span>
+        <span
+          onClick={() => togglePane()}
+          className="text-sm font-medium ml-2 select-none cursor-pointer"
+        >
+          Logs
+        </span>
 
         <div className="flex items-center gap-1">
           {open && logs.length > 0 && (

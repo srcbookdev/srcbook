@@ -95,7 +95,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
         channel.push('deps:install', { packages });
       });
     },
-    [channel, useLogs],
+    [channel, addLog],
   );
 
   const clearNodeModules = useCallback(() => {

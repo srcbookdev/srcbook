@@ -545,6 +545,7 @@ router.options('/apps/:id/edit', cors());
 router.post('/apps/:id/edit', cors(), async (req, res) => {
   const { id } = req.params;
   const { query, planId } = req.body;
+  posthog.capture({ event: 'user edited app with ai' });
   try {
     const app = await loadApp(id);
 
@@ -723,6 +724,7 @@ router.post('/apps/:id/export', cors(), async (req, res) => {
   const { name } = req.body;
 
   try {
+    posthog.capture({ event: 'user exported app' });
     const app = await loadApp(id);
 
     if (!app) {
@@ -765,6 +767,7 @@ router.post('/apps/:id/feedback', cors(), async (req, res) => {
   if (process.env.SRCBOOK_DISABLE_ANALYTICS === 'true') {
     return res.status(403).json({ error: 'Analytics are disabled' });
   }
+  posthog.capture({ event: 'user sent feedback', properties: { type: feedback.type } });
 
   try {
     const response = await fetch('https://hub.srcbook.com/api/app_generation_feedback', {

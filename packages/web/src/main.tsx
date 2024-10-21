@@ -5,7 +5,15 @@ import './index.css';
 import Layout, { loader as configLoader } from './Layout';
 import LayoutNavbar from './LayoutNavbar';
 import Home, { loader as homeLoader } from './routes/home';
-import Apps from './routes/apps';
+import { AppContext, AppProviders } from './routes/apps/context';
+import AppPreview from './routes/apps/preview';
+import AppFiles from './routes/apps/files';
+import AppFilesShow from './routes/apps/files-show';
+import {
+  index as appIndex,
+  preview as appPreview,
+  filesShow as appFilesShow,
+} from './routes/apps/loaders';
 import Session from './routes/session';
 import Settings from './routes/settings';
 import Secrets from './routes/secrets';
@@ -52,9 +60,38 @@ const router = createBrowserRouter([
       },
       {
         path: '/apps/:id',
-        loader: Apps.loader,
-        element: <Apps />,
+        loader: appIndex,
+        element: <AppContext />,
         errorElement: <ErrorPage />,
+        children: [
+          {
+            path: '',
+            loader: appPreview,
+            element: (
+              <AppProviders>
+                <AppPreview />
+              </AppProviders>
+            ),
+          },
+          {
+            path: '/apps/:id/files',
+            loader: appPreview,
+            element: (
+              <AppProviders>
+                <AppFiles />
+              </AppProviders>
+            ),
+          },
+          {
+            path: '/apps/:id/files/:path',
+            loader: appFilesShow,
+            element: (
+              <AppProviders>
+                <AppFilesShow />
+              </AppProviders>
+            ),
+          },
+        ],
       },
       {
         path: '/',

@@ -36,13 +36,12 @@ import { exportApp } from '@/clients/http/apps';
 import { toast } from 'sonner';
 import { useLogs } from './use-logs';
 
-export type EditorHeaderTab = 'code' | 'preview';
+export type HeaderTab = 'code' | 'preview';
 
 type PropsType = {
   className?: string;
-  tab: EditorHeaderTab;
-  onChangeTab: (newTab: EditorHeaderTab) => void;
-  onShowPackagesPanel: () => void;
+  tab: HeaderTab;
+  onChangeTab: (newTab: HeaderTab) => void;
 };
 
 export default function EditorHeader(props: PropsType) {

@@ -1,37 +1,35 @@
-import { cn } from '@/lib/utils';
-import { usePreview } from '../use-preview';
 import { useEffect, useState } from 'react';
+import { usePreview } from '@/components/apps/use-preview';
+import { usePackageJson } from '@/components/apps/use-package-json';
+import { useLogs } from '@/components/apps/use-logs';
 import { Loader2Icon } from 'lucide-react';
-import { useLogs } from '../use-logs';
-import { Button } from '@srcbook/components/src/components/ui/button';
-import { usePackageJson } from '../use-package-json';
+import { Button } from '@srcbook/components';
+import AppLayout from './layout';
 
-type PropsType = {
-  isActive?: boolean;
-  onShowPackagesPanel: () => void;
-  className?: string;
-};
+export default function AppPreview() {
+  return (
+    <AppLayout activeTab="preview" activePanel={null}>
+      <Preview />
+    </AppLayout>
+  );
+}
 
-export function Preview(props: PropsType) {
+function Preview() {
   const { url, status, start, lastStoppedError } = usePreview();
   const { nodeModulesExists } = usePackageJson();
   const { togglePane } = useLogs();
 
-  const isActive = props.isActive ?? true;
-
   const [startAttempted, setStartAttempted] = useState(false);
   useEffect(() => {
-    if (isActive && nodeModulesExists && status === 'stopped' && !startAttempted) {
+    if (nodeModulesExists && status === 'stopped' && !startAttempted) {
       setStartAttempted(true);
       start();
-    } else if (!isActive) {
-      setStartAttempted(false);
     }
-  }, [isActive, nodeModulesExists, status, start, startAttempted]);
+  }, [nodeModulesExists, status, start, startAttempted]);
 
   if (nodeModulesExists === false) {
     return (
-      <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
+      <div className="flex justify-center items-center w-full h-full">
         <span className="text-tertiary-foreground">Dependencies not installed</span>
       </div>
     );
@@ -41,7 +39,7 @@ export function Preview(props: PropsType) {
     case 'connecting':
     case 'booting':
       return (
-        <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
+        <div className="flex justify-center items-center w-full h-full">
           <Loader2Icon size={18} className="animate-spin" />
         </div>
       );
@@ -51,13 +49,13 @@ export function Preview(props: PropsType) {
       }
 
       return (
-        <div className={cn('w-full h-full', props.className)}>
+        <div className="w-full h-full">
           <iframe className="w-full h-full" src={url} title="App preview" />
         </div>
       );
     case 'stopped':
       return (
-        <div className={cn('flex justify-center items-center w-full h-full', props.className)}>
+        <div className="flex justify-center items-center w-full h-full">
           {lastStoppedError === null ? (
             <span className="text-tertiary-foreground">Stopped preview server.</span>
           ) : (

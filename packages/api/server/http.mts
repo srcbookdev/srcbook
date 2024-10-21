@@ -61,6 +61,7 @@ import {
 } from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
 import { AppGenerationFeedbackType } from '@srcbook/shared';
+import { createZipFromApp } from '../apps/disk.mjs';
 
 const app: Application = express();
 
@@ -711,6 +712,28 @@ router.post('/apps/:id/files/rename', cors(), async (req, res) => {
     const file = await renameFile(app, path, name);
 
     return res.json({ data: file });
+  } catch (e) {
+    return error500(res, e as Error);
+  }
+});
+
+router.options('/apps/:id/export', cors());
+router.post('/apps/:id/export', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  try {
+    const app = await loadApp(id);
+
+    if (!app) {
+      return res.status(404).json({ error: 'App not found' });
+    }
+
+    const zipBuffer = await createZipFromApp(app);
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${name}.zip"`);
+    res.send(zipBuffer);
   } catch (e) {
     return error500(res, e as Error);
   }

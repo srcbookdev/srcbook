@@ -5,7 +5,7 @@ import type { AppType, DirEntryType } from '@srcbook/shared';
 import { loadApp, loadDirectory } from '@/clients/http/apps';
 import Sidebar, { PanelType } from '@/components/apps/sidebar';
 import { useEffect, useRef, useState } from 'react';
-import Statusbar from '@/components/apps/statusbar';
+import BottomDrawer from '@/components/apps/bottom-drawer';
 import { AppChannel } from '@/clients/websocket';
 import { FilesProvider, useFiles } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor';
@@ -91,7 +91,7 @@ function Apps() {
         <Sidebar panel={panel} onChangePanel={setPanel} />
         <div className="grow shrink h-full flex flex-col w-0">
           <Editor tab={tab} onChangeTab={setTab} onShowPackagesPanel={() => setPanel('packages')} />
-          <Statusbar />
+          <BottomDrawer />
         </div>
         <ChatPanel triggerDiffModal={triggerDiffModal} />
       </div>

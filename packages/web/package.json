@@ -32,6 +32,7 @@
     "lucide-react": "^0.439.0",
     "marked": "catalog:",
     "marked-react": "^2.0.0",
+    "posthog-js": "^1.174.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.3",

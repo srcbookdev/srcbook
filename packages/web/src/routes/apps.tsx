@@ -18,6 +18,7 @@ import { FileDiffType } from '@srcbook/shared';
 import EditorHeader, { EditorHeaderTab } from '@/components/apps/header';
 import { AppProvider } from '@/components/apps/use-app';
 import InstallPackageModal from '@/components/install-package-modal';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
@@ -80,6 +81,10 @@ function Apps() {
     files: FileDiffType[];
     onUndoAll: () => void;
   } | null>(null);
+
+  useHotkeys('mod+i', () => {
+    setShowInstallModal(true);
+  });
 
   return (
     <>

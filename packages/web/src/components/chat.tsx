@@ -459,6 +459,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   const handleSubmit = async (query: string) => {
     const planId = randomid();
     setIsLoading(true);
+    setFileDiffs([]);
     const userMessage = { type: 'user', message: query, planId } as UserMessageType;
     setHistory((prevHistory) => [...prevHistory, userMessage]);
     appendToHistory(app.id, userMessage);

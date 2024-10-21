@@ -33,7 +33,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
   const [output, setOutput] = useState<Array<OutputType>>([]);
   const [nodeModulesExists, setNodeModulesExists] = useState<boolean | null>(null);
 
-  const { addError } = useLogs();
+  const { addLog } = useLogs();
 
   useEffect(() => {
     channel.push('deps:status', {});
@@ -52,6 +52,8 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
 
   const npmInstall = useCallback(
     async (packages?: Array<string>) => {
+      addLog('info', 'npm install', `Running ${!packages ? 'npm install' : `npm install ${packages.join(' ')}`}`);
+
       // NOTE: caching of the log output is required here because socket events that call callback
       // functions in here hold on to old scope values
       let contents = '';
@@ -63,15 +65,16 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
         };
         channel.on('deps:install:log', logCallback);
 
-        const statusCallback = ({ status }: DepsInstallStatusPayloadType) => {
+        const statusCallback = ({ status, code }: DepsInstallStatusPayloadType) => {
           channel.off('deps:install:log', logCallback);
           channel.off('deps:install:status', statusCallback);
           setStatus(status);
 
+          addLog('info', 'npm install', `${!packages ? 'npm install' : `npm install ${packages.join(' ')}`} exited with status code ${code}`);
+
           if (status === 'complete') {
             resolve();
           } else {
-            addError({ type: 'npm_install_error', contents });
             reject(new Error(`Error running npm install: ${contents}`));
           }
         };
@@ -82,7 +85,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
         channel.push('deps:install', { packages });
       });
     },
-    [channel, addError],
+    [channel],
   );
 
   const clearNodeModules = useCallback(() => {

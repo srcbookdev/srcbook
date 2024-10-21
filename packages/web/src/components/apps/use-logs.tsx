@@ -1,22 +1,26 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import { AppChannel } from '@/clients/websocket';
-import { PreviewStatusPayloadType } from '@srcbook/shared';
+import { DepsInstallLogPayloadType, PreviewLogPayloadType } from '@srcbook/shared';
 
 export type LogMessage = {
-  type: 'npm_install_error' | 'vite_error'; // TODO: add more types like "warning" or "problem"
+  type: 'stderr' | 'stdout' | 'info';
+  source: 'vite' | 'npm install';
   timestamp: Date;
-  contents: string;
+  message: string;
 };
 
 export interface LogsContextValue {
   logs: Array<LogMessage>;
   clearLogs: () => void;
-  addError: (message: Omit<LogMessage, 'timestamp'>) => void;
   unreadLogsCount: number;
+  panelIcon: 'default' | 'error';
+
+  addLog: (type: LogMessage['type'], source: LogMessage['source'], message: string) => void;
 
   open: boolean;
   togglePane: () => void;
+  closePane: () => void;
 }
 
 const LogsContext = createContext<LogsContextValue | undefined>(undefined);
@@ -29,42 +33,72 @@ type ProviderPropsType = {
 export function LogsProvider({ channel, children }: ProviderPropsType) {
   const [logs, setLogs] = useState<Array<LogMessage>>([]);
   const [unreadLogsCount, setUnreadLogsCount] = useState(0);
+  const [panelIcon, setPanelIcon] = useState<LogsContextValue['panelIcon']>('default');
 
   const [open, setOpen] = useState(false);
 
   function clearLogs() {
     setLogs([]);
+    setPanelIcon('default');
     setUnreadLogsCount(0);
   }
 
-  const addError = useCallback((error: Omit<LogMessage, 'timestamp'>) => {
-    setLogs((logs) => [{ ...error, timestamp: new Date() }, ...logs]);
+  const addLog = useCallback((type: LogMessage['type'], source: LogMessage['source'], message: LogMessage['message']) => {
+    setLogs((logs) => [ ...logs, { type, message, source, timestamp: new Date() } ]);
+    if (type === 'stderr') {
+      setPanelIcon('error');
+    }
     setUnreadLogsCount((n) => n + 1);
   }, []);
 
   function togglePane() {
     setOpen((n) => !n);
+    setPanelIcon('default');
     setUnreadLogsCount(0);
   }
 
-  // If vite crashes, then create an error log
+  function closePane() {
+    setOpen(false);
+    setPanelIcon('default');
+    setUnreadLogsCount(0);
+  }
+
+  // As the server generates logs, show them in the logs panel
   useEffect(() => {
-    function onViteError(payload: PreviewStatusPayloadType) {
-      if (payload.status !== 'stopped' || payload.stoppedSuccessfully) {
-        return;
+    function onPreviewLog(payload: PreviewLogPayloadType) {
+      for (const row of payload.log.data.split('\n')) {
+        addLog(payload.log.type, 'vite', row);
       }
-      addError({ type: 'vite_error', contents: payload.logs ?? '' });
     }
 
-    channel.on('preview:status', onViteError);
+    channel.on('preview:log', onPreviewLog);
 
-    return () => channel.off('preview:status', onViteError);
-  }, [channel, addError]);
+    function onDepsInstallLog(payload: DepsInstallLogPayloadType) {
+      for (const row of payload.log.data.split('\n')) {
+        addLog(payload.log.type, 'npm install', row);
+      }
+    }
+    channel.on('deps:install:log', onDepsInstallLog);
 
-  // TODO: if npm install fails, add an error log
+    return () => {
+      channel.off('preview:log', onPreviewLog);
+      channel.off('deps:install:log', onDepsInstallLog);
+    };
+  }, [channel, addLog]);
 
   return (
-    <LogsContext.Provider value={{ logs, clearLogs, addError, unreadLogsCount, open, togglePane }}>
+    <LogsContext.Provider value={{
+      logs,
+      clearLogs,
+      unreadLogsCount,
+      panelIcon,
+
+      addLog,
+
+      open,
+      togglePane,
+      closePane,
+    }}>
       {children}
     </LogsContext.Provider>
   );

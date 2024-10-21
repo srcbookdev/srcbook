@@ -2,10 +2,12 @@ import {
   ShareIcon,
   PlayIcon,
   StopCircleIcon,
-  EllipsisIcon,
   PlayCircleIcon,
   Code2Icon,
   Loader2Icon,
+  CircleAlertIcon,
+  PanelBottomOpenIcon,
+  PanelBottomCloseIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SrcbookLogo } from '@/components/logos';
@@ -32,6 +34,7 @@ import { useState } from 'react';
 import { usePreview } from './use-preview';
 import { exportApp } from '@/clients/http/apps';
 import { toast } from 'sonner';
+import { useLogs } from './use-logs';
 
 export type EditorHeaderTab = 'code' | 'preview';
 
@@ -47,6 +50,7 @@ export default function EditorHeader(props: PropsType) {
   const { start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
   const { status: npmInstallStatus, nodeModulesExists } = usePackageJson();
   const [isExporting, setIsExporting] = useState(false);
+  const { open, togglePane, panelIcon } = useLogs();
 
   const [nameChangeDialogOpen, setNameChangeDialogOpen] = useState(false);
 
@@ -198,6 +202,29 @@ export default function EditorHeader(props: PropsType) {
                   <Button
                     variant="icon"
                     size="icon"
+                    onClick={togglePane}
+                    className="active:translate-y-0"
+                  >
+                    {panelIcon === 'default' && !open ? (
+                      <PanelBottomOpenIcon size={18} />
+                    ) : null}
+                    {panelIcon === 'default' && open ? (
+                      <PanelBottomCloseIcon size={18} />
+                    ) : null}
+                    {panelIcon === 'error' ? (
+                      <CircleAlertIcon size={18} className="text-red-600" />
+                    ) : null}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open logs</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="icon"
+                    size="icon"
                     onClick={handleExport}
                     className="active:translate-y-0"
                   >
@@ -209,21 +236,6 @@ export default function EditorHeader(props: PropsType) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Export app</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="icon"
-                    size="icon"
-                    onClick={() => alert('More options')}
-                    className="active:translate-y-0"
-                  >
-                    <EllipsisIcon size={18} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>More options</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>

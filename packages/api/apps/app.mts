@@ -51,7 +51,7 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
 
   const files = await getFlatFilesForApp(app.externalId);
   const result = await generateApp(toValidPackageName(app.name), files, data.prompt);
-  const plan = await parsePlan(result, app);
+  const plan = await parsePlan(result, app, data.prompt, randomid());
   await applyPlan(app, plan);
 
   // Run npm install again since we don't have a good way of parsing the plan to know if we should...

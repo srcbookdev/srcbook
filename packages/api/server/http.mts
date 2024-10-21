@@ -60,6 +60,7 @@ import {
   getFlatFilesForApp,
 } from '../apps/disk.mjs';
 import { CreateAppSchema } from '../apps/schemas.mjs';
+import { AppGenerationFeedbackType } from '@srcbook/shared';
 
 const app: Application = express();
 
@@ -542,7 +543,7 @@ router.get('/apps/:id/directories', cors(), async (req, res) => {
 router.options('/apps/:id/edit', cors());
 router.post('/apps/:id/edit', cors(), async (req, res) => {
   const { id } = req.params;
-  const { query } = req.body;
+  const { query, planId } = req.body;
   try {
     const app = await loadApp(id);
 
@@ -551,8 +552,8 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
     }
     const validName = toValidPackageName(app.name);
     const files = await getFlatFilesForApp(String(app.externalId));
-    const result = await editApp(validName, files, query);
-    const parsedResult = await parsePlan(result, app);
+    const result = await editApp(validName, files, query, id, planId);
+    const parsedResult = await parsePlan(result, app, query, planId);
     return res.json({ data: parsedResult });
   } catch (e) {
     return error500(res, e as Error);
@@ -731,4 +732,38 @@ router.post('/apps/:id/history', cors(), async (req, res) => {
   const { messages } = req.body;
   await appendToHistory(id, messages);
   return res.json({ data: { success: true } });
+});
+
+router.options('/apps/:id/feedback', cors());
+router.post('/apps/:id/feedback', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { planId, feedback } = req.body as AppGenerationFeedbackType;
+
+  if (process.env.SRCBOOK_DISABLE_ANALYTICS === 'true') {
+    return res.status(403).json({ error: 'Analytics are disabled' });
+  }
+
+  try {
+    const response = await fetch('https://hub.srcbook.com/api/app_generation_feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        appId: id,
+        planId,
+        feedback,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return res.json(result);
+  } catch (error) {
+    console.error('Error sending feedback:', error);
+    return res.status(500).json({ error: 'Failed to send feedback' });
+  }
 });

@@ -111,8 +111,10 @@ export default App;
 
 describe('parsePlan', () => {
   test('should correctly parse a plan with file and command actions', async () => {
-    const plan = await parsePlan(mockXMLResponse, mockApp);
+    const plan = await parsePlan(mockXMLResponse, mockApp, 'test query', '123445');
 
+    expect(plan.id).toBe('123445');
+    expect(plan.query).toBe('test query');
     expect(plan.description).toBe('Implement a basic todo list app');
     expect(plan.actions).toHaveLength(2);
 

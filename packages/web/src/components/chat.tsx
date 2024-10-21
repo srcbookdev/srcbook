@@ -25,8 +25,13 @@ import {
   ThumbsDown,
 } from 'lucide-react';
 import * as React from 'react';
-import { aiEditApp, loadHistory, appendToHistory } from '@/clients/http/apps.js';
-import { AppType } from '@srcbook/shared';
+import {
+  aiEditApp,
+  loadHistory,
+  appendToHistory,
+  aiGenerationFeedback,
+} from '@/clients/http/apps.js';
+import { AppType, randomid } from '@srcbook/shared';
 import { useFiles } from './apps/use-files';
 import { type FileType } from './apps/types';
 import type {
@@ -41,6 +46,7 @@ import type {
 import { DiffStats } from './apps/diff-stats.js';
 import { useApp } from './apps/use-app.js';
 import { usePackageJson } from './apps/use-package-json.js';
+import { AiFeedbackModal } from './apps/AiFeedbackModal';
 
 function Chat({
   history,
@@ -124,7 +130,15 @@ function Chat({
                 .filter((msg) => msg.type === 'diff')
                 .findIndex((msg) => msg === message);
 
-              return <DiffBox key={index} files={message.diff} app={app} version={diffIndex + 1} />;
+              return (
+                <DiffBox
+                  key={index}
+                  files={message.diff}
+                  app={app}
+                  version={diffIndex + 1}
+                  planId={message.planId}
+                />
+              );
             }
           })}
 
@@ -243,11 +257,28 @@ function DiffBox({
   files,
   app,
   version,
+  planId,
 }: {
   files: FileDiffType[];
   app: AppType;
   version: number;
+  planId: string;
 }) {
+  const [showFeedbackToast, setShowFeedbackToast] = React.useState(false);
+  const [feedbackGiven, _setFeedbackGiven] = React.useState<null | 'positive' | 'negative'>(null);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = React.useState(false);
+
+  const setFeedbackGiven = (feedback: 'positive' | 'negative') => {
+    setShowFeedbackToast(true);
+    _setFeedbackGiven(feedback);
+    setTimeout(() => setShowFeedbackToast(false), 2500);
+  };
+
+  const handleFeedbackSubmit = (feedbackText: string) => {
+    setFeedbackGiven('negative');
+    aiGenerationFeedback(app.id, { planId, feedback: { type: 'negative', text: feedbackText } });
+  };
+
   return (
     <>
       <div className="px-2 mx-2 pb-2 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
@@ -271,19 +302,38 @@ function DiffBox({
       <div className="flex px-2 items-center gap-2 my-2">
         <Button
           variant="icon"
-          className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"
+          className={cn(
+            'h-7 w-7 p-1.5 border-none',
+            feedbackGiven === 'positive' ? 'text-secondary-foreground' : 'text-tertiary-foreground',
+          )}
           aria-label="Upvote"
+          onClick={() => {
+            setFeedbackGiven('positive');
+            aiGenerationFeedback(app.id, { planId, feedback: { type: 'positive' } });
+          }}
         >
           <ThumbsUp size={18} />
         </Button>
         <Button
           variant="icon"
-          className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"
+          className={cn(
+            'h-7 w-7 p-1.5 border-none',
+            feedbackGiven === 'negative' ? 'text-secondary-foreground' : 'text-tertiary-foreground',
+          )}
           aria-label="Downvote"
+          onClick={() => setIsFeedbackModalOpen(true)}
         >
           <ThumbsDown size={18} />
         </Button>
+        {showFeedbackToast && (
+          <p className="text-sm text-tertiary-foreground">Thanks for the feedback!</p>
+        )}
       </div>
+      <AiFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        onSubmit={handleFeedbackSubmit}
+      />
     </>
   );
 }
@@ -407,15 +457,20 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   }, [app]);
 
   const handleSubmit = async (query: string) => {
+    const planId = randomid();
     setIsLoading(true);
-    const userMessage = { type: 'user', message: query } as UserMessageType;
+    const userMessage = { type: 'user', message: query, planId } as UserMessageType;
     setHistory((prevHistory) => [...prevHistory, userMessage]);
     appendToHistory(app.id, userMessage);
     setVisible(true);
 
-    const { data: plan } = await aiEditApp(app.id, query);
+    const { data: plan } = await aiEditApp(app.id, query, planId);
 
-    const planMessage = { type: 'plan', content: plan.description } as PlanMessageType;
+    const planMessage = {
+      type: 'plan',
+      content: plan.description,
+      planId,
+    } as PlanMessageType;
     setHistory((prevHistory) => [...prevHistory, planMessage]);
     appendToHistory(app.id, planMessage);
 
@@ -428,6 +483,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         command: update.command,
         packages: update.packages,
         description: update.description,
+        planId,
       };
       return entry;
     });
@@ -453,7 +509,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       };
     });
 
-    const diffMessage = { type: 'diff', diff: fileDiffs } as DiffMessageType;
+    const diffMessage = { type: 'diff', diff: fileDiffs, planId } as DiffMessageType;
     setHistory((prevHistory) => [...prevHistory, diffMessage]);
     appendToHistory(app.id, diffMessage);
 

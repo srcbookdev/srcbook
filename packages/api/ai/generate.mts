@@ -13,6 +13,7 @@ import Path from 'node:path';
 import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
 import { buildProjectXml, type FileContent } from '../ai/app-parser.mjs';
+import { type AppGenerationLog, logAppGeneration } from './logger.mjs';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -262,6 +263,8 @@ export async function editApp(
   projectId: string,
   files: FileContent[],
   query: string,
+  appId: string,
+  planId: string,
 ): Promise<string> {
   const model = await getModel();
   const systemPrompt = makeAppEditorSystemPrompt();
@@ -271,5 +274,15 @@ export async function editApp(
     system: systemPrompt,
     prompt: userPrompt,
   });
+  const log: AppGenerationLog = {
+    appId,
+    planId,
+    llm_request: { model, system: systemPrompt, prompt: userPrompt },
+    llm_response: result,
+  };
+
+  if (process.env.SRCBOOK_DISABLE_ANALYTICS !== 'true') {
+    logAppGeneration(log);
+  }
   return result.text;
 }

@@ -10,7 +10,14 @@ import Session from './routes/session';
 import Settings from './routes/settings';
 import Secrets from './routes/secrets';
 import ErrorPage from './error';
+import posthog from 'posthog-js';
+import { PostHogProvider } from 'posthog-js/react';
 import { DragAndDropSrcmdModal } from './components/drag-and-drop-srcmd-modal';
+
+posthog.init('phc_bQjmPYXmbl76j8gW289Qj9XILuu1STRnIfgCSKlxdgu', {
+  api_host: 'https://us.i.posthog.com',
+  person_profiles: 'identified_only',
+});
 
 const router = createBrowserRouter([
   {
@@ -77,6 +84,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <PostHogProvider client={posthog}>
+      <RouterProvider router={router} />
+    </PostHogProvider>
   </React.StrictMode>,
 );

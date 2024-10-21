@@ -105,7 +105,7 @@ function Apps() {
       />
       <div className="h-[calc(100vh-3rem)] flex">
         <Sidebar panel={panel} onChangePanel={setPanel} />
-        <div className="grow shrink h-full flex flex-col w-0">
+        <div className="grow shrink flex flex-col w-0">
           <Editor tab={tab} onChangeTab={setTab} onShowPackagesPanel={() => setPanel('packages')} />
           <BottomDrawer />
         </div>

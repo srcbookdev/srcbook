@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils.ts';
 import { useLogs } from './use-logs';
 import { useEffect, useRef } from 'react';
 
-const heightInPx = 320;
+const maxHeightInPx = 320;
 
 export default function BottomDrawer() {
   const { logs, clearLogs, open, togglePane, closePane } = useLogs();
@@ -55,59 +55,55 @@ export default function BottomDrawer() {
   }, [logs]);
 
   return (
-    <>
-      <div
-        className="grow-0 shrink-0 flex flex-col w-full h-0"
-        style={{ transition: 'all 100ms ease-in-out', height: open ? heightInPx : undefined }}
-      >
-        <div className="grow-0 shrink-0 flex items-center justify-between border-t border-b h-8 px-1 w-full bg-muted">
-          <span className="text-sm font-medium ml-2 select-none pointer-events-none">Logs</span>
+    <div
+      className={cn(
+        'flex flex-col w-full overflow-hidden transition-all duration-200 ease-in-out',
+        open ? 'flex-grow' : 'flex-shrink-0 h-8',
+      )}
+      style={{ maxHeight: open ? `${maxHeightInPx}px` : '2rem' }}
+    >
+      <div className="flex-shrink-0 flex items-center justify-between border-t border-b h-8 px-1 w-full bg-muted">
+        <span className="text-sm font-medium ml-2 select-none pointer-events-none">Logs</span>
 
-          <div className="flex items-center gap-1">
-            {open && logs.length > 0 ? (
-              <Button
-                size="sm"
-                variant="icon"
-                onClick={clearLogs}
-                className="active:translate-y-0 w-6 px-0"
-              >
-                <BanIcon size={14} />
-              </Button>
-            ) : null}
+        <div className="flex items-center gap-1">
+          {open && logs.length > 0 && (
             <Button
               size="sm"
               variant="icon"
-              onClick={() => closePane()}
+              onClick={clearLogs}
               className="active:translate-y-0 w-6 px-0"
             >
-              <XIcon size={16} />
+              <BanIcon size={14} />
             </Button>
-          </div>
+          )}
+          <Button
+            size="sm"
+            variant="icon"
+            onClick={() => closePane()}
+            className="active:translate-y-0 w-6 px-0"
+          >
+            <XIcon size={16} />
+          </Button>
         </div>
+      </div>
 
-        <div className="flex flex-col h-full w-full overflow-auto p-2" ref={scrollWrapperRef}>
-          <table className="table-fixed text-xs">
+      {open && (
+        <div className="flex-grow overflow-auto p-2" ref={scrollWrapperRef}>
+          <table className="w-full border-collapse text-xs">
             <tbody>
               {logs.map((log, index) => (
-                // FIXME: add a better explicit key, maybe a uuid in each log message?
                 <tr key={index}>
-                  <td
-                    className="font-mono text-tertiary-foreground select-none pointer-events-none whitespace-nowrap w-0 pr-4"
-                    align="left"
-                    valign="top"
-                  >
-                    {log.timestamp.toISOString()}
+                  <td className="align-top whitespace-nowrap select-none pointer-events-none whitespace-nowrap w-0 pr-4">
+                    <span className="font-mono text-tertiary-foreground/80">
+                      {log.timestamp.toISOString()}
+                    </span>
                   </td>
-                  <td
-                    className="font-mono text-tertiary-foreground select-none pointer-events-none whitespace-nowrap w-0 pr-4"
-                    align="left"
-                    valign="top"
-                  >
-                    {log.source}
+                  <td className="align-top whitespace-nowrap select-none pointer-events-none whitespace-nowrap w-0 pr-4">
+                    <span className="font-mono text-tertiary-foreground">{log.source}</span>
                   </td>
-                  <td align="left" valign="top">
+                  <td className="align-top">
                     <pre
-                      className={cn('font-mono cursor-text', {
+                      className={cn('font-mono cursor-text whitespace-pre-wrap', {
                         'text-red-300': log.type === 'stderr',
                         'text-tertiary-foreground': log.type === 'info',
                       })}
@@ -119,13 +115,13 @@ export default function BottomDrawer() {
               ))}
             </tbody>
           </table>
-          {logs.length === 0 ? (
+          {logs.length === 0 && (
             <div className="w-full h-full flex items-center justify-center">
               <span className="text-tertiary-foreground">No logs</span>
             </div>
-          ) : null}
+          )}
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }

@@ -26,7 +26,7 @@ export default function PackagesPanel() {
               <TooltipTrigger asChild>
                 <Button onClick={() => setShowInstallModal(true)} className="gap-1">
                   <PackagePlus size={16} />
-                  Install packages
+                  Add a package
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -44,7 +44,7 @@ export default function PackagesPanel() {
         </p>
         <div>
           <Button onClick={() => clearNodeModules()} disabled={nodeModulesExists !== true}>
-            Clear node_modules
+            Clear all packages
           </Button>
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function PackagesPanel() {
         </p>
         <div>
           <Button onClick={() => npmInstall()} disabled={status === 'installing'}>
-            Run npm install
+            Re-install all packages
           </Button>
         </div>
       </div>

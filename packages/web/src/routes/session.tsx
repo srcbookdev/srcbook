@@ -14,7 +14,7 @@ import {
 } from '@srcbook/shared';
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, SettingsType } from '@/types';
-import { GenerateAICellType } from '@srcbook/components/src/types';
+import { GenerateAICellType, OutputType } from '@srcbook/components/src/types';
 import { TitleCell, MarkdownCell } from '@srcbook/components';
 import ControlledCodeCell from '@/components/cells/code';
 import GenerateAiCell from '@/components/cells/generate-ai';
@@ -139,6 +139,7 @@ function Session(props: SessionProps) {
     failed: dependencyInstallFailed,
     outdated: outdatedDependencies,
     installing: installingDependencies,
+    output: dependencyInstallOutput,
   } = usePackageJson();
 
   const [depsInstallModalOpen, setDepsInstallModalOpen] = useState(false);
@@ -350,7 +351,13 @@ function Session(props: SessionProps) {
 
       <div className="flex mt-12">
         {!readOnly ? (
-          <PackageInstallModal open={depsInstallModalOpen} onOpenChange={setDepsInstallModalOpen} />
+          <PackageInstallModal
+            open={depsInstallModalOpen}
+            onOpenChange={setDepsInstallModalOpen}
+            installing={installingDependencies}
+            output={dependencyInstallOutput}
+            npmInstall={npmInstall}
+          />
         ) : null}
         {readOnly ? (
           <SessionMenu
@@ -494,8 +501,14 @@ function InsertCellDivider(props: {
   );
 }
 
-function PackageInstallModal(props: { open: boolean; onOpenChange: (value: boolean) => void }) {
-  const { open, onOpenChange } = props;
+function PackageInstallModal(props: {
+  open: boolean;
+  onOpenChange: (value: boolean) => void;
+  installing: boolean;
+  npmInstall: (packages?: string[]) => void;
+  output: OutputType[];
+}) {
+  const { open, onOpenChange, installing, npmInstall, output } = props;
 
   useHotkeys('mod+i', () => {
     if (!open) {
@@ -503,7 +516,15 @@ function PackageInstallModal(props: { open: boolean; onOpenChange: (value: boole
     }
   });
 
-  return <InstallPackageModal open={open} setOpen={onOpenChange} />;
+  return (
+    <InstallPackageModal
+      open={open}
+      setOpen={onOpenChange}
+      installing={installing}
+      npmInstall={npmInstall}
+      output={output}
+    />
+  );
 }
 
 SessionPage.loader = loader;

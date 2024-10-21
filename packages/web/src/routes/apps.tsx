@@ -11,12 +11,13 @@ import { FilesProvider, useFiles } from '@/components/apps/use-files';
 import { Editor } from '@/components/apps/workspace/editor';
 import { PreviewProvider } from '@/components/apps/use-preview';
 import { LogsProvider } from '@/components/apps/use-logs';
-import { PackageJsonProvider } from '@/components/apps/use-package-json';
+import { PackageJsonProvider, usePackageJson } from '@/components/apps/use-package-json';
 import { ChatPanel } from '@/components/chat';
 import DiffModal from '@/components/apps/diff-modal';
 import { FileDiffType } from '@srcbook/shared';
 import EditorHeader, { EditorHeaderTab } from '@/components/apps/header';
 import { AppProvider } from '@/components/apps/use-app';
+import InstallPackageModal from '@/components/install-package-modal';
 
 async function loader({ params }: LoaderFunctionArgs) {
   const [{ data: app }, { data: rootDirEntries }] = await Promise.all([
@@ -72,6 +73,8 @@ function Apps() {
 
   const { openedFile } = useFiles();
   const [panel, setPanel] = useState<PanelType | null>(openedFile === null ? 'explorer' : null);
+  const { installing, npmInstall, output, showInstallModal, setShowInstallModal } =
+    usePackageJson();
 
   const [diffModalProps, triggerDiffModal] = useState<{
     files: FileDiffType[];
@@ -81,6 +84,14 @@ function Apps() {
   return (
     <>
       {diffModalProps && <DiffModal {...diffModalProps} onClose={() => triggerDiffModal(null)} />}
+      <InstallPackageModal
+        open={showInstallModal}
+        setOpen={setShowInstallModal}
+        installing={installing}
+        npmInstall={npmInstall}
+        output={output}
+      />
+
       <EditorHeader
         tab={tab}
         onChangeTab={setTab}

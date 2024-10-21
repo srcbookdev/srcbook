@@ -2,56 +2,39 @@ import { Button } from '@srcbook/components/src/components/ui/button';
 import { usePackageJson } from '../use-package-json';
 
 export default function PackagesPanel() {
-  const { status, output, npmInstall, clearNodeModules, nodeModulesExists } = usePackageJson();
+  const { status, npmInstall, clearNodeModules, nodeModulesExists } = usePackageJson();
 
   return (
-    <div className="flex flex-col gap-4 px-5 w-[360px]">
+    <div className="flex flex-col gap-6 px-5 w-[360px]">
       <p className="text-sm text-tertiary-foreground">
-        Clear your node_modules, re-install packages and inspect the output logs from{' '}
-        <pre>npm install</pre>
+        Clean and manage your packages. To add packages, use the button below or ask the AI in chat.
       </p>
-      <div>
-        <Button onClick={() => npmInstall()} disabled={status === 'installing'}>
-          Run npm install
-        </Button>
+
+      <div className="flex flex-col gap-2">
+        <p className="font-medium">Clean</p>
+        <p className="text-sm text-tertiary-foreground">
+          If you suspect your node_modules are corrupted, you can clear them and reinstall all
+          packages.
+        </p>
+        <div>
+          <Button onClick={() => clearNodeModules()} disabled={nodeModulesExists !== true}>
+            Clear node_modules/
+          </Button>
+        </div>
       </div>
 
-      {status !== 'idle' ? (
-        <>
-          <h3 className="text-sm font-medium">Logs</h3>
-          <pre className="font-mono text-xs bg-tertiary p-2 overflow-auto rounded-md border">
-            {/* FIXME: disambiguate between stdout and stderr in here using n.type! */}
-            {output.map((n) => n.data).join('\n')}
-          </pre>
-        </>
-      ) : null}
-
-      {process.env.NODE_ENV !== 'production' && (
-        <>
-          <span>
-            Status: <code>{status}</code>
-          </span>
-          <div>
-            <Button
-              onClick={() => npmInstall(['uuid'])}
-              variant="secondary"
-              disabled={status === 'installing'}
-            >
-              Run npm install uuid
-            </Button>
-          </div>
-          <div>
-            exists={JSON.stringify(nodeModulesExists)}
-            <Button
-              onClick={() => clearNodeModules()}
-              variant="secondary"
-              disabled={nodeModulesExists !== true}
-            >
-              Clear node_modules
-            </Button>
-          </div>
-        </>
-      )}
+      <div className="flex flex-col gap-2">
+        <p className="font-medium">Reinstall</p>
+        <p className="text-sm text-tertiary-foreground">
+          Re-run <code className="code">npm install</code>. This will run against the package.json
+          from the project root.
+        </p>
+        <div>
+          <Button onClick={() => npmInstall()} disabled={status === 'installing'}>
+            Run npm install
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

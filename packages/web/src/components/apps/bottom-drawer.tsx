@@ -9,13 +9,7 @@ import { useEffect, useRef } from 'react';
 const heightInPx = 320;
 
 export default function BottomDrawer() {
-  const {
-    logs,
-    clearLogs,
-    open,
-    togglePane,
-    closePane,
-  } = useLogs();
+  const { logs, clearLogs, open, togglePane, closePane } = useLogs();
 
   useHotkeys('mod+shift+y', () => {
     togglePane();
@@ -40,7 +34,8 @@ export default function BottomDrawer() {
     const element = scrollWrapperRef.current;
 
     const onScroll = () => {
-      scrollPinnedToBottomRef.current = element.scrollTop === element.scrollHeight - element.clientHeight;
+      scrollPinnedToBottomRef.current =
+        element.scrollTop === element.scrollHeight - element.clientHeight;
     };
 
     element.addEventListener('scroll', onScroll);
@@ -91,22 +86,34 @@ export default function BottomDrawer() {
         </div>
 
         <div className="flex flex-col h-full w-full overflow-auto p-2" ref={scrollWrapperRef}>
-          <table className="table-fixed">
+          <table className="table-fixed text-xs">
             <tbody>
               {logs.map((log, index) => (
                 // FIXME: add a better explicit key, maybe a uuid in each log message?
                 <tr key={index}>
-                  <td className="font-mono text-tertiary-foreground select-none pointer-events-none whitespace-nowrap w-0 pr-4" align="left" valign="top">
+                  <td
+                    className="font-mono text-tertiary-foreground select-none pointer-events-none whitespace-nowrap w-0 pr-4"
+                    align="left"
+                    valign="top"
+                  >
                     {log.timestamp.toISOString()}
                   </td>
-                  <td className="font-mono text-tertiary-foreground select-none pointer-events-none whitespace-nowrap w-0 pr-4" align="left" valign="top">
+                  <td
+                    className="font-mono text-tertiary-foreground select-none pointer-events-none whitespace-nowrap w-0 pr-4"
+                    align="left"
+                    valign="top"
+                  >
                     {log.source}
                   </td>
                   <td align="left" valign="top">
-                    <pre className={cn("font-mono cursor-text", {
-                      "text-red-300": log.type === "stderr",
-                      "text-tertiary-foreground": log.type === "info",
-                    })}>{log.message}</pre>
+                    <pre
+                      className={cn('font-mono cursor-text', {
+                        'text-red-300': log.type === 'stderr',
+                        'text-tertiary-foreground': log.type === 'info',
+                      })}
+                    >
+                      {log.message}
+                    </pre>
                   </td>
                 </tr>
               ))}
@@ -114,7 +121,7 @@ export default function BottomDrawer() {
           </table>
           {logs.length === 0 ? (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-tertiary-foreground">No errors</span>
+              <span className="text-tertiary-foreground">No logs</span>
             </div>
           ) : null}
         </div>

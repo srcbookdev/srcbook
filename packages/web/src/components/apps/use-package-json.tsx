@@ -19,6 +19,8 @@ export interface PackageJsonContextValue {
   installing: boolean;
   failed: boolean;
   output: Array<OutputType>;
+  showInstallModal: boolean;
+  setShowInstallModal: (value: boolean) => void;
 }
 
 const PackageJsonContext = createContext<PackageJsonContextValue | undefined>(undefined);
@@ -32,7 +34,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
   const [status, setStatus] = useState<NpmInstallStatus>('idle');
   const [output, setOutput] = useState<Array<OutputType>>([]);
   const [nodeModulesExists, setNodeModulesExists] = useState<boolean | null>(null);
-
+  const [showInstallModal, setShowInstallModal] = useState(false);
   const { addLog } = useLogs();
 
   useEffect(() => {
@@ -52,7 +54,11 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
 
   const npmInstall = useCallback(
     async (packages?: Array<string>) => {
-      addLog('info', 'npm install', `Running ${!packages ? 'npm install' : `npm install ${packages.join(' ')}`}`);
+      addLog(
+        'info',
+        'npm install',
+        `Running ${!packages ? 'npm install' : `npm install ${packages.join(' ')}`}`,
+      );
 
       // NOTE: caching of the log output is required here because socket events that call callback
       // functions in here hold on to old scope values
@@ -70,7 +76,11 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
           channel.off('deps:install:status', statusCallback);
           setStatus(status);
 
-          addLog('info', 'npm install', `${!packages ? 'npm install' : `npm install ${packages.join(' ')}`} exited with status code ${code}`);
+          addLog(
+            'info',
+            'npm install',
+            `${!packages ? 'npm install' : `npm install ${packages.join(' ')}`} exited with status code ${code}`,
+          );
 
           if (status === 'complete') {
             resolve();
@@ -101,6 +111,8 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
     installing: status === 'installing',
     failed: status === 'failed',
     output,
+    showInstallModal,
+    setShowInstallModal,
   };
 
   return <PackageJsonContext.Provider value={context}>{children}</PackageJsonContext.Provider>;

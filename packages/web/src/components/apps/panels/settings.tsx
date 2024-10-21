@@ -1,57 +1,65 @@
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { usePackageJson } from '../use-package-json';
+import { PackagePlus } from 'lucide-react';
+import Shortcut from '@srcbook/components/src/components/keyboard-shortcut';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@srcbook/components/src/components/ui/tooltip';
 
 export default function PackagesPanel() {
-  const { status, output, npmInstall, clearNodeModules, nodeModulesExists } = usePackageJson();
+  const { setShowInstallModal, npmInstall, clearNodeModules, nodeModulesExists, status } =
+    usePackageJson();
 
   return (
-    <div className="flex flex-col gap-4 px-5 w-[360px]">
-      <p className="text-sm text-tertiary-foreground">
-        Clear your node_modules, re-install packages and inspect the output logs from{' '}
-        <pre>npm install</pre>
-      </p>
-      <div>
-        <Button onClick={() => npmInstall()} disabled={status === 'installing'}>
-          Run npm install
-        </Button>
+    <div className="flex flex-col gap-6 px-5 w-[360px]">
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-tertiary-foreground">
+          To add packages, you can simply ask the AI in chat, or use the button below.
+        </p>
+
+        <div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={() => setShowInstallModal(true)} className="gap-1">
+                  <PackagePlus size={16} />
+                  Add a package
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Install packages <Shortcut keys={['mod', 'i']} />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
-      {status !== 'idle' ? (
-        <>
-          <h3 className="text-sm font-medium">Logs</h3>
-          <pre className="font-mono text-xs bg-tertiary p-2 overflow-auto rounded-md border">
-            {/* FIXME: disambiguate between stdout and stderr in here using n.type! */}
-            {output.map((n) => n.data).join('\n')}
-          </pre>
-        </>
-      ) : null}
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-tertiary-foreground">
+          If you suspect your node_modules are corrupted, you can clear them and reinstall all
+          packages.
+        </p>
+        <div>
+          <Button onClick={() => clearNodeModules()} disabled={nodeModulesExists !== true}>
+            Clear all packages
+          </Button>
+        </div>
+      </div>
 
-      {process.env.NODE_ENV !== 'production' && (
-        <>
-          <span>
-            Status: <code>{status}</code>
-          </span>
-          <div>
-            <Button
-              onClick={() => npmInstall(['uuid'])}
-              variant="secondary"
-              disabled={status === 'installing'}
-            >
-              Run npm install uuid
-            </Button>
-          </div>
-          <div>
-            exists={JSON.stringify(nodeModulesExists)}
-            <Button
-              onClick={() => clearNodeModules()}
-              variant="secondary"
-              disabled={nodeModulesExists !== true}
-            >
-              Clear node_modules
-            </Button>
-          </div>
-        </>
-      )}
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-tertiary-foreground">
+          Re-run <code className="code">npm install</code>. This will run against the package.json
+          from the project root.
+        </p>
+        <div>
+          <Button onClick={() => npmInstall()} disabled={status === 'installing'}>
+            Re-install all packages
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

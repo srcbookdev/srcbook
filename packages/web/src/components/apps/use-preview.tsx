@@ -4,6 +4,7 @@ import { AppChannel } from '@/clients/websocket';
 import { PreviewStatusPayloadType } from '@srcbook/shared';
 import useEffectOnce from '@/components/use-effect-once';
 import { usePackageJson } from './use-package-json';
+import { useLogs } from './use-logs';
 
 export type PreviewStatusType = 'booting' | 'connecting' | 'running' | 'stopped';
 
@@ -28,6 +29,7 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
   const [lastStoppedError, setLastStoppedError] = useState<string | null>(null);
 
   const { npmInstall, nodeModulesExists } = usePackageJson();
+  const { addLog } = useLogs();
 
   useEffect(() => {
     function onStatusUpdate(payload: PreviewStatusPayloadType) {
@@ -35,6 +37,8 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
       setStatus(payload.status);
 
       if (payload.status === 'stopped' && !payload.stoppedSuccessfully) {
+        // FIXME: add log here
+        // addLog('info', 'npm install', `Running vite ${payload.XXX}`);
         setLastStoppedError(payload.logs ?? '');
       } else {
         setLastStoppedError(null);
@@ -50,6 +54,7 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
     if (nodeModulesExists === false) {
       await npmInstall();
     }
+    addLog('info', 'npm install', `Running vite`);
     channel.push('preview:start', {});
   }
 

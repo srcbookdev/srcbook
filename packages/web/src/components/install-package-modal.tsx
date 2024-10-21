@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { OutputType } from '@srcbook/components/src/types';
 import { Loader2 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { cn } from '@/lib/utils';
@@ -11,8 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@srcbook/components/src/components/ui/dialog';
-
-import { usePackageJson } from './use-package-json';
 
 type NPMPackageType = {
   name: string;
@@ -38,17 +37,21 @@ function getSelected(results: NPMPackageType[], selectedName: string, type: 'nex
 export default function InstallPackageModal({
   open,
   setOpen,
+  npmInstall,
+  installing,
+  output,
 }: {
   open: boolean;
   setOpen: (val: boolean) => void;
+  npmInstall: (packages?: string[]) => void;
+  installing: boolean;
+  output: OutputType[];
 }) {
   const [mode, setMode] = useState<'search' | 'loading' | 'success' | 'error'>('search');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<NPMPackageType[]>([]);
   const [pkg, setPkg] = useState<string>('');
   const [selectedName, setSelectedName] = useState<string | null>(null);
-
-  const { npmInstall, installing, output } = usePackageJson();
 
   const [value] = useDebounce(query, 300);
 

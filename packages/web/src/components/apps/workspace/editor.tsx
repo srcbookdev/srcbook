@@ -23,7 +23,7 @@ export function Editor({ tab, onChangeTab, onShowPackagesPanel }: EditorProps) {
   }, [openedFile, onChangeTab]);
 
   return (
-    <div className="relative grow shrink flex flex-col w-full h-full overflow-hidden">
+    <div className="relative grow shrink flex flex-col w-full overflow-hidden">
       <PackageInstallToast />
 
       {tab === 'code' ? (

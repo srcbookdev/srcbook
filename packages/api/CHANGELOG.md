@@ -1,5 +1,11 @@
 # @srcbook/api
 
+## 0.0.11
+
+### Patch Changes
+
+- 9b94f4d: Include templates in published app and remove unused template
+
 ## 0.0.10
 
 ### Patch Changes

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@srcbook/components/src/components/ui/input';
 import { Button } from '@srcbook/components/src/components/ui/button';
@@ -54,6 +54,12 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
       setSubmitting(false);
     }
   }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      onSubmit(e);
+    }
+  };
 
   return (
     <Dialog
@@ -122,6 +128,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
               name="app[prompt]"
               value={prompt}
               onChange={(e) => setPrompt(e.currentTarget.value)}
+              onKeyDown={handleKeyDown}
               className="h-20"
               placeholder="A Spotify-like app, showcasing a user's favorite playlists and most listened to songs."
             ></Textarea>

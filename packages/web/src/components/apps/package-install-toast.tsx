@@ -33,6 +33,8 @@ const PackageInstallToast: React.FunctionComponent = () => {
   useEffect(() => {
     if (nodeModulesExists === false && (status === 'idle' || status === 'complete')) {
       setShowToast(true);
+    } else if (nodeModulesExists === true) {
+      setShowToast(false);
     }
   }, [nodeModulesExists, status]);
 

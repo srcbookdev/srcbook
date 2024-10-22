@@ -1,4 +1,12 @@
-import React, { createContext, useCallback, useContext, useReducer, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 
 import type { FileType, DirEntryType, FileEntryType } from '@srcbook/shared';
 import { AppChannel } from '@/clients/websocket';
@@ -10,7 +18,6 @@ import {
   deleteDirectory,
   renameDirectory,
   loadDirectory,
-  loadFile,
 } from '@/clients/http/apps';
 import {
   createNode,
@@ -21,11 +28,13 @@ import {
   updateFileNode,
 } from './lib/file-tree';
 import { useApp } from './use-app';
+import { useNavigate } from 'react-router-dom';
+import { setLastOpenedFile } from './local-storage';
 
 export interface FilesContextValue {
   fileTree: DirEntryType;
   openedFile: FileType | null;
-  openFile: (entry: FileEntryType) => Promise<void>;
+  openFile: (entry: FileEntryType) => void;
   createFile: (dirname: string, basename: string, source?: string) => Promise<FileEntryType>;
   updateFile: (file: FileType, attrs: Partial<FileType>) => void;
   renameFile: (entry: FileEntryType, name: string) => Promise<void>;
@@ -44,10 +53,16 @@ const FilesContext = createContext<FilesContextValue | undefined>(undefined);
 type ProviderPropsType = {
   channel: AppChannel;
   children: React.ReactNode;
+  initialOpenedFile: FileType | null;
   rootDirEntries: DirEntryType;
 };
 
-export function FilesProvider({ channel, rootDirEntries, children }: ProviderPropsType) {
+export function FilesProvider({
+  channel,
+  rootDirEntries,
+  initialOpenedFile,
+  children,
+}: ProviderPropsType) {
   // Because we use refs for our state, we need a way to trigger
   // component re-renders when the ref state changes.
   //
@@ -56,18 +71,43 @@ export function FilesProvider({ channel, rootDirEntries, children }: ProviderPro
   const [, forceComponentRerender] = useReducer((x) => x + 1, 0);
 
   const { app } = useApp();
+  const navigateTo = useNavigate();
 
   const fileTreeRef = useRef<DirEntryType>(sortTree(rootDirEntries));
   const openedDirectoriesRef = useRef<Set<string>>(new Set());
+  const [openedFile, _setOpenedFile] = useState<FileType | null>(initialOpenedFile);
 
-  const [openedFile, setOpenedFile] = useState<FileType | null>(null);
-
-  const openFile = useCallback(
-    async (entry: FileEntryType) => {
-      const { data: file } = await loadFile(app.id, entry.path);
-      setOpenedFile(file);
+  const setOpenedFile = useCallback(
+    (fn: (file: FileType | null) => FileType | null) => {
+      _setOpenedFile((prevOpenedFile) => {
+        const openedFile = fn(prevOpenedFile);
+        if (openedFile) {
+          setLastOpenedFile(app.id, openedFile);
+        }
+        return openedFile;
+      });
     },
     [app.id],
+  );
+
+  const navigateToFile = useCallback(
+    (file: { path: string }) => {
+      navigateTo(`/apps/${app.id}/files/${encodeURIComponent(file.path)}`);
+    },
+    [app.id, navigateTo],
+  );
+
+  useEffect(() => {
+    if (initialOpenedFile !== null && initialOpenedFile?.path !== openedFile?.path) {
+      setOpenedFile(() => initialOpenedFile);
+    }
+  }, [initialOpenedFile, openedFile?.path, setOpenedFile]);
+
+  const openFile = useCallback(
+    (entry: FileEntryType) => {
+      navigateToFile(entry);
+    },
+    [navigateToFile],
   );
 
   const createFile = useCallback(
@@ -85,10 +125,10 @@ export function FilesProvider({ channel, rootDirEntries, children }: ProviderPro
     (file: FileType, attrs: Partial<FileType>) => {
       const updatedFile: FileType = { ...file, ...attrs };
       channel.push('file:updated', { file: updatedFile });
-      setOpenedFile(updatedFile);
+      setOpenedFile(() => updatedFile);
       forceComponentRerender();
     },
-    [channel],
+    [channel, setOpenedFile],
   );
 
   const deleteFile = useCallback(
@@ -103,7 +143,7 @@ export function FilesProvider({ channel, rootDirEntries, children }: ProviderPro
       fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
       forceComponentRerender(); // required
     },
-    [app.id],
+    [app.id, setOpenedFile],
   );
 
   const renameFile = useCallback(
@@ -118,7 +158,7 @@ export function FilesProvider({ channel, rootDirEntries, children }: ProviderPro
       fileTreeRef.current = updateFileNode(fileTreeRef.current, entry, newEntry);
       forceComponentRerender(); // required
     },
-    [app.id],
+    [app.id, setOpenedFile],
   );
 
   const isFolderOpen = useCallback((entry: DirEntryType) => {
@@ -176,7 +216,7 @@ export function FilesProvider({ channel, rootDirEntries, children }: ProviderPro
       fileTreeRef.current = deleteNode(fileTreeRef.current, entry.path);
       forceComponentRerender(); // required
     },
-    [app.id],
+    [app.id, setOpenedFile],
   );
 
   const renameFolder = useCallback(
@@ -199,7 +239,7 @@ export function FilesProvider({ channel, rootDirEntries, children }: ProviderPro
 
       forceComponentRerender(); // required
     },
-    [app.id],
+    [app.id, setOpenedFile],
   );
 
   const context: FilesContextValue = {

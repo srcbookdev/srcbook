@@ -38,19 +38,19 @@ function getTitleForPanel(panel: PanelType | null): string | null {
 }
 
 type SidebarProps = {
-  panel: PanelType | null;
-  onChangePanel: (newPanel: PanelType | null) => void;
+  initialPanel: PanelType | null;
 };
 
-export default function Sidebar({ panel, onChangePanel }: SidebarProps) {
+export default function Sidebar({ initialPanel }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
 
+  const { status } = usePackageJson();
+  const [panel, _setPanel] = useState<PanelType | null>(initialPanel);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const { status } = usePackageJson();
 
   function setPanel(nextPanel: PanelType) {
-    onChangePanel(nextPanel === panel ? null : nextPanel);
+    _setPanel(nextPanel === panel ? null : nextPanel);
   }
 
   return (

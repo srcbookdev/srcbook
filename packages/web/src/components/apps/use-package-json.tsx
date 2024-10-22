@@ -52,6 +52,17 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
     };
   }, [channel]);
 
+  useEffect(() => {
+    const callback = ({ status }: DepsInstallStatusPayloadType) => {
+      setStatus(status);
+    };
+    channel.on('deps:install:status', callback);
+
+    return () => {
+      channel.off('deps:install:status', callback);
+    };
+  }, [channel]);
+
   const npmInstall = useCallback(
     async (packages?: Array<string>) => {
       addLog(
@@ -74,7 +85,6 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
         const statusCallback = ({ status, code }: DepsInstallStatusPayloadType) => {
           channel.off('deps:install:log', logCallback);
           channel.off('deps:install:status', statusCallback);
-          setStatus(status);
 
           addLog(
             'info',

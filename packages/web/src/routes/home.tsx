@@ -68,24 +68,27 @@ export default function Home() {
   const [appToDelete, setAppToDelete] = useState<AppType | null>(null);
   const [showCreateAppModal, setShowCreateAppModal] = useState(false);
 
-  const { openaiKey, anthropicKey, aiBaseUrl } = useSettings();
+  const { aiProvider, openaiKey, anthropicKey } = useSettings();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    const hasApiKey = openaiKey || anthropicKey || aiBaseUrl;
+    const checkApiKey = () => {
+      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding') === 'true';
+      const hasApiKey = aiProvider === 'openai' ? !!openaiKey : !!anthropicKey;
 
-    if (!hasSeenOnboarding && !hasApiKey) {
-      setShowOnboarding(true);
-    }
-  }, [openaiKey, anthropicKey, aiBaseUrl]);
+      if (!hasSeenOnboarding || !hasApiKey) {
+        setShowOnboarding(true);
+      }
+      setIsLoading(false);
+    };
 
-  const handleOnboardingComplete = (apiKey: string) => {
+    checkApiKey();
+  }, [aiProvider, openaiKey, anthropicKey]);
+
+  const handleOnboardingComplete = () => {
     setShowOnboarding(false);
     localStorage.setItem('hasSeenOnboarding', 'true');
-    // Here you should update the API key in your settings
-    // This depends on how your settings are managed, but it might look like:
-    // updateConfigContext({ openaiKey: apiKey }); // or anthropicKey, depending on the provider
   };
 
   function onDeleteSrcbook(srcbook: SessionType) {
@@ -111,6 +114,10 @@ export default function Home() {
   async function openExampleSrcbook(example: ExampleSrcbookType) {
     const { result } = await importSrcbook({ path: example.path });
     openSrcbook(result.dir);
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
   if (showOnboarding) {

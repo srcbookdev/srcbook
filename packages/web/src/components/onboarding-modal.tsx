@@ -1,35 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutGrid, FileText, Loader2, CircleCheck, CircleX } from 'lucide-react';
-import { Button } from '../../../components/src/components/ui/button';
-import { Input } from '../../../components/src/components/ui/input';
+import { Button } from '@srcbook/components/src/components/ui/button';
+import { Input } from '@srcbook/components/src/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../components/src/components/ui/select';
+} from '@srcbook/components/src/components/ui/select';
 import { AiProviderType, getDefaultModel } from '@srcbook/shared';
 import { aiHealthcheck } from '@/lib/server';
+import { useSettings } from '@/components/use-settings';
 
 interface OnboardingModalProps {
   onComplete: (apiKey: string) => void;
 }
 
 const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
-  const [aiProvider, setAiProvider] = useState<AiProviderType>('anthropic');
+  const { aiProvider, aiModel, updateConfig } = useSettings();
   const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState(getDefaultModel('anthropic'));
 
   const handleContinue = () => {
     if (apiKey.trim()) {
+      updateConfig({ 
+        [aiProvider === 'openai' ? 'openaiKey' : 'anthropicKey']: apiKey 
+      });
       onComplete(apiKey);
     }
   };
 
   const handleAiProviderChange = (provider: AiProviderType) => {
-    setAiProvider(provider);
-    setModel(getDefaultModel(provider));
+    const newModel = getDefaultModel(provider);
+    updateConfig({ aiProvider: provider, aiModel: newModel });
   };
 
   return (
@@ -82,8 +85,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
               name="aiModel"
               className="w-[200px]"
               placeholder="AI model"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
+              value={aiModel}
+              onChange={(e) => updateConfig({ aiModel: e.target.value })}
             />
           </div>
           <div className="flex gap-2 mb-3">
@@ -95,7 +98,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ onComplete }) => {
               className="flex-1"
               placeholder={`${aiProvider} API Key`}
             />
-            <TestAiButton apiKey={apiKey} aiProvider={aiProvider} model={model} />
+            <TestAiButton apiKey={apiKey} aiProvider={aiProvider} model={aiModel} />
           </div>
         </div>
         <Button onClick={handleContinue}>Continue</Button>
@@ -135,6 +138,7 @@ const TestAiButton: React.FC<{ apiKey: string; aiProvider: AiProviderType; model
   aiProvider,
   model,
 }) => {
+  const { updateConfig } = useSettings();
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const TIMEOUT = 2500;
@@ -147,7 +151,14 @@ const TestAiButton: React.FC<{ apiKey: string; aiProvider: AiProviderType; model
 
   const check = () => {
     setState('loading');
-    aiHealthcheck(apiKey, aiProvider, model)
+    // Update the global configuration before running the healthcheck
+    updateConfig({ 
+      aiProvider, 
+      aiModel: model, 
+      [aiProvider === 'openai' ? 'openaiKey' : 'anthropicKey']: apiKey 
+    });
+    
+    aiHealthcheck()
       .then((res) => {
         setState(res.error ? 'error' : 'success');
       })

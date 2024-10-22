@@ -36,11 +36,13 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
 
   const [submitting, setSubmitting] = useState(false);
 
+  const validPrompt = prompt.trim() !== '';
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (submitting) {
+    if (submitting || !validPrompt) {
       return;
     }
 
@@ -130,7 +132,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
               Cancel
             </Button>
 
-            <Button disabled={!aiEnabled || submitting} type="submit">
+            <Button disabled={!aiEnabled || submitting || !validPrompt} type="submit">
               {submitting ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" /> Generating...

@@ -38,6 +38,8 @@
 - The goal is to get a FUNCTIONAL MVP. All of the parts for this MVP should be included.
 - Your job is to be precise and effective, so avoid extraneous steps even if they offer convenience.
 - Do not talk or worry about testing. The user wants to _use_ the app: the core goal is for it to _work_.
+- For react: modularize components into their own files, even small ones. We don't want one large App.tsx with everything inline, but different components in their respective src/components/{Component}.tsx files
+- For styles: apply modern, minimalistic styles. Things shoud look modern, clean and slick.
 
 
 ## Example response

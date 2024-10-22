@@ -56,9 +56,10 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
   }, [channel, addLog]);
 
   async function start() {
-    if (nodeModulesExists === false) {
-      await npmInstall();
-    }
+    // NOTE: only run this if status !== 'installing' maybe?
+    // if (nodeModulesExists === false) {
+    //   await npmInstall();
+    // }
     channel.push('preview:start', {});
   }
 

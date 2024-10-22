@@ -1,5 +1,16 @@
 # srcbook
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies [c3e857b]
+- Updated dependencies [ccd8d01]
+- Updated dependencies [73cd6e8]
+- Updated dependencies [89e4c7b]
+  - @srcbook/api@0.0.10
+  - @srcbook/shared@0.0.10
+
 ## 0.0.9
 
 ### Patch Changes

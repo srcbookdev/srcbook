@@ -167,6 +167,5 @@ export function getPackagesToInstall(plan: Plan): string[] {
       (action): action is NpmInstallCommand =>
         action.type === 'command' && action.command === 'npm install',
     )
-    .map((action) => action.packages)
-    .flat();
+    .flatMap((action) => action.packages);
 }

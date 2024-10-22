@@ -181,7 +181,7 @@ export default function EditorHeader(props: PropsType) {
                           size="icon"
                           onClick={() => window.open(url as string, '_blank')}
                           className="active:translate-y-0"
-                          disabled={previewStatus === 'booting' || previewStatus === 'connecting'}
+                          disabled={previewStatus !== 'running'}
                         >
                           <ExternalLinkIcon size={18} />
                         </Button>
@@ -202,7 +202,7 @@ export default function EditorHeader(props: PropsType) {
                           props.onChangeTab('code');
                         }}
                         className="active:translate-y-0"
-                        disabled={previewStatus === 'booting' || previewStatus === 'connecting'}
+                        disabled={previewStatus !== 'running'}
                       >
                         <StopCircleIcon size={18} />
                       </Button>

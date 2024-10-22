@@ -115,7 +115,7 @@ export default function BottomDrawer() {
                     <pre
                       className={cn('font-mono cursor-text whitespace-pre-wrap', {
                         'text-red-300': log.type === 'stderr',
-                        'text-tertiary-foreground': log.type === 'info',
+                        'text-secondary-foreground': log.type === 'info',
                       })}
                     >
                       {log.message}

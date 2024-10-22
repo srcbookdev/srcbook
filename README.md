@@ -15,15 +15,37 @@
   <a href="https://www.youtube.com/@srcbook">Youtube</a>
 </p>
 
+## Srcbook
+
+Srcbook is a TypeScript-centric app development platform. It allows you to create and iterate on web apps incredibly fast using AI as a pair-programmer.
+It can create or edit web apps, and also write and execute backend code through an interactive notebook interface.
+
+
+Srcbook is open-source (apache2) and runs locally on your machine. You need to bring your own API key for AI usage (we strongly recommend Anthropic with `claude-3-5-sonnet-latest`).
+
 ## Features
 
-- Create, run, and share reproducible programs and ideas
+### App Builder
+
+- AI app builder for TypeScript
+- Create, edit and run web apps
+- Use AI to generate the boilerplate, modify the code, and fix things
+- Edit the app with a hot-reloading web preview
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/lLJPZOs.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://i.imgur.com/k4xAyCQ.png">
+  <img alt="Example Srcbook" src="https://i.imgur.com/k4xAyCQ.png">
+</picture>
+
+### Notebooks
+
+- Create, run, and share TypeScript notebooks
 - Export to valid markdown format (.src.md)
 - AI features for exploring and iterating on ideas
 - Diagraming with [mermaid](https://mermaid.js.org) for rich annotations
 - Local execution with a web interface
 - Powered by Node.js
-- Open-source under the Apache2 license
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/2a4fa0f6-ef1b-4606-c9fa-b31d61b7c300/public">
@@ -73,7 +95,7 @@ Options:
 
 Commands:
   start [options]               Start the Srcbook server
-  import [options] <specifier>  Import a Srcbook
+  import [options] <specifier>  Import a Notebook
   help [command]                display help for command
 ```
 

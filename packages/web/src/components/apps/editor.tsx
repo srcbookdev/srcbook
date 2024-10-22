@@ -25,7 +25,13 @@ export function CodeEditor({
   const extensions = languageExtension ? [languageExtension] : [];
 
   return (
-    <CodeMirror value={source} theme={codeTheme} extensions={extensions} onChange={onChange} />
+    <CodeMirror
+      key={path}
+      value={source}
+      theme={codeTheme}
+      extensions={extensions}
+      onChange={onChange}
+    />
   );
 }
 

@@ -56,7 +56,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
     async (packages?: Array<string>) => {
       addLog(
         'info',
-        'npm install',
+        'npm',
         `Running ${!packages ? 'npm install' : `npm install ${packages.join(' ')}`}`,
       );
 
@@ -78,7 +78,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
 
           addLog(
             'info',
-            'npm install',
+            'npm',
             `${!packages ? 'npm install' : `npm install ${packages.join(' ')}`} exited with status code ${code}`,
           );
 

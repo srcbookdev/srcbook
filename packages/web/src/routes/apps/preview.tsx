@@ -15,7 +15,7 @@ export default function AppPreview() {
 }
 
 function Preview() {
-  const { url, status, start, lastStoppedError } = usePreview();
+  const { url, status, start, exitCode } = usePreview();
   const { nodeModulesExists } = usePackageJson();
   const { togglePane } = useLogs();
 
@@ -56,11 +56,11 @@ function Preview() {
     case 'stopped':
       return (
         <div className="flex justify-center items-center w-full h-full">
-          {lastStoppedError === null ? (
-            <span className="text-tertiary-foreground">Stopped preview server.</span>
+          {exitCode === null || exitCode === 0 ? (
+            <span className="text-tertiary-foreground">Dev server is stopped.</span>
           ) : (
             <div className="flex flex-col gap-6 items-center border border-border p-8 border-dashed rounded-md">
-              <span className="text-red-400">Preview server stopped with an error!</span>
+              <span className="text-red-400">Dev server exited with an error.</span>
               <Button variant="secondary" onClick={togglePane}>
                 Open errors pane
               </Button>

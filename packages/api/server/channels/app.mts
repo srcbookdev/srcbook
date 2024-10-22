@@ -39,7 +39,7 @@ const processMetadata = new Map<string, ProcessMetadata>();
 async function previewStart(
   _payload: PreviewStartPayloadType,
   context: AppContextType,
-  conn: ConnectionContextType,
+  wss: WebSocketServer,
 ) {
   const app = await loadApp(context.params.appId);
 
@@ -50,29 +50,25 @@ async function previewStart(
   const existingProcess = processMetadata.get(app.externalId);
 
   if (existingProcess) {
-    conn.reply(`app:${app.externalId}`, 'preview:status', {
+    wss.broadcast(`app:${app.externalId}`, 'preview:status', {
       status: 'running',
       url: `http://localhost:${existingProcess.port}/`,
     });
     return;
   }
 
-  conn.reply(`app:${app.externalId}`, 'preview:status', {
+  wss.broadcast(`app:${app.externalId}`, 'preview:status', {
     url: null,
     status: 'booting',
   });
 
   const onChangePort = (newPort: number) => {
     processMetadata.set(app.externalId, { process, port: newPort });
-    conn.reply(`app:${app.externalId}`, 'preview:status', {
+    wss.broadcast(`app:${app.externalId}`, 'preview:status', {
       url: `http://localhost:${newPort}/`,
       status: 'running',
     });
   };
-
-  // NOTE: Buffering all logs into an array like this might be a bad idea given this could grow in
-  // an unbounded fashion.
-  let bufferedLogs: Array<String> = [];
 
   const process = vite({
     args: [],
@@ -80,9 +76,8 @@ async function previewStart(
     stdout: (data) => {
       const encodedData = data.toString('utf8');
       console.log(encodedData);
-      bufferedLogs.push(encodedData);
 
-      conn.reply(`app:${app.externalId}`, 'preview:log', {
+      wss.broadcast(`app:${app.externalId}`, 'preview:log', {
         log: {
           type: 'stdout',
           data: encodedData,
@@ -99,9 +94,8 @@ async function previewStart(
     stderr: (data) => {
       const encodedData = data.toString('utf8');
       console.error(encodedData);
-      bufferedLogs.push(encodedData);
 
-      conn.reply(`app:${app.externalId}`, 'preview:log', {
+      wss.broadcast(`app:${app.externalId}`, 'preview:log', {
         log: {
           type: 'stderr',
           data: encodedData,
@@ -111,11 +105,12 @@ async function previewStart(
     onExit: (code) => {
       processMetadata.delete(app.externalId);
 
-      conn.reply(`app:${app.externalId}`, 'preview:status', {
+      console.log('HERE???', code);
+
+      wss.broadcast(`app:${app.externalId}`, 'preview:status', {
         url: null,
         status: 'stopped',
-        stoppedSuccessfully: code === 0,
-        logs: code !== 0 ? bufferedLogs.join('\n') : null,
+        code: code,
       });
     },
   });
@@ -140,20 +135,12 @@ async function previewStop(
     conn.reply(`app:${app.externalId}`, 'preview:status', {
       url: null,
       status: 'stopped',
-      stoppedSuccessfully: true,
-      logs: null,
+      code: null,
     });
     return;
   }
 
   result.process.kill('SIGTERM');
-
-  conn.reply(`app:${app.externalId}`, 'preview:status', {
-    url: null,
-    status: 'stopped',
-    stoppedSuccessfully: true,
-    logs: null,
-  });
 }
 
 async function dependenciesInstall(
@@ -247,30 +234,12 @@ async function onFileUpdated(payload: FileUpdatedPayloadType, context: AppContex
 export function register(wss: WebSocketServer) {
   wss
     .channel('app:<appId>')
-    .on('preview:start', PreviewStartPayloadSchema, previewStart)
+    .on('preview:start', PreviewStartPayloadSchema, (payload, context) =>
+      previewStart(payload, context, wss),
+    )
     .on('preview:stop', PreviewStopPayloadSchema, previewStop)
     .on('deps:install', DepsInstallPayloadSchema, dependenciesInstall)
     .on('deps:clear', DepsInstallPayloadSchema, clearNodeModules)
     .on('deps:status', DepsStatusPayloadSchema, dependenciesStatus)
-    .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated)
-    .onJoin(async (topic, ws) => {
-      const app = await loadApp(topic.split(':')[1]!);
-
-      // TODO: disconnect
-      if (!app) {
-        return;
-      }
-
-      const existingProcess = processMetadata.get(app.externalId);
-
-      ws.send(
-        JSON.stringify([
-          topic,
-          'preview:status',
-          existingProcess
-            ? { status: 'running', url: `http://localhost:${existingProcess.port}/` }
-            : { url: null, status: 'stopped', stoppedSuccessfully: true, logs: null },
-        ]),
-      );
-    });
+    .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated);
 }

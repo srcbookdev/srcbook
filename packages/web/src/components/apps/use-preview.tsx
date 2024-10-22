@@ -13,7 +13,7 @@ export interface PreviewContextValue {
   status: PreviewStatusType;
   stop: () => void;
   start: () => void;
-  lastStoppedError: string | null;
+  exitCode: number | null;
 }
 
 const PreviewContext = createContext<PreviewContextValue | undefined>(undefined);
@@ -26,7 +26,7 @@ type ProviderPropsType = {
 export function PreviewProvider({ channel, children }: ProviderPropsType) {
   const [url, setUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<PreviewStatusType>('connecting');
-  const [lastStoppedError, setLastStoppedError] = useState<string | null>(null);
+  const [exitCode, setExitCode] = useState<number | null>(null);
 
   const { npmInstall, nodeModulesExists } = usePackageJson();
   const { addLog } = useLogs();
@@ -36,25 +36,29 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
       setUrl(payload.url);
       setStatus(payload.status);
 
-      if (payload.status === 'stopped' && !payload.stoppedSuccessfully) {
-        // FIXME: add log here
-        // addLog('info', 'npm install', `Running vite ${payload.XXX}`);
-        setLastStoppedError(payload.logs ?? '');
-      } else {
-        setLastStoppedError(null);
+      switch (payload.status) {
+        case 'booting':
+          addLog('info', 'srcbook', 'Dev server is booting...');
+          break;
+        case 'running':
+          addLog('info', 'srcbook', `Dev server is running at ${payload.url}`);
+          break;
+        case 'stopped':
+          addLog('info', 'srcbook', `Dev server exited with status ${payload.code}`);
+          setExitCode(payload.code);
+          break;
       }
     }
 
     channel.on('preview:status', onStatusUpdate);
 
     return () => channel.off('preview:status', onStatusUpdate);
-  }, [channel, setUrl, setStatus]);
+  }, [channel, addLog]);
 
   async function start() {
     if (nodeModulesExists === false) {
       await npmInstall();
     }
-    addLog('info', 'npm install', `Running vite`);
     channel.push('preview:start', {});
   }
 
@@ -76,7 +80,7 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
   });
 
   return (
-    <PreviewContext.Provider value={{ url, status, stop, start, lastStoppedError }}>
+    <PreviewContext.Provider value={{ url, status, stop, start, exitCode }}>
       {children}
     </PreviewContext.Provider>
   );

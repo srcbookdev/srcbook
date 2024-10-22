@@ -28,11 +28,7 @@ Srcbook is open-source (apache2) and runs locally on your machine. You need to b
 - Use AI to generate the boilerplate, modify the code, and fix things
 - Edit the app with a hot-reloading web preview
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/lLJPZOs.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://i.imgur.com/k4xAyCQ.png">
-  <img alt="Example Srcbook" src="https://i.imgur.com/k4xAyCQ.png">
-</picture>
+![example app builder app light](https://i.imgur.com/k4xAyCQ.png)
 
 ### Notebooks
 
@@ -43,11 +39,7 @@ Srcbook is open-source (apache2) and runs locally on your machine. You need to b
 - Local execution with a web interface
 - Powered by Node.js
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/2a4fa0f6-ef1b-4606-c9fa-b31d61b7c300/public">
-  <source media="(prefers-color-scheme: light)" srcset="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/ebfa2bfe-f805-4398-a348-0f48d4f93400/public">
-  <img alt="Example Srcbook" src="https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/ebfa2bfe-f805-4398-a348-0f48d4f93400/public">
-</picture>
+![example notebook light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/ebfa2bfe-f805-4398-a348-0f48d4f93400/public)
 
 
 ## FAQ

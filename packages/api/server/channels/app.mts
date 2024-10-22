@@ -50,11 +50,16 @@ async function previewStart(
   const existingProcess = processMetadata.get(app.externalId);
 
   if (existingProcess) {
-    wss.broadcast(`app:${app.externalId}`, 'preview:status', {
-      status: 'running',
-      url: `http://localhost:${existingProcess.port}/`,
-    });
-    return;
+    if (existingProcess.port === null) {
+      existingProcess.process.kill('SIGTERM');
+      processMetadata.delete(app.externalId);
+    } else {
+      wss.broadcast(`app:${app.externalId}`, 'preview:status', {
+        status: 'running',
+        url: `http://localhost:${existingProcess.port}/`,
+      });
+      return;
+    }
   }
 
   wss.broadcast(`app:${app.externalId}`, 'preview:status', {

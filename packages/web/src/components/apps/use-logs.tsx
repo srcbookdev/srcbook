@@ -5,7 +5,7 @@ import { DepsInstallLogPayloadType, PreviewLogPayloadType } from '@srcbook/share
 
 export type LogMessage = {
   type: 'stderr' | 'stdout' | 'info';
-  source: 'vite' | 'npm install';
+  source: 'srcbook' | 'vite' | 'npm';
   timestamp: Date;
   message: string;
 };
@@ -78,7 +78,7 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
 
     function onDepsInstallLog(payload: DepsInstallLogPayloadType) {
       for (const row of payload.log.data.split('\n')) {
-        addLog(payload.log.type, 'npm install', row);
+        addLog(payload.log.type, 'npm', row);
       }
     }
     channel.on('deps:install:log', onDepsInstallLog);

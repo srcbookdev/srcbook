@@ -168,8 +168,7 @@ export const PreviewStatusPayloadSchema = z.union([
   z.object({
     url: z.string().nullable(),
     status: z.literal('stopped'),
-    stoppedSuccessfully: z.boolean(),
-    logs: z.string().nullable(),
+    code: z.number().int().nullable(),
   }),
 ]);
 

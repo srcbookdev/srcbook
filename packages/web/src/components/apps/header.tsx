@@ -179,7 +179,6 @@ export default function EditorHeader(props: PropsType) {
                         <Button
                           variant="icon"
                           size="icon"
-                          // navigate to the url
                           onClick={() => window.open(url as string, '_blank')}
                           className="active:translate-y-0"
                           disabled={previewStatus === 'booting' || previewStatus === 'connecting'}

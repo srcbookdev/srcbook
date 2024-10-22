@@ -57,12 +57,12 @@ function Preview() {
       return (
         <div className="flex justify-center items-center w-full h-full">
           {exitCode === null || exitCode === 0 ? (
-            <span className="text-tertiary-foreground">Dev server is stopped.</span>
+            <span className="text-tertiary-foreground">Preview server is stopped.</span>
           ) : (
             <div className="flex flex-col gap-6 items-center border border-border p-8 border-dashed rounded-md">
-              <span className="text-red-400">Dev server exited with an error.</span>
+              <span className="text-red-400">Preview server exited with an error.</span>
               <Button variant="secondary" onClick={togglePane}>
-                Open errors pane
+                View logs
               </Button>
             </div>
           )}

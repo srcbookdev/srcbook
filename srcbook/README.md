@@ -16,7 +16,6 @@
 Srcbook is a TypeScript-centric app development platform. It allows you to create and iterate on web apps incredibly fast using AI as a pair-programmer.
 It can create or edit web apps, and also write and execute backend code through an interactive notebook interface.
 
-
 Srcbook is open-source (apache2) and runs locally on your machine. You need to bring your own API key for AI usage (we strongly recommend Anthropic with `claude-3-5-sonnet-latest`).
 
 ## Features
@@ -40,7 +39,6 @@ Srcbook is open-source (apache2) and runs locally on your machine. You need to b
 - Powered by Node.js
 
 ![example notebook light](https://imagedelivery.net/oEu9i3VEvGGhcGGAYXSBLQ/ebfa2bfe-f805-4398-a348-0f48d4f93400/public)
-
 
 ## FAQ
 

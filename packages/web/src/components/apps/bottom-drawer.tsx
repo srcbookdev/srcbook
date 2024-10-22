@@ -63,12 +63,12 @@ export default function BottomDrawer() {
       style={{ maxHeight: open ? `${maxHeightInPx}px` : '2rem' }}
     >
       <div className="flex-shrink-0 flex items-center justify-between border-t border-b h-8 px-1 w-full bg-muted">
-        <span
+        <button
           onClick={() => togglePane()}
-          className="text-sm font-medium ml-2 select-none cursor-pointer"
+          className="px-2 text-sm font-medium h-6 select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
           Logs
-        </span>
+        </button>
 
         <div className="flex items-center gap-1">
           {open && logs.length > 0 && (
@@ -98,12 +98,12 @@ export default function BottomDrawer() {
             <tbody>
               {logs.map((log, index) => (
                 <tr key={index}>
-                  <td className="align-top whitespace-nowrap select-none pointer-events-none whitespace-nowrap w-0 pr-4">
+                  <td className="align-top select-none pointer-events-none whitespace-nowrap w-0 pr-4">
                     <span className="font-mono text-tertiary-foreground/80">
                       {log.timestamp.toISOString()}
                     </span>
                   </td>
-                  <td className="align-top whitespace-nowrap select-none pointer-events-none whitespace-nowrap w-0 pr-4">
+                  <td className="align-top select-none pointer-events-none whitespace-nowrap w-0 pr-4">
                     <span className="font-mono text-tertiary-foreground">{log.source}</span>
                   </td>
                   <td className="align-top">

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils.ts';
 import { useLogs } from './use-logs';
 import { useEffect, useRef } from 'react';
 
-const maxHeightInPx = 320;
+const DRAWER_HEIGHT = 320;
 
 export default function BottomDrawer() {
   const { logs, clearLogs, open, togglePane, closePane } = useLogs();
@@ -60,7 +60,10 @@ export default function BottomDrawer() {
         'flex flex-col w-full overflow-hidden transition-all duration-200 ease-in-out',
         open ? 'flex-grow' : 'flex-shrink-0 h-8',
       )}
-      style={{ maxHeight: open ? `${maxHeightInPx}px` : '2rem' }}
+      style={{
+        maxHeight: open ? `${DRAWER_HEIGHT}px` : '2rem',
+        minHeight: open ? `${DRAWER_HEIGHT}px` : '2rem',
+      }}
     >
       <div className="flex-shrink-0 flex items-center justify-between border-t border-b h-8 px-1 w-full bg-muted">
         <button

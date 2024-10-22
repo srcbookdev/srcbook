@@ -213,6 +213,7 @@ export default class WebSocketServer {
 
     if (event === 'subscribe') {
       conn.subscriptions.push(topic);
+      conn.reply(topic, 'subscribed', { id: payload.id });
       channel.onJoinCallback(topic, conn.socket);
       return;
     }

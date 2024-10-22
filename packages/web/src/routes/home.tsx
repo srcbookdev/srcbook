@@ -9,7 +9,7 @@ import {
   loadSrcbookExamples,
 } from '@/lib/server';
 import type { ExampleSrcbookType, SessionType } from '@/types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
 import {
@@ -28,6 +28,8 @@ import MailingListCard from '@/components/mailing-list-card';
 import CreateAppModal from '@/components/apps/create-modal';
 import { createApp, loadApps } from '@/clients/http/apps';
 import DeleteAppModal from '@/components/delete-app-dialog';
+import OnboardingModal from '@/components/onboarding-modal';
+import { useSettings } from '@/components/use-settings';
 
 export async function loader() {
   const [{ result: config }, { result: srcbooks }, { result: examples }, { data: apps }] =
@@ -66,6 +68,26 @@ export default function Home() {
   const [appToDelete, setAppToDelete] = useState<AppType | null>(null);
   const [showCreateAppModal, setShowCreateAppModal] = useState(false);
 
+  const { openaiKey, anthropicKey, aiBaseUrl } = useSettings();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    const hasApiKey = openaiKey || anthropicKey || aiBaseUrl;
+
+    if (!hasSeenOnboarding && !hasApiKey) {
+      setShowOnboarding(true);
+    }
+  }, [openaiKey, anthropicKey, aiBaseUrl]);
+
+  const handleOnboardingComplete = (apiKey: string) => {
+    setShowOnboarding(false);
+    localStorage.setItem('hasSeenOnboarding', 'true');
+    // Here you should update the API key in your settings
+    // This depends on how your settings are managed, but it might look like:
+    // updateConfigContext({ openaiKey: apiKey }); // or anthropicKey, depending on the provider
+  };
+
   function onDeleteSrcbook(srcbook: SessionType) {
     setSrcbookToDelete(srcbook);
     setShowDelete(true);
@@ -89,6 +111,10 @@ export default function Home() {
   async function openExampleSrcbook(example: ExampleSrcbookType) {
     const { result } = await importSrcbook({ path: example.path });
     openSrcbook(result.dir);
+  }
+
+  if (showOnboarding) {
+    return <OnboardingModal onComplete={handleOnboardingComplete} />;
   }
 
   return (

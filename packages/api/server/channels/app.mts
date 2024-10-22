@@ -138,6 +138,9 @@ async function previewStop(
     return;
   }
 
+  // Killing the process should result in its onExit handler being called.
+  // The onExit handler will remove the process from the processMetadata map
+  // and send the `preview:status` event with a value of 'stopped'
   result.process.kill('SIGTERM');
 }
 

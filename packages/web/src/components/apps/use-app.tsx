@@ -21,19 +21,18 @@ export function AppProvider({ app: initialApp, children }: ProviderPropsType) {
 
   const channelRef = useRef(AppChannel.create(app.id));
 
-  // This is only meant to be run one time, when the component mounts.
   useEffect(() => {
-    channelRef.current.subscribe();
-    return () => channelRef.current.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (app.id === channelRef.current.appId) {
-      return;
+    // If the app ID has changed, create a new channel for the new app.
+    if (channelRef.current.appId !== app.id) {
+      channelRef.current.unsubscribe();
+      channelRef.current = AppChannel.create(app.id);
     }
 
-    channelRef.current.unsubscribe();
-    channelRef.current = AppChannel.create(app.id);
+    // Subscribe to the channel
+    channelRef.current.subscribe();
+
+    // Unsubscribe when the component is unmounted
+    return () => channelRef.current.unsubscribe();
   }, [app.id]);
 
   async function updateApp(attrs: { name: string }) {

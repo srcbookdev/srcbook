@@ -105,8 +105,6 @@ async function previewStart(
     onExit: (code) => {
       processMetadata.delete(app.externalId);
 
-      console.log('HERE???', code);
-
       wss.broadcast(`app:${app.externalId}`, 'preview:status', {
         url: null,
         status: 'stopped',

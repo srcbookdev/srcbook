@@ -1,5 +1,12 @@
 # @srcbook/shared
 
+## 0.0.10
+
+### Patch Changes
+
+- ccd8d01: Introduce app builder
+- 73cd6e8: support backend hmr
+
 ## 0.0.9
 
 ### Patch Changes

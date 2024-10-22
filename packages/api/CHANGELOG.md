@@ -1,5 +1,17 @@
 # @srcbook/api
 
+## 0.0.10
+
+### Patch Changes
+
+- c3e857b: Add typing support and errors for environment variables
+- ccd8d01: Introduce app builder
+- 73cd6e8: support backend hmr
+- 89e4c7b: fix server crash when stopping the cell
+- Updated dependencies [ccd8d01]
+- Updated dependencies [73cd6e8]
+  - @srcbook/shared@0.0.10
+
 ## 0.0.9
 
 ### Patch Changes

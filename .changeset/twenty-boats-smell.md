@@ -1,7 +1,7 @@
 ---
-'@srcbook/shared': minor
-'@srcbook/api': minor
-'@srcbook/web': minor
+'@srcbook/shared': patch
+'@srcbook/api': patch
+'@srcbook/web': patch
 ---
 
 support backend hmr

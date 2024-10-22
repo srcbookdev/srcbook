@@ -81,14 +81,16 @@ export default function BottomDrawer() {
               <BanIcon size={14} />
             </Button>
           )}
-          <Button
-            size="sm"
-            variant="icon"
-            onClick={() => closePane()}
-            className="active:translate-y-0 w-6 px-0"
-          >
-            <XIcon size={16} />
-          </Button>
+          {open && (
+            <Button
+              size="sm"
+              variant="icon"
+              onClick={() => closePane()}
+              className="active:translate-y-0 w-6 px-0"
+            >
+              <XIcon size={16} />
+            </Button>
+          )}
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import { npmInstall } from '../exec.mjs';
 import { generateApp } from '../ai/generate.mjs';
 import { toValidPackageName } from '../apps/utils.mjs';
 import { parsePlan } from '../ai/plan-parser.mjs';
+import { wss as webSocketServer } from '../index.mjs';
 
 function toSecondsSinceEpoch(date: Date): number {
   return Math.floor(date.getTime() / 1000);
@@ -36,18 +37,7 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
   await createViteApp(app);
   // Note: we don't surface issues or retries and this is "running in the background".
   // In this case it works in our favor because we'll kickoff generation while it happens
-  npmInstall({
-    cwd: pathToApp(app.externalId),
-    stdout(data) {
-      console.log(data.toString('utf8'));
-    },
-    stderr(data) {
-      console.error(data.toString('utf8'));
-    },
-    onExit(code) {
-      console.log(`npm install exit code: ${code}`);
-    },
-  });
+  installAppDependencies(app);
 
   const files = await getFlatFilesForApp(app.externalId);
   const result = await generateApp(toValidPackageName(app.name), files, data.prompt);
@@ -55,18 +45,7 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
   await applyPlan(app, plan);
 
   // Run npm install again since we don't have a good way of parsing the plan to know if we should...
-  npmInstall({
-    cwd: pathToApp(app.externalId),
-    stdout(data) {
-      console.log(data.toString('utf8'));
-    },
-    stderr(data) {
-      console.error(data.toString('utf8'));
-    },
-    onExit(code) {
-      console.log(`npm install exit code: ${code}`);
-    },
-  });
+  installAppDependencies(app);
 
   return app;
 }
@@ -78,21 +57,7 @@ export async function createApp(data: CreateAppSchemaType): Promise<DBAppType> {
 
   await createViteApp(app);
 
-  // TODO: handle this better.
-  // This should be done somewhere else and surface issues or retries.
-  // Not awaiting here because it's "happening in the background".
-  npmInstall({
-    cwd: pathToApp(app.externalId),
-    stdout(data) {
-      console.log(data.toString('utf8'));
-    },
-    stderr(data) {
-      console.error(data.toString('utf8'));
-    },
-    onExit(code) {
-      console.log(`npm install exit code: ${code}`);
-    },
-  });
+  installAppDependencies(app);
 
   return app;
 }
@@ -119,4 +84,40 @@ export async function updateApp(id: string, attrs: { name: string }) {
     .where(eq(appsTable.externalId, id))
     .returning();
   return updatedApp;
+}
+
+export async function installAppDependencies(app: DBAppType, packages?: Array<string>) {
+  webSocketServer.broadcast(`app:${app.externalId}`, 'deps:install:status', {
+    status: 'installing',
+  });
+
+  npmInstall({
+    args: [],
+    cwd: pathToApp(app.externalId),
+    packages,
+    stdout: (data) => {
+      webSocketServer.broadcast(`app:${app.externalId}`, 'deps:install:log', {
+        log: { type: 'stdout', data: data.toString('utf8') },
+      });
+    },
+    stderr: (data) => {
+      webSocketServer.broadcast(`app:${app.externalId}`, 'deps:install:log', {
+        log: { type: 'stderr', data: data.toString('utf8') },
+      });
+    },
+    onExit: (code) => {
+      console.log(`npm install exit code: ${code}`);
+
+      webSocketServer.broadcast(`app:${app.externalId}`, 'deps:install:status', {
+        status: code === 0 ? 'complete' : 'failed',
+        code,
+      });
+
+      if (code === 0) {
+        webSocketServer.broadcast(`app:${app.externalId}`, 'deps:status:response', {
+          nodeModulesExists: true,
+        });
+      }
+    },
+  });
 }

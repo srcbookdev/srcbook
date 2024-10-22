@@ -20,9 +20,9 @@ import WebSocketServer, {
   type MessageContextType,
   type ConnectionContextType,
 } from '../ws-client.mjs';
-import { loadApp } from '../../apps/app.mjs';
+import { installAppDependencies, loadApp } from '../../apps/app.mjs';
 import { fileUpdated, pathToApp } from '../../apps/disk.mjs';
-import { vite, npmInstall } from '../../exec.mjs';
+import { vite } from '../../exec.mjs';
 import { directoryExists } from '../../fs-utils.mjs';
 
 const VITE_PORT_REGEX = /Local:.*http:\/\/localhost:([0-9]{1,4})/;
@@ -155,33 +155,7 @@ async function dependenciesInstall(
     return;
   }
 
-  npmInstall({
-    args: [],
-    cwd: pathToApp(app.externalId),
-    packages: payload.packages ?? undefined,
-    stdout: (data) => {
-      conn.reply(`app:${app.externalId}`, 'deps:install:log', {
-        log: { type: 'stdout', data: data.toString('utf8') },
-      });
-    },
-    stderr: (data) => {
-      conn.reply(`app:${app.externalId}`, 'deps:install:log', {
-        log: { type: 'stderr', data: data.toString('utf8') },
-      });
-    },
-    onExit: (code) => {
-      conn.reply(`app:${app.externalId}`, 'deps:install:status', {
-        status: code === 0 ? 'complete' : 'failed',
-        code,
-      });
-
-      if (code === 0) {
-        conn.reply(`app:${app.externalId}`, 'deps:status:response', {
-          nodeModulesExists: true,
-        });
-      }
-    },
-  });
+  installAppDependencies(app, payload.packages);
 }
 
 async function clearNodeModules(

@@ -1,7 +1,5 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import { ChildProcess } from 'node:child_process';
-
 import {
   PreviewStartPayloadSchema,
   PreviewStopPayloadSchema,
@@ -22,19 +20,18 @@ import WebSocketServer, {
 } from '../ws-client.mjs';
 import { loadApp } from '../../apps/app.mjs';
 import { fileUpdated, pathToApp } from '../../apps/disk.mjs';
-import { vite, npmInstall } from '../../exec.mjs';
 import { directoryExists } from '../../fs-utils.mjs';
+import {
+  getAppProcess,
+  setAppProcess,
+  deleteAppProcess,
+  npmInstall,
+  viteServer,
+} from '../../apps/processes.mjs';
 
 const VITE_PORT_REGEX = /Local:.*http:\/\/localhost:([0-9]{1,4})/;
 
 type AppContextType = MessageContextType<'appId'>;
-
-type ProcessMetadata = {
-  process: ChildProcess;
-  port: number | null;
-};
-
-const processMetadata = new Map<string, ProcessMetadata>();
 
 async function previewStart(
   _payload: PreviewStartPayloadType,
@@ -47,7 +44,7 @@ async function previewStart(
     return;
   }
 
-  const existingProcess = processMetadata.get(app.externalId);
+  const existingProcess = getAppProcess(app.externalId, 'vite:server');
 
   if (existingProcess) {
     wss.broadcast(`app:${app.externalId}`, 'preview:status', {
@@ -63,16 +60,28 @@ async function previewStart(
   });
 
   const onChangePort = (newPort: number) => {
-    processMetadata.set(app.externalId, { process, port: newPort });
+    const process = getAppProcess(app.externalId, 'vite:server');
+
+    // This is not expected to happen
+    if (!process) {
+      wss.broadcast(`app:${app.externalId}`, 'preview:status', {
+        url: null,
+        status: 'stopped',
+        code: null,
+      });
+      return;
+    }
+
+    setAppProcess(app.externalId, { ...process, port: newPort });
+
     wss.broadcast(`app:${app.externalId}`, 'preview:status', {
       url: `http://localhost:${newPort}/`,
       status: 'running',
     });
   };
 
-  const process = vite({
+  viteServer(app.externalId, {
     args: [],
-    cwd: pathToApp(app.externalId),
     stdout: (data) => {
       const encodedData = data.toString('utf8');
       console.log(encodedData);
@@ -103,7 +112,7 @@ async function previewStart(
       });
     },
     onExit: (code) => {
-      processMetadata.delete(app.externalId);
+      deleteAppProcess(app.externalId, 'vite:server');
 
       wss.broadcast(`app:${app.externalId}`, 'preview:status', {
         url: null,
@@ -111,9 +120,20 @@ async function previewStart(
         code: code,
       });
     },
-  });
+    onError: (error) => {
+      // Errors happen when we try to run vite before node modules are installed.
+      // Make sure we clean up the app process and inform the client.
+      deleteAppProcess(app.externalId, 'vite:server');
 
-  processMetadata.set(app.externalId, { process, port: null });
+      if (error.code === 'ENOENT') {
+        wss.broadcast(`app:${app.externalId}`, 'preview:status', {
+          url: null,
+          status: 'stopped',
+          code: null,
+        });
+      }
+    },
+  });
 }
 
 async function previewStop(
@@ -127,7 +147,7 @@ async function previewStop(
     return;
   }
 
-  const result = processMetadata.get(app.externalId);
+  const result = getAppProcess(app.externalId, 'vite:server');
 
   if (!result) {
     conn.reply(`app:${app.externalId}`, 'preview:status', {
@@ -147,7 +167,7 @@ async function previewStop(
 async function dependenciesInstall(
   payload: DepsInstallPayloadType,
   context: AppContextType,
-  conn: ConnectionContextType,
+  wss: WebSocketServer,
 ) {
   const app = await loadApp(context.params.appId);
 
@@ -155,28 +175,30 @@ async function dependenciesInstall(
     return;
   }
 
-  npmInstall({
+  npmInstall(app.externalId, {
     args: [],
-    cwd: pathToApp(app.externalId),
     packages: payload.packages ?? undefined,
     stdout: (data) => {
-      conn.reply(`app:${app.externalId}`, 'deps:install:log', {
+      wss.broadcast(`app:${app.externalId}`, 'deps:install:log', {
         log: { type: 'stdout', data: data.toString('utf8') },
       });
     },
     stderr: (data) => {
-      conn.reply(`app:${app.externalId}`, 'deps:install:log', {
+      wss.broadcast(`app:${app.externalId}`, 'deps:install:log', {
         log: { type: 'stderr', data: data.toString('utf8') },
       });
     },
     onExit: (code) => {
-      conn.reply(`app:${app.externalId}`, 'deps:install:status', {
+      // We must clean up this process so that we can run npm install again
+      deleteAppProcess(app.externalId, 'npm:install');
+
+      wss.broadcast(`app:${app.externalId}`, 'deps:install:status', {
         status: code === 0 ? 'complete' : 'failed',
         code,
       });
 
       if (code === 0) {
-        conn.reply(`app:${app.externalId}`, 'deps:status:response', {
+        wss.broadcast(`app:${app.externalId}`, 'deps:status:response', {
           nodeModulesExists: true,
         });
       }
@@ -239,7 +261,9 @@ export function register(wss: WebSocketServer) {
       previewStart(payload, context, wss),
     )
     .on('preview:stop', PreviewStopPayloadSchema, previewStop)
-    .on('deps:install', DepsInstallPayloadSchema, dependenciesInstall)
+    .on('deps:install', DepsInstallPayloadSchema, (payload, context) => {
+      dependenciesInstall(payload, context, wss);
+    })
     .on('deps:clear', DepsInstallPayloadSchema, clearNodeModules)
     .on('deps:status', DepsStatusPayloadSchema, dependenciesStatus)
     .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated);

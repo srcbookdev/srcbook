@@ -56,8 +56,8 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
     async (packages?: Array<string>) => {
       addLog(
         'info',
-        'npm',
-        `Running ${!packages ? 'npm install' : `npm install ${packages.join(' ')}`}`,
+        'srcbook',
+        `Running ${!packages ? 'npm install' : `npm install ${packages.join(' ')}`}...`,
       );
 
       // NOTE: caching of the log output is required here because socket events that call callback
@@ -78,7 +78,7 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
 
           addLog(
             'info',
-            'npm',
+            'srcbook',
             `${!packages ? 'npm install' : `npm install ${packages.join(' ')}`} exited with status code ${code}`,
           );
 

@@ -1,11 +1,16 @@
 import Path from 'node:path';
 import { spawn } from 'node:child_process';
 
+interface NodeError extends Error {
+  code?: string;
+}
+
 export type BaseExecRequestType = {
   cwd: string;
   stdout: (data: Buffer) => void;
   stderr: (data: Buffer) => void;
   onExit: (code: number | null, signal: NodeJS.Signals | null) => void;
+  onError?: (err: NodeError) => void;
 };
 
 export type NodeRequestType = BaseExecRequestType & {
@@ -30,25 +35,26 @@ type SpawnCallRequestType = {
   stdout: (data: Buffer) => void;
   stderr: (data: Buffer) => void;
   onExit: (code: number | null, signal: NodeJS.Signals | null) => void;
+  onError?: (err: NodeError) => void;
 };
 
 export function spawnCall(options: SpawnCallRequestType) {
-  const { cwd, env, command, args, stdout, stderr, onExit } = options;
+  const { cwd, env, command, args, stdout, stderr, onExit, onError } = options;
   const child = spawn(command, args, { cwd: cwd, env: env });
 
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
 
-  child.on('error', () => {
-    // Sometimes it's expected we abort the child process (e.g., user stops a running cell).
-    // Doing so crashes the parent process unless this callback callback is registered.
-    //
-    // TODO: Find a way to handle unexpected errors here.
+  // Ensure we always listen to this event even if it is a noop
+  // because it can fail without a callback here in some cases.
+  child.on('error', (err) => {
+    onError && onError(err);
   });
 
   child.on('exit', (code, signal) => {
-    onExit && onExit(code, signal);
+    onExit(code, signal);
   });
+
   return child;
 }
 

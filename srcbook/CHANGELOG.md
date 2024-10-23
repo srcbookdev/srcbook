@@ -1,5 +1,11 @@
 # srcbook
 
+## 0.0.12
+
+### Patch Changes
+
+- 5be2dd2: Ability to open vite app in new tab. Better package management on app creation
+
 ## 0.0.11
 
 ### Patch Changes

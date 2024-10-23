@@ -45,10 +45,12 @@ export function spawnCall(options: SpawnCallRequestType) {
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
 
-  // Ensure we always listen to this event even if it is a noop
-  // because it can fail without a callback here in some cases.
   child.on('error', (err) => {
-    onError && onError(err);
+    if (onError) {
+      onError(err);
+    } else {
+      console.error(err);
+    }
   });
 
   child.on('exit', (code, signal) => {

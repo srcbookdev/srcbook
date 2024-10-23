@@ -1,5 +1,11 @@
 # @srcbook/web
 
+## 0.0.11
+
+### Patch Changes
+
+- 4e9b37b: Ability to open app in new tab. Better packages handling after creation
+
 ## 0.0.10
 
 ### Patch Changes

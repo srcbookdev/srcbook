@@ -246,7 +246,7 @@ export function register(wss: WebSocketServer) {
       const appExternalId = topic.replace(/^app:/, '');
 
       // When connecting, send back info about an in flight npm install if one exists
-      const npmInstallProcess = getAppProcess(appExternalId, "npm:install");
+      const npmInstallProcess = getAppProcess(appExternalId, 'npm:install');
       if (npmInstallProcess) {
         conn.reply(`app:${appExternalId}`, 'deps:install:status', { status: 'installing' });
       }

@@ -84,10 +84,10 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
 
         const statusCallback = (payload: DepsInstallStatusPayloadType) => {
           switch (payload.status) {
-            case "installing":
+            case 'installing':
               break;
-            case "failed":
-            case "complete":
+            case 'failed':
+            case 'complete':
               channel.off('deps:install:log', logCallback);
               channel.off('deps:install:status', statusCallback);
 

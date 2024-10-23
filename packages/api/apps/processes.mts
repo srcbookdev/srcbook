@@ -69,13 +69,13 @@ export async function waitForProcessToComplete(process: AppProcessType): Promise
   }
 
   return new Promise((resolve, reject) => {
-    process.process.once("exit", () => {
+    process.process.once('exit', () => {
       resolve();
     });
-    process.process.once("error", (err) => {
+    process.process.once('error', (err) => {
       reject(err);
     });
-  })
+  });
 }
 
 /**

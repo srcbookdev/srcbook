@@ -120,7 +120,7 @@ async function previewStart(
         code: code,
       });
     },
-    onError: (error) => {
+    onError: (_error) => {
       // Errors happen when we try to run vite before node modules are installed.
       // Make sure we clean up the app process and inform the client.
       deleteAppProcess(app.externalId, 'vite:server');

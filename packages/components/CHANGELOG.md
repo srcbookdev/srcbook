@@ -1,5 +1,14 @@
 # @srcbook/components
 
+## 0.0.4
+
+### Patch Changes
+
+- ccd8d01: Introduce app builder
+- Updated dependencies [ccd8d01]
+- Updated dependencies [73cd6e8]
+  - @srcbook/shared@0.0.10
+
 ## 0.0.3
 
 ### Patch Changes

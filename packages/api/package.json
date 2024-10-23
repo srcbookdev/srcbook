@@ -1,6 +1,6 @@
 {
   "name": "@srcbook/api",
-  "version": "0.0.9",
+  "version": "0.0.11",
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -11,7 +11,7 @@
     "dev": "vite-node -w dev-server.mts",
     "test": "vitest",
     "prebuild": "rm -rf ./dist",
-    "build": "tsc && cp -R ./drizzle ./dist/drizzle && cp -R ./srcbook/examples ./dist/srcbook/examples && cp -R ./prompts ./dist/prompts",
+    "build": "tsc && cp -R ./drizzle ./dist/drizzle && cp -R ./srcbook/examples ./dist/srcbook/examples && cp -R ./prompts ./dist/prompts && cp -R ./apps/templates ./dist/apps/templates",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc",
     "depcheck": "depcheck",

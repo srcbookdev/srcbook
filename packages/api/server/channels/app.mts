@@ -178,6 +178,9 @@ async function dependenciesInstall(
   npmInstall(app.externalId, {
     args: [],
     packages: payload.packages ?? undefined,
+    onStart: () => {
+      wss.broadcast(`app:${app.externalId}`, 'deps:install:status', { status: 'installing' });
+    },
     stdout: (data) => {
       wss.broadcast(`app:${app.externalId}`, 'deps:install:log', {
         log: { type: 'stdout', data: data.toString('utf8') },

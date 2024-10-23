@@ -8,6 +8,7 @@ import { deleteAppProcess, npmInstall, waitForProcessToComplete } from './proces
 import { generateApp } from '../ai/generate.mjs';
 import { toValidPackageName } from '../apps/utils.mjs';
 import { getPackagesToInstall, parsePlan } from '../ai/plan-parser.mjs';
+import { wss } from '../index.mjs';
 
 function toSecondsSinceEpoch(date: Date): number {
   return Math.floor(date.getTime() / 1000);
@@ -48,6 +49,17 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
 
       // We must clean up this process so that we can run npm install again
       deleteAppProcess(app.externalId, 'npm:install');
+
+      wss.broadcast(`app:${app.externalId}`, 'deps:install:status', {
+        status: code === 0 ? 'complete' : 'failed',
+        code,
+      });
+
+      if (code === 0) {
+        wss.broadcast(`app:${app.externalId}`, 'deps:status:response', {
+          nodeModulesExists: true,
+        });
+      }
     },
   });
 
@@ -75,6 +87,17 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
 
         // We must clean up this process so that we can run npm install again
         deleteAppProcess(app.externalId, 'npm:install');
+
+        wss.broadcast(`app:${app.externalId}`, 'deps:install:status', {
+          status: code === 0 ? 'complete' : 'failed',
+          code,
+        });
+
+        if (code === 0) {
+          wss.broadcast(`app:${app.externalId}`, 'deps:status:response', {
+            nodeModulesExists: true,
+          });
+        }
       },
     });
   }

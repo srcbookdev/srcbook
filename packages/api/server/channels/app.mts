@@ -164,11 +164,7 @@ async function previewStop(
   result.process.kill('SIGTERM');
 }
 
-async function dependenciesInstall(
-  payload: DepsInstallPayloadType,
-  context: AppContextType,
-  wss: WebSocketServer,
-) {
+async function dependenciesInstall(payload: DepsInstallPayloadType, context: AppContextType) {
   const app = await loadApp(context.params.appId);
 
   if (!app) {
@@ -235,9 +231,7 @@ export function register(wss: WebSocketServer) {
       previewStart(payload, context, wss),
     )
     .on('preview:stop', PreviewStopPayloadSchema, previewStop)
-    .on('deps:install', DepsInstallPayloadSchema, (payload, context) => {
-      dependenciesInstall(payload, context, wss);
-    })
+    .on('deps:install', DepsInstallPayloadSchema, dependenciesInstall)
     .on('deps:clear', DepsInstallPayloadSchema, clearNodeModules)
     .on('deps:status', DepsStatusPayloadSchema, dependenciesStatus)
     .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated)

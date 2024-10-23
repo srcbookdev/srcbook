@@ -62,6 +62,21 @@ export function deleteAppProcess(appId: string, process: ProcessType) {
   processes.del(appId, process);
 }
 
+export async function waitForProcessToComplete(process: AppProcessType): Promise<void> {
+  if (process.process.exitCode !== null) {
+    return;
+  }
+
+  return new Promise((resolve, reject) => {
+    process.process.once("exit", () => {
+      resolve();
+    });
+    process.process.once("error", (err) => {
+      reject(err);
+    });
+  })
+}
+
 /**
  * Runs npm install for the given app.
  *
@@ -69,16 +84,23 @@ export function deleteAppProcess(appId: string, process: ProcessType) {
  */
 export function npmInstall(
   appId: string,
-  options: Omit<Parameters<typeof execNpmInstall>[0], 'cwd'>,
+  options: Omit<Parameters<typeof execNpmInstall>[0], 'cwd'> & { onStart?: () => void },
 ) {
-  if (!processes.has(appId, 'npm:install')) {
-    processes.set(appId, {
-      type: 'npm:install',
-      process: execNpmInstall({ cwd: pathToApp(appId), ...options }),
-    });
+  const runningProcess = processes.get(appId, 'npm:install');
+  if (runningProcess) {
+    return runningProcess;
   }
 
-  return processes.get(appId, 'npm:install');
+  if (options.onStart) {
+    options.onStart();
+  }
+  const newlyStartedProcess: NpmInstallProcessType = {
+    type: 'npm:install',
+    process: execNpmInstall({ cwd: pathToApp(appId), ...options }),
+  };
+  processes.set(appId, newlyStartedProcess);
+
+  return newlyStartedProcess;
 }
 
 /**

@@ -121,7 +121,7 @@ export function npmInstall(
           options.stderr(data);
         }
       },
-      onExit: (code) => {
+      onExit: (code, signal) => {
         // We must clean up this process so that we can run npm install again
         deleteAppProcess(appId, 'npm:install');
 
@@ -134,6 +134,10 @@ export function npmInstall(
           wss.broadcast(`app:${appId}`, 'deps:status:response', {
             nodeModulesExists: true,
           });
+        }
+
+        if (options.onExit) {
+          options.onExit(code, signal);
         }
       },
     }),

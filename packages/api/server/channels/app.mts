@@ -125,13 +125,13 @@ async function previewStart(
       // Make sure we clean up the app process and inform the client.
       deleteAppProcess(app.externalId, 'vite:server');
 
-      if (error.code === 'ENOENT') {
-        wss.broadcast(`app:${app.externalId}`, 'preview:status', {
-          url: null,
-          status: 'stopped',
-          code: null,
-        });
-      }
+      // TODO: Use a different event to communicate to the client there was an error.
+      // If the error is ENOENT, for example, it means node_modules and/or vite is missing.
+      wss.broadcast(`app:${app.externalId}`, 'preview:status', {
+        url: null,
+        status: 'stopped',
+        code: null,
+      });
     },
   });
 }

@@ -7,7 +7,7 @@ import { asc, desc, eq } from 'drizzle-orm';
 import { npmInstall } from '../exec.mjs';
 import { generateApp } from '../ai/generate.mjs';
 import { toValidPackageName } from '../apps/utils.mjs';
-import { parsePlan } from '../ai/plan-parser.mjs';
+import { getPackagesToInstall, parsePlan } from '../ai/plan-parser.mjs';
 
 function toSecondsSinceEpoch(date: Date): number {
   return Math.floor(date.getTime() / 1000);
@@ -54,19 +54,24 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
   const plan = await parsePlan(result, app, data.prompt, randomid());
   await applyPlan(app, plan);
 
-  // Run npm install again since we don't have a good way of parsing the plan to know if we should...
-  npmInstall({
-    cwd: pathToApp(app.externalId),
-    stdout(data) {
-      console.log(data.toString('utf8'));
-    },
-    stderr(data) {
-      console.error(data.toString('utf8'));
-    },
-    onExit(code) {
-      console.log(`npm install exit code: ${code}`);
-    },
-  });
+  const packagesToInstall = getPackagesToInstall(plan);
+
+  if (packagesToInstall.length > 0) {
+    console.log('installing packages', packagesToInstall);
+    npmInstall({
+      cwd: pathToApp(app.externalId),
+      packages: packagesToInstall,
+      stdout(data) {
+        console.log(data.toString('utf8'));
+      },
+      stderr(data) {
+        console.error(data.toString('utf8'));
+      },
+      onExit(code) {
+        console.log(`npm install exit code: ${code}`);
+      },
+    });
+  }
 
   return app;
 }

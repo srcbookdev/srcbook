@@ -8,6 +8,7 @@ import {
   CircleAlertIcon,
   PanelBottomOpenIcon,
   PanelBottomCloseIcon,
+  ExternalLinkIcon,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SrcbookLogo } from '@/components/logos';
@@ -46,7 +47,7 @@ type PropsType = {
 
 export default function EditorHeader(props: PropsType) {
   const { app, updateApp } = useApp();
-  const { start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
+  const { url, start: startPreview, stop: stopPreview, status: previewStatus } = usePreview();
   const { status: npmInstallStatus, nodeModulesExists } = usePackageJson();
   const [isExporting, setIsExporting] = useState(false);
   const { open, togglePane, panelIcon } = useLogs();
@@ -170,25 +171,46 @@ export default function EditorHeader(props: PropsType) {
               </TooltipProvider>
             ) : null}
             {props.tab === 'preview' && previewStatus !== 'stopped' ? (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="icon"
-                      size="icon"
-                      onClick={() => {
-                        stopPreview();
-                        props.onChangeTab('code');
-                      }}
-                      className="active:translate-y-0"
-                      disabled={previewStatus === 'booting' || previewStatus === 'connecting'}
-                    >
-                      <StopCircleIcon size={18} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Stop dev server</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <>
+                {url && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="icon"
+                          size="icon"
+                          onClick={() => window.open(url as string, '_blank')}
+                          className="active:translate-y-0"
+                          disabled={previewStatus !== 'running'}
+                        >
+                          <ExternalLinkIcon size={18} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Open in new tab</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="icon"
+                        size="icon"
+                        onClick={() => {
+                          stopPreview();
+                          props.onChangeTab('code');
+                        }}
+                        className="active:translate-y-0"
+                        disabled={previewStatus !== 'running'}
+                      >
+                        <StopCircleIcon size={18} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Stop dev server</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </>
             ) : null}
 
             <div

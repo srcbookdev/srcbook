@@ -160,3 +160,12 @@ export async function parsePlan(
     throw new Error('Failed to parse XML response');
   }
 }
+
+export function getPackagesToInstall(plan: Plan): string[] {
+  return plan.actions
+    .filter(
+      (action): action is NpmInstallCommand =>
+        action.type === 'command' && action.command === 'npm install',
+    )
+    .flatMap((action) => action.packages);
+}

@@ -60,7 +60,7 @@ export class Channel {
     }
   > = {};
 
-  onJoinCallback: (topic: string, ws: WebSocket) => void = () => {};
+  onJoinCallback: (topic: string, conn: ConnectionContextType) => void = () => {};
 
   constructor(topic: string) {
     this.topic = topic;
@@ -130,7 +130,7 @@ export class Channel {
     return this;
   }
 
-  onJoin(callback: (topic: string, ws: WebSocket) => void) {
+  onJoin(callback: (topic: string, conn: ConnectionContextType) => void) {
     this.onJoinCallback = callback;
     return this;
   }
@@ -214,7 +214,7 @@ export default class WebSocketServer {
     if (event === 'subscribe') {
       conn.subscriptions.push(topic);
       conn.reply(topic, 'subscribed', { id: payload.id });
-      channel.onJoinCallback(topic, conn.socket);
+      channel.onJoinCallback(topic, conn);
       return;
     }
 

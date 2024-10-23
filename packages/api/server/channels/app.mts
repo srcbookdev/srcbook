@@ -269,5 +269,15 @@ export function register(wss: WebSocketServer) {
     })
     .on('deps:clear', DepsInstallPayloadSchema, clearNodeModules)
     .on('deps:status', DepsStatusPayloadSchema, dependenciesStatus)
-    .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated);
+    .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated)
+    .onJoin((topic, conn) => {
+      // FIXME: there's almost certainly a better way to get the app id than this?
+      const appExternalId = topic.replace(/^app:/, '');
+
+      // When connecting, send back info about an in flight npm install if one exists
+      const npmInstallProcess = getAppProcess(appExternalId, "npm:install");
+      if (npmInstallProcess) {
+        conn.reply(`app:${appExternalId}`, 'deps:install:status', { status: 'installing' });
+      }
+    });
 }

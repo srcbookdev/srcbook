@@ -176,36 +176,7 @@ async function dependenciesInstall(
   }
 
   npmInstall(app.externalId, {
-    args: [],
     packages: payload.packages ?? undefined,
-    onStart: () => {
-      wss.broadcast(`app:${app.externalId}`, 'deps:install:status', { status: 'installing' });
-    },
-    stdout: (data) => {
-      wss.broadcast(`app:${app.externalId}`, 'deps:install:log', {
-        log: { type: 'stdout', data: data.toString('utf8') },
-      });
-    },
-    stderr: (data) => {
-      wss.broadcast(`app:${app.externalId}`, 'deps:install:log', {
-        log: { type: 'stderr', data: data.toString('utf8') },
-      });
-    },
-    onExit: (code) => {
-      // We must clean up this process so that we can run npm install again
-      deleteAppProcess(app.externalId, 'npm:install');
-
-      wss.broadcast(`app:${app.externalId}`, 'deps:install:status', {
-        status: code === 0 ? 'complete' : 'failed',
-        code,
-      });
-
-      if (code === 0) {
-        wss.broadcast(`app:${app.externalId}`, 'deps:status:response', {
-          nodeModulesExists: true,
-        });
-      }
-    },
   });
 }
 

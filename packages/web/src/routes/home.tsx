@@ -28,6 +28,8 @@ import MailingListCard from '@/components/mailing-list-card';
 import CreateAppModal from '@/components/apps/create-modal';
 import { createApp, loadApps } from '@/clients/http/apps';
 import DeleteAppModal from '@/components/delete-app-dialog';
+import Onboarding from '@/components/onboarding';
+import { useSettings } from '@/components/use-settings';
 
 export async function loader() {
   const [{ result: config }, { result: srcbooks }, { result: examples }, { data: apps }] =
@@ -66,6 +68,8 @@ export default function Home() {
   const [appToDelete, setAppToDelete] = useState<AppType | null>(null);
   const [showCreateAppModal, setShowCreateAppModal] = useState(false);
 
+  const { aiEnabled } = useSettings();
+
   function onDeleteSrcbook(srcbook: SessionType) {
     setSrcbookToDelete(srcbook);
     setShowDelete(true);
@@ -89,6 +93,10 @@ export default function Home() {
   async function openExampleSrcbook(example: ExampleSrcbookType) {
     const { result } = await importSrcbook({ path: example.path });
     openSrcbook(result.dir);
+  }
+
+  if (!aiEnabled) {
+    return <Onboarding />;
   }
 
   return (

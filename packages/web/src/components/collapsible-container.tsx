@@ -20,7 +20,7 @@ export default function CollapsibleContainer(props: {
       <div className={cn('w-full border rounded-sm', props.className)}>
         <CollapsibleTrigger className="block w-full">
           <div className="p-3 flex items-center justify-between">
-            <h5 className="font-bold leading-none">{title}</h5>
+            <h5 className="font-medium leading-none">{title}</h5>
             <ChevronRight
               className={cn('w-4 h-4 transition-transform text-tertiary-foreground', {
                 'transform rotate-90': open,

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useApp } from './use-app';
 import { commitVersion, getCurrentVersion } from '@/clients/http/apps';
 
@@ -33,6 +33,10 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [app]);
 
+  useEffect(() => {
+    fetchVersion();
+  }, [fetchVersion]);
+
   const commitFiles = useCallback(
     async (message: string) => {
       if (!app) return;
@@ -44,7 +48,7 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         console.error('Error committing files:', error);
       }
     },
-    [app, fetchVersion],
+    [app],
   );
 
   const checkout = useCallback(

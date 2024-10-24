@@ -572,7 +572,7 @@ router.get('/apps/:id/commit', cors(), async (req, res) => {
   }
 
   const sha = await getCurrentCommitSha(app);
-  return res.json({ data: { sha } });
+  return res.json({ sha });
 });
 router.post('/apps/:id/commit', cors(), async (req, res) => {
   const { id } = req.params;

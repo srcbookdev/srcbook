@@ -47,6 +47,7 @@ import { DiffStats } from './apps/diff-stats.js';
 import { useApp } from './apps/use-app.js';
 import { usePackageJson } from './apps/use-package-json.js';
 import { AiFeedbackModal } from './apps/AiFeedbackModal';
+import { useVersion } from './apps/use-version.js';
 
 function Chat({
   history,
@@ -264,6 +265,7 @@ function DiffBox({
   version: number;
   planId: string;
 }) {
+  const { currentVersion } = useVersion();
   const [showFeedbackToast, setShowFeedbackToast] = React.useState(false);
   const [feedbackGiven, _setFeedbackGiven] = React.useState<null | 'positive' | 'negative'>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = React.useState(false);
@@ -286,6 +288,11 @@ function DiffBox({
           <div className="flex gap-2 items-center text-sm h-10">
             <span className="font-medium">{app.name}</span>
             <span className="font-mono px-1 bg-ai-border rounded-sm">v{version}</span>
+            {currentVersion && (
+              <span className="font-mono px-1 bg-ai-border rounded-sm">
+                {currentVersion.sha.slice(0, 7)}
+              </span>
+            )}
           </div>
           <div>
             {files.map((file) => (

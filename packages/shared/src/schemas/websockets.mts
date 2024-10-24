@@ -189,10 +189,13 @@ export const DepsInstallLogPayloadSchema = z.object({
   ]),
 });
 
-export const DepsInstallStatusPayloadSchema = z.object({
-  status: z.enum(['complete', 'failed']),
-  code: z.number().int(),
-});
+export const DepsInstallStatusPayloadSchema = z.union([
+  z.object({ status: z.literal('installing') }),
+  z.object({
+    status: z.enum(['complete', 'failed']),
+    code: z.number().int(),
+  }),
+]);
 
 export const DepsClearPayloadSchema = z.object({});
 export const DepsStatusPayloadSchema = z.object({});

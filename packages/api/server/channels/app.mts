@@ -164,11 +164,7 @@ async function previewStop(
   result.process.kill('SIGTERM');
 }
 
-async function dependenciesInstall(
-  payload: DepsInstallPayloadType,
-  context: AppContextType,
-  wss: WebSocketServer,
-) {
+async function dependenciesInstall(payload: DepsInstallPayloadType, context: AppContextType) {
   const app = await loadApp(context.params.appId);
 
   if (!app) {
@@ -176,33 +172,7 @@ async function dependenciesInstall(
   }
 
   npmInstall(app.externalId, {
-    args: [],
     packages: payload.packages ?? undefined,
-    stdout: (data) => {
-      wss.broadcast(`app:${app.externalId}`, 'deps:install:log', {
-        log: { type: 'stdout', data: data.toString('utf8') },
-      });
-    },
-    stderr: (data) => {
-      wss.broadcast(`app:${app.externalId}`, 'deps:install:log', {
-        log: { type: 'stderr', data: data.toString('utf8') },
-      });
-    },
-    onExit: (code) => {
-      // We must clean up this process so that we can run npm install again
-      deleteAppProcess(app.externalId, 'npm:install');
-
-      wss.broadcast(`app:${app.externalId}`, 'deps:install:status', {
-        status: code === 0 ? 'complete' : 'failed',
-        code,
-      });
-
-      if (code === 0) {
-        wss.broadcast(`app:${app.externalId}`, 'deps:status:response', {
-          nodeModulesExists: true,
-        });
-      }
-    },
   });
 }
 
@@ -261,10 +231,17 @@ export function register(wss: WebSocketServer) {
       previewStart(payload, context, wss),
     )
     .on('preview:stop', PreviewStopPayloadSchema, previewStop)
-    .on('deps:install', DepsInstallPayloadSchema, (payload, context) => {
-      dependenciesInstall(payload, context, wss);
-    })
+    .on('deps:install', DepsInstallPayloadSchema, dependenciesInstall)
     .on('deps:clear', DepsInstallPayloadSchema, clearNodeModules)
     .on('deps:status', DepsStatusPayloadSchema, dependenciesStatus)
-    .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated);
+    .on('file:updated', FileUpdatedPayloadSchema, onFileUpdated)
+    .onJoin((_payload, context, conn) => {
+      const appExternalId = (context as AppContextType).params.appId;
+
+      // When connecting, send back info about an in flight npm install if one exists
+      const npmInstallProcess = getAppProcess(appExternalId, 'npm:install');
+      if (npmInstallProcess) {
+        conn.reply(`app:${appExternalId}`, 'deps:install:status', { status: 'installing' });
+      }
+    });
 }

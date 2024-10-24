@@ -52,6 +52,17 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
     };
   }, [channel]);
 
+  useEffect(() => {
+    const callback = (payload: DepsInstallStatusPayloadType) => {
+      setStatus(payload.status);
+    };
+    channel.on('deps:install:status', callback);
+
+    return () => {
+      channel.off('deps:install:status', callback);
+    };
+  }, [channel]);
+
   const npmInstall = useCallback(
     async (packages?: Array<string>) => {
       addLog(
@@ -71,21 +82,27 @@ export function PackageJsonProvider({ channel, children }: ProviderPropsType) {
         };
         channel.on('deps:install:log', logCallback);
 
-        const statusCallback = ({ status, code }: DepsInstallStatusPayloadType) => {
-          channel.off('deps:install:log', logCallback);
-          channel.off('deps:install:status', statusCallback);
-          setStatus(status);
+        const statusCallback = (payload: DepsInstallStatusPayloadType) => {
+          switch (payload.status) {
+            case 'installing':
+              break;
+            case 'failed':
+            case 'complete':
+              channel.off('deps:install:log', logCallback);
+              channel.off('deps:install:status', statusCallback);
 
-          addLog(
-            'info',
-            'srcbook',
-            `${!packages ? 'npm install' : `npm install ${packages.join(' ')}`} exited with status code ${code}`,
-          );
+              addLog(
+                'info',
+                'srcbook',
+                `${!packages ? 'npm install' : `npm install ${packages.join(' ')}`} exited with status code ${payload.code}`,
+              );
 
-          if (status === 'complete') {
-            resolve();
-          } else {
-            reject(new Error(`Error running npm install: ${contents}`));
+              if (payload.status === 'complete') {
+                resolve();
+              } else {
+                reject(new Error(`Error running npm install: ${contents}`));
+              }
+              break;
           }
         };
         channel.on('deps:install:status', statusCallback);

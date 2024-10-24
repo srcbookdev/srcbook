@@ -1,6 +1,7 @@
 import { ChildProcess } from 'node:child_process';
 import { pathToApp } from './disk.mjs';
 import { npmInstall as execNpmInstall, vite as execVite } from '../exec.mjs';
+import { wss } from '../index.mjs';
 
 export type ProcessType = 'npm:install' | 'vite:server';
 
@@ -62,6 +63,21 @@ export function deleteAppProcess(appId: string, process: ProcessType) {
   processes.del(appId, process);
 }
 
+async function waitForProcessToComplete(process: AppProcessType) {
+  if (process.process.exitCode !== null) {
+    return process;
+  }
+
+  return new Promise<AppProcessType>((resolve, reject) => {
+    process.process.once('exit', () => {
+      resolve(process);
+    });
+    process.process.once('error', (err) => {
+      reject(err);
+    });
+  });
+}
+
 /**
  * Runs npm install for the given app.
  *
@@ -69,16 +85,66 @@ export function deleteAppProcess(appId: string, process: ProcessType) {
  */
 export function npmInstall(
   appId: string,
-  options: Omit<Parameters<typeof execNpmInstall>[0], 'cwd'>,
+  options: Omit<Partial<Parameters<typeof execNpmInstall>[0]>, 'cwd'> & { onStart?: () => void },
 ) {
-  if (!processes.has(appId, 'npm:install')) {
-    processes.set(appId, {
-      type: 'npm:install',
-      process: execNpmInstall({ cwd: pathToApp(appId), ...options }),
-    });
+  const runningProcess = processes.get(appId, 'npm:install');
+  if (runningProcess) {
+    return waitForProcessToComplete(runningProcess);
   }
 
-  return processes.get(appId, 'npm:install');
+  wss.broadcast(`app:${appId}`, 'deps:install:status', { status: 'installing' });
+  if (options.onStart) {
+    options.onStart();
+  }
+
+  const newlyStartedProcess: NpmInstallProcessType = {
+    type: 'npm:install',
+    process: execNpmInstall({
+      ...options,
+
+      cwd: pathToApp(appId),
+      stdout: (data) => {
+        wss.broadcast(`app:${appId}`, 'deps:install:log', {
+          log: { type: 'stdout', data: data.toString('utf8') },
+        });
+
+        if (options.stdout) {
+          options.stdout(data);
+        }
+      },
+      stderr: (data) => {
+        wss.broadcast(`app:${appId}`, 'deps:install:log', {
+          log: { type: 'stderr', data: data.toString('utf8') },
+        });
+
+        if (options.stderr) {
+          options.stderr(data);
+        }
+      },
+      onExit: (code, signal) => {
+        // We must clean up this process so that we can run npm install again
+        deleteAppProcess(appId, 'npm:install');
+
+        wss.broadcast(`app:${appId}`, 'deps:install:status', {
+          status: code === 0 ? 'complete' : 'failed',
+          code,
+        });
+
+        if (code === 0) {
+          wss.broadcast(`app:${appId}`, 'deps:status:response', {
+            nodeModulesExists: true,
+          });
+        }
+
+        if (options.onExit) {
+          options.onExit(code, signal);
+        }
+      },
+    }),
+  };
+  processes.set(appId, newlyStartedProcess);
+
+  return waitForProcessToComplete(newlyStartedProcess);
 }
 
 /**

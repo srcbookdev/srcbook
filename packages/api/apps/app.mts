@@ -1,10 +1,10 @@
 import { randomid, type AppType } from '@srcbook/shared';
 import { db } from '../db/index.mjs';
 import { type App as DBAppType, apps as appsTable } from '../db/schema.mjs';
-import { applyPlan, createViteApp, deleteViteApp, pathToApp, getFlatFilesForApp } from './disk.mjs';
+import { applyPlan, createViteApp, deleteViteApp, getFlatFilesForApp } from './disk.mjs';
 import { CreateAppSchemaType, CreateAppWithAiSchemaType } from './schemas.mjs';
 import { asc, desc, eq } from 'drizzle-orm';
-import { npmInstall } from '../exec.mjs';
+import { npmInstall } from './processes.mjs';
 import { generateApp } from '../ai/generate.mjs';
 import { toValidPackageName } from '../apps/utils.mjs';
 import { getPackagesToInstall, parsePlan } from '../ai/plan-parser.mjs';
@@ -40,8 +40,7 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
 
   // Note: we don't surface issues or retries and this is "running in the background".
   // In this case it works in our favor because we'll kickoff generation while it happens
-  npmInstall({
-    cwd: pathToApp(app.externalId),
+  const firstNpmInstallProcess = npmInstall(app.externalId, {
     stdout(data) {
       console.log(data.toString('utf8'));
     },
@@ -61,9 +60,10 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
   const packagesToInstall = getPackagesToInstall(plan);
 
   if (packagesToInstall.length > 0) {
+    await firstNpmInstallProcess;
+
     console.log('installing packages', packagesToInstall);
-    npmInstall({
-      cwd: pathToApp(app.externalId),
+    npmInstall(app.externalId, {
       packages: packagesToInstall,
       stdout(data) {
         console.log(data.toString('utf8'));
@@ -92,8 +92,7 @@ export async function createApp(data: CreateAppSchemaType): Promise<DBAppType> {
   // TODO: handle this better.
   // This should be done somewhere else and surface issues or retries.
   // Not awaiting here because it's "happening in the background".
-  npmInstall({
-    cwd: pathToApp(app.externalId),
+  npmInstall(app.externalId, {
     stdout(data) {
       console.log(data.toString('utf8'));
     },

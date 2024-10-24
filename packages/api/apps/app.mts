@@ -4,7 +4,7 @@ import { type App as DBAppType, apps as appsTable } from '../db/schema.mjs';
 import { applyPlan, createViteApp, deleteViteApp, getFlatFilesForApp } from './disk.mjs';
 import { CreateAppSchemaType, CreateAppWithAiSchemaType } from './schemas.mjs';
 import { asc, desc, eq } from 'drizzle-orm';
-import { npmInstall, waitForProcessToComplete } from './processes.mjs';
+import { npmInstall } from './processes.mjs';
 import { generateApp } from '../ai/generate.mjs';
 import { toValidPackageName } from '../apps/utils.mjs';
 import { getPackagesToInstall, parsePlan } from '../ai/plan-parser.mjs';
@@ -56,7 +56,7 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
   const packagesToInstall = getPackagesToInstall(plan);
 
   if (packagesToInstall.length > 0) {
-    await waitForProcessToComplete(firstNpmInstallProcess);
+    await firstNpmInstallProcess;
 
     console.log('installing packages', packagesToInstall);
     npmInstall(app.externalId, {

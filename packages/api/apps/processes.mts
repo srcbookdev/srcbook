@@ -63,14 +63,14 @@ export function deleteAppProcess(appId: string, process: ProcessType) {
   processes.del(appId, process);
 }
 
-export async function waitForProcessToComplete(process: AppProcessType): Promise<void> {
+async function waitForProcessToComplete(process: AppProcessType) {
   if (process.process.exitCode !== null) {
-    return;
+    return process;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise<AppProcessType>((resolve, reject) => {
     process.process.once('exit', () => {
-      resolve();
+      resolve(process);
     });
     process.process.once('error', (err) => {
       reject(err);
@@ -89,7 +89,7 @@ export function npmInstall(
 ) {
   const runningProcess = processes.get(appId, 'npm:install');
   if (runningProcess) {
-    return runningProcess;
+    return waitForProcessToComplete(runningProcess);
   }
 
   wss.broadcast(`app:${appId}`, 'deps:install:status', { status: 'installing' });
@@ -144,7 +144,7 @@ export function npmInstall(
   };
   processes.set(appId, newlyStartedProcess);
 
-  return newlyStartedProcess;
+  return waitForProcessToComplete(newlyStartedProcess);
 }
 
 /**

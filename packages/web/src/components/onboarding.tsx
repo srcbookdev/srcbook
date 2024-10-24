@@ -13,7 +13,10 @@ const OnboardingModal: React.FunctionComponent<OnboardingModalProps> = () => {
       <div className="flex flex-col gap-3">
         <h4 className="font-medium">With Srcbook you can:</h4>
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="bg-[url('/feature-gradient.png')] p-5 rounded-lg">
+          <div
+            className="p-5 rounded-lg bg-[#FFD9E1]"
+            style={{ background: 'linear-gradient(270deg, rgba(255,217,225,1) 0%, rgba(219,183,223,1) 100%)' }}
+          >
             <div className="flex items-center mb-6">
               <LayoutGridIcon size={24} className="text-ai-btn" />
             </div>

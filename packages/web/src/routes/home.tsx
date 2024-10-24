@@ -9,7 +9,7 @@ import {
   loadSrcbookExamples,
 } from '@/lib/server';
 import type { ExampleSrcbookType, SessionType } from '@/types';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ImportSrcbookModal } from '@/components/import-export-srcbook-modal';
 import GenerateSrcbookModal from '@/components/generate-srcbook-modal';
 import {

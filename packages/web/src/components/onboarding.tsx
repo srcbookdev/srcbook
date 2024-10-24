@@ -2,9 +2,7 @@ import React from 'react';
 import { LayoutGridIcon, FileTextIcon } from 'lucide-react';
 import { AiSettings } from '@/routes/settings';
 
-type OnboardingModalProps = {};
-
-const OnboardingModal: React.FunctionComponent<OnboardingModalProps> = () => {
+const OnboardingModal: React.FunctionComponent = () => {
   return (
     <div className="flex flex-col gap-6">
       <h2 className="text-3xl font-medium">Welcome to Srcbook!</h2>

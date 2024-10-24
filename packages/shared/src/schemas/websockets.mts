@@ -150,8 +150,9 @@ export const FileCreatedPayloadSchema = z.object({
   file: FileSchema,
 });
 
+// Used both from client > server and server > client
 export const FileUpdatedPayloadSchema = z.object({
-  file: FileSchema.partial(),
+  file: FileSchema,
 });
 
 export const FileRenamedPayloadSchema = z.object({

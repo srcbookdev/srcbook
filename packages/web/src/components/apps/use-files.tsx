@@ -8,7 +8,12 @@ import React, {
   useState,
 } from 'react';
 
-import type { FileType, DirEntryType, FileEntryType } from '@srcbook/shared';
+import type {
+  FileType,
+  DirEntryType,
+  FileEntryType,
+  FileUpdatedPayloadType,
+} from '@srcbook/shared';
 import { AppChannel } from '@/clients/websocket';
 import {
   createFile as doCreateFile,
@@ -36,7 +41,7 @@ export interface FilesContextValue {
   openedFile: FileType | null;
   openFile: (entry: FileEntryType) => void;
   createFile: (dirname: string, basename: string, source?: string) => Promise<FileEntryType>;
-  updateFile: (file: FileType, attrs: Partial<FileType>) => void;
+  updateFile: (modified: FileType) => void;
   renameFile: (entry: FileEntryType, name: string) => Promise<void>;
   deleteFile: (entry: FileEntryType) => Promise<void>;
   createFolder: (dirname: string, basename: string) => Promise<void>;
@@ -90,6 +95,19 @@ export function FilesProvider({
     [app.id],
   );
 
+  // Handle file updates from the server
+  useEffect(() => {
+    function onFileUpdated(payload: FileUpdatedPayloadType) {
+      setOpenedFile(() => payload.file);
+      forceComponentRerender();
+    }
+    channel.on('file:updated', onFileUpdated);
+
+    return () => {
+      channel.off('file:updated', onFileUpdated);
+    };
+  }, [channel, setOpenedFile]);
+
   const navigateToFile = useCallback(
     (file: { path: string }) => {
       navigateTo(`/apps/${app.id}/files/${encodeURIComponent(file.path)}`);
@@ -122,10 +140,9 @@ export function FilesProvider({
   );
 
   const updateFile = useCallback(
-    (file: FileType, attrs: Partial<FileType>) => {
-      const updatedFile: FileType = { ...file, ...attrs };
-      channel.push('file:updated', { file: updatedFile });
-      setOpenedFile(() => updatedFile);
+    (modified: FileType) => {
+      channel.push('file:updated', { file: modified });
+      setOpenedFile(() => modified);
       forceComponentRerender();
     },
     [channel, setOpenedFile],

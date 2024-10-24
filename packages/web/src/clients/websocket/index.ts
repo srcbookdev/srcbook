@@ -99,6 +99,7 @@ export class SessionChannel extends Channel<
 
 const IncomingAppEvents = {
   file: FilePayloadSchema,
+  'file:updated': FileUpdatedPayloadSchema,
   'preview:status': PreviewStatusPayloadSchema,
   'preview:log': PreviewLogPayloadSchema,
   'deps:install:log': DepsInstallLogPayloadSchema,

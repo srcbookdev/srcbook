@@ -126,8 +126,7 @@ export async function parsePlan(
           const fileContent = await loadFile(app, filePath);
           originalContent = fileContent.source;
         } catch (error) {
-          console.error(`Error reading original file ${filePath}:`, error);
-          // If the file doesn't exist, we'll leave the original content as null
+          // If the file doesn't exist, it's likely that it's a new file.
         }
 
         plan.actions.push({
@@ -153,7 +152,6 @@ export async function parsePlan(
       }
     }
 
-    console.log('parsed plan', plan);
     return plan;
   } catch (error) {
     console.error('Error parsing XML:', error);

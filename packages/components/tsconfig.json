@@ -11,7 +11,6 @@
     "src/index.tsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "../web/src/components/onboarding-modal.tsx"
   ],
   "exclude": ["node_modules", "dist"]
 }

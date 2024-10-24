@@ -6,6 +6,7 @@ import { PreviewProvider } from '@/components/apps/use-preview';
 import { LogsProvider } from '@/components/apps/use-logs';
 import { PackageJsonProvider } from '@/components/apps/use-package-json';
 import { AppProvider, useApp } from '@/components/apps/use-app';
+import { VersionProvider } from '@/components/apps/use-version';
 
 export function AppContext() {
   const { app } = useLoaderData() as { app: AppType };
@@ -34,9 +35,11 @@ export function AppProviders(props: { children: React.ReactNode }) {
       initialOpenedFile={initialOpenedFile}
     >
       <LogsProvider channel={channel}>
-        <PackageJsonProvider channel={channel}>
-          <PreviewProvider channel={channel}>{props.children}</PreviewProvider>
-        </PackageJsonProvider>
+        <VersionProvider>
+          <PackageJsonProvider channel={channel}>
+            <PreviewProvider channel={channel}>{props.children}</PreviewProvider>
+          </PackageJsonProvider>
+        </VersionProvider>
       </LogsProvider>
     </FilesProvider>
   );

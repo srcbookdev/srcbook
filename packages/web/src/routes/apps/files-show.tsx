@@ -13,7 +13,7 @@ export default function AppFilesShow() {
         <CodeEditor
           path={openedFile.path}
           source={openedFile.source}
-          onChange={(source) => updateFile(openedFile, { source })}
+          onChange={(source) => updateFile({ ...openedFile, source })}
         />
       )}
     </AppLayout>

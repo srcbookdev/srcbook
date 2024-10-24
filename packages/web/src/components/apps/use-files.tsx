@@ -36,7 +36,7 @@ export interface FilesContextValue {
   openedFile: FileType | null;
   openFile: (entry: FileEntryType) => void;
   createFile: (dirname: string, basename: string, source?: string) => Promise<FileEntryType>;
-  updateFile: (file: FileType, attrs: Partial<FileType>) => void;
+  updateFile: (modified: FileType) => void;
   renameFile: (entry: FileEntryType, name: string) => Promise<void>;
   deleteFile: (entry: FileEntryType) => Promise<void>;
   createFolder: (dirname: string, basename: string) => Promise<void>;
@@ -122,10 +122,9 @@ export function FilesProvider({
   );
 
   const updateFile = useCallback(
-    (file: FileType, attrs: Partial<FileType>) => {
-      const updatedFile: FileType = { ...file, ...attrs };
-      channel.push('file:updated', { file: updatedFile });
-      setOpenedFile(() => updatedFile);
+    (modified: FileType) => {
+      channel.push('file:updated', { file: modified });
+      setOpenedFile(() => modified);
       forceComponentRerender();
     },
     [channel, setOpenedFile],

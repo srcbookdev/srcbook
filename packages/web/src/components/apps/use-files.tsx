@@ -82,19 +82,6 @@ export function FilesProvider({
   const openedDirectoriesRef = useRef<Set<string>>(new Set());
   const [openedFile, _setOpenedFile] = useState<FileType | null>(initialOpenedFile);
 
-  // Handle file updates from the server
-  useEffect(() => {
-    function onFileUpdated(payload: FileUpdatedPayloadType) {
-      setOpenedFile(() => payload.file);
-      forceComponentRerender();
-    }
-    channel.on('file:updated', onFileUpdated);
-
-    return () => {
-      channel.off('file:updated', onFileUpdated);
-    };
-  }, [channel]);
-
   const setOpenedFile = useCallback(
     (fn: (file: FileType | null) => FileType | null) => {
       _setOpenedFile((prevOpenedFile) => {
@@ -107,6 +94,19 @@ export function FilesProvider({
     },
     [app.id],
   );
+
+  // Handle file updates from the server
+  useEffect(() => {
+    function onFileUpdated(payload: FileUpdatedPayloadType) {
+      setOpenedFile(() => payload.file);
+      forceComponentRerender();
+    }
+    channel.on('file:updated', onFileUpdated);
+
+    return () => {
+      channel.off('file:updated', onFileUpdated);
+    };
+  }, [channel, setOpenedFile]);
 
   const navigateToFile = useCallback(
     (file: { path: string }) => {

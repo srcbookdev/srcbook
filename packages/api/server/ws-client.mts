@@ -17,6 +17,12 @@ export interface ConnectionContextType {
   reply: (topic: string, event: string, payload: Record<string, any>) => void;
 }
 
+type HandlerType = (
+  payload: Record<string, any>,
+  context: MessageContextType,
+  conn: ConnectionContextType,
+) => void;
+
 /**
  * Channel is responsible for dispatching incoming messages for a given topic.
  *
@@ -52,15 +58,11 @@ export class Channel {
     string,
     {
       schema: z.ZodTypeAny;
-      handler: (
-        payload: Record<string, any>,
-        context: MessageContextType,
-        conn: ConnectionContextType,
-      ) => void;
+      handler: HandlerType;
     }
   > = {};
 
-  onJoinCallback: (topic: string, conn: ConnectionContextType) => void = () => {};
+  onJoinCallback: HandlerType = () => {};
 
   constructor(topic: string) {
     this.topic = topic;
@@ -130,7 +132,7 @@ export class Channel {
     return this;
   }
 
-  onJoin(callback: (topic: string, conn: ConnectionContextType) => void) {
+  onJoin(callback: HandlerType) {
     this.onJoinCallback = callback;
     return this;
   }
@@ -214,7 +216,11 @@ export default class WebSocketServer {
     if (event === 'subscribe') {
       conn.subscriptions.push(topic);
       conn.reply(topic, 'subscribed', { id: payload.id });
-      channel.onJoinCallback(topic, conn);
+      channel.onJoinCallback(
+        payload,
+        { topic: match.topic, event: event, params: match.params },
+        conn,
+      );
       return;
     }
 

@@ -28,7 +28,7 @@ import MailingListCard from '@/components/mailing-list-card';
 import CreateAppModal from '@/components/apps/create-modal';
 import { createApp, loadApps } from '@/clients/http/apps';
 import DeleteAppModal from '@/components/delete-app-dialog';
-import OnboardingModal from '@/components/onboarding-modal';
+import Onboarding from '@/components/onboarding';
 import { useSettings } from '@/components/use-settings';
 
 export async function loader() {
@@ -121,7 +121,7 @@ export default function Home() {
   }
 
   if (showOnboarding) {
-    return <OnboardingModal onComplete={handleOnboardingComplete} />;
+    return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
   return (

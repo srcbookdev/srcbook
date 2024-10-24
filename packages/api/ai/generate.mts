@@ -1,4 +1,4 @@
-import { generateText, type GenerateTextResult } from 'ai';
+import { streamText, generateText, type GenerateTextResult } from 'ai';
 import { getModel } from './config.mjs';
 import {
   type CodeLanguageType,
@@ -285,4 +285,22 @@ export async function editApp(
     logAppGeneration(log);
   }
   return result.text;
+}
+
+export async function streamEditApp(projectId: string, files: FileContent[], query: string) {
+  const model = await getModel();
+
+  const systemPrompt = makeAppEditorSystemPrompt();
+  const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
+
+  const result = await streamText({
+    model,
+    system: systemPrompt,
+    prompt: userPrompt,
+    onFinish: () => {
+      // TODO: log the result
+    },
+  });
+
+  return result.textStream;
 }

@@ -2,6 +2,7 @@ import { XMLParser } from 'fast-xml-parser';
 import Path from 'node:path';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { loadFile } from '../apps/disk.mjs';
+import { StreamingXMLParser } from './stream-xml-parser.mjs';
 
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
@@ -166,4 +167,36 @@ export function getPackagesToInstall(plan: Plan): string[] {
         action.type === 'command' && action.command === 'npm install',
     )
     .flatMap((action) => action.packages);
+}
+
+export async function streamParsePlan(
+  stream: AsyncIterable<string>,
+  _app: DBAppType,
+  _query: string,
+  _planId: string,
+) {
+  let parser: StreamingXMLParser;
+
+  return new ReadableStream({
+    async pull(controller) {
+      if (parser === undefined) {
+        parser = new StreamingXMLParser({
+          onTag(tag) {
+            console.log('HERE????');
+            controller.enqueue(JSON.stringify(tag) + '\n');
+          },
+        });
+      }
+
+      try {
+        for await (const chunk of stream) {
+          parser.parse(chunk);
+        }
+        console.log('HERE!!!!!');
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+  });
 }

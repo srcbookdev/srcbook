@@ -1,5 +1,14 @@
 # @srcbook/api
 
+## 0.0.12
+
+### Patch Changes
+
+- b49bdf4: The backend now notifies the frontend of file changes -> files update visually in realtime
+- 26d548e: Improve prompts. Guide to use lucide. Guide to use react-router. Clean unused files
+- Updated dependencies [b49bdf4]
+  - @srcbook/shared@0.0.11
+
 ## 0.0.11
 
 ### Patch Changes

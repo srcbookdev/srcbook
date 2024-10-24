@@ -10,9 +10,27 @@ import { DirEntryType, FileEntryType, FileType } from '@srcbook/shared';
 import { FileContent } from '../ai/app-parser.mjs';
 import type { Plan } from '../ai/plan-parser.mjs';
 import archiver from 'archiver';
+import { wss } from '../index.mjs';
 
 export function pathToApp(id: string) {
   return Path.join(APPS_DIR, id);
+}
+
+export function broadcastFileUpdated(app: DBAppType, file: FileType) {
+  wss.broadcast(`app:${app.externalId}`, 'file:updated', { file });
+}
+
+// Use this rather than fs.writeFile to ensure we notify the client that the file has been updated.
+export async function writeFile(app: DBAppType, file: FileType) {
+  // Guard against absolute / relative path issues for safety
+  let path = file.path;
+  if (!path.startsWith(pathToApp(app.externalId))) {
+    path = Path.join(pathToApp(app.externalId), file.path);
+  }
+  const dirPath = Path.dirname(path);
+  await fs.mkdir(dirPath, { recursive: true });
+  await fs.writeFile(path, file.source, 'utf-8');
+  broadcastFileUpdated(app, file);
 }
 
 function pathToTemplate(template: string) {
@@ -24,14 +42,16 @@ export function deleteViteApp(id: string) {
 }
 
 export async function applyPlan(app: DBAppType, plan: Plan) {
-  const appPath = pathToApp(app.externalId);
   try {
     for (const item of plan.actions) {
       if (item.type === 'file') {
-        const filePath = Path.join(appPath, item.path);
-        const dirPath = Path.dirname(filePath);
-        await fs.mkdir(dirPath, { recursive: true });
-        await fs.writeFile(filePath, item.modified);
+        const basename = Path.basename(item.path);
+        await writeFile(app, {
+          path: item.path,
+          name: basename,
+          source: item.modified,
+          binary: isBinary(basename),
+        });
       }
     }
   } catch (e) {
@@ -42,27 +62,16 @@ export async function applyPlan(app: DBAppType, plan: Plan) {
 
 export async function createAppFromProject(app: DBAppType, project: Project) {
   const appPath = pathToApp(app.externalId);
-
   await fs.mkdir(appPath, { recursive: true });
 
   for (const item of project.items) {
     if (item.type === 'file') {
-      const filePath = Path.join(appPath, item.filename);
-      const dirPath = Path.dirname(filePath);
-
-      // Create nested directories if they don't exist
-      try {
-        await fs.stat(dirPath);
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-          await fs.mkdir(dirPath, { recursive: true });
-        } else {
-          throw error;
-        }
-      }
-
-      // Write the file content
-      await fs.writeFile(filePath, item.content);
+      await writeFile(app, {
+        path: item.filename,
+        name: Path.basename(item.filename),
+        source: item.content,
+        binary: isBinary(Path.basename(item.filename)),
+      });
     } else if (item.type === 'command') {
       // For now, we'll just log the commands
       // TODO: execute the commands in the right order.
@@ -106,7 +115,12 @@ async function scaffold(app: DBAppType, destDir: string) {
     const targetPath = Path.join(destDir, file);
     return content === undefined
       ? copy(Path.join(templateDir, file), targetPath)
-      : fs.writeFile(targetPath, content, 'utf-8');
+      : writeFile(app, {
+          path: targetPath,
+          name: Path.basename(targetPath),
+          source: content,
+          binary: isBinary(Path.basename(targetPath)),
+        });
   }
 
   const templateDir = pathToTemplate(template);
@@ -135,9 +149,8 @@ async function scaffold(app: DBAppType, destDir: string) {
   ]);
 }
 
-export function fileUpdated(app: DBAppType, file: FileType) {
-  const path = Path.join(pathToApp(app.externalId), file.path);
-  return fs.writeFile(path, file.source, 'utf-8');
+export async function fileUpdated(app: DBAppType, file: FileType) {
+  return writeFile(app, file);
 }
 
 async function copy(src: string, dest: string) {
@@ -244,15 +257,15 @@ export async function createFile(
   basename: string,
   source: string,
 ): Promise<FileEntryType> {
-  const projectDir = Path.join(APPS_DIR, app.externalId);
-  const filePath = Path.join(projectDir, dirname, basename);
+  const filePath = Path.join(dirname, basename);
 
-  // Create intermediate directories if they don't exist
-  await fs.mkdir(Path.dirname(filePath), { recursive: true });
-
-  await fs.writeFile(filePath, source, 'utf-8');
-  const relativePath = Path.relative(projectDir, filePath);
-  return { ...getPathInfo(relativePath), type: 'file' as const };
+  await writeFile(app, {
+    path: filePath,
+    name: basename,
+    source,
+    binary: isBinary(basename),
+  });
+  return { ...getPathInfo(filePath), type: 'file' as const };
 }
 
 export function deleteFile(app: DBAppType, path: string) {
@@ -336,7 +349,8 @@ async function getFlatFiles(dir: string, basePath: string = ''): Promise<FileCon
     const fullPath = Path.join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      if (entry.name !== 'node_modules') {
+      // TODO better ignore list mechanism. Should use a glob
+      if (!['.git', 'node_modules'].includes(entry.name)) {
         files = files.concat(await getFlatFiles(fullPath, relativePath));
       }
     } else if (entry.isFile() && entry.name !== 'package-lock.json') {

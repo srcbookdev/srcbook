@@ -15,7 +15,7 @@ const OnboardingModal: React.FunctionComponent = () => {
             className="p-5 rounded-lg bg-[#FFD9E1]"
             style={{
               background:
-                'linear-gradient(270deg, rgba(255,217,225,1) 0%, rgba(219,183,223,1) 100%)',
+                'linear-gradient(180deg, rgba(255,217,225,1) 0%, rgba(219,183,223,1) 100%)',
             }}
           >
             <div className="flex items-center mb-6">

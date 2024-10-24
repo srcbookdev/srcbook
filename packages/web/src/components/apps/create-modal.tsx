@@ -107,10 +107,7 @@ export default function CreateAppModal({ onClose, onCreate }: PropsType) {
 
           <div className="space-y-1">
             <div className="flex justify-between items-center">
-              <label
-                htmlFor="name"
-                className="text-sm font-medium flex items-center gap-1.5"
-              >
+              <label htmlFor="name" className="text-sm font-medium flex items-center gap-1.5">
                 What are you building? <Sparkles size={14} />
               </label>
               <TooltipProvider>

@@ -17,54 +17,17 @@ import { Button } from '@srcbook/components/src/components/ui/button';
 import { toast } from 'sonner';
 
 function Settings() {
-  const {
-    aiProvider,
-    aiModel,
-    aiBaseUrl,
-    openaiKey: configOpenaiKey,
-    anthropicKey: configAnthropicKey,
-    updateConfig: updateConfigContext,
-    defaultLanguage,
-    subscriptionEmail,
-  } = useSettings();
+  const { updateConfig: updateConfigContext, defaultLanguage, subscriptionEmail } = useSettings();
 
   const isSubscribed = subscriptionEmail && subscriptionEmail !== 'dismissed';
 
-  const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
-  const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
-  const [model, setModel] = useState<string>(aiModel);
-  const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
   const [email, setEmail] = useState<string>(isSubscribed ? subscriptionEmail : '');
 
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfigContext({ defaultLanguage: value });
   };
 
-  const setAiProvider = (provider: AiProviderType) => {
-    const model = getDefaultModel(provider);
-    setModel(model);
-    updateConfigContext({ aiProvider: provider, aiModel: model });
-  };
-
   const { theme, toggleTheme } = useTheme();
-
-  // Either the key from the server is null/undefined and the user entered input
-  // or the key from the server is a string and the user entered input is different.
-  const openaiKeySaveEnabled =
-    (typeof configOpenaiKey === 'string' && openaiKey !== configOpenaiKey) ||
-    ((configOpenaiKey === null || configOpenaiKey === undefined) && openaiKey.length > 0) ||
-    model !== aiModel;
-
-  const anthropicKeySaveEnabled =
-    (typeof configAnthropicKey === 'string' && anthropicKey !== configAnthropicKey) ||
-    ((configAnthropicKey === null || configAnthropicKey === undefined) &&
-      anthropicKey.length > 0) ||
-    model !== aiModel;
-
-  const customModelSaveEnabled =
-    (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
-    ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
-    model !== aiModel;
 
   const handleSubscribe = async () => {
     try {
@@ -122,91 +85,8 @@ function Settings() {
             <label className="opacity-70 text-sm pb-3" htmlFor="ai-provider-selector">
               Select your preferred LLM and enter your credentials to use Srcbook's AI features.
             </label>
-            <div className="flex items-center justify-between w-full mb-2 min-h-10">
-              <div className="flex items-center gap-2">
-                <Select onValueChange={setAiProvider}>
-                  <SelectTrigger id="ai-provider-selector" className="w-[180px]">
-                    <SelectValue placeholder={aiProvider} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="openai">openai</SelectItem>
-                    <SelectItem value="anthropic">anthropic</SelectItem>
-                    <SelectItem value="custom">custom</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  name="aiModel"
-                  className="w-[200px]"
-                  placeholder="AI model"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                />
-              </div>
-              <AiInfoBanner />
-            </div>
-
-            {aiProvider === 'openai' && (
-              <div className="flex gap-2">
-                <Input
-                  name="openaiKey"
-                  placeholder="openAI API key"
-                  type="password"
-                  value={openaiKey}
-                  onChange={(e) => setOpenaiKey(e.target.value)}
-                />
-                <Button
-                  className="px-5"
-                  onClick={() => updateConfigContext({ openaiKey, aiModel: model })}
-                  disabled={!openaiKeySaveEnabled}
-                >
-                  Save
-                </Button>
-              </div>
-            )}
-
-            {aiProvider === 'anthropic' && (
-              <div className="flex gap-2">
-                <Input
-                  name="anthropicKey"
-                  placeholder="anthropic API key"
-                  type="password"
-                  value={anthropicKey}
-                  onChange={(e) => setAnthropicKey(e.target.value)}
-                />
-                <Button
-                  className="px-5"
-                  onClick={() => updateConfigContext({ anthropicKey, aiModel: model })}
-                  disabled={!anthropicKeySaveEnabled}
-                >
-                  Save
-                </Button>
-              </div>
-            )}
-
-            {aiProvider === 'custom' && (
-              <div>
-                <p className="opacity-70 text-sm mb-4">
-                  If you want to use an openai-compatible model (for example when running local
-                  models with Ollama), choose this option and set the baseUrl.
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    name="baseUrl"
-                    placeholder="http://localhost:11434/v1"
-                    value={baseUrl}
-                    onChange={(e) => setBaseUrl(e.target.value)}
-                  />
-                  <Button
-                    className="px-5"
-                    onClick={() => updateConfigContext({ aiBaseUrl: baseUrl, aiModel: model })}
-                    disabled={!customModelSaveEnabled}
-                  >
-                    Save
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
+          <AiSettings />
         </div>
 
         <div>
@@ -335,5 +215,154 @@ const TestAiButton = () => {
     </>
   );
 };
+
+type AiSettingsProps = {
+  saveButtonLabel?: string;
+  onConfirm?: () => void;
+};
+
+export function AiSettings({ saveButtonLabel, onConfirm }: AiSettingsProps) {
+  const {
+    aiProvider,
+    aiModel,
+    aiBaseUrl,
+    openaiKey: configOpenaiKey,
+    anthropicKey: configAnthropicKey,
+    updateConfig: updateConfigContext,
+  } = useSettings();
+
+  const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
+  const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
+  const [model, setModel] = useState<string>(aiModel);
+  const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
+
+  const setAiProvider = (provider: AiProviderType) => {
+    const model = getDefaultModel(provider);
+    setModel(model);
+    updateConfigContext({ aiProvider: provider, aiModel: model });
+  };
+
+  // Either the key from the server is null/undefined and the user entered input
+  // or the key from the server is a string and the user entered input is different.
+  const openaiKeySaveEnabled =
+    (typeof configOpenaiKey === 'string' && openaiKey !== configOpenaiKey) ||
+    ((configOpenaiKey === null || configOpenaiKey === undefined) && openaiKey.length > 0) ||
+    model !== aiModel;
+
+  const anthropicKeySaveEnabled =
+    (typeof configAnthropicKey === 'string' && anthropicKey !== configAnthropicKey) ||
+    ((configAnthropicKey === null || configAnthropicKey === undefined) &&
+      anthropicKey.length > 0) ||
+    model !== aiModel;
+
+  const customModelSaveEnabled =
+    (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
+    ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
+    model !== aiModel;
+
+  return (
+    <>
+      <div className="flex items-center justify-between w-full mb-2 min-h-10">
+        <div className="flex items-center gap-2">
+          <Select onValueChange={setAiProvider}>
+            <SelectTrigger id="ai-provider-selector" className="w-[180px]">
+              <SelectValue placeholder={aiProvider} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="openai">openai</SelectItem>
+              <SelectItem value="anthropic">anthropic</SelectItem>
+              <SelectItem value="custom">custom</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            name="aiModel"
+            className="w-[200px]"
+            placeholder="AI model"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+          />
+        </div>
+        <AiInfoBanner />
+      </div>
+
+      {aiProvider === 'openai' && (
+        <div className="flex gap-2">
+          <Input
+            name="openaiKey"
+            placeholder="openAI API key"
+            type="password"
+            value={openaiKey}
+            onChange={(e) => setOpenaiKey(e.target.value)}
+          />
+          <Button
+            className="px-5"
+            onClick={async () => {
+              await updateConfigContext({ openaiKey, aiModel: model });
+              if (onConfirm) {
+                onConfirm();
+              }
+            }}
+            disabled={!openaiKeySaveEnabled}
+          >
+            {saveButtonLabel ?? 'Save'}
+          </Button>
+        </div>
+      )}
+
+      {aiProvider === 'anthropic' && (
+        <div className="flex gap-2">
+          <Input
+            name="anthropicKey"
+            placeholder="anthropic API key"
+            type="password"
+            value={anthropicKey}
+            onChange={(e) => setAnthropicKey(e.target.value)}
+          />
+          <Button
+            className="px-5"
+            onClick={async () => {
+              await updateConfigContext({ anthropicKey, aiModel: model });
+              if (onConfirm) {
+                onConfirm();
+              }
+            }}
+            disabled={!anthropicKeySaveEnabled}
+          >
+            {saveButtonLabel ?? 'Save'}
+          </Button>
+        </div>
+      )}
+
+      {aiProvider === 'custom' && (
+        <div>
+          <p className="opacity-70 text-sm mb-4">
+            If you want to use an openai-compatible model (for example when running local models
+            with Ollama), choose this option and set the baseUrl.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              name="baseUrl"
+              placeholder="http://localhost:11434/v1"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+            />
+            <Button
+              className="px-5"
+              onClick={async () => {
+                await updateConfigContext({ aiBaseUrl: baseUrl, aiModel: model });
+                if (onConfirm) {
+                  onConfirm();
+                }
+              }}
+              disabled={!customModelSaveEnabled}
+            >
+              {saveButtonLabel ?? 'Save'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default Settings;

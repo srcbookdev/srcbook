@@ -8,6 +8,7 @@ import { npmInstall } from '../exec.mjs';
 import { generateApp } from '../ai/generate.mjs';
 import { toValidPackageName } from '../apps/utils.mjs';
 import { getPackagesToInstall, parsePlan } from '../ai/plan-parser.mjs';
+import { commitAllFiles, initRepo } from './git.mjs';
 
 function toSecondsSinceEpoch(date: Date): number {
   return Math.floor(date.getTime() / 1000);
@@ -34,6 +35,9 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
   });
 
   await createViteApp(app);
+
+  await initRepo(app);
+
   // Note: we don't surface issues or retries and this is "running in the background".
   // In this case it works in our favor because we'll kickoff generation while it happens
   npmInstall({
@@ -69,6 +73,8 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
       },
       onExit(code) {
         console.log(`npm install exit code: ${code}`);
+        console.log('Applying git commit');
+        commitAllFiles(app, `Add dependencies: ${packagesToInstall.join(', ')}`);
       },
     });
   }

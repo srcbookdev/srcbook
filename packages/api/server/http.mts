@@ -62,6 +62,7 @@ import {
 import { CreateAppSchema } from '../apps/schemas.mjs';
 import { AppGenerationFeedbackType } from '@srcbook/shared';
 import { createZipFromApp } from '../apps/disk.mjs';
+import { checkoutCommit, commitAllFiles, getCurrentCommitSha } from '../apps/git.mjs';
 
 const app: Application = express();
 
@@ -560,6 +561,44 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
   } catch (e) {
     return error500(res, e as Error);
   }
+});
+
+router.options('/apps/:id/commit', cors());
+router.get('/apps/:id/commit', cors(), async (req, res) => {
+  const { id } = req.params;
+  const app = await loadApp(id);
+  if (!app) {
+    return res.status(404).json({ error: 'App not found' });
+  }
+
+  const sha = await getCurrentCommitSha(app);
+  return res.json({ data: { sha } });
+});
+router.post('/apps/:id/commit', cors(), async (req, res) => {
+  const { id } = req.params;
+  const { message } = req.body;
+  // import the commit function from the apps/git.mjs file
+  const app = await loadApp(id);
+
+  if (!app) {
+    return res.status(404).json({ error: 'App not found' });
+  }
+
+  const sha = await commitAllFiles(app, message);
+  return res.json({ data: { success: true, sha } });
+});
+
+router.options('/apps/:id/checkout/:sha ', cors());
+router.post('/apps/:id/checkout/:sha', cors(), async (req, res) => {
+  const { id, sha } = req.params;
+  const app = await loadApp(id);
+
+  if (!app) {
+    return res.status(404).json({ error: 'App not found' });
+  }
+
+  await checkoutCommit(app, sha);
+  return res.json({ data: { success: true, sha } });
 });
 
 router.options('/apps/:id/directories', cors());

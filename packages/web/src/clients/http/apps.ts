@@ -295,3 +295,36 @@ export async function exportApp(id: string, name: string): Promise<Blob> {
 
   return response.blob();
 }
+
+type VersionResponse = {
+  sha: string;
+};
+
+export async function getCurrentVersion(id: string): Promise<VersionResponse> {
+  const response = await fetch(API_BASE_URL + `/apps/${id}/commit`, {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+  return response.json();
+}
+
+export async function commitVersion(id: string, message: string): Promise<VersionResponse> {
+  const response = await fetch(API_BASE_URL + `/apps/${id}/commit`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ message }),
+  });
+
+  return response.json();
+}
+
+export async function checkoutVersion(
+  id: string,
+  sha: string,
+): Promise<{ data: { success: true; sha: string } }> {
+  const response = await fetch(API_BASE_URL + `/apps/${id}/checkout/${sha}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+  });
+  return response.json();
+}

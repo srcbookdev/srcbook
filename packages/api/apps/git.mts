@@ -71,3 +71,10 @@ export async function ensureRepoExists(app: DBAppType): Promise<void> {
     await initRepo(app);
   }
 }
+
+// Get the current commit SHA
+export async function getCurrentCommitSha(app: DBAppType): Promise<string> {
+  const dir = pathToApp(app.externalId);
+  const currentCommit = await git.resolveRef({ fs, dir, ref: 'HEAD' });
+  return currentCommit;
+}

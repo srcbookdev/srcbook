@@ -2,11 +2,9 @@ import React from 'react';
 import { LayoutGridIcon, FileTextIcon } from 'lucide-react';
 import { AiSettings } from '@/routes/settings';
 
-type OnboardingModalProps = {
-  onComplete: () => void;
-};
+type OnboardingModalProps = {};
 
-const OnboardingModal: React.FunctionComponent<OnboardingModalProps> = ({ onComplete }) => {
+const OnboardingModal: React.FunctionComponent<OnboardingModalProps> = () => {
   return (
     <div className="flex flex-col gap-6">
       <h2 className="text-3xl font-medium">Welcome to Srcbook!</h2>
@@ -40,7 +38,7 @@ const OnboardingModal: React.FunctionComponent<OnboardingModalProps> = ({ onComp
           To get started, select your AI provider and enter your API key:
         </label>
 
-        <AiSettings saveButtonLabel="Continue" onConfirm={onComplete} />
+        <AiSettings saveButtonLabel="Continue" />
       </div>
     </div>
   );

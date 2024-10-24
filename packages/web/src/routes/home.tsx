@@ -68,28 +68,7 @@ export default function Home() {
   const [appToDelete, setAppToDelete] = useState<AppType | null>(null);
   const [showCreateAppModal, setShowCreateAppModal] = useState(false);
 
-  const { aiProvider, openaiKey, anthropicKey } = useSettings();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const checkApiKey = () => {
-      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding') === 'true';
-      const hasApiKey = aiProvider === 'openai' ? !!openaiKey : !!anthropicKey;
-
-      if (!hasSeenOnboarding || !hasApiKey) {
-        setShowOnboarding(true);
-      }
-      setIsLoading(false);
-    };
-
-    checkApiKey();
-  }, [aiProvider, openaiKey, anthropicKey]);
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    localStorage.setItem('hasSeenOnboarding', 'true');
-  };
+  const { aiEnabled } = useSettings();
 
   function onDeleteSrcbook(srcbook: SessionType) {
     setSrcbookToDelete(srcbook);
@@ -116,12 +95,8 @@ export default function Home() {
     openSrcbook(result.dir);
   }
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (showOnboarding) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+  if (!aiEnabled) {
+    return <Onboarding />;
   }
 
   return (

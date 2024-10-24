@@ -218,10 +218,9 @@ const TestAiButton = () => {
 
 type AiSettingsProps = {
   saveButtonLabel?: string;
-  onConfirm?: () => void;
 };
 
-export function AiSettings({ saveButtonLabel, onConfirm }: AiSettingsProps) {
+export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
   const {
     aiProvider,
     aiModel,
@@ -296,12 +295,7 @@ export function AiSettings({ saveButtonLabel, onConfirm }: AiSettingsProps) {
           />
           <Button
             className="px-5"
-            onClick={async () => {
-              await updateConfigContext({ openaiKey, aiModel: model });
-              if (onConfirm) {
-                onConfirm();
-              }
-            }}
+            onClick={() => updateConfigContext({ openaiKey, aiModel: model })}
             disabled={!openaiKeySaveEnabled}
           >
             {saveButtonLabel ?? 'Save'}
@@ -320,12 +314,7 @@ export function AiSettings({ saveButtonLabel, onConfirm }: AiSettingsProps) {
           />
           <Button
             className="px-5"
-            onClick={async () => {
-              await updateConfigContext({ anthropicKey, aiModel: model });
-              if (onConfirm) {
-                onConfirm();
-              }
-            }}
+            onClick={() => updateConfigContext({ anthropicKey, aiModel: model })}
             disabled={!anthropicKeySaveEnabled}
           >
             {saveButtonLabel ?? 'Save'}
@@ -348,12 +337,7 @@ export function AiSettings({ saveButtonLabel, onConfirm }: AiSettingsProps) {
             />
             <Button
               className="px-5"
-              onClick={async () => {
-                await updateConfigContext({ aiBaseUrl: baseUrl, aiModel: model });
-                if (onConfirm) {
-                  onConfirm();
-                }
-              }}
+              onClick={() => updateConfigContext({ aiBaseUrl: baseUrl, aiModel: model })}
               disabled={!customModelSaveEnabled}
             >
               {saveButtonLabel ?? 'Save'}

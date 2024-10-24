@@ -1,5 +1,14 @@
 # @srcbook/web
 
+## 0.0.12
+
+### Patch Changes
+
+- b49bdf4: The backend now notifies the frontend of file changes -> files update visually in realtime
+- Updated dependencies [b49bdf4]
+  - @srcbook/shared@0.0.11
+  - @srcbook/components@0.0.5
+
 ## 0.0.11
 
 ### Patch Changes

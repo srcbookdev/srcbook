@@ -18,8 +18,6 @@ const VersionContext = createContext<VersionContextType | undefined>(undefined);
 
 export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { app } = useApp();
-  //   TODO implement this
-  //   const { refreshFiles } = useFiles();
   const [currentVersion, setCurrentVersion] = useState<Version | null>(null);
 
   const fetchVersion = useCallback(async () => {
@@ -59,12 +57,11 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         const { sha: checkoutSha } = await checkoutVersion(app.id, sha);
         setCurrentVersion({ sha: checkoutSha });
-        // await refreshFiles();
       } catch (error) {
         console.error('Error checking out version:', error);
       }
     },
-    [app, fetchVersion],
+    [app],
   );
 
   return (

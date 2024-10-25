@@ -3,6 +3,7 @@ import Path from 'node:path';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { loadFile } from '../apps/disk.mjs';
 import { StreamingXMLParser } from './stream-xml-parser.mjs';
+import { createWriteStream } from 'node:fs';
 
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
@@ -177,6 +178,10 @@ export async function streamParsePlan(
 ) {
   let parser: StreamingXMLParser;
 
+  const writeStream = createWriteStream(
+    '/Users/ben/Desktop/srcbook/srcbook/packages/api/test/plan-tokens.txt',
+  );
+
   return new ReadableStream({
     async pull(controller) {
       if (parser === undefined) {
@@ -190,9 +195,11 @@ export async function streamParsePlan(
 
       try {
         for await (const chunk of stream) {
+          writeStream.write(JSON.stringify({ token: chunk }) + '\n');
           parser.parse(chunk);
         }
         console.log('HERE!!!!!');
+        writeStream.end();
         controller.close();
       } catch (error) {
         controller.error(error);

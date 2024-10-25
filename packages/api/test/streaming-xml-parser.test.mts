@@ -1,97 +1,26 @@
-import { StreamingXMLParser, type TagType } from '../ai/stream-xml-parser.mjs';
+import fs from 'node:fs';
+import Path from 'node:path';
+import { XMLStreamParser, type TagType } from '../ai/stream-xml-parser.mjs';
+
+const filepath = new URL(import.meta.url).pathname;
+
+const chunkLines = fs.readFileSync(Path.resolve(filepath, '../plan-chunks.txt'), 'utf-8');
+const chunks = chunkLines
+  .split('\n')
+  .filter((line) => line.trim() !== '')
+  .map((chunk) => JSON.parse(chunk).chunk);
 
 describe('parsePlan', () => {
   test('should correctly parse a plan with file and command actions', async () => {
     const tags: TagType[] = [];
 
-    const parser = new StreamingXMLParser({
+    const parser = new XMLStreamParser({
       onTag: (tag) => {
         tags.push(tag);
       },
     });
 
-    parser.parse('<plan');
-    parser.parse('>');
-    parser.parse('\n');
-    parser.parse('<plan');
-    parser.parse('Description');
-    parser.parse('>');
-    parser.parse('<![');
-    parser.parse('CDATA');
-    parser.parse('[');
-    parser.parse('\n');
-    parser.parse('Some');
-    parser.parse(' text');
-    parser.parse(' goes');
-    parser.parse(' here');
-    parser.parse('.');
-    parser.parse('\n');
-    parser.parse(']]>');
-    parser.parse('\n');
-    parser.parse('</');
-    parser.parse('plan');
-    parser.parse('Description>');
-    parser.parse('\n');
-    parser.parse('<action');
-    parser.parse(' type');
-    parser.parse('=');
-    parser.parse('"');
-    parser.parse('file"');
-    parser.parse('>');
-    parser.parse('\n');
-    parser.parse('<description');
-    parser.parse('>');
-    parser.parse('\n');
-    parser.parse('<![');
-    parser.parse('CDATA');
-    parser.parse('[');
-    parser.parse('\n');
-    parser.parse('Some');
-    parser.parse(' text');
-    parser.parse(' goes');
-    parser.parse(' here');
-    parser.parse('.');
-    parser.parse('\n');
-    parser.parse(']]>');
-    parser.parse('\n');
-    parser.parse('</');
-    parser.parse('description>');
-    parser.parse('\n');
-
-    parser.parse('<file');
-    parser.parse(' filename');
-    parser.parse('=');
-    parser.parse('"');
-    parser.parse('index');
-    parser.parse('.');
-    parser.parse('tsx');
-    parser.parse('"');
-    parser.parse('>');
-    parser.parse('\n');
-    parser.parse('<![');
-    parser.parse('CDATA');
-    parser.parse('[');
-    parser.parse('\n');
-    parser.parse('console');
-    parser.parse('.');
-    parser.parse('log');
-    parser.parse('(');
-    parser.parse(')');
-    parser.parse(';');
-    parser.parse('\n');
-    parser.parse(']]>');
-    parser.parse('\n');
-    parser.parse('</');
-    parser.parse('file>');
-    parser.parse('\n');
-
-    parser.parse('</');
-    parser.parse('action>');
-    parser.parse('\n');
-    parser.parse('</');
-    parser.parse('plan>');
-    parser.parse('\n');
-    parser.parse('\n');
+    chunks.forEach((chunk) => parser.parse(chunk));
 
     expect(tags).toEqual([
       {

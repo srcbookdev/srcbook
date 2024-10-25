@@ -1,5 +1,16 @@
 # srcbook
 
+## 0.0.13
+
+### Patch Changes
+
+- 26d548e: Improve prompts. Guide to use lucide. Guide to use react-router. Clean unused files
+- Updated dependencies [b49bdf4]
+- Updated dependencies [bbbd5d6]
+- Updated dependencies [26d548e]
+  - @srcbook/shared@0.0.11
+  - @srcbook/api@0.0.12
+
 ## 0.0.12
 
 ### Patch Changes

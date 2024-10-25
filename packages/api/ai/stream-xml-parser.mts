@@ -101,7 +101,6 @@ export class StreamingXMLParser {
         this.buffer = cdataStart;
         this.cdataBuffer = cdataStart;
 
-        console.log('set buffer to', this.buffer);
         return;
       }
 

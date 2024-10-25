@@ -37,6 +37,14 @@ export async function checkoutCommit(app: DBAppType, commitSha: string): Promise
   const git = getGit(app);
   // get the files that are different between the current state and the commit
   const files = await getChangedFiles(app, commitSha);
+
+  // we might have a dirty working directory, so we need to stash any changes
+  // TODO: we should probably handle this better
+  await git.stash();
+
+  // checkout the commit
+  await git.checkout(commitSha);
+
   // notify the client to update the files
   for (const file of files.added) {
     const source = await fs.readFile(Path.join(pathToApp(app.externalId), file), 'utf-8');
@@ -46,8 +54,6 @@ export async function checkoutCommit(app: DBAppType, commitSha: string): Promise
     const source = await fs.readFile(Path.join(pathToApp(app.externalId), file), 'utf-8');
     broadcastFileUpdated(app, toFileType(file, source));
   }
-
-  await git.checkout(commitSha);
 }
 
 // Get commit history

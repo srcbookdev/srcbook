@@ -280,7 +280,7 @@ function DiffBox({
   const [feedbackGiven, _setFeedbackGiven] = React.useState<null | 'positive' | 'negative'>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = React.useState(false);
 
-  const { checkout } = useVersion();
+  const { checkout, currentVersion } = useVersion();
 
   const setFeedbackGiven = (feedback: 'positive' | 'negative') => {
     setShowFeedbackToast(true);
@@ -295,12 +295,17 @@ function DiffBox({
 
   return (
     <>
-      <div className="px-2 mx-2 pb-2 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
+      <div
+        className={cn(
+          'px-2 mx-2 pb-2 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground transition-all',
+          currentVersion?.sha === version ? 'border-ai-foreground' : 'border-ai-border',
+        )}
+      >
         <div className="flex flex-col justify-between min-h-full">
           <div className="flex justify-between items-center">
             <div className="flex gap-2 items-center text-sm h-10">
               <span className="font-medium">{app.name}</span>
-              <span className="font-mono text-sm">{incrementalVersion}</span>
+              <span className="font-mono">V{incrementalVersion}</span>
             </div>
             {/* We don't need this guard if we assume only new apps */}
             {version && (

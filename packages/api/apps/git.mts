@@ -81,7 +81,14 @@ export async function ensureRepoExists(app: DBAppType): Promise<void> {
 // Get the current commit SHA
 export async function getCurrentCommitSha(app: DBAppType): Promise<string> {
   const git = getGit(app);
+  // There might not be a .git initialized yet, so we need to handle that
+  const isRepo = await git.checkIsRepo();
+  if (!isRepo) {
+    await initRepo(app);
+  }
+
   const revparse = await git.revparse(['HEAD']);
+
   return revparse;
 }
 

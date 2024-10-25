@@ -1,5 +1,16 @@
 # @srcbook/web
 
+## 0.0.12
+
+### Patch Changes
+
+- b49bdf4: The backend now notifies the frontend of file changes -> files update visually in realtime
+- bbbd5d6: Add versions! powered by git. Ability to revert to an older version
+- Updated dependencies [b49bdf4]
+- Updated dependencies [bbbd5d6]
+  - @srcbook/shared@0.0.11
+  - @srcbook/components@0.0.5
+
 ## 0.0.11
 
 ### Patch Changes

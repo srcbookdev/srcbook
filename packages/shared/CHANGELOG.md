@@ -1,5 +1,12 @@
 # @srcbook/shared
 
+## 0.0.11
+
+### Patch Changes
+
+- b49bdf4: The backend now notifies the frontend of file changes -> files update visually in realtime
+- bbbd5d6: Add versions! powered by git. Ability to revert to an older version
+
 ## 0.0.10
 
 ### Patch Changes

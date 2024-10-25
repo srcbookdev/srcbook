@@ -1,5 +1,11 @@
 # @srcbook/api
 
+## 0.0.13
+
+### Patch Changes
+
+- e361ea8: Bugfix: dont crash if the git repo didnt previously exist
+
 ## 0.0.12
 
 ### Patch Changes

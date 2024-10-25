@@ -326,6 +326,5 @@ export async function checkoutVersion(
     method: 'POST',
     headers: { 'content-type': 'application/json' },
   });
-  console.log('response', response);
   return response.json();
 }

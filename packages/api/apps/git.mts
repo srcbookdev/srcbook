@@ -37,7 +37,6 @@ export async function checkoutCommit(app: DBAppType, commitSha: string): Promise
   const git = getGit(app);
   // get the files that are different between the current state and the commit
   const files = await getChangedFiles(app, commitSha);
-  console.log('files different between current state and commit', files);
   // notify the client to update the files
   for (const file of files.added) {
     const source = await fs.readFile(Path.join(pathToApp(app.externalId), file), 'utf-8');

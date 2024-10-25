@@ -321,7 +321,7 @@ export async function commitVersion(id: string, message: string): Promise<Versio
 export async function checkoutVersion(
   id: string,
   sha: string,
-): Promise<{ data: { success: true; sha: string } }> {
+): Promise<{ success: true; sha: string }> {
   const response = await fetch(API_BASE_URL + `/apps/${id}/checkout/${sha}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

@@ -9,50 +9,59 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@srcbook/components/src/components/ui/context-menu';
+import { useVersion } from '../use-version';
 
 export default function ExplorerPanel() {
   const { fileTree } = useFiles();
-
+  const { currentVersion } = useVersion();
   const [editingEntry, setEditingEntry] = useState<FileEntryType | DirEntryType | null>(null);
   const [newEntry, setNewEntry] = useState<FileEntryType | DirEntryType | null>(null);
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <ul className="w-full h-full text-sm font-medium text-tertiary-foreground overflow-auto">
-          <FileTree
-            depth={1}
-            tree={fileTree}
-            newEntry={newEntry}
-            setNewEntry={setNewEntry}
-            editingEntry={editingEntry}
-            setEditingEntry={setEditingEntry}
-          />
-        </ul>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem
-          onClick={() =>
-            setNewEntry({ type: 'file', path: 'untitled', dirname: '.', basename: 'untitled' })
-          }
-        >
-          New file...
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() =>
-            setNewEntry({
-              type: 'directory',
-              path: 'untitled',
-              dirname: '.',
-              basename: 'untitled',
-              children: null,
-            })
-          }
-        >
-          New folder...
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <div className="flex flex-col justify-between min-h-full">
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <ul className="w-full h-full text-sm font-medium text-tertiary-foreground overflow-auto">
+            <FileTree
+              depth={1}
+              tree={fileTree}
+              newEntry={newEntry}
+              setNewEntry={setNewEntry}
+              editingEntry={editingEntry}
+              setEditingEntry={setEditingEntry}
+            />
+          </ul>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            onClick={() =>
+              setNewEntry({ type: 'file', path: 'untitled', dirname: '.', basename: 'untitled' })
+            }
+          >
+            New file...
+          </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() =>
+              setNewEntry({
+                type: 'directory',
+                path: 'untitled',
+                dirname: '.',
+                basename: 'untitled',
+                children: null,
+              })
+            }
+          >
+            New folder...
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+
+      {currentVersion && (
+        <p className="font-mono text-tertiary-foreground rounded px-1.5 py-0.5 bg-muted text-xs w-fit m-1">
+          version: {currentVersion.sha.slice(0, 7)}
+        </p>
+      )}
+    </div>
   );
 }
 

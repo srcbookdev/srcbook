@@ -1,80 +1,125 @@
+import simpleGit, { SimpleGit, DefaultLogFields, ListLogLine } from 'simple-git';
 import fs from 'node:fs/promises';
-import Path from 'node:path';
-import git, { type ReadCommitResult } from 'isomorphic-git';
-import { pathToApp } from './disk.mjs';
+import { broadcastFileUpdated, pathToApp, toFileType } from './disk.mjs';
 import type { App as DBAppType } from '../db/schema.mjs';
+import Path from 'node:path';
+
+// Helper to get git instance for an app
+function getGit(app: DBAppType): SimpleGit {
+  const dir = pathToApp(app.externalId);
+  return simpleGit(dir);
+}
 
 // Initialize a git repository in the app directory
 export async function initRepo(app: DBAppType): Promise<void> {
-  const dir = pathToApp(app.externalId);
-  await git.init({ fs, dir });
+  const git = getGit(app);
+  await git.init();
   await commitAllFiles(app, 'Initial commit');
 }
 
 // Commit all current files in the app directory
 export async function commitAllFiles(app: DBAppType, message: string): Promise<string> {
-  const dir = pathToApp(app.externalId);
+  const git = getGit(app);
 
   // Stage all files
-  await git.add({ fs, dir, filepath: '.' });
+  await git.add('.');
 
   // Create commit
-  const sha = await git.commit({
-    fs,
-    dir,
-    message,
-    author: {
-      name: 'Srcbook',
-      email: 'ai@srcbook.com',
-    },
+  await git.commit(message, {
+    '--author': 'Srcbook <ai@srcbook.com>',
   });
 
+  // Get the exact SHA of the new commit. Sometimes it's 'HEAD <sha>' for some reason
+  const sha = await git.revparse(['HEAD']);
   return sha;
 }
 
-// Checkout to a specific commit
-// Use this to revert to a previous commit or "version"
+// Checkout to a specific commit, and notify the client that the files have changed
 export async function checkoutCommit(app: DBAppType, commitSha: string): Promise<void> {
-  const dir = pathToApp(app.externalId);
+  const git = getGit(app);
+  // get the files that are different between the current state and the commit
+  const files = await getChangedFiles(app, commitSha);
 
-  await git.checkout({
-    fs,
-    dir,
-    ref: commitSha,
-    force: true,
-  });
+  // we might have a dirty working directory, so we need to stash any changes
+  // TODO: we should probably handle this better
+  await git.stash();
+
+  // checkout the commit
+  await git.checkout(commitSha);
+
+  // notify the client to update the files
+  for (const file of files.added) {
+    const source = await fs.readFile(Path.join(pathToApp(app.externalId), file), 'utf-8');
+    broadcastFileUpdated(app, toFileType(file, source));
+  }
+  for (const file of files.modified) {
+    const source = await fs.readFile(Path.join(pathToApp(app.externalId), file), 'utf-8');
+    broadcastFileUpdated(app, toFileType(file, source));
+  }
 }
 
 // Get commit history
 export async function getCommitHistory(
   app: DBAppType,
   limit: number = 100,
-): Promise<Array<ReadCommitResult>> {
-  const dir = pathToApp(app.externalId);
-
-  const commits = await git.log({
-    fs,
-    dir,
-    depth: limit, // Limit to specified number of commits, default 100
-  });
-
-  return commits;
+): Promise<ReadonlyArray<DefaultLogFields & ListLogLine>> {
+  const git = getGit(app);
+  const log = await git.log({ maxCount: limit });
+  return log.all;
 }
 
-// Helper function to ensure the repo exists, initializing it if necessary
+// Helper function to ensure the repo exists
 export async function ensureRepoExists(app: DBAppType): Promise<void> {
-  const dir = pathToApp(app.externalId);
-  try {
-    await fs.access(Path.join(dir, '.git'));
-  } catch (error) {
-    // If .git directory doesn't exist, initialize the repo
+  const git = getGit(app);
+  const isRepo = await git.checkIsRepo();
+
+  if (!isRepo) {
     await initRepo(app);
   }
 }
 
 // Get the current commit SHA
 export async function getCurrentCommitSha(app: DBAppType): Promise<string> {
-  const dir = pathToApp(app.externalId);
-  const currentCommit = await git.resolveRef({ fs, dir, ref: 'HEAD' });
-  return currentCommit;
+  const git = getGit(app);
+  const revparse = await git.revparse(['HEAD']);
+  return revparse;
+}
+
+// Get list of changed files between current state and a commit
+export async function getChangedFiles(
+  app: DBAppType,
+  commitSha: string,
+): Promise<{ added: string[]; modified: string[]; deleted: string[] }> {
+  const git = getGit(app);
+
+  // Get the diff between current state and the specified commit
+  const diffSummary = await git.diff(['--name-status', commitSha]);
+
+  const changes = {
+    added: [] as string[],
+    modified: [] as string[],
+    deleted: [] as string[],
+  };
+
+  // Parse the diff output
+  diffSummary.split('\n').forEach((line) => {
+    const [status, ...fileParts] = line.split('\t');
+    const file = fileParts.join('\t'); // Handle filenames with tabs
+
+    if (!file || !status) return;
+
+    switch (status[0]) {
+      case 'A':
+        changes.added.push(file);
+        break;
+      case 'M':
+        changes.modified.push(file);
+        break;
+      case 'D':
+        changes.deleted.push(file);
+        break;
+    }
+  });
+
+  return changes;
 }

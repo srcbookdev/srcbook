@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useApp } from './use-app';
-import { commitVersion, getCurrentVersion } from '@/clients/http/apps';
+import { checkoutVersion, commitVersion, getCurrentVersion } from '@/clients/http/apps';
 
 interface Version {
   sha: string;
@@ -9,7 +9,7 @@ interface Version {
 
 interface VersionContextType {
   currentVersion: Version | null;
-  commitFiles: (message: string) => Promise<void>;
+  createVersion: (message: string) => Promise<string | undefined>;
   checkout: (sha: string) => Promise<void>;
   fetchVersions: () => Promise<void>;
 }
@@ -18,8 +18,6 @@ const VersionContext = createContext<VersionContextType | undefined>(undefined);
 
 export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { app } = useApp();
-  //   TODO implement this
-  //   const { refreshFiles } = useFiles();
   const [currentVersion, setCurrentVersion] = useState<Version | null>(null);
 
   const fetchVersion = useCallback(async () => {
@@ -44,6 +42,7 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         const response = await commitVersion(app.id, message);
         setCurrentVersion({ sha: response.sha, message });
+        return response.sha;
       } catch (error) {
         console.error('Error committing files:', error);
       }
@@ -56,24 +55,18 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!app) return;
 
       try {
-        const response = await fetch(`/api/apps/${app.id}/checkout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sha }),
-        });
-        if (!response.ok) throw new Error('Failed to checkout version');
-        await fetchVersion();
-        // await refreshFiles();
+        const { sha: checkoutSha } = await checkoutVersion(app.id, sha);
+        setCurrentVersion({ sha: checkoutSha });
       } catch (error) {
         console.error('Error checking out version:', error);
       }
     },
-    [app, fetchVersion],
+    [app],
   );
 
   return (
     <VersionContext.Provider
-      value={{ currentVersion, commitFiles, checkout, fetchVersions: fetchVersion }}
+      value={{ currentVersion, createVersion: commitFiles, checkout, fetchVersions: fetchVersion }}
     >
       {children}
     </VersionContext.Provider>

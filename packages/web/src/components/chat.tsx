@@ -1,6 +1,10 @@
 import {
   Button,
   cn,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -23,6 +27,8 @@ import {
   GripHorizontal,
   ThumbsUp,
   ThumbsDown,
+  GitMerge,
+  EllipsisVertical,
 } from 'lucide-react';
 import * as React from 'react';
 import {
@@ -48,6 +54,7 @@ import { useApp } from './apps/use-app.js';
 import { usePackageJson } from './apps/use-package-json.js';
 import { AiFeedbackModal } from './apps/AiFeedbackModal';
 import { useVersion } from './apps/use-version.js';
+import { Link } from 'react-router-dom';
 
 function Chat({
   history,
@@ -126,18 +133,20 @@ function Chat({
             } else if (message.type === 'plan') {
               return <Markdown key={index} source={message.content.trim()} />;
             } else if (message.type === 'diff') {
-              // TODO this is really jank
-              const diffIndex = history
-                .filter((msg) => msg.type === 'diff')
-                .findIndex((msg) => msg === message);
+              // Calculate the incremental version, i.e. v1 for the first diffbox, v2 for the second, etc.
+              // This is separate from the git version number.
+              const diffs = history.filter((m) => m.type === 'diff');
+              const currentDiffIndex = diffs.findIndex((m) => m === message);
+              const incrementalVersion = currentDiffIndex + 1;
 
               return (
                 <DiffBox
                   key={index}
                   files={message.diff}
                   app={app}
-                  version={diffIndex + 1}
+                  version={message.version}
                   planId={message.planId}
+                  incrementalVersion={incrementalVersion}
                 />
               );
             }
@@ -257,18 +266,21 @@ function Query({
 function DiffBox({
   files,
   app,
+  incrementalVersion,
   version,
   planId,
 }: {
   files: FileDiffType[];
   app: AppType;
-  version: number;
+  incrementalVersion: number;
+  version: string;
   planId: string;
 }) {
-  const { currentVersion } = useVersion();
   const [showFeedbackToast, setShowFeedbackToast] = React.useState(false);
   const [feedbackGiven, _setFeedbackGiven] = React.useState<null | 'positive' | 'negative'>(null);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = React.useState(false);
+
+  const { checkout, currentVersion } = useVersion();
 
   const setFeedbackGiven = (feedback: 'positive' | 'negative') => {
     setShowFeedbackToast(true);
@@ -283,22 +295,53 @@ function DiffBox({
 
   return (
     <>
-      <div className="px-2 mx-2 pb-2 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground">
+      <div
+        className={cn(
+          'px-2 mx-2 pb-2 rounded border overflow-y-auto bg-ai border-ai-border text-ai-foreground transition-all',
+          currentVersion?.sha === version ? 'border-ai-foreground' : 'border-ai-border',
+        )}
+      >
         <div className="flex flex-col justify-between min-h-full">
-          <div className="flex gap-2 items-center text-sm h-10">
-            <span className="font-medium">{app.name}</span>
-            <span className="font-mono px-1 bg-ai-border rounded-sm">v{version}</span>
-            {currentVersion && (
-              <span className="font-mono px-1 bg-ai-border rounded-sm">
-                {currentVersion.sha.slice(0, 7)}
-              </span>
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2 items-center text-sm h-10">
+              <span className="font-medium">{app.name}</span>
+              <span className="font-mono">V{incrementalVersion}</span>
+            </div>
+            {/* We don't need this guard if we assume only new apps */}
+            {version && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <GitMerge size={16} />
+                  <span className="font-mono text-sm">
+                    #{version ? version.slice(0, 7) : 'unknown version'}
+                  </span>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                      <EllipsisVertical size={16} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => checkout(version)}>
+                      Revert to this version
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => alert('Coming soon!')}>
+                      Fork this version
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             )}
           </div>
           <div>
             {files.map((file) => (
               <div key={file.path}>
                 <div className="flex justify-between items-center text-sm font-mono h-8">
-                  <p className="font-mono">{file.path}</p>
+                  <Link to={`/apps/${app.id}/files/${encodeURIComponent(file.path)}`}>
+                    <p className="font-mono hover:underline">{file.path}</p>
+                  </Link>
                   <DiffStats additions={file.additions} deletions={file.deletions} />
                 </div>
               </div>
@@ -453,6 +496,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   const [isLoading, setIsLoading] = React.useState(false);
   const [diffApplied, setDiffApplied] = React.useState(false);
   const { createFile, deleteFile } = useFiles();
+  const { createVersion } = useVersion();
 
   // Initialize history from the DB
   React.useEffect(() => {
@@ -499,9 +543,13 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     setHistory((prevHistory) => [...prevHistory, ...historyEntries]);
     appendToHistory(app.id, historyEntries);
 
+    // Write the changes
     for (const update of fileUpdates) {
       createFile(update.dirname, update.basename, update.modified);
     }
+
+    // Create a new version
+    const version = await createVersion(`Changes for planId: ${planId}`);
 
     const fileDiffs: FileDiffType[] = fileUpdates.map((file: FileType) => {
       const { additions, deletions } = diffFiles(file.original ?? '', file.modified);
@@ -517,7 +565,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       };
     });
 
-    const diffMessage = { type: 'diff', diff: fileDiffs, planId } as DiffMessageType;
+    const diffMessage = { type: 'diff', diff: fileDiffs, planId, version } as DiffMessageType;
     setHistory((prevHistory) => [...prevHistory, diffMessage]);
     appendToHistory(app.id, diffMessage);
 

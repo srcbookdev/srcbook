@@ -315,6 +315,15 @@ const TEXT_FILE_EXTENSIONS = [
   '.html',
 ];
 
+export function toFileType(path: string, source: string): FileType {
+  return {
+    path,
+    name: Path.basename(path),
+    source,
+    binary: isBinary(Path.basename(path)),
+  };
+}
+
 function isBinary(basename: string) {
   const isDotfile = basename.startsWith('.'); // Assume these are text for now, e.g., .gitignore
   const isTextFile = TEXT_FILE_EXTENSIONS.includes(Path.extname(basename));

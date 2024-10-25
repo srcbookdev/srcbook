@@ -29,6 +29,7 @@ export type CommandMessageType = NpmInstallCommand & {
 export type DiffMessageType = {
   type: 'diff';
   planId: string;
+  version: string;
   diff: FileDiffType[];
 };
 

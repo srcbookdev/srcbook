@@ -585,10 +585,10 @@ router.post('/apps/:id/commit', cors(), async (req, res) => {
   }
 
   const sha = await commitAllFiles(app, message);
-  return res.json({ data: { success: true, sha } });
+  return res.json({ sha });
 });
 
-router.options('/apps/:id/checkout/:sha ', cors());
+router.options('/apps/:id/checkout/:sha', cors());
 router.post('/apps/:id/checkout/:sha', cors(), async (req, res) => {
   const { id, sha } = req.params;
   const app = await loadApp(id);
@@ -598,7 +598,7 @@ router.post('/apps/:id/checkout/:sha', cors(), async (req, res) => {
   }
 
   await checkoutCommit(app, sha);
-  return res.json({ data: { success: true, sha } });
+  return res.json({ success: true, sha });
 });
 
 router.options('/apps/:id/directories', cors());

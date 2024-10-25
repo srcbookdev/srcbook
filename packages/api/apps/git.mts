@@ -1,6 +1,8 @@
 import simpleGit, { SimpleGit, DefaultLogFields, ListLogLine } from 'simple-git';
-import { pathToApp } from './disk.mjs';
+import fs from 'node:fs/promises';
+import { broadcastFileUpdated, pathToApp, toFileType } from './disk.mjs';
 import type { App as DBAppType } from '../db/schema.mjs';
+import Path from 'node:path';
 
 // Helper to get git instance for an app
 function getGit(app: DBAppType): SimpleGit {
@@ -30,9 +32,22 @@ export async function commitAllFiles(app: DBAppType, message: string): Promise<s
   return commit.commit; // Returns the commit hash
 }
 
-// Checkout to a specific commit
+// Checkout to a specific commit, and notify the client that the files have changed
 export async function checkoutCommit(app: DBAppType, commitSha: string): Promise<void> {
   const git = getGit(app);
+  // get the files that are different between the current state and the commit
+  const files = await getChangedFiles(app, commitSha);
+  console.log('files different between current state and commit', files);
+  // notify the client to update the files
+  for (const file of files.added) {
+    const source = await fs.readFile(Path.join(pathToApp(app.externalId), file), 'utf-8');
+    broadcastFileUpdated(app, toFileType(file, source));
+  }
+  for (const file of files.modified) {
+    const source = await fs.readFile(Path.join(pathToApp(app.externalId), file), 'utf-8');
+    broadcastFileUpdated(app, toFileType(file, source));
+  }
+
   await git.checkout(commitSha);
 }
 

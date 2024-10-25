@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useApp } from './use-app';
-import { commitVersion, getCurrentVersion } from '@/clients/http/apps';
+import { checkoutVersion, commitVersion, getCurrentVersion } from '@/clients/http/apps';
 
 interface Version {
   sha: string;
@@ -9,7 +9,7 @@ interface Version {
 
 interface VersionContextType {
   currentVersion: Version | null;
-  commitFiles: (message: string) => Promise<void>;
+  createVersion: (message: string) => Promise<string | undefined>;
   checkout: (sha: string) => Promise<void>;
   fetchVersions: () => Promise<void>;
 }
@@ -44,6 +44,7 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         const response = await commitVersion(app.id, message);
         setCurrentVersion({ sha: response.sha, message });
+        return response.sha;
       } catch (error) {
         console.error('Error committing files:', error);
       }
@@ -56,13 +57,8 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!app) return;
 
       try {
-        const response = await fetch(`/api/apps/${app.id}/checkout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sha }),
-        });
-        if (!response.ok) throw new Error('Failed to checkout version');
-        await fetchVersion();
+        const { sha: checkoutSha } = await checkoutVersion(app.id, sha);
+        setCurrentVersion({ sha: checkoutSha });
         // await refreshFiles();
       } catch (error) {
         console.error('Error checking out version:', error);
@@ -73,7 +69,7 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   return (
     <VersionContext.Provider
-      value={{ currentVersion, commitFiles, checkout, fetchVersions: fetchVersion }}
+      value={{ currentVersion, createVersion: commitFiles, checkout, fetchVersions: fetchVersion }}
     >
       {children}
     </VersionContext.Provider>

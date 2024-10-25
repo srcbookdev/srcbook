@@ -25,11 +25,13 @@ export async function commitAllFiles(app: DBAppType, message: string): Promise<s
   await git.add('.');
 
   // Create commit
-  const commit = await git.commit(message, {
+  await git.commit(message, {
     '--author': 'Srcbook <ai@srcbook.com>',
   });
 
-  return commit.commit; // Returns the commit hash
+  // Get the exact SHA of the new commit. Sometimes it's 'HEAD <sha>' for some reason
+  const sha = await git.revparse(['HEAD']);
+  return sha;
 }
 
 // Checkout to a specific commit, and notify the client that the files have changed

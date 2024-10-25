@@ -77,14 +77,13 @@ export class StreamingXMLParser {
     while (this.buffer.length > 0) {
       // Handle CDATA sections
       if (this.isInCDATA) {
-        const cdataEndIndex = this.buffer.indexOf(']]>');
+        const cdataEndIndex = this.cdataBuffer.indexOf(']]>');
         if (cdataEndIndex === -1) {
-          this.cdataBuffer += this.buffer;
-          this.buffer = '';
+          this.cdataBuffer += chunk;
           return;
         }
 
-        this.cdataBuffer += this.buffer.substring(0, cdataEndIndex);
+        this.cdataBuffer = this.cdataBuffer.substring(0, cdataEndIndex);
         if (this.currentTag) {
           this.currentTag.content = this.cdataBuffer;
         }
@@ -98,9 +97,12 @@ export class StreamingXMLParser {
       const cdataStartIndex = this.buffer.indexOf('<![CDATA[');
       if (cdataStartIndex !== -1) {
         this.isInCDATA = true;
-        this.cdataBuffer = '';
-        this.buffer = this.buffer.substring(cdataStartIndex + 9);
-        continue;
+        const cdataStart = this.buffer.substring(cdataStartIndex + 9);
+        this.buffer = cdataStart;
+        this.cdataBuffer = cdataStart;
+
+        console.log('set buffer to', this.buffer);
+        return;
       }
 
       // Handle regular XML tags
@@ -126,100 +128,5 @@ export class StreamingXMLParser {
         this.handleOpenTag(tagContent);
       }
     }
-  }
-}
-
-type StackTagType = { type: 'open' | 'close'; start: number; end: number };
-
-export class StreamingXMLParserAlt {
-  private idx = 0;
-  private buffer = '';
-  private currentTag: TagType | null = null;
-  // private tagStack: TagType[] = [];
-  // private isInCDATA = false;
-  // private cdataBuffer = '';
-  private onTag: TagCallbackType;
-
-  private stack: StackTagType[] = [
-    {
-      type: 'open',
-      start: 0,
-      end: -1,
-    },
-  ];
-
-  constructor({ onTag }: { onTag: TagCallbackType }) {
-    this.onTag = onTag;
-  }
-
-  parse(chunk: string) {
-    this.buffer += chunk;
-
-    let stop = false;
-
-    while (!stop) {
-      stop = this.doParse();
-    }
-  }
-
-  private doParse() {
-    if (this.lastTag.end === -1) {
-      this.lastTag.end = this.buffer.indexOf('>', this.lastTag.start);
-
-      if (this.lastTag.end !== -1 && this.lastTag.type === 'open') {
-        const { name, attributes } = this.parseOpenTag(this.lastTag.start + 1, this.lastTag.end);
-        this.currentTag = {
-          name,
-          attributes,
-          content: '',
-          children: [],
-        };
-        return this.lastTag.end + 1;
-      } else if (this.lastTag.end !== -1 && this.lastTag.type === 'close') {
-        this.emit(this.currentTag!);
-        this.currentTag = null;
-        this.idx = this.lastTag.end + 1;
-      } else {
-        return false;
-      }
-    } else {
-      const openTag = this.buffer.indexOf('<', idx);
-
-      if (!openTag) {
-        const rest = this.buffer.substring(idx);
-        if (/\S+/.test(rest)) {
-          throw new Error(`Expected to find an opening tag but got ${rest}`);
-        }
-        return this.buffer.length;
-      }
-
-      this.stack.push({ type: 'open' });
-    }
-  }
-
-  private emit(tag: TagType) {
-    this.onTag(tag);
-  }
-
-  private get lastTag() {
-    return this.stack[this.stack.length - 1] as StackTagType;
-  }
-
-  private parseOpenTag(startIdx: number, endIdx: number) {
-    const tagContent = this.buffer.substring(startIdx, endIdx);
-    const spaceIdx = tagContent.indexOf(' ');
-    const name = tagContent.substring(0, spaceIdx);
-    const attributeContent = tagContent.substring(spaceIdx + 1);
-    const attributes: Record<string, string> = {};
-    const matches = attributeContent.match(/(\w+)="([^"]*?)"/g);
-
-    if (matches) {
-      matches.forEach((match) => {
-        const [key, value] = match.split('=') as [string, string];
-        attributes[key] = value.replace(/"/g, '');
-      });
-    }
-
-    return { name, attributes };
   }
 }

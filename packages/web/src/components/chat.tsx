@@ -58,7 +58,7 @@ import { Link } from 'react-router-dom';
 
 function Chat({
   history,
-  isLoading,
+  loading,
   onClose,
   app,
   fileDiffs,
@@ -68,7 +68,7 @@ function Chat({
   openDiffModal,
 }: {
   history: HistoryType;
-  isLoading: boolean;
+  loading: 'description' | 'actions' | null;
   onClose: () => void;
   app: AppType;
   fileDiffs: FileDiffType[];
@@ -88,7 +88,7 @@ function Chat({
 
   React.useEffect(() => {
     scrollToBottom();
-  }, [history, isLoading]);
+  }, [history, loading]);
 
   return (
     <div className="rounded-lg bg-background w-[440px] border shadow-xl max-h-[75vh]">
@@ -171,10 +171,14 @@ function Chat({
             </Button>
           </div>
 
-          {isLoading && (
+          {loading !== null && (
             <div className="flex items-center gap-2 text-sm pt-3">
               <Loader size={18} className="animate-spin text-ai-btn" />{' '}
-              <p className="text-xs">(loading can be slow, streaming coming soon!)</p>
+              <p className="text-xs">
+                {loading === 'description'
+                  ? 'Generating plan...'
+                  : 'Applying changes (this can take a while)...'}
+              </p>
             </div>
           )}
           {/* empty div for scrolling */}
@@ -493,7 +497,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   const [history, setHistory] = React.useState<HistoryType>([]);
   const [fileDiffs, setFileDiffs] = React.useState<FileDiffType[]>([]);
   const [visible, setVisible] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState<'description' | 'actions' | null>(null);
   const [diffApplied, setDiffApplied] = React.useState(false);
   const { createFile, deleteFile } = useFiles();
   const { createVersion } = useVersion();
@@ -509,39 +513,45 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
 
   const handleSubmit = async (query: string) => {
     const planId = randomid();
-    setIsLoading(true);
+    setLoading('description');
     setFileDiffs([]);
     const userMessage = { type: 'user', message: query, planId } as UserMessageType;
     setHistory((prevHistory) => [...prevHistory, userMessage]);
     appendToHistory(app.id, userMessage);
     setVisible(true);
 
-    const { data: plan } = await aiEditApp(app.id, query, planId);
+    const iterable = await aiEditApp(app.id, query, planId);
 
-    const planMessage = {
-      type: 'plan',
-      content: plan.description,
-      planId,
-    } as PlanMessageType;
-    setHistory((prevHistory) => [...prevHistory, planMessage]);
-    appendToHistory(app.id, planMessage);
+    const fileUpdates: FileType[] = [];
 
-    const fileUpdates = plan.actions.filter((item) => item.type === 'file');
-    const commandUpdates = plan.actions.filter((item) => item.type === 'command');
-
-    const historyEntries = commandUpdates.map((update) => {
-      const entry: CommandMessageType = {
-        type: 'command',
-        command: update.command,
-        packages: update.packages,
-        description: update.description,
-        planId,
-      };
-      return entry;
-    });
-
-    setHistory((prevHistory) => [...prevHistory, ...historyEntries]);
-    appendToHistory(app.id, historyEntries);
+    for await (const message of iterable) {
+      if (message.type === 'description') {
+        const planMessage = {
+          type: 'plan',
+          content: message.data.content,
+          planId,
+        } as PlanMessageType;
+        setHistory((prevHistory) => [...prevHistory, planMessage]);
+        appendToHistory(app.id, planMessage);
+        setLoading('actions');
+      } else if (message.type === 'action') {
+        if (message.data.type === 'command') {
+          const commandMessage = {
+            type: 'command',
+            command: message.data.command,
+            packages: message.data.packages,
+            description: message.data.description,
+            planId,
+          } as CommandMessageType;
+          setHistory((prevHistory) => [...prevHistory, commandMessage]);
+          appendToHistory(app.id, commandMessage);
+        } else if (message.data.type === 'file') {
+          fileUpdates.push(message.data);
+        }
+      } else {
+        console.error('Unknown message type:', message);
+      }
+    }
 
     // Write the changes
     for (const update of fileUpdates) {
@@ -571,7 +581,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
 
     setFileDiffs(fileDiffs);
     setDiffApplied(true);
-    setIsLoading(false);
+    setLoading(null);
   };
 
   // TODO: this closes over state that might be stale.
@@ -627,7 +637,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         {visible && (
           <Chat
             history={history}
-            isLoading={isLoading}
+            loading={loading}
             onClose={handleClose}
             app={app}
             diffApplied={diffApplied}
@@ -639,7 +649,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
         )}
         <Query
           onSubmit={handleSubmit}
-          isLoading={isLoading}
+          isLoading={loading !== null}
           onFocus={handleFocus}
           isVisible={visible}
           setVisible={setVisible}

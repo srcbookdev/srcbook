@@ -1,4 +1,4 @@
-import { generateText, type GenerateTextResult } from 'ai';
+import { streamText, generateText, type GenerateTextResult } from 'ai';
 import { getModel } from './config.mjs';
 import {
   type CodeLanguageType,
@@ -13,7 +13,7 @@ import Path from 'node:path';
 import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
 import { buildProjectXml, type FileContent } from '../ai/app-parser.mjs';
-import { type AppGenerationLog, logAppGeneration } from './logger.mjs';
+import { logAppGeneration } from './logger.mjs';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -259,30 +259,40 @@ export async function generateApp(
   return result.text;
 }
 
-export async function editApp(
+export async function streamEditApp(
   projectId: string,
   files: FileContent[],
   query: string,
   appId: string,
   planId: string,
-): Promise<string> {
+) {
   const model = await getModel();
+
   const systemPrompt = makeAppEditorSystemPrompt();
   const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
-  const result = await generateText({
+
+  let response = '';
+
+  const result = await streamText({
     model,
     system: systemPrompt,
     prompt: userPrompt,
+    onChunk: (chunk) => {
+      if (chunk.chunk.type === 'text-delta') {
+        response += chunk.chunk.textDelta;
+      }
+    },
+    onFinish: () => {
+      if (process.env.SRCBOOK_DISABLE_ANALYTICS !== 'true') {
+        logAppGeneration({
+          appId,
+          planId,
+          llm_request: { model, system: systemPrompt, prompt: userPrompt },
+          llm_response: response,
+        });
+      }
+    },
   });
-  const log: AppGenerationLog = {
-    appId,
-    planId,
-    llm_request: { model, system: systemPrompt, prompt: userPrompt },
-    llm_response: result,
-  };
 
-  if (process.env.SRCBOOK_DISABLE_ANALYTICS !== 'true') {
-    logAppGeneration(log);
-  }
-  return result.text;
+  return result.textStream;
 }

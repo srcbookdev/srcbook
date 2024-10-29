@@ -1,9 +1,9 @@
+import fs from 'node:fs';
 import { XMLParser } from 'fast-xml-parser';
 import Path from 'node:path';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { loadFile } from '../apps/disk.mjs';
-import { StreamingXMLParser } from './stream-xml-parser.mjs';
-import { createWriteStream } from 'node:fs';
+import { StreamingXMLParser, TagType } from './stream-xml-parser.mjs';
 
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
@@ -178,32 +178,108 @@ export async function streamParsePlan(
 ) {
   let parser: StreamingXMLParser;
 
-  const writeStream = createWriteStream(
-    '/Users/ben/Desktop/srcbook/srcbook/packages/api/test/plan-tokens.txt',
-  );
+  const writeStream = fs.createWriteStream('/Users/ben/Desktop/out.txt');
 
   return new ReadableStream({
     async pull(controller) {
       if (parser === undefined) {
         parser = new StreamingXMLParser({
           onTag(tag) {
-            console.log('HERE????');
-            controller.enqueue(JSON.stringify(tag) + '\n');
+            try {
+              const chunk = toStreamingChunk(tag);
+              if (chunk) {
+                controller.enqueue(JSON.stringify(chunk) + '\n');
+              }
+            } catch (error) {
+              console.error(error);
+              controller.enqueue(
+                JSON.stringify({
+                  type: 'error',
+                  data: { content: 'Error while parsing streaming response' },
+                }) + '\n',
+              );
+              controller.error(error);
+            }
           },
         });
       }
 
       try {
         for await (const chunk of stream) {
-          writeStream.write(JSON.stringify({ token: chunk }) + '\n');
-          parser.parse(chunk);
+          writeStream.write(JSON.stringify({ chunk }) + '\n');
+          try {
+            parser.parse(chunk);
+          } catch (error) {
+            console.error(error);
+            controller.enqueue(
+              JSON.stringify({
+                type: 'error',
+                data: { content: 'Error while parsing streaming response' },
+              }) + '\n',
+            );
+            controller.error(error);
+          }
         }
-        console.log('HERE!!!!!');
-        writeStream.end();
         controller.close();
+        writeStream.end();
       } catch (error) {
+        console.error(error);
+        controller.enqueue(
+          JSON.stringify({
+            type: 'error',
+            data: { content: 'Error while parsing streaming response' },
+          }) + '\n',
+        );
         controller.error(error);
       }
     },
   });
+}
+
+function toStreamingChunk(tag: TagType) {
+  console.log('TAG', tag);
+
+  switch (tag.name) {
+    case 'planDescription':
+      return {
+        type: 'description',
+        data: { content: tag.content },
+      };
+    case 'action': {
+      const descriptionTag = tag.children.find((t) => t.name === 'description');
+      const description = descriptionTag?.content ?? '';
+      const type = tag.attributes.type;
+
+      if (type === 'file') {
+        const fileTag = tag.children.find((t) => t.name === 'file')!;
+
+        return {
+          type: 'action',
+          data: {
+            type: 'file',
+            description,
+            file: {
+              content: fileTag.content,
+              filename: fileTag.attributes.filename,
+            },
+          },
+        };
+      } else if (type === 'command') {
+        const commandTag = tag.children.find((t) => t.name === 'commandType')!;
+        const packageTags = tag.children.filter((t) => t.name === 'package');
+
+        return {
+          type: 'action',
+          data: {
+            type: 'command',
+            description,
+            command: {
+              type: commandTag.content,
+              packages: packageTags.map((t) => t.content),
+            },
+          },
+        };
+      }
+    }
+  }
 }

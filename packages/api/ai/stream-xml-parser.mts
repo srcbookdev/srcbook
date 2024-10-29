@@ -56,8 +56,6 @@ export class StreamingXMLParser {
   private handleCloseTag(tagName: string) {
     if (!this.currentTag) return;
 
-    console.dir(this.tagStack, { depth: null });
-
     if (this.currentTag.name === tagName) {
       if (tagName === 'planDescription' || tagName === 'action') {
         this.onTag(this.currentTag);
@@ -93,31 +91,29 @@ export class StreamingXMLParser {
         continue;
       }
 
-      // Look for CDATA start
-      const cdataStartIndex = this.buffer.indexOf('<![CDATA[');
-      if (cdataStartIndex !== -1) {
-        this.isInCDATA = true;
-        const cdataStart = this.buffer.substring(cdataStartIndex + 9);
-        this.buffer = cdataStart;
-        this.cdataBuffer = cdataStart;
-
-        return;
-      }
-
-      // Handle regular XML tags
-      const openTagStart = this.buffer.indexOf('<');
-      if (openTagStart === -1) {
+      // Start of an opening tag?
+      const openTagStartIdx = this.buffer.indexOf('<');
+      if (openTagStartIdx === -1) {
         this.buffer = '';
         return;
       }
 
-      const openTagEnd = this.buffer.indexOf('>', openTagStart);
-      if (openTagEnd === -1) {
+      // If this opening tag is CDATA, handle it differently than XML tags
+      if (this.sequenceExistsAt('<![CDATA[', openTagStartIdx)) {
+        this.isInCDATA = true;
+        const cdataStart = this.buffer.substring(openTagStartIdx + 9);
+        this.buffer = cdataStart;
+        this.cdataBuffer = cdataStart;
         return;
       }
 
-      const tagContent = this.buffer.substring(openTagStart + 1, openTagEnd);
-      this.buffer = this.buffer.substring(openTagEnd + 1);
+      const openTagEndIdx = this.buffer.indexOf('>', openTagStartIdx);
+      if (openTagEndIdx === -1) {
+        return;
+      }
+
+      const tagContent = this.buffer.substring(openTagStartIdx + 1, openTagEndIdx);
+      this.buffer = this.buffer.substring(openTagEndIdx + 1);
 
       if (tagContent.startsWith('/')) {
         // Closing tag
@@ -127,5 +123,18 @@ export class StreamingXMLParser {
         this.handleOpenTag(tagContent);
       }
     }
+  }
+
+  /**
+   * Does the sequence exist starting at the given index in the buffer?
+   */
+  private sequenceExistsAt(sequence: string, idx: number, buffer: string = this.buffer) {
+    for (let i = 0; i < sequence.length; i++) {
+      if (buffer[idx + i] !== sequence[i]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

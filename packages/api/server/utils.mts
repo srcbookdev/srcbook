@@ -1,5 +1,5 @@
 import { ServerResponse } from 'node:http';
-import { StreamToIterable } from '../utils.mjs';
+import { StreamToIterable } from '@srcbook/shared';
 
 /**
  * Pipe a `ReadableStream` through a Node `ServerResponse` object.

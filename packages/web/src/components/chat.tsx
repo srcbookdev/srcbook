@@ -516,7 +516,13 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
     appendToHistory(app.id, userMessage);
     setVisible(true);
 
-    const { data: plan } = await aiEditApp(app.id, query, planId);
+    const iterable = await aiEditApp(app.id, query, planId);
+
+    for await (const message of iterable) {
+      console.log(message);
+    }
+
+    return;
 
     const planMessage = {
       type: 'plan',

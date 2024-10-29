@@ -6,8 +6,8 @@ import type {
   FileType,
 } from '@srcbook/shared';
 import SRCBOOK_CONFIG from '@/config';
-import type { PlanType } from '@/components/apps/types';
 import type { HistoryType, MessageType } from '@srcbook/shared';
+import { StreamToIterable } from '@srcbook/shared';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
 
@@ -234,7 +234,7 @@ export async function aiEditApp(
   id: string,
   query: string,
   planId: string,
-): Promise<{ data: PlanType }> {
+): Promise<AsyncIterable<string>> {
   const response = await fetch(API_BASE_URL + `/apps/${id}/edit`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -246,7 +246,7 @@ export async function aiEditApp(
     throw new Error('Request failed');
   }
 
-  return response.json();
+  return StreamToIterable(response.body!.pipeThrough(new TextDecoderStream()));
 }
 
 export async function loadHistory(id: string): Promise<{ data: HistoryType }> {

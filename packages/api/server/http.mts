@@ -556,7 +556,7 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
     }
     const validName = toValidPackageName(app.name);
     const files = await getFlatFilesForApp(String(app.externalId));
-    const result = await streamEditApp(validName, files, query);
+    const result = await streamEditApp(validName, files, query, app.externalId, planId);
     const planStream = await streamParsePlan(result, app, query, planId);
 
     return streamJsonResponse(planStream, res, { status: 200 });

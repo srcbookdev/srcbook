@@ -1,9 +1,9 @@
-import fs from 'node:fs';
 import { XMLParser } from 'fast-xml-parser';
 import Path from 'node:path';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { loadFile } from '../apps/disk.mjs';
 import { StreamingXMLParser, TagType } from './stream-xml-parser.mjs';
+import { ActionChunkType, DescriptionChunkType } from '@srcbook/shared';
 
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
@@ -172,33 +172,22 @@ export function getPackagesToInstall(plan: Plan): string[] {
 
 export async function streamParsePlan(
   stream: AsyncIterable<string>,
-  _app: DBAppType,
+  app: DBAppType,
   _query: string,
-  _planId: string,
+  planId: string,
 ) {
   let parser: StreamingXMLParser;
-
-  const writeStream = fs.createWriteStream('/Users/ben/Desktop/out.txt');
 
   return new ReadableStream({
     async pull(controller) {
       if (parser === undefined) {
         parser = new StreamingXMLParser({
-          onTag(tag) {
-            try {
-              const chunk = toStreamingChunk(tag);
+          async onTag(tag) {
+            if (tag.name === 'planDescription' || tag.name === 'action') {
+              const chunk = await toStreamingChunk(app, tag, planId);
               if (chunk) {
                 controller.enqueue(JSON.stringify(chunk) + '\n');
               }
-            } catch (error) {
-              console.error(error);
-              controller.enqueue(
-                JSON.stringify({
-                  type: 'error',
-                  data: { content: 'Error while parsing streaming response' },
-                }) + '\n',
-              );
-              controller.error(error);
             }
           },
         });
@@ -206,22 +195,9 @@ export async function streamParsePlan(
 
       try {
         for await (const chunk of stream) {
-          writeStream.write(JSON.stringify({ chunk }) + '\n');
-          try {
-            parser.parse(chunk);
-          } catch (error) {
-            console.error(error);
-            controller.enqueue(
-              JSON.stringify({
-                type: 'error',
-                data: { content: 'Error while parsing streaming response' },
-              }) + '\n',
-            );
-            controller.error(error);
-          }
+          parser.parse(chunk);
         }
         controller.close();
-        writeStream.end();
       } catch (error) {
         console.error(error);
         controller.enqueue(
@@ -236,15 +212,18 @@ export async function streamParsePlan(
   });
 }
 
-function toStreamingChunk(tag: TagType) {
-  console.log('TAG', tag);
-
+async function toStreamingChunk(
+  app: DBAppType,
+  tag: TagType,
+  planId: string,
+): Promise<DescriptionChunkType | ActionChunkType | null> {
   switch (tag.name) {
     case 'planDescription':
       return {
         type: 'description',
+        planId: planId,
         data: { content: tag.content },
-      };
+      } as DescriptionChunkType;
     case 'action': {
       const descriptionTag = tag.children.find((t) => t.name === 'description');
       const description = descriptionTag?.content ?? '';
@@ -253,33 +232,48 @@ function toStreamingChunk(tag: TagType) {
       if (type === 'file') {
         const fileTag = tag.children.find((t) => t.name === 'file')!;
 
+        const filePath = fileTag.attributes.filename as string;
+        let originalContent = null;
+
+        try {
+          const fileContent = await loadFile(app, filePath);
+          originalContent = fileContent.source;
+        } catch (error) {
+          // If the file doesn't exist, it's likely that it's a new file.
+        }
+
         return {
           type: 'action',
+          planId: planId,
           data: {
             type: 'file',
             description,
-            file: {
-              content: fileTag.content,
-              filename: fileTag.attributes.filename,
-            },
+            path: filePath,
+            dirname: Path.dirname(filePath),
+            basename: Path.basename(filePath),
+            modified: fileTag.content,
+            original: originalContent,
           },
-        };
+        } as ActionChunkType;
       } else if (type === 'command') {
         const commandTag = tag.children.find((t) => t.name === 'commandType')!;
         const packageTags = tag.children.filter((t) => t.name === 'package');
 
         return {
           type: 'action',
+          planId: planId,
           data: {
             type: 'command',
             description,
-            command: {
-              type: commandTag.content,
-              packages: packageTags.map((t) => t.content),
-            },
+            command: commandTag.content,
+            packages: packageTags.map((t) => t.content),
           },
-        };
+        } as ActionChunkType;
+      } else {
+        return null;
       }
     }
+    default:
+      return null;
   }
 }

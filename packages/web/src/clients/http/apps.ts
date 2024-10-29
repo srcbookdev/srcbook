@@ -1,6 +1,8 @@
 import type {
+  ActionChunkType,
   AppGenerationFeedbackType,
   AppType,
+  DescriptionChunkType,
   DirEntryType,
   FileEntryType,
   FileType,
@@ -234,7 +236,7 @@ export async function aiEditApp(
   id: string,
   query: string,
   planId: string,
-): Promise<AsyncIterable<string>> {
+): Promise<AsyncIterable<DescriptionChunkType | ActionChunkType>> {
   const response = await fetch(API_BASE_URL + `/apps/${id}/edit`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -246,7 +248,21 @@ export async function aiEditApp(
     throw new Error('Request failed');
   }
 
-  return StreamToIterable(response.body!.pipeThrough(new TextDecoderStream()));
+  const JSONDecoder = new TransformStream<string, DescriptionChunkType | ActionChunkType>({
+    transform(chunk, controller) {
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.trim() !== '') {
+          const parsed = JSON.parse(line);
+          controller.enqueue(parsed);
+        }
+      }
+    },
+  });
+
+  return StreamToIterable(
+    response.body!.pipeThrough(new TextDecoderStream()).pipeThrough(JSONDecoder),
+  );
 }
 
 export async function loadHistory(id: string): Promise<{ data: HistoryType }> {

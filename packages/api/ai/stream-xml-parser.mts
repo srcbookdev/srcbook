@@ -57,9 +57,7 @@ export class StreamingXMLParser {
     if (!this.currentTag) return;
 
     if (this.currentTag.name === tagName) {
-      if (tagName === 'planDescription' || tagName === 'action') {
-        this.onTag(this.currentTag);
-      }
+      this.onTag(this.currentTag);
 
       if (this.tagStack.length > 0) {
         this.currentTag = this.tagStack.pop()!;

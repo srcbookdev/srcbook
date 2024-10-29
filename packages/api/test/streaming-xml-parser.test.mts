@@ -17,7 +17,9 @@ describe('parsePlan', () => {
     const tags: TagType[] = [];
     const parser = new StreamingXMLParser({
       onTag: (tag) => {
-        tags.push(tag);
+        if (tag.name === 'planDescription' || tag.name === 'action') {
+          tags.push(tag);
+        }
       },
     });
     getExampleChunks('../plan-chunks.txt').forEach((chunk) => parser.parse(chunk));
@@ -103,7 +105,9 @@ export const playlists: PlaylistItem[] = [
     const tags: TagType[] = [];
     const parser = new StreamingXMLParser({
       onTag: (tag) => {
-        tags.push(tag);
+        if (tag.name === 'planDescription' || tag.name === 'action') {
+          tags.push(tag);
+        }
       },
     });
     getExampleChunks('../plan-chunks-2.txt').forEach((chunk) => parser.parse(chunk));

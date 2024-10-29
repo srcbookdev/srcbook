@@ -23,13 +23,9 @@ import { fileUpdated, pathToApp } from '../../apps/disk.mjs';
 import { directoryExists } from '../../fs-utils.mjs';
 import {
   getAppProcess,
-  setAppProcess,
-  deleteAppProcess,
   npmInstall,
-  viteServer,
 } from '../../apps/processes.mjs';
-
-const VITE_PORT_REGEX = /Local:.*http:\/\/localhost:([0-9]{1,4})/;
+import { createSandbox, getSandbox, terminateSandbox } from "../../apps/e2b.mjs";
 
 type AppContextType = MessageContextType<'appId'>;
 
@@ -44,12 +40,12 @@ async function previewStart(
     return;
   }
 
-  const existingProcess = getAppProcess(app.externalId, 'vite:server');
-
-  if (existingProcess) {
+  const existingSandbox = getSandbox(app.externalId);
+  console.log('EXISTING', existingSandbox);
+  if (existingSandbox) {
     wss.broadcast(`app:${app.externalId}`, 'preview:status', {
-      status: 'running',
-      url: `http://localhost:${existingProcess.port}/`,
+      status: existingSandbox.status,
+      url: existingSandbox.status === "running" ? existingSandbox.url : null,
     });
     return;
   }
@@ -59,51 +55,16 @@ async function previewStart(
     status: 'booting',
   });
 
-  const onChangePort = (newPort: number) => {
-    const process = getAppProcess(app.externalId, 'vite:server');
-
-    // This is not expected to happen
-    if (!process) {
-      wss.broadcast(`app:${app.externalId}`, 'preview:status', {
-        url: null,
-        status: 'stopped',
-        code: null,
-      });
-      return;
-    }
-
-    setAppProcess(app.externalId, { ...process, port: newPort });
-
-    wss.broadcast(`app:${app.externalId}`, 'preview:status', {
-      url: `http://localhost:${newPort}/`,
-      status: 'running',
-    });
-  };
-
-  viteServer(app.externalId, {
-    args: [],
-    stdout: (data) => {
-      const encodedData = data.toString('utf8');
-      console.log(encodedData);
-
+  await createSandbox(app, {
+    onStdout: (encodedData: string) => {
       wss.broadcast(`app:${app.externalId}`, 'preview:log', {
         log: {
           type: 'stdout',
           data: encodedData,
         },
       });
-
-      const potentialPortMatch = VITE_PORT_REGEX.exec(encodedData);
-      if (potentialPortMatch) {
-        const portString = potentialPortMatch[1]!;
-        const port = parseInt(portString, 10);
-        onChangePort(port);
-      }
     },
-    stderr: (data) => {
-      const encodedData = data.toString('utf8');
-      console.error(encodedData);
-
+    onStderr: (encodedData: string) => {
       wss.broadcast(`app:${app.externalId}`, 'preview:log', {
         log: {
           type: 'stderr',
@@ -111,26 +72,19 @@ async function previewStart(
         },
       });
     },
-    onExit: (code) => {
-      deleteAppProcess(app.externalId, 'vite:server');
-
+    onExit: (code: number) => {
       wss.broadcast(`app:${app.externalId}`, 'preview:status', {
         url: null,
         status: 'stopped',
         code: code,
       });
     },
-    onError: (_error) => {
-      // Errors happen when we try to run vite before node modules are installed.
-      // Make sure we clean up the app process and inform the client.
-      deleteAppProcess(app.externalId, 'vite:server');
+    onRunning: (url: string) => {
+      console.log('RUNNING:', url)
 
-      // TODO: Use a different event to communicate to the client there was an error.
-      // If the error is ENOENT, for example, it means node_modules and/or vite is missing.
       wss.broadcast(`app:${app.externalId}`, 'preview:status', {
-        url: null,
-        status: 'stopped',
-        code: null,
+        status: 'running',
+        url,
       });
     },
   });
@@ -147,9 +101,9 @@ async function previewStop(
     return;
   }
 
-  const result = getAppProcess(app.externalId, 'vite:server');
+  const sandboxWithMetadata = getSandbox(app.externalId);
 
-  if (!result) {
+  if (!sandboxWithMetadata) {
     conn.reply(`app:${app.externalId}`, 'preview:status', {
       url: null,
       status: 'stopped',
@@ -158,10 +112,18 @@ async function previewStop(
     return;
   }
 
-  // Killing the process should result in its onExit handler being called.
-  // The onExit handler will remove the process from the processMetadata map
-  // and send the `preview:status` event with a value of 'stopped'
-  result.process.kill('SIGTERM');
+  // // Killing the process should result in its onExit handler being called.
+  // // The onExit handler will remove the process from the processMetadata map
+  // // and send the `preview:status` event with a value of 'stopped'
+  // result.process.kill('SIGTERM');
+  console.log('TERMINATE!', app.externalId);
+
+  await terminateSandbox(app.externalId);
+  conn.reply(`app:${app.externalId}`, 'preview:status', {
+    url: null,
+    status: 'stopped',
+    code: null,
+  });
 }
 
 async function dependenciesInstall(payload: DepsInstallPayloadType, context: AppContextType) {

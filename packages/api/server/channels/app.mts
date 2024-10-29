@@ -21,11 +21,13 @@ import WebSocketServer, {
 import { loadApp } from '../../apps/app.mjs';
 import { fileUpdated, pathToApp } from '../../apps/disk.mjs';
 import { directoryExists } from '../../fs-utils.mjs';
+import { getAppProcess, npmInstall } from '../../apps/processes.mjs';
 import {
-  getAppProcess,
-  npmInstall,
-} from '../../apps/processes.mjs';
-import { createSandbox, getSandbox, terminateSandbox, writeFileToSandbox } from "../../apps/e2b.mjs";
+  createSandbox,
+  getSandbox,
+  terminateSandbox,
+  writeFileToSandbox,
+} from '../../apps/e2b.mjs';
 
 type AppContextType = MessageContextType<'appId'>;
 
@@ -45,7 +47,7 @@ async function previewStart(
   if (existingSandbox) {
     wss.broadcast(`app:${app.externalId}`, 'preview:status', {
       status: existingSandbox.status,
-      url: existingSandbox.status === "running" ? existingSandbox.url : null,
+      url: existingSandbox.status === 'running' ? existingSandbox.url : null,
     });
     return;
   }
@@ -80,7 +82,7 @@ async function previewStart(
       });
     },
     onRunning: (url: string) => {
-      console.log('RUNNING:', url)
+      console.log('RUNNING:', url);
 
       wss.broadcast(`app:${app.externalId}`, 'preview:status', {
         status: 'running',

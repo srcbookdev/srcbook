@@ -25,7 +25,7 @@ import {
   getAppProcess,
   npmInstall,
 } from '../../apps/processes.mjs';
-import { createSandbox, getSandbox, terminateSandbox } from "../../apps/e2b.mjs";
+import { createSandbox, getSandbox, terminateSandbox, writeFileToSandbox } from "../../apps/e2b.mjs";
 
 type AppContextType = MessageContextType<'appId'>;
 
@@ -184,6 +184,9 @@ async function onFileUpdated(payload: FileUpdatedPayloadType, context: AppContex
   }
 
   fileUpdated(app, payload.file as FileType);
+
+  console.log('WRITE');
+  await writeFileToSandbox(app, payload.file);
 }
 
 export function register(wss: WebSocketServer) {

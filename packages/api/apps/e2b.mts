@@ -2,6 +2,8 @@ import Path from 'node:path';
 import fs from 'node:fs/promises';
 import { glob } from 'glob';
 import { CommandHandle, CommandResult, Sandbox } from '@e2b/code-interpreter'
+import { FileType } from '@srcbook/shared';
+
 import { App } from '../db/schema.mjs';
 import { pathToApp } from './disk.mjs';
 
@@ -264,4 +266,14 @@ async function recursiveCopyIntoSandbox(fromDirectory: string, sandbox: Sandbox,
     console.log('copying', filePath, '=>', filePathInSandbox);
     await sandbox.files.write(filePathInSandbox, fileContents);
   }
+}
+
+export async function writeFileToSandbox(app: App, file: FileType) {
+  const sandbox = getSandbox(app.externalId);
+  if (!sandbox) {
+    return;
+  }
+
+  await sandbox.sandbox.files.write(Path.join(SANDBOX_APP_CWD, file.path), file.source);
+  // NOTE: broadcastFileUpdated may be needed here?
 }

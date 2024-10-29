@@ -2,6 +2,8 @@ import { XMLParser } from 'fast-xml-parser';
 import Path from 'node:path';
 import { type App as DBAppType } from '../db/schema.mjs';
 import { loadFile } from '../apps/disk.mjs';
+import { StreamingXMLParser, TagType } from './stream-xml-parser.mjs';
+import { ActionChunkType, DescriptionChunkType } from '@srcbook/shared';
 
 // The ai proposes a plan that we expect to contain both files and commands
 // Here is an example of a plan:
@@ -166,4 +168,112 @@ export function getPackagesToInstall(plan: Plan): string[] {
         action.type === 'command' && action.command === 'npm install',
     )
     .flatMap((action) => action.packages);
+}
+
+export async function streamParsePlan(
+  stream: AsyncIterable<string>,
+  app: DBAppType,
+  _query: string,
+  planId: string,
+) {
+  let parser: StreamingXMLParser;
+
+  return new ReadableStream({
+    async pull(controller) {
+      if (parser === undefined) {
+        parser = new StreamingXMLParser({
+          async onTag(tag) {
+            if (tag.name === 'planDescription' || tag.name === 'action') {
+              const chunk = await toStreamingChunk(app, tag, planId);
+              if (chunk) {
+                controller.enqueue(JSON.stringify(chunk) + '\n');
+              }
+            }
+          },
+        });
+      }
+
+      try {
+        for await (const chunk of stream) {
+          parser.parse(chunk);
+        }
+        controller.close();
+      } catch (error) {
+        console.error(error);
+        controller.enqueue(
+          JSON.stringify({
+            type: 'error',
+            data: { content: 'Error while parsing streaming response' },
+          }) + '\n',
+        );
+        controller.error(error);
+      }
+    },
+  });
+}
+
+async function toStreamingChunk(
+  app: DBAppType,
+  tag: TagType,
+  planId: string,
+): Promise<DescriptionChunkType | ActionChunkType | null> {
+  switch (tag.name) {
+    case 'planDescription':
+      return {
+        type: 'description',
+        planId: planId,
+        data: { content: tag.content },
+      } as DescriptionChunkType;
+    case 'action': {
+      const descriptionTag = tag.children.find((t) => t.name === 'description');
+      const description = descriptionTag?.content ?? '';
+      const type = tag.attributes.type;
+
+      if (type === 'file') {
+        const fileTag = tag.children.find((t) => t.name === 'file')!;
+
+        const filePath = fileTag.attributes.filename as string;
+        let originalContent = null;
+
+        try {
+          const fileContent = await loadFile(app, filePath);
+          originalContent = fileContent.source;
+        } catch (error) {
+          // If the file doesn't exist, it's likely that it's a new file.
+        }
+
+        return {
+          type: 'action',
+          planId: planId,
+          data: {
+            type: 'file',
+            description,
+            path: filePath,
+            dirname: Path.dirname(filePath),
+            basename: Path.basename(filePath),
+            modified: fileTag.content,
+            original: originalContent,
+          },
+        } as ActionChunkType;
+      } else if (type === 'command') {
+        const commandTag = tag.children.find((t) => t.name === 'commandType')!;
+        const packageTags = tag.children.filter((t) => t.name === 'package');
+
+        return {
+          type: 'action',
+          planId: planId,
+          data: {
+            type: 'command',
+            description,
+            command: commandTag.content,
+            packages: packageTags.map((t) => t.content),
+          },
+        } as ActionChunkType;
+      } else {
+        return null;
+      }
+    }
+    default:
+      return null;
+  }
 }

@@ -1,0 +1,103 @@
+{"chunk":"<plan>\n  <plan"}
+{"chunk":"Description>\n    <!["}
+{"chunk":"CDATA["}
+{"chunk":"\nI'll update the mock"}
+{"chunk":" data to include Ph"}
+{"chunk":"ish albums instead of the current albums"}
+{"chunk":". I'll use"}
+{"chunk":" real Phish album covers"}
+{"chunk":" and titles to make it more authentic"}
+{"chunk":".\n    ]]>"}
+{"chunk":"\n  </planDescription>\n  <action"}
+{"chunk":" type=\"file\">\n    <description"}
+{"chunk":">\n      <![CDATA["}
+{"chunk":"\nUpdate mockData.ts to include"}
+{"chunk":" Phish albums with"}
+{"chunk":" real album information\n      ]]>"}
+{"chunk":"\n    </description>\n    <file filename"}
+{"chunk":"=\"src/data/mockData.ts"}
+{"chunk":"\">\n      <![CDATA["}
+{"chunk":"\nimport { Album, PlaylistItem } from"}
+{"chunk":" '../types';\n\nexport const albums"}
+{"chunk":": Album[] = ["}
+{"chunk":"\n  {\n    "}
+{"chunk":"id: '1',"}
+{"chunk":"\n    title: 'A"}
+{"chunk":" Picture of Nectar"}
+{"chunk":"',\n    artist: 'Phish"}
+{"chunk":"',\n    cover:"}
+{"chunk":" 'https://i"}
+{"chunk":".scdn.co"}
+{"chunk":"/image/ab67616d0000b"}
+{"chunk":"273f3912f"}
+{"chunk":"fc6e6533"}
+{"chunk":"d0aae3c"}
+{"chunk":"58d',\n  },"}
+{"chunk":"\n  {\n    id: '2',"}
+{"chunk":"\n    title: 'Billy"}
+{"chunk":" Breathes',\n    artist: '"}
+{"chunk":"Phish',\n    cover: '"}
+{"chunk":"https://i.scdn.co/image"}
+{"chunk":"/ab67616d0000b273f"}
+{"chunk":"4c8d14"}
+{"chunk":"e6c2d8"}
+{"chunk":"b0651388be"}
+{"chunk":"6',\n  },\n  {\n    "}
+{"chunk":"id: '3',\n    title: "}
+{"chunk":"'Farmhouse',\n    artist"}
+{"chunk":": 'Phish',\n    cover"}
+{"chunk":": 'https://i.scdn."}
+{"chunk":"co/image/ab67616d0000"}
+{"chunk":"b273f5a"}
+{"chunk":"0be2976c3"}
+{"chunk":"df8baae"}
+{"chunk":"5d5b1"}
+{"chunk":"',\n  },\n  {\n    i"}
+{"chunk":"d: '4',\n    title: '"}
+{"chunk":"Story of the Ghost',"}
+{"chunk":"\n    artist: 'Phish',"}
+{"chunk":"\n    cover: '"}
+{"chunk":"https://i.scdn.co/image"}
+{"chunk":"/ab67616d0000b273f"}
+{"chunk":"00669d9866452"}
+{"chunk":"b5f49f4"}
+{"chunk":"989',\n  },\n  "}
+{"chunk":"{\n    id: '5',\n    "}
+{"chunk":"title: 'H"}
+{"chunk":"oist',\n    artist"}
+{"chunk":": 'Phish',\n    cover"}
+{"chunk":": 'https://i.scdn."}
+{"chunk":"co/image/ab67616d0000"}
+{"chunk":"b273f5c500"}
+{"chunk":"e2fa5f1"}
+{"chunk":"d0ae5dce"}
+{"chunk":"4df',\n  },"}
+{"chunk":"\n  {\n    i"}
+{"chunk":"d: '6',\n    title: '"}
+{"chunk":"Sigma Oasis',"}
+{"chunk":"\n    artist: 'Phish',"}
+{"chunk":"\n    cover: '"}
+{"chunk":"https://i.scdn.co/image"}
+{"chunk":"/ab67616d0000b273a"}
+{"chunk":"0c79aba3"}
+{"chunk":"b83f5f016"}
+{"chunk":"f47737',\n  },"}
+{"chunk":"\n];\n\nexport const playlists: Playlist"}
+{"chunk":"Item[] = ["}
+{"chunk":"\n  { id: '"}
+{"chunk":"1', name: "}
+{"chunk":"'Liked Songs',"}
+{"chunk":" icon: '❤"}
+{"chunk":"️' },\n  "}
+{"chunk":"{ id: '2', name: '"}
+{"chunk":"Your Episodes', icon:"}
+{"chunk":" '🎙️' },\n  {"}
+{"chunk":" id: '3', name: 'Rock"}
+{"chunk":" Classics', icon: '🎸'"}
+{"chunk":" },\n  { id: '4', name"}
+{"chunk":": 'Chill Vibes',"}
+{"chunk":" icon: '🌊' },\n];"}
+{"chunk":"\n      ]]>\n    </"}
+{"chunk":"file>\n  </"}
+{"chunk":"action>\n</plan"}
+{"chunk":">"}

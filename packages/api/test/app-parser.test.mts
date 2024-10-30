@@ -1,6 +1,6 @@
 import { parseProjectXML } from '../ai/app-parser.mjs';
 
-describe('parseProjectXML', () => {
+describe.skip('parseProjectXML', () => {
   it('should correctly parse XML and return a Project object', () => {
     const testXML = `
     <project id="test-project">

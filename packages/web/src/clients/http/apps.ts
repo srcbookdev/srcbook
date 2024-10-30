@@ -1,15 +1,13 @@
 import type {
-  ActionChunkType,
   AppGenerationFeedbackType,
   AppType,
-  DescriptionChunkType,
   DirEntryType,
   FileEntryType,
   FileType,
 } from '@srcbook/shared';
 import SRCBOOK_CONFIG from '@/config';
+import type { PlanType } from '@/components/apps/types';
 import type { HistoryType, MessageType } from '@srcbook/shared';
-import { StreamToIterable } from '@srcbook/shared';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
 
@@ -236,7 +234,7 @@ export async function aiEditApp(
   id: string,
   query: string,
   planId: string,
-): Promise<AsyncIterable<DescriptionChunkType | ActionChunkType>> {
+): Promise<{ data: PlanType }> {
   const response = await fetch(API_BASE_URL + `/apps/${id}/edit`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -248,21 +246,7 @@ export async function aiEditApp(
     throw new Error('Request failed');
   }
 
-  const JSONDecoder = new TransformStream<string, DescriptionChunkType | ActionChunkType>({
-    transform(chunk, controller) {
-      const lines = chunk.split('\n');
-      for (const line of lines) {
-        if (line.trim() !== '') {
-          const parsed = JSON.parse(line);
-          controller.enqueue(parsed);
-        }
-      }
-    },
-  });
-
-  return StreamToIterable(
-    response.body!.pipeThrough(new TextDecoderStream()).pipeThrough(JSONDecoder),
-  );
+  return response.json();
 }
 
 export async function loadHistory(id: string): Promise<{ data: HistoryType }> {

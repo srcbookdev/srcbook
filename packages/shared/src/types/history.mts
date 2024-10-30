@@ -15,12 +15,15 @@ export type UserMessageType = {
   planId: string;
 };
 
-export type CommandMessageType = {
+export type NpmInstallCommand = {
   type: 'command';
-  planId: string;
   command: 'npm install';
   packages: string[];
   description: string;
+};
+
+export type CommandMessageType = NpmInstallCommand & {
+  planId: string;
 };
 
 export type DiffMessageType = {
@@ -39,36 +42,3 @@ export type PlanMessageType = {
 export type MessageType = UserMessageType | DiffMessageType | CommandMessageType | PlanMessageType;
 
 export type HistoryType = Array<MessageType>;
-
-//////////////////////////////////////////
-// When streaming file objects from LLM //
-//////////////////////////////////////////
-
-export type DescriptionChunkType = {
-  type: 'description';
-  planId: string;
-  data: { content: string };
-};
-
-export type FileActionChunkType = {
-  type: 'file';
-  description: string;
-  modified: string;
-  original: string | null;
-  basename: string;
-  dirname: string;
-  path: string;
-};
-
-export type CommandActionChunkType = {
-  type: 'command';
-  description: string;
-  command: 'npm install';
-  packages: string[];
-};
-
-export type ActionChunkType = {
-  type: 'action';
-  planId: string;
-  data: FileActionChunkType | CommandActionChunkType;
-};

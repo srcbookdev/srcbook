@@ -547,6 +547,7 @@ router.options('/apps/:id/edit', cors());
 router.post('/apps/:id/edit', cors(), async (req, res) => {
   const { id } = req.params;
   const { query, planId } = req.body;
+  console.log('query: ', query);
   posthog.capture({ event: 'user edited app with ai' });
   try {
     const app = await loadApp(id);

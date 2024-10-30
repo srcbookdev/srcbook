@@ -99,5 +99,16 @@
 {"chunk":" icon: '🌊' },\n];"}
 {"chunk":"\n      ]]>\n    </"}
 {"chunk":"file>\n  </"}
-{"chunk":"action>\n</plan"}
+{"chunk":"action>\n"}
+{"chunk":"<action type=\"command\">\n"}
+{"chunk":"<description>\n    <![CDATA["}
+{"chunk":"Install react-router"}
+{"chunk":"\n      ]]>"}
+{"chunk":"</description>    \n"}
+{"chunk":"<commandType>npm install\n<"}
+{"chunk": "/commandType>"}
+{"chunk":"<package>react-router\n"}
+{"chunk":"   </package>\n   "}
+{"chunk":"</action> \n"}
+{"chunk": "</plan"}
 {"chunk":">"}

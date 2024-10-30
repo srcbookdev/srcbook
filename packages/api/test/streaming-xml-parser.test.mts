@@ -101,7 +101,7 @@ export const playlists: PlaylistItem[] = [
     ]);
   });
 
-  test('should correctly parse a plan with file and command actions', async () => {
+  test.only('should correctly parse a plan with file and command actions', async () => {
     const tags: TagType[] = [];
     const parser = new StreamingXMLParser({
       onTag: (tag) => {
@@ -183,6 +183,31 @@ export const playlists: PlaylistItem[] = [
   { id: '4', name: 'Chill Vibes', icon: '🌊' },
 ];
       `,
+            children: [],
+          },
+        ],
+      },
+      {
+        name: 'action',
+        attributes: { type: 'command' },
+        content: '',
+        children: [
+          {
+            name: 'description',
+            attributes: {},
+            content: 'Install react-router\n      ',
+            children: [],
+          },
+          {
+            name: 'commandType',
+            attributes: {},
+            content: 'npm install',
+            children: [],
+          },
+          {
+            name: 'packages',
+            attributes: {},
+            content: 'react-router',
             children: [],
           },
         ],

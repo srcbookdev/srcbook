@@ -105,6 +105,7 @@ export const playlists: PlaylistItem[] = [
     const tags: TagType[] = [];
     const parser = new StreamingXMLParser({
       onTag: (tag) => {
+        console.log('test onTag: ', tag);
         if (tag.name === 'planDescription' || tag.name === 'action') {
           tags.push(tag);
         }
@@ -205,7 +206,7 @@ export const playlists: PlaylistItem[] = [
             children: [],
           },
           {
-            name: 'packages',
+            name: 'package',
             attributes: {},
             content: 'react-router',
             children: [],

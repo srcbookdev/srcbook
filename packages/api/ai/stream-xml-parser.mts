@@ -32,7 +32,6 @@ export class StreamingXMLParser {
   private onTag: TagCallbackType;
 
   constructor({ onTag }: { onTag: TagCallbackType }) {
-    console.log('constructor called');
     this.onTag = onTag;
   }
 
@@ -51,7 +50,16 @@ export class StreamingXMLParser {
   }
 
   private handleOpenTag(tagContent: string) {
-    console.log('handleOpenTag called');
+    console.log(
+      'handleOpenTag called with tagContent: ',
+      tagContent,
+      'and currentTag: ',
+      this.currentTag?.name,
+    );
+    console.log(
+      'tagStack',
+      this.tagStack.map((t) => t.name),
+    );
     // First, save any accumulated text content to the current tag
     if (this.currentTag && this.textBuffer.trim()) {
       this.currentTag.content = this.textBuffer.trim();
@@ -78,7 +86,12 @@ export class StreamingXMLParser {
   }
 
   private handleCloseTag(tagName: string) {
-    console.log('handleCloseTag called');
+    console.log(
+      'handleCloseTag called with tagName: ',
+      tagName,
+      'and currentTag: ',
+      this.currentTag?.name,
+    );
     if (!this.currentTag) return;
 
     // Save any remaining text content before closing
@@ -94,6 +107,7 @@ export class StreamingXMLParser {
 
       if (this.tagStack.length > 0) {
         this.currentTag = this.tagStack.pop()!;
+        console.log('currentTag after pop: ', this.currentTag.name);
       } else {
         this.currentTag = null;
       }
@@ -123,16 +137,16 @@ export class StreamingXMLParser {
     while (this.buffer.length > 0) {
       // Handle CDATA sections
       if (this.isInCDATA) {
-        const cdataEndIndex = this.buffer.indexOf(']]>');
+        const cdataEndIndex = this.cdataBuffer.indexOf(']]>');
         if (cdataEndIndex === -1) {
           this.cdataBuffer += this.buffer;
           this.buffer = '';
           return;
         }
 
-        this.cdataBuffer += this.buffer.substring(0, cdataEndIndex);
+        this.cdataBuffer = this.cdataBuffer.substring(0, cdataEndIndex);
         if (this.currentTag) {
-          this.currentTag.content = this.cdataBuffer;
+          this.currentTag.content = this.cdataBuffer.trim();
         }
         this.isInCDATA = false;
         this.cdataBuffer = '';
@@ -159,8 +173,8 @@ export class StreamingXMLParser {
       if (this.sequenceExistsAt('<![CDATA[', 0)) {
         this.isInCDATA = true;
         const cdataStart = this.buffer.substring(9);
-        this.buffer = cdataStart;
-        this.cdataBuffer = '';
+        this.cdataBuffer = cdataStart;
+        this.buffer = '';
         continue;
       }
 

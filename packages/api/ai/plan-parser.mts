@@ -169,7 +169,6 @@ export function getPackagesToInstall(plan: Plan): string[] {
     )
     .flatMap((action) => action.packages);
 }
-
 export async function streamParsePlan(
   stream: AsyncIterable<string>,
   app: DBAppType,
@@ -177,6 +176,7 @@ export async function streamParsePlan(
   planId: string,
 ) {
   let parser: StreamingXMLParser;
+  const parsePromises: Promise<void>[] = [];
 
   return new ReadableStream({
     async pull(controller) {
@@ -184,10 +184,13 @@ export async function streamParsePlan(
         parser = new StreamingXMLParser({
           async onTag(tag) {
             if (tag.name === 'planDescription' || tag.name === 'action') {
-              const chunk = await toStreamingChunk(app, tag, planId);
-              if (chunk) {
-                controller.enqueue(JSON.stringify(chunk) + '\n');
-              }
+              const promise = (async () => {
+                const chunk = await toStreamingChunk(app, tag, planId);
+                if (chunk) {
+                  controller.enqueue(JSON.stringify(chunk) + '\n');
+                }
+              })();
+              parsePromises.push(promise);
             }
           },
         });
@@ -197,6 +200,8 @@ export async function streamParsePlan(
         for await (const chunk of stream) {
           parser.parse(chunk);
         }
+        // Wait for all pending parse operations to complete before closing
+        await Promise.all(parsePromises);
         controller.close();
       } catch (error) {
         console.error(error);

@@ -183,7 +183,6 @@ export async function streamParsePlan(
       if (parser === undefined) {
         parser = new StreamingXMLParser({
           async onTag(tag) {
-            console.log('onTag called in the readdablestream');
             if (tag.name === 'planDescription' || tag.name === 'action') {
               const chunk = await toStreamingChunk(app, tag, planId);
               if (chunk) {
@@ -257,7 +256,6 @@ async function toStreamingChunk(
           },
         } as ActionChunkType;
       } else if (type === 'command') {
-        console.log('Action tag', tag);
         const commandTag = tag.children.find((t) => t.name === 'commandType')!;
         const packageTags = tag.children.filter((t) => t.name === 'package');
 

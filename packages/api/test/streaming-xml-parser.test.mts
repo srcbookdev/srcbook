@@ -28,7 +28,7 @@ describe('parsePlan', () => {
         name: 'planDescription',
         attributes: {},
         content:
-          "\nUpdate the mock data to include classic rock bands in the trending albums section. I'll modify the albums data to include The Beatles, Talking Heads, Grateful Dead, and Radiohead with their iconic albums.\n    ",
+          "Update the mock data to include classic rock bands in the trending albums section. I'll modify the albums data to include The Beatles, Talking Heads, Grateful Dead, and Radiohead with their iconic albums.",
         children: [],
       },
       {
@@ -39,7 +39,7 @@ describe('parsePlan', () => {
           {
             name: 'description',
             attributes: {},
-            content: '\nUpdate mock data with classic rock albums for the trending section\n      ',
+            content: 'Update mock data with classic rock albums for the trending section',
             children: [],
           },
           {
@@ -92,8 +92,7 @@ export const playlists: PlaylistItem[] = [
   { id: '2', name: 'Your Episodes', icon: '🎙️' },
   { id: '3', name: 'Rock Classics', icon: '🎸' },
   { id: '4', name: 'Chill Vibes', icon: '🌊' },
-];
-      `,
+];`.trim(),
             children: [],
           },
         ],
@@ -101,11 +100,10 @@ export const playlists: PlaylistItem[] = [
     ]);
   });
 
-  test.only('should correctly parse a plan with file and command actions', async () => {
+  test('should correctly parse a plan with file and command actions', async () => {
     const tags: TagType[] = [];
     const parser = new StreamingXMLParser({
       onTag: (tag) => {
-        console.log('test onTag: ', tag);
         if (tag.name === 'planDescription' || tag.name === 'action') {
           tags.push(tag);
         }
@@ -117,7 +115,7 @@ export const playlists: PlaylistItem[] = [
         name: 'planDescription',
         attributes: {},
         content:
-          "\nI'll update the mock data to include Phish albums instead of the current albums. I'll use real Phish album covers and titles to make it more authentic.\n    ",
+          "I'll update the mock data to include Phish albums instead of the current albums. I'll use real Phish album covers and titles to make it more authentic.",
         children: [],
       },
       {
@@ -128,8 +126,7 @@ export const playlists: PlaylistItem[] = [
           {
             name: 'description',
             attributes: {},
-            content:
-              '\nUpdate mockData.ts to include Phish albums with real album information\n      ',
+            content: 'Update mockData.ts to include Phish albums with real album information',
             children: [],
           },
           {
@@ -183,7 +180,7 @@ export const playlists: PlaylistItem[] = [
   { id: '3', name: 'Rock Classics', icon: '🎸' },
   { id: '4', name: 'Chill Vibes', icon: '🌊' },
 ];
-      `,
+      `.trim(),
             children: [],
           },
         ],
@@ -196,7 +193,7 @@ export const playlists: PlaylistItem[] = [
           {
             name: 'description',
             attributes: {},
-            content: 'Install react-router\n      ',
+            content: 'Install react-router',
             children: [],
           },
           {

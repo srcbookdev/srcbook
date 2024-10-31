@@ -553,34 +553,36 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       }
     }
 
-    // Write the changes
-    for (const update of fileUpdates) {
-      createFile(update.dirname, update.basename, update.modified);
+    if (fileUpdates.length > 0) {
+      // Write the changes
+      for (const update of fileUpdates) {
+        createFile(update.dirname, update.basename, update.modified);
+      }
+
+      // Create a new version
+      const version = await createVersion(`Changes for planId: ${planId}`);
+
+      const fileDiffs: FileDiffType[] = fileUpdates.map((file: FileType) => {
+        const { additions, deletions } = diffFiles(file.original ?? '', file.modified);
+        return {
+          modified: file.modified,
+          original: file.original,
+          basename: file.basename,
+          dirname: file.dirname,
+          path: file.path,
+          additions,
+          deletions,
+          type: file.original ? 'edit' : ('create' as 'edit' | 'create'),
+        };
+      });
+
+      const diffMessage = { type: 'diff', diff: fileDiffs, planId, version } as DiffMessageType;
+      setHistory((prevHistory) => [...prevHistory, diffMessage]);
+      appendToHistory(app.id, diffMessage);
+
+      setFileDiffs(fileDiffs);
+      setDiffApplied(true);
     }
-
-    // Create a new version
-    const version = await createVersion(`Changes for planId: ${planId}`);
-
-    const fileDiffs: FileDiffType[] = fileUpdates.map((file: FileType) => {
-      const { additions, deletions } = diffFiles(file.original ?? '', file.modified);
-      return {
-        modified: file.modified,
-        original: file.original,
-        basename: file.basename,
-        dirname: file.dirname,
-        path: file.path,
-        additions,
-        deletions,
-        type: file.original ? 'edit' : ('create' as 'edit' | 'create'),
-      };
-    });
-
-    const diffMessage = { type: 'diff', diff: fileDiffs, planId, version } as DiffMessageType;
-    setHistory((prevHistory) => [...prevHistory, diffMessage]);
-    appendToHistory(app.id, diffMessage);
-
-    setFileDiffs(fileDiffs);
-    setDiffApplied(true);
     setLoading(null);
   };
 

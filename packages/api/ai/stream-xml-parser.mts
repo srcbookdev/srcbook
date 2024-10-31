@@ -1,16 +1,17 @@
 export type NodeSchema = {
   isContentNode?: boolean;
+  hasCdata?: boolean;
   allowedChildren?: string[];
 };
 
 export const xmlSchema: Record<string, NodeSchema> = {
-  plan: { isContentNode: false },
-  action: { isContentNode: false },
-  description: { isContentNode: true },
-  file: { isContentNode: false },
-  commandType: { isContentNode: true },
-  package: { isContentNode: true },
-  planDescription: { isContentNode: true },
+  plan: { isContentNode: false, hasCdata: false },
+  action: { isContentNode: false, hasCdata: false },
+  description: { isContentNode: true, hasCdata: true },
+  file: { isContentNode: false, hasCdata: true },
+  commandType: { isContentNode: true, hasCdata: false },
+  package: { isContentNode: true, hasCdata: false },
+  planDescription: { isContentNode: true, hasCdata: true },
 };
 
 export type TagType = {
@@ -50,16 +51,6 @@ export class StreamingXMLParser {
   }
 
   private handleOpenTag(tagContent: string) {
-    console.log(
-      'handleOpenTag called with tagContent: ',
-      tagContent,
-      'and currentTag: ',
-      this.currentTag?.name,
-    );
-    console.log(
-      'tagStack',
-      this.tagStack.map((t) => t.name),
-    );
     // First, save any accumulated text content to the current tag
     if (this.currentTag && this.textBuffer.trim()) {
       this.currentTag.content = this.textBuffer.trim();
@@ -78,6 +69,7 @@ export class StreamingXMLParser {
     };
 
     if (this.currentTag) {
+      // Push current tag to stack before moving to new tag
       this.tagStack.push(this.currentTag);
       this.currentTag.children.push(newTag);
     }
@@ -86,31 +78,33 @@ export class StreamingXMLParser {
   }
 
   private handleCloseTag(tagName: string) {
-    console.log(
-      'handleCloseTag called with tagName: ',
-      tagName,
-      'and currentTag: ',
-      this.currentTag?.name,
-    );
-    if (!this.currentTag) return;
+    if (!this.currentTag) {
+      console.warn('Attempted to handle close tag with no current tag');
+      return;
+    }
 
     // Save any remaining text content before closing
-    if (this.textBuffer.trim()) {
+    // Don't overwrite CDATA content, it's already been written
+    const schema = xmlSchema[this.currentTag.name];
+    const isCdataNode = schema ? schema.hasCdata : false;
+    if (!isCdataNode) {
       this.currentTag.content = this.textBuffer.trim();
     }
     this.textBuffer = '';
 
-    if (this.currentTag.name === tagName) {
-      // Clean the node based on schema before emitting
-      this.currentTag = this.cleanNode(this.currentTag);
-      this.onTag(this.currentTag);
+    if (this.currentTag.name !== tagName) {
+      return;
+    }
 
-      if (this.tagStack.length > 0) {
-        this.currentTag = this.tagStack.pop()!;
-        console.log('currentTag after pop: ', this.currentTag.name);
-      } else {
-        this.currentTag = null;
-      }
+    // Clean and emit the completed tag
+    this.currentTag = this.cleanNode(this.currentTag);
+    this.onTag(this.currentTag);
+
+    // Pop the parent tag from the stack
+    if (this.tagStack.length > 0) {
+      this.currentTag = this.tagStack.pop()!;
+    } else {
+      this.currentTag = null;
     }
   }
 
@@ -140,7 +134,13 @@ export class StreamingXMLParser {
         const cdataEndIndex = this.cdataBuffer.indexOf(']]>');
         if (cdataEndIndex === -1) {
           this.cdataBuffer += this.buffer;
-          this.buffer = '';
+          // Sometimes ]]> is in the next chunk, and we don't want to lose what's behind it
+          const nextCdataEnd = this.cdataBuffer.indexOf(']]>');
+          if (nextCdataEnd !== -1) {
+            this.buffer = this.cdataBuffer.substring(nextCdataEnd);
+          } else {
+            this.buffer = '';
+          }
           return;
         }
 
@@ -149,8 +149,8 @@ export class StreamingXMLParser {
           this.currentTag.content = this.cdataBuffer.trim();
         }
         this.isInCDATA = false;
+        this.buffer = this.cdataBuffer.substring(cdataEndIndex + 3) + this.buffer;
         this.cdataBuffer = '';
-        this.buffer = this.buffer.substring(cdataEndIndex + 3);
         continue;
       }
 
@@ -175,7 +175,7 @@ export class StreamingXMLParser {
         const cdataStart = this.buffer.substring(9);
         this.cdataBuffer = cdataStart;
         this.buffer = '';
-        continue;
+        return;
       }
 
       const openTagEndIdx = this.buffer.indexOf('>');

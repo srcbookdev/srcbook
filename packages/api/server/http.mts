@@ -13,8 +13,8 @@ import {
   listSessions,
   exportSrcmdText,
 } from '../session.mjs';
-import { generateCells, generateSrcbook, healthcheck, editApp } from '../ai/generate.mjs';
-import { parsePlan } from '../ai/plan-parser.mjs';
+import { generateCells, generateSrcbook, healthcheck, streamEditApp } from '../ai/generate.mjs';
+import { streamParsePlan } from '../ai/plan-parser.mjs';
 import {
   getConfig,
   updateConfig,
@@ -63,6 +63,7 @@ import { CreateAppSchema } from '../apps/schemas.mjs';
 import { AppGenerationFeedbackType } from '@srcbook/shared';
 import { createZipFromApp } from '../apps/disk.mjs';
 import { checkoutCommit, commitAllFiles, getCurrentCommitSha } from '../apps/git.mjs';
+import { streamJsonResponse } from './utils.mjs';
 
 const app: Application = express();
 
@@ -555,9 +556,10 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
     }
     const validName = toValidPackageName(app.name);
     const files = await getFlatFilesForApp(String(app.externalId));
-    const result = await editApp(validName, files, query, id, planId);
-    const parsedResult = await parsePlan(result, app, query, planId);
-    return res.json({ data: parsedResult });
+    const result = await streamEditApp(validName, files, query, app.externalId, planId);
+    const planStream = await streamParsePlan(result, app, query, planId);
+
+    return streamJsonResponse(planStream, res, { status: 200 });
   } catch (e) {
     return error500(res, e as Error);
   }

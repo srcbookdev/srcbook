@@ -12,6 +12,7 @@ export type SettingsType = {
   defaultLanguage: CodeLanguageType;
   openaiKey?: string | null;
   anthropicKey?: string | null;
+  xaiKey?: string | null;
   aiProvider: AiProviderType;
   aiModel: string;
   aiBaseUrl?: string | null;

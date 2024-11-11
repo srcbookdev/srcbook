@@ -30,6 +30,19 @@ export async function getModel(): Promise<LanguageModel> {
       const anthropic = createAnthropic({ apiKey: config.anthropicKey });
       return anthropic(model);
 
+    case 'Xai':
+      if (!config.xaiKey) {
+        throw new Error('Xai API key is not set');
+      }
+      console.log('xaiKey', config.xaiKey);
+      console.log('model', model);
+      const xai = createOpenAI({
+        compatibility: 'compatible',
+        baseURL: 'https://api.x.ai/v1',
+        apiKey: config.xaiKey,
+      });
+      return xai(model);
+
     case 'custom':
       if (typeof aiBaseUrl !== 'string') {
         throw new Error('Local AI base URL is not set');

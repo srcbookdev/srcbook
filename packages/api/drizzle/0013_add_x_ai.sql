@@ -1,0 +1,1 @@
+ALTER TABLE `config` ADD `xai_api_key` text;

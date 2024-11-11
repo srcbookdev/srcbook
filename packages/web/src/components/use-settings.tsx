@@ -34,6 +34,7 @@ export function SettingsProvider({ config, children }: ProviderPropsType) {
   const aiEnabled =
     (config.openaiKey && config.aiProvider === 'openai') ||
     (config.anthropicKey && config.aiProvider === 'anthropic') ||
+    (config.xaiKey && config.aiProvider === 'Xai') ||
     (config.aiProvider === 'custom' && !!config.aiBaseUrl) ||
     false;
 

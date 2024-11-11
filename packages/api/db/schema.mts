@@ -8,6 +8,7 @@ export const configs = sqliteTable('config', {
   defaultLanguage: text('default_language').notNull().default('typescript'),
   openaiKey: text('openai_api_key'),
   anthropicKey: text('anthropic_api_key'),
+  xaiKey: text('xai_api_key'),
   // TODO: This is deprecated in favor of SRCBOOK_DISABLE_ANALYTICS env variable. Remove this.
   enabledAnalytics: integer('enabled_analytics', { mode: 'boolean' }).notNull().default(true),
   // Stable ID for posthog

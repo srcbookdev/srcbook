@@ -92,6 +92,13 @@
       "when": 1729193497907,
       "tag": "0012_add_app_history",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1731347691803,
+      "tag": "0013_add_x_ai",
+      "breakpoints": true
     }
   ]
 }

@@ -144,6 +144,13 @@ function AiInfoBanner() {
           </div>
         );
 
+      case 'Xai':
+        return (
+          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+            <p>API key required</p>
+          </div>
+        );
+
       case 'custom':
         return (
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
@@ -227,11 +234,13 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     aiBaseUrl,
     openaiKey: configOpenaiKey,
     anthropicKey: configAnthropicKey,
+    xaiKey: configXaiKey,
     updateConfig: updateConfigContext,
   } = useSettings();
 
   const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
+  const [xaiKey, setXaiKey] = useState<string>(configXaiKey ?? '');
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
 
@@ -254,6 +263,11 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
       anthropicKey.length > 0) ||
     model !== aiModel;
 
+  const xaiKeySaveEnabled =
+    (typeof configXaiKey === 'string' && xaiKey !== configXaiKey) ||
+    ((configXaiKey === null || configXaiKey === undefined) && xaiKey.length > 0) ||
+    model !== aiModel;
+
   const customModelSaveEnabled =
     (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
     ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
@@ -270,6 +284,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
             <SelectContent>
               <SelectItem value="openai">openai</SelectItem>
               <SelectItem value="anthropic">anthropic</SelectItem>
+              <SelectItem value="Xai">Xai</SelectItem>
               <SelectItem value="custom">custom</SelectItem>
             </SelectContent>
           </Select>
@@ -316,6 +331,25 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
             className="px-5"
             onClick={() => updateConfigContext({ anthropicKey, aiModel: model })}
             disabled={!anthropicKeySaveEnabled}
+          >
+            {saveButtonLabel ?? 'Save'}
+          </Button>
+        </div>
+      )}
+
+      {aiProvider === 'Xai' && (
+        <div className="flex gap-2">
+          <Input
+            name="xaiKey"
+            placeholder="xai API key"
+            type="password"
+            value={xaiKey}
+            onChange={(e) => setXaiKey(e.target.value)}
+          />
+          <Button
+            className="px-5"
+            onClick={() => updateConfigContext({ xaiKey, aiModel: model })}
+            disabled={!xaiKeySaveEnabled}
           >
             {saveButtonLabel ?? 'Save'}
           </Button>

@@ -1,5 +1,12 @@
 # @srcbook/shared
 
+## 0.0.12
+
+### Patch Changes
+
+- 727bab7: Support X ai models
+- 2e774d4: Support streaming of the responses!
+
 ## 0.0.11
 
 ### Patch Changes

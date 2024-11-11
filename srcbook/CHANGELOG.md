@@ -1,5 +1,16 @@
 # srcbook
 
+## 0.0.15
+
+### Patch Changes
+
+- 727bab7: Support X ai models
+- 2e774d4: Support streaming of the responses!
+- Updated dependencies [727bab7]
+- Updated dependencies [2e774d4]
+  - @srcbook/api@0.0.14
+  - @srcbook/shared@0.0.12
+
 ## 0.0.14
 
 ### Patch Changes

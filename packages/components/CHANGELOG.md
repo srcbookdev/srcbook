@@ -1,5 +1,14 @@
 # @srcbook/components
 
+## 0.0.6
+
+### Patch Changes
+
+- 2e774d4: Support streaming of the responses!
+- Updated dependencies [727bab7]
+- Updated dependencies [2e774d4]
+  - @srcbook/shared@0.0.12
+
 ## 0.0.5
 
 ### Patch Changes

@@ -34,8 +34,6 @@ export async function getModel(): Promise<LanguageModel> {
       if (!config.xaiKey) {
         throw new Error('Xai API key is not set');
       }
-      console.log('xaiKey', config.xaiKey);
-      console.log('model', model);
       const xai = createOpenAI({
         compatibility: 'compatible',
         baseURL: 'https://api.x.ai/v1',

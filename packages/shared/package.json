@@ -4,7 +4,7 @@
   "type": "module",
   "main": "./dist/index.mjs",
   "scripts": {
-    "prebuild": "rm -rf ./dist",
+    "prebuild": "rimraf ./dist",
     "build": "tsc",
     "dev": "tsc --incremental --watch --project .",
     "lint": "eslint . --max-warnings 0",
@@ -14,5 +14,8 @@
   "dependencies": {
     "@scure/base": "^1.1.8",
     "zod": "catalog:"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1"
   }
 }

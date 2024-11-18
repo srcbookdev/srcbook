@@ -44,8 +44,9 @@ export class TsServers {
     // created, the dependencies are not installed and thus this will
     // shut down immediately. Make sure that we handle this case after
     // package.json has finished installing its deps.
-    const child = spawn('npx', ['tsserver'], {
+    const child = spawn('pnpm', ['dlx' ,'tsserver'], {
       cwd: options.cwd,
+      shell: true
     });
 
     const server = new TsServer(child);

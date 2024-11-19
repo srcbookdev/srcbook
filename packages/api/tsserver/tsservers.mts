@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import { TsServer } from './tsserver.mjs';
+import Path from 'node:path';
 
 /**
  * This object is responsible for managing multiple tsserver instances.
@@ -44,8 +45,17 @@ export class TsServers {
     // created, the dependencies are not installed and thus this will
     // shut down immediately. Make sure that we handle this case after
     // package.json has finished installing its deps.
-    const child = spawn('npx', ['tsserver'], {
+
+    const tsserverPath = Path.resolve(
+      options.cwd,
+      'node_modules',
+      'bin',
+      process.platform === 'win32' ? 'tsserver.cmd' : 'tsserver',
+    );
+
+    const child = spawn(tsserverPath, [], {
       cwd: options.cwd,
+      shell: true,
     });
 
     const server = new TsServer(child);

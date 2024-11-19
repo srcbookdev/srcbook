@@ -50,12 +50,12 @@ export class TsServers {
       options.cwd,
       'node_modules',
       'bin',
-      process.platform === 'win32' ? 'tsserver.cmd' : 'tsserver'
-    )
+      process.platform === 'win32' ? 'tsserver.cmd' : 'tsserver',
+    );
 
     const child = spawn(tsserverPath, [], {
       cwd: options.cwd,
-      shell: true
+      shell: true,
     });
 
     const server = new TsServer(child);

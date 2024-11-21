@@ -36,7 +36,8 @@ export async function getModel(): Promise<LanguageModel> {
       }
       const gemini = createOpenAI({
         compatibility: 'compatible',
-        baseURL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=',
+        baseURL:
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=',
         apiKey: config.geminiKey,
       });
       return gemini(model);

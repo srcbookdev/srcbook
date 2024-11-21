@@ -30,6 +30,17 @@ export async function getModel(): Promise<LanguageModel> {
       const anthropic = createAnthropic({ apiKey: config.anthropicKey });
       return anthropic(model);
 
+    case 'Gemini':
+      if (!config.geminiKey) {
+        throw new Error('Gemini API key is not set');
+      }
+      const gemini = createOpenAI({
+        compatibility: 'compatible',
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=',
+        apiKey: config.geminiKey,
+      });
+      return gemini(model);
+
     case 'Xai':
       if (!config.xaiKey) {
         throw new Error('Xai API key is not set');

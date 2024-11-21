@@ -99,6 +99,13 @@
       "when": 1731347691803,
       "tag": "0013_add_x_ai",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1732197490638,
+      "tag": "0014_Gemini_Integration",
+      "breakpoints": true
     }
   ]
 }

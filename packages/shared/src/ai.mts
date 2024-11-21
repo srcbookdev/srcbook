@@ -13,7 +13,7 @@ export const defaultModels: Record<AiProviderType, string> = {
   [AiProvider.Anthropic]: 'claude-3-5-sonnet-latest',
   [AiProvider.Custom]: 'mistral-nemo',
   [AiProvider.XAI]: 'grok-beta',
-  [AiProvider.Gemini]: 'google-developer-ai',
+  [AiProvider.Gemini]: 'gemini-1.5-pro-latest',
 } as const;
 
 export function isValidProvider(provider: string): provider is AiProviderType {

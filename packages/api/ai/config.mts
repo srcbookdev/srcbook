@@ -3,6 +3,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { getConfig } from '../config.mjs';
 import type { LanguageModel } from 'ai';
 import { getDefaultModel, type AiProviderType } from '@srcbook/shared';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
 /**
  * Get the correct client and model configuration.
@@ -34,13 +35,8 @@ export async function getModel(): Promise<LanguageModel> {
       if (!config.geminiKey) {
         throw new Error('Gemini API key is not set');
       }
-      const gemini = createOpenAI({
-        compatibility: 'compatible',
-        baseURL:
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=',
-        apiKey: config.geminiKey,
-      });
-      return gemini(model);
+      const google =  createGoogleGenerativeAI({apiKey: config.geminiKey})
+      return google(model);
 
     case 'Xai':
       if (!config.xaiKey) {

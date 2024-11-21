@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "^1.0.1",
     "@ai-sdk/openai": "catalog:",
     "@srcbook/shared": "workspace:^",
     "ai": "^3.3.33",

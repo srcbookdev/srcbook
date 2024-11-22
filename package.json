@@ -25,7 +25,6 @@
     "typescript": "5.6.2"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.0.1",
     "turbo": "^2.1.1"
   },
   "packageManager": "pnpm@9.12.1",

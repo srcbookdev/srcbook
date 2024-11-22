@@ -23,10 +23,11 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "catalog:",
-    "@ai-sdk/google": "^1.0.1",
+    "@ai-sdk/google": "^1.0.3",
     "@ai-sdk/openai": "catalog:",
+    "@ai-sdk/provider": "^1.0.1",
     "@srcbook/shared": "workspace:^",
-    "ai": "^3.3.33",
+    "ai": "^3.4.33",
     "archiver": "^7.0.1",
     "better-sqlite3": "^11.3.0",
     "cors": "^2.8.5",

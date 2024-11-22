@@ -36,7 +36,7 @@ export async function getModel(): Promise<LanguageModel> {
         throw new Error('Gemini API key is not set');
       }
       const google =  createGoogleGenerativeAI({apiKey: config.geminiKey})
-      return google(model);
+      return google(model) as LanguageModel;
 
     case 'Xai':
       if (!config.xaiKey) {

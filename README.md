@@ -80,6 +80,23 @@ pnpm dlx srcbook@latest start
 > You can instead use a global install with `<pkg manager> i -g srcbook`
 > and then directly call srcbook with `srcbook start`
 
+### Using Docker
+
+You can also run Srcbook using Docker:
+
+```bash
+# Build the Docker image
+docker build -t srcbook .
+
+# Run the container
+# The -p flag maps port 2150 from the container to your host machine
+# First -v flag mounts your local .srcbook directory to persist data
+# Second -v flag shares your npm cache for better performance
+docker run -p 2150:2150 -v ~/.srcbook:/root/.srcbook -v ~/.npm:/root/.npm srcbook
+```
+
+Make sure to set up your API key after starting the container. You can do this through the web interface at `http://localhost:2150`.
+
 ### Current Commands
 
 ```bash

@@ -1,5 +1,11 @@
 # @srcbook/shared
 
+## 0.0.13
+
+### Patch Changes
+
+- a236470: Add gemini support
+
 ## 0.0.12
 
 ### Patch Changes

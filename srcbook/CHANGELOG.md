@@ -1,5 +1,14 @@
 # srcbook
 
+## 0.0.16
+
+### Patch Changes
+
+- a236470: Add gemini support
+- Updated dependencies [a236470]
+  - @srcbook/api@0.0.15
+  - @srcbook/shared@0.0.13
+
 ## 0.0.15
 
 ### Patch Changes

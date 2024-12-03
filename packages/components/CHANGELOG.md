@@ -1,5 +1,12 @@
 # @srcbook/components
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [a236470]
+  - @srcbook/shared@0.0.13
+
 ## 0.0.6
 
 ### Patch Changes

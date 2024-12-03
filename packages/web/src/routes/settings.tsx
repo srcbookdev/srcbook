@@ -286,7 +286,8 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
 
   const customModelSaveEnabled =
     (typeof configCustomApiKey === 'string' && customApiKey !== configCustomApiKey) ||
-    ((configCustomApiKey === null || configCustomApiKey === undefined) && customApiKey.length > 0) ||
+    ((configCustomApiKey === null || configCustomApiKey === undefined) &&
+      customApiKey.length > 0) ||
     (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
     ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
     model !== aiModel;
@@ -419,7 +420,9 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
             <div className="flex justify-end">
               <Button
                 className="px-5"
-                onClick={() => updateConfigContext({ aiBaseUrl: baseUrl, customApiKey, aiModel: model })}
+                onClick={() =>
+                  updateConfigContext({ aiBaseUrl: baseUrl, customApiKey, aiModel: model })
+                }
                 disabled={!customModelSaveEnabled}
               >
                 {saveButtonLabel ?? 'Save'}

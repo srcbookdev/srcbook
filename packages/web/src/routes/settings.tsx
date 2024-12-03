@@ -151,6 +151,13 @@ function AiInfoBanner() {
           </div>
         );
 
+      case 'Gemini':
+        return (
+          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+            <p>API key required</p>
+          </div>
+        );
+
       case 'custom':
         return (
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
@@ -235,12 +242,14 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     openaiKey: configOpenaiKey,
     anthropicKey: configAnthropicKey,
     xaiKey: configXaiKey,
+    geminiKey: configGeminiKey,
     updateConfig: updateConfigContext,
   } = useSettings();
 
   const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [xaiKey, setXaiKey] = useState<string>(configXaiKey ?? '');
+  const [geminiKey, setGeminiKey] = useState<string>(configGeminiKey ?? '');
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
 
@@ -268,6 +277,11 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     ((configXaiKey === null || configXaiKey === undefined) && xaiKey.length > 0) ||
     model !== aiModel;
 
+  const geminiKeySaveEnabled =
+    (typeof configGeminiKey === 'string' && geminiKey !== configXaiKey) ||
+    ((configGeminiKey === null || configGeminiKey === undefined) && geminiKey.length > 0) ||
+    model !== aiModel;
+
   const customModelSaveEnabled =
     (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
     ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
@@ -285,6 +299,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
               <SelectItem value="openai">openai</SelectItem>
               <SelectItem value="anthropic">anthropic</SelectItem>
               <SelectItem value="Xai">Xai</SelectItem>
+              <SelectItem value="Gemini">Gemini</SelectItem>
               <SelectItem value="custom">custom</SelectItem>
             </SelectContent>
           </Select>
@@ -350,6 +365,25 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
             className="px-5"
             onClick={() => updateConfigContext({ xaiKey, aiModel: model })}
             disabled={!xaiKeySaveEnabled}
+          >
+            {saveButtonLabel ?? 'Save'}
+          </Button>
+        </div>
+      )}
+
+      {aiProvider === 'Gemini' && (
+        <div className="flex gap-2">
+          <Input
+            name="geminiKey"
+            placeholder="Gemini API key"
+            type="password"
+            value={geminiKey}
+            onChange={(e) => setGeminiKey(e.target.value)}
+          />
+          <Button
+            className="px-5"
+            onClick={() => updateConfigContext({ geminiKey, aiModel: model })}
+            disabled={!geminiKeySaveEnabled}
           >
             {saveButtonLabel ?? 'Save'}
           </Button>

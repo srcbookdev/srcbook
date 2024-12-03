@@ -13,6 +13,7 @@ export type SettingsType = {
   openaiKey?: string | null;
   anthropicKey?: string | null;
   xaiKey?: string | null;
+  geminiKey?: string | null;
   aiProvider: AiProviderType;
   aiModel: string;
   aiBaseUrl?: string | null;

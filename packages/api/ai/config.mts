@@ -3,6 +3,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { getConfig } from '../config.mjs';
 import type { LanguageModel } from 'ai';
 import { getDefaultModel, type AiProviderType } from '@srcbook/shared';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
 /**
  * Get the correct client and model configuration.
@@ -29,6 +30,13 @@ export async function getModel(): Promise<LanguageModel> {
       }
       const anthropic = createAnthropic({ apiKey: config.anthropicKey });
       return anthropic(model);
+
+    case 'Gemini':
+      if (!config.geminiKey) {
+        throw new Error('Gemini API key is not set');
+      }
+      const google = createGoogleGenerativeAI({ apiKey: config.geminiKey });
+      return google(model) as LanguageModel;
 
     case 'Xai':
       if (!config.xaiKey) {

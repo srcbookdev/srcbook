@@ -12,8 +12,8 @@
 <p align="center">
   <a href="https://srcbook.com">Online app builder</a> ·
   <a href="https://discord.gg/shDEGBSe2d">Discord</a> ·
-  <a href="https://www.youtube.com/@srcbook">Youtube</a>
-  <a href="https://hub.srcbook.com">Hub</a> ·
+  <a href="https://www.youtube.com/@srcbook">Youtube</a> ·
+  <a href="https://hub.srcbook.com">Hub</a> 
 </p>
 
 ## Srcbook

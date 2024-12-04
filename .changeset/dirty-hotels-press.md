@@ -2,10 +2,10 @@
 'srcbook': patch
 ---
 
-Added Docker support to enable exposing a Srcbook application running in a Docker container to other devices on the network. This includes:
+Added network exposure configuration to enable accessing Srcbook from other devices when running in Docker. This includes:
 
-- A new Dockerfile for building the application
-- A docker-compose.yml configuration for easy deployment
-- Support for exposing the application to external network devices via 0.0.0.0 binding
+- Added docker-compose.yml with 0.0.0.0 binding configuration
+- Configured port mapping to expose port 2150 to the network
+- Set HOST environment variable for external network access
 
-This addition allows users to run Srcbook in isolated containers and access it from other devices on their network, making it more flexible for various deployment scenarios.
+This change allows users to access their Srcbook instance from other devices on their network when running in Docker.

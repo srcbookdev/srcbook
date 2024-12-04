@@ -2,10 +2,11 @@
 'srcbook': patch
 ---
 
-Added network exposure configuration to enable accessing Srcbook from other devices when running in Docker. This includes:
+Added configurable network exposure for Docker deployments with secure defaults. This includes:
 
-- Added docker-compose.yml with 0.0.0.0 binding configuration
-- Configured port mapping to expose port 2150 to the network
-- Set HOST environment variable for external network access
+- Added docker-compose.yml with configurable network binding
+- Default configuration restricts access to localhost (127.0.0.1) for security
+- Optional network exposure via HOST_BIND environment variable
+- Configured port 2150 mapping for Docker container
 
-This change allows users to access their Srcbook instance from other devices on their network when running in Docker.
+Users can optionally expose their Srcbook instance to other network devices by setting HOST_BIND=0.0.0.0 when running Docker.

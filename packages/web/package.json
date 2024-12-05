@@ -29,6 +29,7 @@
     "clsx": "^2.1.1",
     "codemirror": "^6.0.1",
     "diff": "^7.0.0",
+    "firebase": "^11.0.2",
     "lucide-react": "^0.439.0",
     "marked": "catalog:",
     "marked-react": "^2.0.0",

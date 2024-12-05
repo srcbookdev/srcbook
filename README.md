@@ -141,7 +141,9 @@ If you want to disable tracking, you can run Srcbook with `SRCBOOK_DISABLE_ANALY
 
 For development instructions, see [CONTRIBUTING.md](https://github.com/srcbookdev/srcbook/blob/main/CONTRIBUTING.md).
 
-## Changing the code
+## Running dev environment
+
+Copy `packages/api/.env.example` to `packages/api/.env` and add anthropic key.
 
 Run those commands:
 

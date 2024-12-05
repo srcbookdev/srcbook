@@ -20,10 +20,15 @@ async function init() {
       baseDir: HOME_DIR,
       defaultLanguage: 'typescript',
       installId: randomid(),
-      aiConfig: { provider: 'openai', model: 'gpt-4o' } as const,
-      aiProvider: 'openai',
-      aiModel: 'gpt-4o',
+      aiConfig: {
+        provider: 'anthropic',
+        model: 'claude-3-5-sonnet-latest'
+      } as const,
+      aiProvider: 'anthropic',
+      aiModel: 'claude-3-5-sonnet-latest',
+      anthropicKey: process.env.ANTHROPIC_API_KEY || '',
     };
+    
     console.log();
     console.log('Initializing application with the following configuration:\n');
     console.log(JSON.stringify(defaultConfig, null, 2));

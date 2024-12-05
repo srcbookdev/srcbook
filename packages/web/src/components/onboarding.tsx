@@ -1,6 +1,7 @@
 import React from 'react';
 import { LayoutGridIcon, FileTextIcon } from 'lucide-react';
 import { AiSettings } from '@/routes/settings';
+import Login from './login';
 
 const OnboardingModal: React.FunctionComponent = () => {
   return (
@@ -43,6 +44,8 @@ const OnboardingModal: React.FunctionComponent = () => {
         </label>
 
         <AiSettings saveButtonLabel="Continue" />
+
+        <Login />
       </div>
     </div>
   );

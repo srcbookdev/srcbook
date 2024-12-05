@@ -22,6 +22,8 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { DragAndDropSrcmdModal } from './components/drag-and-drop-srcmd-modal';
 
+import { AuthProvider } from './AuthContext';
+
 posthog.init('phc_bQjmPYXmbl76j8gW289Qj9XILuu1STRnIfgCSKlxdgu', {
   api_host: 'https://us.i.posthog.com',
   person_profiles: 'identified_only',
@@ -122,7 +124,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <PostHogProvider client={posthog}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </PostHogProvider>
   </React.StrictMode>,
 );

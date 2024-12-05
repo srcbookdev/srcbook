@@ -8,7 +8,10 @@
     "VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY",
     "SRCBOOK_DISABLE_ANALYTICS",
     "PORT",
-    "HOME"
+    "HOME",
+    "ANTHROPIC_API_KEY",
+    "AI_PROVIDER",
+    "AI_MODEL"
   ],
   "tasks": {
     "//#format": {},

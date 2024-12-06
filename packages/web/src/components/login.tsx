@@ -6,22 +6,25 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Restrição de domínio
       if (user.email?.endsWith('@squadfy.com.br')) {
         console.log('Login bem-sucedido:', user);
-        // Continue com o fluxo de autenticação
       } else {
-        alert('Você não tem permissão para acessar esta aplicação.');
         await auth.signOut();
+        alert('Apenas emails @squadfy.com.br podem acessar esta aplicação.');
       }
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
+      console.log(`Erro ao fazer login: ${error}`);
     }
   };
 
   return (
     <div>
-      <button onClick={handleLogin}>Login com Google</button>
+      <button
+        onClick={handleLogin}
+        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white font-medium rounded-lg shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+      >
+        Login with Google
+      </button>
     </div>
   );
 };

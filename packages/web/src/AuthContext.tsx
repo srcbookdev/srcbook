@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }: AuthProviderProps): JSX.Element => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('AuthContext user', user);
       setUser(user);
       setLoading(false);
     });

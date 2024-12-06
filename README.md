@@ -154,9 +154,3 @@ pnpm dev
 ```
 
 Then open [http://localhost:5173/](http://localhost:5173/) in the browser.
-
-## TODO
-
-Configure project to use `ANTHROPIC_API_KEY` env variable.
-Replace everything in `onboarding.tsx` for the Firebase authentication.
-Make sure to redirect people to the authentication page when they are not logged in.

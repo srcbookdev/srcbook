@@ -4,13 +4,13 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "aaaaaaaaaaa",
-  authDomain: "aaaaaa.firebaseapp.com",
-  projectId: "aaaaaa",
-  storageBucket: "aaaaaaaa.firebasestorage.app",
-  messagingSenderId: "aaaaaaa",
-  appId: "a:aaaaaaaaa:web:aaaaaaa",
-  measurementId: "G-aaaaaaaaaaaa"
+  apiKey: "AIzaSyBi0xnLzOAxwWuzozJcfHAy-ym8VmA7Iyk",
+  authDomain: "srcbook-57e91.firebaseapp.com",
+  projectId: "srcbook-57e91",
+  storageBucket: "srcbook-57e91.firebasestorage.app",
+  messagingSenderId: "305614960435",
+  appId: "1:305614960435:web:e4bb21049b3f8eb7e57046",
+  measurementId: "G-492493CY86"
 };
 
 // Initialize Firebase

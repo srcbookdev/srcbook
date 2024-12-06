@@ -9,9 +9,7 @@
     "SRCBOOK_DISABLE_ANALYTICS",
     "PORT",
     "HOME",
-    "ANTHROPIC_API_KEY",
-    "AI_PROVIDER",
-    "AI_MODEL"
+    "ANTHROPIC_API_KEY"
   ],
   "tasks": {
     "//#format": {},

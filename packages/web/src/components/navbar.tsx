@@ -31,6 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@srcbook/components/src/components/ui/tooltip';
+import { auth } from '../firebaseConfig';
 
 function LightDarkModeDebugChanger() {
   const { theme, toggleTheme } = useTheme();
@@ -272,6 +273,10 @@ function SocialDiscordIcon() {
 }
 
 export function Navbar() {
+  const logout = function () {
+    auth.signOut();
+  };
+
   return (
     <header className="h-12 w-full flex items-center justify-between fixed bg-background z-50 border-b border-border text-sm ">
       <nav className="flex items-center justify-between px-4 flex-1">
@@ -311,6 +316,11 @@ export function Navbar() {
                   <ExternalLinkIcon size={14} />
                 </div>
               </a>
+            </li>
+            <li>
+              <button className="font-semibold text-tertiary-foreground" onClick={logout}>
+                Log out
+              </button>
             </li>
           </ul>
         </div>

@@ -54,8 +54,12 @@ class ExecutableResolver {
   private findExecutablePath(command: string): string {
     try {
       if (process.platform === 'win32') {
-        const paths = execSync(`where ${command}`).toString().trim().split('\n').map(p => p.trim());
-        return paths.find(p => p.includes('Program Files')) ?? paths[0] ?? command;
+        const paths = execSync(`where ${command}`)
+          .toString()
+          .trim()
+          .split('\n')
+          .map((p) => p.trim());
+        return paths.find((p) => p.includes('Program Files')) ?? paths[0] ?? command;
       }
       return execSync(`which ${command}`).toString().trim();
     } catch {
@@ -128,9 +132,10 @@ export const node = ({ cwd, env, entry, ...rest }: NodeRequestType) =>
  */
 export const tsx = ({ cwd, env, entry, ...rest }: NodeRequestType) =>
   spawnCall({
-    command: process.platform === 'win32'
-      ? Path.join(cwd, 'node_modules', '.bin', 'tsx.cmd')
-      : Path.join(cwd, 'node_modules', '.bin', 'tsx'),
+    command:
+      process.platform === 'win32'
+        ? Path.join(cwd, 'node_modules', '.bin', 'tsx.cmd')
+        : Path.join(cwd, 'node_modules', '.bin', 'tsx'),
     cwd,
     args: [entry],
     env: { ...process.env, ...env },
@@ -173,13 +178,10 @@ export const npmInstall = ({ cwd, packages = [], args = [], ...rest }: NPMInstal
  */
 export const vite = ({ cwd, args = [], env = process.env, ...rest }: NpxRequestType) =>
   spawnCall({
-    command: process.platform === 'win32'
-      ? 'npx.cmd'
-      : Path.join(cwd, 'node_modules', '.bin', 'vite'),
+    command:
+      process.platform === 'win32' ? 'npx.cmd' : Path.join(cwd, 'node_modules', '.bin', 'vite'),
     cwd,
-    args: process.platform === 'win32'
-      ? ['vite', ...args]
-      : args,
+    args: process.platform === 'win32' ? ['vite', ...args] : args,
     env: {
       ...env,
       FORCE_COLOR: '1',

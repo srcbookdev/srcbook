@@ -6,9 +6,6 @@ interface NodeError extends Error {
   code?: string;
 }
 
-/**
- * Base type for execution requests containing common properties
- */
 export type BaseExecRequestType = {
   cwd: string;
   stdout: (data: Buffer) => void;
@@ -17,33 +14,21 @@ export type BaseExecRequestType = {
   onError?: (err: NodeError) => void;
 };
 
-/**
- * Type for Node.js execution requests
- */
 export type NodeRequestType = BaseExecRequestType & {
   env: NodeJS.ProcessEnv;
   entry: string;
 };
 
-/**
- * Type for NPM installation requests
- */
 export type NPMInstallRequestType = BaseExecRequestType & {
   packages?: Array<string>;
   args?: Array<string>;
 };
 
-/**
- * Type for NPX execution requests
- */
 type NpxRequestType = BaseExecRequestType & {
   args: Array<string>;
   env?: NodeJS.ProcessEnv;
 };
 
-/**
- * Type for spawn call requests
- */
 type SpawnCallRequestType = {
   cwd: string;
   env: NodeJS.ProcessEnv;
@@ -55,34 +40,26 @@ type SpawnCallRequestType = {
   onError?: (err: NodeError) => void;
 };
 
-/**
- * General spawn call utility to execute a command with arguments.
- * Enhanced with Windows-specific handling and improved error management.
- */
 export function spawnCall(options: SpawnCallRequestType) {
   const { cwd, env, command, args, stdout, stderr, onExit, onError } = options;
 
-  // Handle Windows-specific path resolution
   let finalCommand = command;
   let finalArgs = args;
 
   if (process.platform === 'win32') {
-    // Check if the command ends with .cmd
     if (command.endsWith('.cmd')) {
       finalCommand = Path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
       finalArgs = ['/c', command, ...args];
     } else if (Path.isAbsolute(command) && !command.includes('System32')) {
-      // For absolute paths that aren't System32 commands, still use cmd.exe
       finalCommand = Path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
       finalArgs = ['/c', command, ...args];
     }
   }
 
-  // Ensure the environment PATH is properly set
   const finalEnv = { ...env };
   if (process.platform === 'win32') {
     const additionalPaths = [
-      Path.dirname(command), // Add the directory of the command
+      Path.dirname(command),
       'C:\\Program Files\\nodejs',
       'C:\\Program Files (x86)\\nodejs',
       Path.join(process.env.APPDATA || '', 'npm'),
@@ -94,10 +71,6 @@ export function spawnCall(options: SpawnCallRequestType) {
 
     finalEnv.PATH = newPaths + (existingPath ? ';' + existingPath : '');
   }
-
-  console.log(`Executing command: ${finalCommand}`);
-  console.log(`With args:`, finalArgs);
-  console.log(`In directory: ${cwd}`);
 
   const child = spawn(finalCommand, finalArgs, {
     cwd: cwd,
@@ -169,7 +142,6 @@ export function node(options: NodeRequestType) {
 export function tsx(options: NodeRequestType) {
   const { cwd, env, entry, stdout, stderr, onExit } = options;
 
-  // Get the correct tsx executable path for the platform
   const tsxExecutable =
     process.platform === 'win32'
       ? Path.join(cwd, 'node_modules', '.bin', 'tsx.cmd')
@@ -211,22 +183,18 @@ export function tsx(options: NodeRequestType) {
 export function npmInstall(options: NPMInstallRequestType) {
   const { cwd, stdout, stderr, onExit, packages, args } = options;
 
-  // Get the npm executable path based on platform
   const npmCommand =
     process.platform === 'win32'
       ? Path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe')
       : 'npm';
 
-  // Construct the arguments differently for Windows
   const installArgs =
     process.platform === 'win32'
       ? ['/c', 'npm', 'install', '--include=dev', ...(args || []), ...(packages || [])]
       : ['install', '--include=dev', ...(args || []), ...(packages || [])];
 
-  // Set up the environment variables
   const env = { ...process.env };
 
-  // Ensure PATH includes necessary directories for Windows
   if (process.platform === 'win32') {
     const additionalPaths = [
       'C:\\Program Files\\nodejs',
@@ -254,16 +222,6 @@ export function npmInstall(options: NPMInstallRequestType) {
 
 /**
  * Run vite.
- *
- * Example:
- *
- *     vite({
- *       cwd: '/path/to/project',
- *       args: ['build'],
- *       stdout(data) {console.log(data.toString('utf8'))},
- *       stderr(data) {console.error(data.toString('utf8'))},
- *       onExit(code) {console.log(`Exit code: ${code}`)}
- *     });
  */
 export function vite(options: NpxRequestType) {
   const { cwd, args = [], env = process.env } = options;
@@ -271,21 +229,15 @@ export function vite(options: NpxRequestType) {
   if (process.platform === 'win32') {
     const npmCommand = Path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
 
-    // Construct a command that will work in Windows
     const fullArgs = [
       '/c',
       'npm',
-      'exec', // Use 'exec' instead of npx
-      '--yes', // Auto-approve any needed installations
-      '--', // Separator for the command
-      'vite', // The command to run
-      ...(args || []), // Any additional arguments
+      'exec', 
+      '--yes',
+      '--', 
+      'vite',
+      ...(args || []),
     ];
-
-    console.log(`Running vite with npm exec`);
-    console.log(`In directory: ${cwd}`);
-    console.log(`Command: ${npmCommand}`);
-    console.log(`Arguments:`, fullArgs);
 
     return spawnCall({
       ...options,
@@ -294,7 +246,6 @@ export function vite(options: NpxRequestType) {
       env: {
         ...env,
         FORCE_COLOR: '1',
-        // Add necessary paths
         PATH: [
           Path.join(cwd, 'node_modules', '.bin'),
           Path.join(process.env.APPDATA || '', 'npm'),
@@ -304,7 +255,6 @@ export function vite(options: NpxRequestType) {
     });
   }
 
-  // Non-Windows platforms
   const viteExecutable = Path.join(cwd, 'node_modules', '.bin', 'vite');
 
   return spawnCall({

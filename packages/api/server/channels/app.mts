@@ -113,7 +113,6 @@ async function previewStart(
     },
     onExit: (code) => {
       deleteAppProcess(app.externalId, 'vite:server');
-
       wss.broadcast(`app:${app.externalId}`, 'preview:status', {
         url: null,
         status: 'stopped',

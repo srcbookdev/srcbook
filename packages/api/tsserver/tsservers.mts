@@ -44,8 +44,15 @@ export class TsServers {
     // created, the dependencies are not installed and thus this will
     // shut down immediately. Make sure that we handle this case after
     // package.json has finished installing its deps.
-    const child = spawn('npx', ['tsserver'], {
+    
+    const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+
+    console.log(`Spawning tsserver with ${npxCmd} in ${options.cwd}`);
+
+    
+    const child = spawn(npxCmd, ['tsserver'], {
       cwd: options.cwd,
+      shell: process.platform === 'win32'
     });
 
     const server = new TsServer(child);

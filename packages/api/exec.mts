@@ -229,15 +229,7 @@ export function vite(options: NpxRequestType) {
   if (process.platform === 'win32') {
     const npmCommand = Path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
 
-    const fullArgs = [
-      '/c',
-      'npm',
-      'exec', 
-      '--yes',
-      '--', 
-      'vite',
-      ...(args || []),
-    ];
+    const fullArgs = ['/c', 'npm', 'exec', '--yes', '--', 'vite', ...(args || [])];
 
     return spawnCall({
       ...options,

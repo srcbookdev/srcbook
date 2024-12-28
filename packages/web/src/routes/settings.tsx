@@ -161,7 +161,7 @@ function AiInfoBanner() {
       case 'custom':
         return (
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-            <p>Base URL required</p>
+            <p>Base URL required, API key optional</p>
           </div>
         );
     }
@@ -243,6 +243,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     anthropicKey: configAnthropicKey,
     xaiKey: configXaiKey,
     geminiKey: configGeminiKey,
+    customApiKey: configCustomApiKey,
     updateConfig: updateConfigContext,
   } = useSettings();
 
@@ -250,6 +251,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [xaiKey, setXaiKey] = useState<string>(configXaiKey ?? '');
   const [geminiKey, setGeminiKey] = useState<string>(configGeminiKey ?? '');
+  const [customApiKey, setCustomApiKey] = useState<string>(configCustomApiKey ?? '');
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
 
@@ -283,6 +285,9 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     model !== aiModel;
 
   const customModelSaveEnabled =
+    (typeof configCustomApiKey === 'string' && customApiKey !== configCustomApiKey) ||
+    ((configCustomApiKey === null || configCustomApiKey === undefined) &&
+      customApiKey.length > 0) ||
     (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
     ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
     model !== aiModel;
@@ -394,22 +399,35 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
         <div>
           <p className="opacity-70 text-sm mb-4">
             If you want to use an openai-compatible model (for example when running local models
-            with Ollama), choose this option and set the baseUrl.
+            with Ollama), choose this option and set the baseUrl and API key.
           </p>
-          <div className="flex gap-2">
-            <Input
-              name="baseUrl"
-              placeholder="http://localhost:11434/v1"
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-            />
-            <Button
-              className="px-5"
-              onClick={() => updateConfigContext({ aiBaseUrl: baseUrl, aiModel: model })}
-              disabled={!customModelSaveEnabled}
-            >
-              {saveButtonLabel ?? 'Save'}
-            </Button>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Input
+                name="baseUrl"
+                placeholder="http://localhost:11434/v1"
+                value={baseUrl}
+                onChange={(e) => setBaseUrl(e.target.value)}
+              />
+              <Input
+                name="customApiKey"
+                placeholder="API key (optional)"
+                type="password"
+                value={customApiKey}
+                onChange={(e) => setCustomApiKey(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button
+                className="px-5"
+                onClick={() =>
+                  updateConfigContext({ aiBaseUrl: baseUrl, customApiKey, aiModel: model })
+                }
+                disabled={!customModelSaveEnabled}
+              >
+                {saveButtonLabel ?? 'Save'}
+              </Button>
+            </div>
           </div>
         </div>
       )}

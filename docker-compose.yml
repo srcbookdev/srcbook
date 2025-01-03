@@ -1,0 +1,19 @@
+version: '3'
+services:
+  srcbook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${HOST_BIND:-127.0.0.1}:2150:2150"
+    volumes:
+      - type: bind
+        source: ~/.srcbook
+        target: /root/.srcbook
+        bind:
+          create_host_path: true
+    environment:
+      - NODE_ENV=production
+      - HOST=${HOST_BIND:-127.0.0.1}
+      - SRCBOOK_INSTALL_DEPS=true
+    command: ["pnpm", "start"]

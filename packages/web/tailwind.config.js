@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-const plugin = require('tailwindcss/plugin');
-const path = require('path');
+import plugin from 'tailwindcss/plugin';
+import path from 'path';
 
 module.exports = {
   darkMode: ['class'],

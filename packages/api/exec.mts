@@ -1,5 +1,6 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
 import Path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 
 interface NodeError extends Error {
   code?: string;
@@ -25,6 +26,7 @@ export type NPMInstallRequestType = BaseExecRequestType & {
 
 type NpxRequestType = BaseExecRequestType & {
   args: Array<string>;
+  env?: NodeJS.ProcessEnv;
 };
 
 type SpawnCallRequestType = {
@@ -38,24 +40,55 @@ type SpawnCallRequestType = {
   onError?: (err: NodeError) => void;
 };
 
+class ExecutableResolver {
+  private static instance: ExecutableResolver;
+  private cachedPaths: Map<string, string> = new Map();
+
+  static getInstance(): ExecutableResolver {
+    if (!this.instance) {
+      this.instance = new ExecutableResolver();
+    }
+    return this.instance;
+  }
+
+  private findExecutablePath(command: string): string {
+    try {
+      if (process.platform === 'win32') {
+        const paths = execSync(`where ${command}`)
+          .toString()
+          .trim()
+          .split('\n')
+          .map((p) => p.trim());
+        return paths.find((p) => p.includes('Program Files')) ?? paths[0] ?? command;
+      }
+      return execSync(`which ${command}`).toString().trim();
+    } catch {
+      return command;
+    }
+  }
+
+  getPath(command: string): string {
+    if (!this.cachedPaths.has(command)) {
+      this.cachedPaths.set(command, this.findExecutablePath(command));
+    }
+    return this.cachedPaths.get(command)!;
+  }
+}
+
 export function spawnCall(options: SpawnCallRequestType) {
   const { cwd, env, command, args, stdout, stderr, onExit, onError } = options;
-  const child = spawn(command, args, { cwd: cwd, env: env });
+
+  const child = spawn(command, args, {
+    cwd,
+    env,
+    windowsVerbatimArguments: process.platform === 'win32',
+    shell: process.platform === 'win32',
+  });
 
   child.stdout.on('data', stdout);
   child.stderr.on('data', stderr);
-
-  child.on('error', (err) => {
-    if (onError) {
-      onError(err);
-    } else {
-      console.error(err);
-    }
-  });
-
-  child.on('exit', (code, signal) => {
-    onExit(code, signal);
-  });
+  child.on('error', onError || console.error);
+  child.on('exit', onExit);
 
   return child;
 }
@@ -66,28 +99,22 @@ export function spawnCall(options: SpawnCallRequestType) {
  * Example:
  *
  *     node({
- *       cwd: '/Users/ben/.srcbook/30v2av4eee17m59dg2c29758to',
- *       env: {FOO_ENV_VAR: 'foooooooo'},
- *       entry: '/Users/ben/.srcbook/30v2av4eee17m59dg2c29758to/src/foo.js',
+ *       cwd: '/path/to/project',
+ *       env: {FOO_ENV_VAR: 'value'},
+ *       entry: '/path/to/file.js',
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
  *     });
- *
  */
-export function node(options: NodeRequestType) {
-  const { cwd, env, entry, stdout, stderr, onExit } = options;
-
-  return spawnCall({
-    command: 'node',
+export const node = ({ cwd, env, entry, ...rest }: NodeRequestType) =>
+  spawnCall({
+    command: ExecutableResolver.getInstance().getPath('node'),
     cwd,
     args: [entry],
-    stdout,
-    stderr,
-    onExit,
     env: { ...process.env, ...env },
+    ...rest,
   });
-}
 
 /**
  * Execute a TypeScript file using tsx.
@@ -95,30 +122,25 @@ export function node(options: NodeRequestType) {
  * Example:
  *
  *     tsx({
- *       cwd: '/Users/ben/.srcbook/30v2av4eee17m59dg2c29758to',
- *       env: {FOO_ENV_VAR: 'foooooooo'},
- *       entry: '/Users/ben/.srcbook/30v2av4eee17m59dg2c29758to/src/foo.ts',
+ *       cwd: '/path/to/project',
+ *       env: {FOO_ENV_VAR: 'value'},
+ *       entry: '/path/to/file.ts',
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
  *     });
- *
  */
-export function tsx(options: NodeRequestType) {
-  const { cwd, env, entry, stdout, stderr, onExit } = options;
-
-  // We are making an assumption about `tsx` being the tool of choice
-  // for running TypeScript, as well as where it's located on the file system.
-  return spawnCall({
-    command: Path.join(cwd, 'node_modules', '.bin', 'tsx'),
+export const tsx = ({ cwd, env, entry, ...rest }: NodeRequestType) =>
+  spawnCall({
+    command:
+      process.platform === 'win32'
+        ? Path.join(cwd, 'node_modules', '.bin', 'tsx.cmd')
+        : Path.join(cwd, 'node_modules', '.bin', 'tsx'),
     cwd,
     args: [entry],
-    stdout,
-    stderr,
-    onExit,
     env: { ...process.env, ...env },
+    ...rest,
   });
-}
 
 /**
  * Run npm install.
@@ -126,7 +148,7 @@ export function tsx(options: NodeRequestType) {
  * Install all packages:
  *
  *     npmInstall({
- *       cwd: '/Users/ben/.srcbook/foo',
+ *       cwd: '/path/to/project',
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
@@ -135,38 +157,34 @@ export function tsx(options: NodeRequestType) {
  * Install a specific package:
  *
  *     npmInstall({
- *       cwd: '/Users/ben/.srcbook/foo',
- *       package: 'marked',
+ *       cwd: '/path/to/project',
+ *       packages: ['lodash'],
  *       stdout(data) {console.log(data.toString('utf8'))},
  *       stderr(data) {console.error(data.toString('utf8'))},
  *       onExit(code) {console.log(`Exit code: ${code}`)}
  *     });
- *
  */
-export function npmInstall(options: NPMInstallRequestType) {
-  const { cwd, stdout, stderr, onExit } = options;
-  const args = options.packages
-    ? ['install', '--include=dev', ...(options.args || []), ...options.packages]
-    : ['install', '--include=dev', ...(options.args || [])];
-
-  return spawnCall({
+export const npmInstall = ({ cwd, packages = [], args = [], ...rest }: NPMInstallRequestType) =>
+  spawnCall({
     command: 'npm',
     cwd,
-    args,
-    stdout,
-    stderr,
-    onExit,
+    args: ['install', '--include=dev', ...args, ...packages],
     env: process.env,
+    ...rest,
   });
-}
 
 /**
  * Run vite.
  */
-export function vite(options: NpxRequestType) {
-  return spawnCall({
-    ...options,
-    command: Path.join(options.cwd, 'node_modules', '.bin', 'vite'),
-    env: process.env,
+export const vite = ({ cwd, args = [], env = process.env, ...rest }: NpxRequestType) =>
+  spawnCall({
+    command:
+      process.platform === 'win32' ? 'npx.cmd' : Path.join(cwd, 'node_modules', '.bin', 'vite'),
+    cwd,
+    args: process.platform === 'win32' ? ['vite', ...args] : args,
+    env: {
+      ...env,
+      FORCE_COLOR: '1',
+    },
+    ...rest,
   });
-}

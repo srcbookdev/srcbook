@@ -1,0 +1,42 @@
+{
+    "version": "6",
+    "dialect": "sqlite",
+    "id": "0015_add_custom_api_key",
+    "prevId": "0014_Gemini_Integration",
+    "tables": {
+      "config": {
+        "name": "config",
+        "columns": {
+          "id": {
+            "name": "id",
+            "type": "text",
+            "primaryKey": true,
+            "notNull": true
+          },
+          "openai_api_key": {
+            "name": "openai_api_key",
+            "type": "text"
+          },
+          "posthog_api_key": {
+            "name": "posthog_api_key",
+            "type": "text"
+          },
+          "subscription_email": {
+            "name": "subscription_email",
+            "type": "text"
+          },
+          "custom_api_key": {
+            "name": "custom_api_key",
+            "type": "text"
+          }
+        }
+      }
+    },
+    "enums": {},
+    "schemas": {},
+    "_meta": {
+      "schemas": {},
+      "tables": {},
+      "columns": {}
+    }
+  } 

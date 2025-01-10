@@ -1,6 +1,15 @@
 import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, unique } from 'drizzle-orm/sqlite-core';
 import { randomid } from '@srcbook/shared';
+import { z } from 'zod';
+
+// Add MCP server config types
+export const McpServerConfig = z.object({
+  host: z.string().url(),
+  tools: z.array(z.string()).optional(),
+});
+
+export type McpServerConfig = z.infer<typeof McpServerConfig>;
 
 export const configs = sqliteTable('config', {
   // Directory where .src.md files will be stored and searched by default.
@@ -19,6 +28,11 @@ export const configs = sqliteTable('config', {
   aiBaseUrl: text('ai_base_url'),
   // Null: unset. Email: subscribed. "dismissed": dismissed the dialog.
   subscriptionEmail: text('subscription_email'),
+  // Add MCP configuration
+  mcpServers: text('mcp_servers', { mode: 'json' })
+    .$type<Record<string, McpServerConfig>>()
+    .default(sql`json('{}')`)
+    .notNull(),
 });
 
 export type Config = typeof configs.$inferSelect;

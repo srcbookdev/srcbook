@@ -1,0 +1,63 @@
+{
+    "version": "6",
+    "dialect": "sqlite",
+    "id": "b7c418fb-06df-4fc2-8afc-f18d95014b47",
+    "prevId": "aeb418fb-06df-4fc2-8afc-f18d95014b46",
+    "tables": {
+      "config": {
+        "name": "config",
+        "columns": {
+          "base_dir": {
+            "name": "base_dir",
+            "type": "text",
+            "primaryKey": false,
+            "notNull": true,
+            "autoincrement": false
+          },
+          "default_language": {
+            "name": "default_language",
+            "type": "text",
+            "primaryKey": false,
+            "notNull": true,
+            "autoincrement": false,
+            "default": "'typescript'"
+          },
+          "openai_api_key": {
+            "name": "openai_api_key",
+            "type": "text",
+            "primaryKey": false,
+            "notNull": false,
+            "autoincrement": false
+          },
+          "anthropic_api_key": {
+            "name": "anthropic_api_key",
+            "type": "text",
+            "primaryKey": false,
+            "notNull": false,
+            "autoincrement": false
+          },
+          "enabled_analytics": {
+            "name": "enabled_analytics",
+            "type": "integer",
+            "primaryKey": false,
+            "notNull": true,
+            "autoincrement": false,
+            "default": true
+          },
+          "mcp_servers": {
+            "name": "mcp_servers",
+            "type": "text",
+            "primaryKey": false,
+            "notNull": true,
+            "autoincrement": false,
+            "default": "'{}'",
+            "mode": "json"
+          }
+        },
+        "indexes": {},
+        "foreignKeys": {},
+        "compositePrimaryKeys": {},
+        "uniqueConstraints": {}
+      }
+    }
+  }

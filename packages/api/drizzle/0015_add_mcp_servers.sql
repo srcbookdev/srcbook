@@ -1,0 +1,1 @@
+ALTER TABLE `config` ADD COLUMN `mcp_servers` text DEFAULT json('{}') NOT NULL;

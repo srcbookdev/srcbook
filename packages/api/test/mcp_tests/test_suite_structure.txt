@@ -1,0 +1,44 @@
+describe('Config File Handling', () => {
+  describe('Config Location', () => {
+    test('finds config in default location')
+    test('returns null when config does not exist')
+    test('handles inaccessible config directory')
+    test('respects custom config path if provided')
+  })
+
+  describe('File Reading', () => {
+    test('successfully reads valid config file')
+    test('handles empty config file')
+    test('handles permission denied')
+    test('handles file encoding issues')
+  })
+
+  describe('JSON Parsing', () => {
+    test('parses valid JSON config')
+    test('handles empty JSON object')
+    test('handles malformed JSON')
+    test('handles non-JSON content')
+  })
+
+  describe('Schema Validation', () => {
+    test('validates correct mcpServers structure')
+    test('handles missing mcpServers key')
+    test('handles empty mcpServers object')
+    
+    describe('Server Entries', () => {
+      test('validates server with required command only')
+      test('validates server with command and args')
+      test('validates server with command and env')
+      test('validates server with all fields')
+      test('rejects server missing command')
+      test('rejects server with invalid args type')
+      test('rejects server with invalid env type')
+    })
+  })
+
+  describe('Integration', () => {
+    test('full process: valid config file to validated object')
+    test('full process: handles missing file with default creation')
+    test('full process: handles invalid config with error')
+  })
+})

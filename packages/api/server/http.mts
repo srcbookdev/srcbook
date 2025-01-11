@@ -1,6 +1,7 @@
 import Path from 'node:path';
 import { posthog } from '../posthog-client.mjs';
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { SRCBOOKS_DIR } from '../constants.mjs';
 import express, { type Application, type Response } from 'express';
 import cors from 'cors';
@@ -64,11 +65,14 @@ import { AppGenerationFeedbackType } from '@srcbook/shared';
 import { createZipFromApp } from '../apps/disk.mjs';
 import { checkoutCommit, commitAllFiles, getCurrentCommitSha } from '../apps/git.mjs';
 import { streamJsonResponse } from './utils.mjs';
+import { exec } from 'node:child_process';
+import { MCPHub } from '../mcp/mcphub.mjs';
 
 const app: Application = express();
 
 const router = express.Router();
 
+const mcpHub = new MCPHub();
 router.use(express.json());
 
 router.options('/file', cors());
@@ -782,6 +786,79 @@ router.post('/apps/:id/export', cors(), async (req, res) => {
   }
 });
 
+// Endpoint to open files in the OS's native file manager
+// This endpoint handles the cross-platform complexity of opening files
+router.options('/open-file', cors());
+router.post('/open-file', cors(), async (req, res) => {
+  const { path: requestPath } = req.body;
+  
+  try {
+    console.log('Opening file on platform:', process.platform); // Debug log
+    
+    // In Docker, we need to translate paths between container and host
+    const isInContainer = existsSync('/.dockerenv');
+    console.log('Running in container:', isInContainer);
+
+    // Translate the path from container to host path
+    const hostPath = isInContainer
+      ? requestPath.replace('/app', '/Users/b.c.nims/just-glassBead-things/srcbook-mcp/srcbook')
+      : requestPath;
+
+    console.log('Container path:', requestPath);
+    console.log('Host path:', hostPath);
+
+    // First, verify the file exists
+    try {
+      await fs.access(requestPath);
+    } catch (error) {
+      return res.json({ 
+        error: true, 
+        result: `File not found: ${requestPath}. Please verify the path is correct.` 
+      });
+    }
+
+    if (isInContainer) {
+      // For containerized environment, return the host path
+      return res.json({ 
+        error: false, 
+        result: hostPath,
+        containerized: true 
+      });
+    } else {
+      // For non-containerized environment, use native commands
+      if (process.platform === 'darwin') {
+        exec(`open -R "${hostPath}"`, (error) => {
+          if (error) {
+            console.error('Failed to open file:', error);
+            return res.json({ error: true, result: error.message });
+          }
+          return res.json({ error: false });
+        });
+      } else if (process.platform === 'win32') {
+        exec(`explorer /select,"${hostPath}"`, (error) => {
+          if (error) {
+            console.error('Failed to open file:', error);
+            return res.json({ error: true, result: error.message });
+          }
+          return res.json({ error: false });
+        });
+      } else {
+        exec(`xdg-open "${Path.dirname(hostPath)}"`, (error) => {
+          if (error) {
+            console.error('Failed to open file:', error);
+            return res.json({ error: true, result: error.message });
+          }
+          return res.json({ error: false });
+        });
+      }
+    }
+  } catch (e) {
+    const error = e as Error;
+    console.error('Failed to execute command:', error);
+    return res.json({ error: true, result: error.message });
+  }
+});
+
 app.use('/api', router);
 
 export default app;
@@ -832,5 +909,23 @@ router.post('/apps/:id/feedback', cors(), async (req, res) => {
   } catch (error) {
     console.error('Error sending feedback:', error);
     return res.status(500).json({ error: 'Failed to send feedback' });
+  }
+});
+
+router.options('/mcp/tools-count', cors());
+router.get('/mcp/tools-count', cors(), async (_req, res) => {
+  try {
+    let totalTools = 0;
+    for (const {name, status} of mcpHub.listConnections()) {
+      if (status === 'connected') {
+        const tools = await mcpHub.listTools(name);
+        totalTools += Array.isArray(tools) ? tools.length : 0;
+      }
+    }
+    return res.json({ error: false, result: { count: totalTools } });
+  } catch (e) {
+    const error = e as Error;
+    console.error('Error fetching MCP tools count:', error);
+    return res.json({ error: true, result: error.stack });
   }
 });

@@ -26,6 +26,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.1.0",
+    "drizzle-kit": "^0.24.2",
+    "electron": "^33.3.1",
     "turbo": "^2.1.1"
   },
   "packageManager": "pnpm@9.12.1",

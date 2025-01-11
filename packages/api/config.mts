@@ -9,11 +9,8 @@ import {
   secretsToSession,
   apps,
 } from './db/schema.mjs';
-import { db, migrationPromise } from './db/index.mjs';
+import { db } from './db/index.mjs';
 import { HOME_DIR } from './constants.mjs';
-
-// Wait for migrations before initializing
-await migrationPromise;
 
 async function init() {
   const existingConfig = await db.select().from(configs).limit(1);

@@ -64,10 +64,30 @@ import { filenameFromPath, pathToCodeFile } from '../srcbook/path.mjs';
 import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
 import { register as registerAppChannel } from './channels/app.mjs';
+import { MCPHub } from '../mcp/mcphub.mjs';
+import { register as registerServersChannel } from '../mcp/channels/servers.mjs';
+import { register as registerToolsChannel } from '../mcp/channels/tools.mjs';
 
 type SessionsContextType = MessageContextType<'sessionId'>;
 
 const wss = new WebSocketServer();
+
+// Create and initialize the MCP hub
+const mcpHub = new MCPHub();
+
+(async () => {
+  try {
+    // This loads srcbook_mcp_config.json from the appropriate path
+    // (either local or /app/srcbook_mcp_config.json if CONTAINER=true)
+    await mcpHub.initialize();
+  } catch (error) {
+    console.error('Failed to initialize MCPHub:', error);
+  }
+
+  // Now that MCPHub is initialized, register the server and tool channels
+  registerServersChannel(wss, mcpHub);
+  registerToolsChannel(wss, mcpHub);
+})();
 
 function addRunningProcess(
   session: SessionType,

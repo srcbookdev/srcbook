@@ -67,17 +67,42 @@ function Settings() {
 
       // If we're in a containerized environment, handle the path differently
       if (data.containerized) {
-        // Copy the path to clipboard
-        await navigator.clipboard.writeText(data.result);
-        toast.success('Path copied to clipboard');
-        
-        // Show instructions
-        toast.message(
-          'To find your config file:\n' +
-          '1. Open Finder\n' +
-          '2. Press Cmd+Shift+G\n' +
-          '3. Paste the copied path'
-        );
+        try {
+          // Request clipboard permission first
+          const clipboardPermission = await navigator.permissions.query({ name: 'clipboard-write' as PermissionName });
+          
+          if (clipboardPermission.state === 'granted' || clipboardPermission.state === 'prompt') {
+            await navigator.clipboard.writeText(data.result);
+            toast.success('Path copied to clipboard');
+            
+            // Show instructions
+            toast.message(
+              'To find your config file:\n' +
+              '1. Open Finder\n' +
+              '2. Press Cmd+Shift+G\n' +
+              '3. Paste the copied path',
+              { duration: 10000 }
+            );
+          } else {
+            // Fallback if clipboard access is denied
+            toast.message(
+              `Please manually navigate to: ${data.result}\n\n` +
+              '1. Open Finder\n' +
+              '2. Press Cmd+Shift+G\n' +
+              '3. Enter the path above',
+              { duration: 10000 }
+            );
+          }
+        } catch (_clipboardError: unknown) {
+          // Fallback if clipboard API is not available
+          toast.message(
+            `Please manually navigate to: ${data.result}\n\n` +
+            '1. Open Finder\n' +
+            '2. Press Cmd+Shift+G\n' +
+            '3. Enter the path above',
+            { duration: 10000 }
+          );
+        }
       }
     } catch (error) {
       console.error('Failed to open MCP config:', error);
@@ -156,7 +181,7 @@ function Settings() {
           <h2 className="text-base font-medium">MCP Configuration</h2>
           <div>
             <label className="opacity-70 text-sm" htmlFor="mcp-config">
-              Configure Model Context Protocol settings by editing the config file.
+              Configure Model Context Protocol settings by editing the config file. Srcbook will give you the file's location on your machine when you push this button.
             </label>
             <div className="flex gap-2 mt-3">
               <Button

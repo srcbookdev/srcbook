@@ -12,11 +12,11 @@ export const McpServerConfigSchema = z.object({
 
 export type McpServerConfig = z.infer<typeof McpServerConfigSchema>;
 
-const McpConfigSchema = z.object({
-  mcpServers: z.record(McpServerConfigSchema).optional(),
+const McpFileConfigSchema = z.object({
+  mcpServers: z.record(McpServerConfigSchema),  // Not optional for file
 });
 
-type McpConfig = z.infer<typeof McpConfigSchema>;
+type McpConfig = z.infer<typeof McpFileConfigSchema>;
 
 let cachedConfig: McpConfig | null = null;
 
@@ -31,7 +31,7 @@ export async function loadMcpConfig(): Promise<McpConfig> {
   try {
     // Try to read from the file first
     const fileContent = await fs.readFile(CONFIG_PATH, 'utf-8');
-    const parsed = McpConfigSchema.safeParse(JSON.parse(fileContent));
+    const parsed = McpFileConfigSchema.safeParse(JSON.parse(fileContent));
     
     if (parsed.success) {
       cachedConfig = parsed.data;
@@ -50,7 +50,7 @@ export async function loadMcpConfig(): Promise<McpConfig> {
     mcpServers: config.mcpServers || {}
   };
   
-  const parsed = McpConfigSchema.safeParse(mcpConfig);
+  const parsed = McpFileConfigSchema.safeParse(mcpConfig);
 
   if (!parsed.success) {
     throw new Error('Invalid MCP configuration: ' + JSON.stringify(parsed.error.errors));

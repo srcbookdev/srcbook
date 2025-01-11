@@ -1,1 +1,1 @@
-ALTER TABLE `config` ADD COLUMN `mcp_servers` text DEFAULT json('{}') NOT NULL;
+ALTER TABLE `config` ADD `mcp_servers` text DEFAULT '{}' NOT NULL;

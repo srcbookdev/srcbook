@@ -30,10 +30,10 @@ export const configs = sqliteTable('config', {
   // Null: unset. Email: subscribed. "dismissed": dismissed the dialog.
   subscriptionEmail: text('subscription_email'),
   // Add MCP configuration
-  mcpServers: text('mcp_servers', { mode: 'json' })
-    .$type<Record<string, McpServerConfig>>()
-    .default(sql`json('{}')`)
-    .notNull(),
+  mcpServers: text('mcp_servers', { mode: 'json' }).$type<Record<string, {
+    host: string;
+    tools?: string[];
+  }>>().default({}),
 });
 
 export type Config = typeof configs.$inferSelect;

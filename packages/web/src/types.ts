@@ -18,6 +18,7 @@ export type SettingsType = {
   aiModel: string;
   aiBaseUrl?: string | null;
   subscriptionEmail?: string | null;
+  mcpServers: string[];
 };
 
 export type SessionType = {

@@ -8,7 +8,8 @@
     "VITE_SRCBOOK_DEBUG_RENDER_SESSION_AS_READ_ONLY",
     "SRCBOOK_DISABLE_ANALYTICS",
     "PORT",
-    "HOME"
+    "HOME",
+    "CONTAINER"
   ],
   "tasks": {
     "//#format": {},

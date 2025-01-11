@@ -15,8 +15,5 @@ const DB_PATH = `${HOME_DIR}/.srcbook/srcbook.db`;
 // Creates the HOME/.srcbook/srcbooks dir
 fs.mkdirSync(SRCBOOKS_DIR, { recursive: true });
 
-// Initialize Drizzle ORM with the database and schema
 export const db = drizzle(new Database(DB_PATH), { schema });
-
-// Execute migrations and export the promise
-export const migrationPromise = migrate(db, { migrationsFolder: drizzleFolder });
+migrate(db, { migrationsFolder: drizzleFolder });

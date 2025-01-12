@@ -30,8 +30,9 @@ export const configs = sqliteTable('config', {
   subscriptionEmail: text('subscription_email'),
   // Add MCP configuration
   mcpServers: text('mcp_servers', { mode: 'json' }).$type<Record<string, {
-    host: string;
-    tools?: string[];
+    command: string;
+    args: string[];
+    env: string
   }>>().default({}),
 });
 

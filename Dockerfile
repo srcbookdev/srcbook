@@ -19,6 +19,9 @@ RUN pnpm build
 # Create necessary directories for volumes
 RUN mkdir -p /root/.srcbook /root/.npm
 
+# Create directories for filesystem server
+RUN mkdir -p /app/data/Desktop /app/data/Downloads
+
 # Set container environment variable
 ENV CONTAINER=true
 

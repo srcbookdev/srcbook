@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
 import * as path from 'path'
-import { SRCBOOK_DIR } from '../../constants.mjs'
+import { SRCBOOK_DIR } from '../../../constants.mjs'
 
 describe('Config File Handling', () => {
   describe('Config Location', () => {
@@ -24,7 +24,7 @@ describe('Config File Handling', () => {
         }
       }))
 
-      const { loadMcpConfig } = await import('../../mcp/config.mjs')
+      const { loadMcpConfig } = await import('../../../mcp/config.mjs')
       const fsPromises = await import('node:fs/promises')
       
       const minimalConfig = {
@@ -55,7 +55,7 @@ describe('Config File Handling', () => {
         }
       }))
 
-      const { loadMcpConfig } = await import('../../mcp/config.mjs')
+      const { loadMcpConfig } = await import('../../../mcp/config.mjs')
       const fsPromises = await import('node:fs/promises')
       
       vi.mocked(fsPromises.default.readFile).mockRejectedValue(new Error('ENOENT'))
@@ -78,7 +78,7 @@ describe('Config File Handling', () => {
         }
       }))
 
-      const { loadMcpConfig } = await import('../../mcp/config.mjs')
+      const { loadMcpConfig } = await import('../../../mcp/config.mjs')
       const fsPromises = await import('node:fs/promises')
       
       vi.mocked(fsPromises.default.readFile).mockRejectedValue(new Error('EACCES'))
@@ -104,7 +104,7 @@ describe('Config File Handling', () => {
         }
       }))
 
-      const { loadMcpConfig } = await import('../../mcp/config.mjs')
+      const { loadMcpConfig } = await import('../../../mcp/config.mjs')
       const fsPromises = await import('node:fs/promises')
       
       const containerConfig = {

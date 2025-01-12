@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
 import * as path from 'path'
-import { SRCBOOK_DIR } from '../../constants.mjs'
+import { SRCBOOK_DIR } from '../../../constants.mjs'
 
 describe('File Reading', () => {
   const defaultConfigPath = path.join(SRCBOOK_DIR, 'srcbook_mcp_config.json')
@@ -23,7 +23,7 @@ describe('File Reading', () => {
       }
     }))
 
-    const { loadMcpConfig } = await import('../../mcp/config.mjs')
+    const { loadMcpConfig } = await import('../../../mcp/config.mjs')
     const fsPromises = await import('node:fs/promises')
     
     const validConfig = {
@@ -54,7 +54,7 @@ describe('File Reading', () => {
       }
     }))
 
-    const { loadMcpConfig } = await import('../../mcp/config.mjs')
+    const { loadMcpConfig } = await import('../../../mcp/config.mjs')
     const fsPromises = await import('node:fs/promises')
     
     // Mock an empty file
@@ -78,7 +78,7 @@ describe('File Reading', () => {
       }
     }))
 
-    const { loadMcpConfig } = await import('../../mcp/config.mjs')
+    const { loadMcpConfig } = await import('../../../mcp/config.mjs')
     const fsPromises = await import('node:fs/promises')
     
     // Mock a permission denied error
@@ -102,7 +102,7 @@ describe('File Reading', () => {
       }
     }))
 
-    const { loadMcpConfig } = await import('../../mcp/config.mjs')
+    const { loadMcpConfig } = await import('../../../mcp/config.mjs')
     const fsPromises = await import('node:fs/promises')
     
     // Mock invalid UTF-8 data

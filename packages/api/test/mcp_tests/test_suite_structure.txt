@@ -42,3 +42,25 @@ describe('Config File Handling', () => {
     test('full process: handles invalid config with error')
   })
 })
+
+describe('Integration Tests', () => {
+  describe('Config Loading', () => {
+    test('loads config from file when valid')
+    test('falls back to database when file missing')
+    test('falls back to database when file invalid')
+    test('caches config after first load')
+  })
+
+  describe('Config Writing', () => {
+    test('writes config to file after database load')
+    test('writes config with correct formatting')
+    test('handles write permission errors')
+  })
+
+  describe('Error Handling', () => {
+    test('handles file read errors gracefully')
+    test('handles JSON parse errors')
+    test('handles database errors')
+    test('provides meaningful error messages')
+  })
+})

@@ -12,12 +12,12 @@ services:
         bind:
           create_host_path: true
       - type: bind
-        source: /Users/b.c.nims/Desktop
+        source: ${HOME}/Desktop
         target: /app/data/Desktop
         bind:
           create_host_path: true
       - type: bind
-        source: /Users/b.c.nims/Downloads
+        source: ${HOME}/Downloads
         target: /app/data/Downloads
         bind:
           create_host_path: true

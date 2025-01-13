@@ -9,7 +9,8 @@
     "SRCBOOK_DISABLE_ANALYTICS",
     "PORT",
     "HOME",
-    "CONTAINER"
+    "CONTAINER",
+    "ROLLUP_NATIVE_PLATFORM"
   ],
   "tasks": {
     "//#format": {},

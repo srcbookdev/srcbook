@@ -1,6 +1,13 @@
 FROM node:22.7.0-alpine3.20
 WORKDIR /app
 
+# Install git
+RUN apk add --no-cache git
+
+# Configure git
+RUN git config --global user.email "ai@srcbook.com" && \
+    git config --global user.name "Srcbook"
+
 RUN corepack enable && corepack prepare pnpm@9.12.1 --activate
 
 # Copy all package files first
@@ -10,10 +17,13 @@ COPY srcbook srcbook/
 COPY turbo.json ./
 COPY srcbook_mcp_config.json ./
 
-# Install dependencies
-RUN pnpm install
+# Add a build arg for container detection
+ENV CONTAINER=true
 
-# Build the application
+# Keep the --no-optional flag since we're explicitly handling platform selection
+RUN pnpm install --no-optional
+
+# Build with our platform detection in place
 RUN pnpm build
 
 # Create necessary directories for volumes

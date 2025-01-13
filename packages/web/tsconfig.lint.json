@@ -1,4 +1,0 @@
-{
-  "include": ["src", "vite.config.ts", "drizzle.config.ts"],
-  "exclude": ["node_modules", "dist"]
-}

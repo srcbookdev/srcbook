@@ -43,3 +43,6 @@ srcbook/lib/**/*
 *.code-workspace
 
 vite.config.ts.timestamp-*.mjs
+
+# MCP Testing
+packages/api/test/mcp_tests

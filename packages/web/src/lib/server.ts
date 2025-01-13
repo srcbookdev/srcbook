@@ -7,6 +7,7 @@ import type {
 } from '@srcbook/shared';
 import { SessionType, ExampleSrcbookType } from '@/types';
 import SRCBOOK_CONFIG from '@/config';
+import { getRuntimeEnvironment } from './platform';
 
 const API_BASE_URL = `${SRCBOOK_CONFIG.api.origin}/api`;
 
@@ -436,4 +437,16 @@ export async function subscribeToMailingList(email: string) {
   }
 
   return response.json();
+}
+
+
+// Add platform info to error reporting
+export function handleBuildError(error: Error) {
+  const env = getRuntimeEnvironment();
+  console.error('Build failed:', {
+    error,
+    environment: env,
+    // Add other diagnostic info
+  });
+  // ... rest of error handling
 }

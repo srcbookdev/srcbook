@@ -55,6 +55,7 @@ import { usePackageJson } from './apps/use-package-json.js';
 import { AiFeedbackModal } from './apps/AiFeedbackModal';
 import { useVersion } from './apps/use-version.js';
 import { Link } from 'react-router-dom';
+import { SequentialThinkingToggle } from '../../../components/src/components/ui/sequential-thinking-toggle.js'
 
 function Chat({
   history,
@@ -189,26 +190,34 @@ function Chat({
   );
 }
 
+type QueryProps = {
+  onSubmit: (query: string, isSequential: boolean) => Promise<void>;
+  onFocus: () => void;
+  isLoading: boolean;
+  isVisible: boolean;
+  setVisible: (visible: boolean) => void;
+
+  useSequentialThinking: boolean;
+  setUseSequentialThinking: (val: boolean) => void;
+};
+
 function Query({
   onSubmit,
   onFocus,
   isLoading,
   isVisible,
   setVisible,
-}: {
-  onSubmit: (query: string) => Promise<void>;
-  onFocus: () => void;
-  isLoading: boolean;
-  isVisible: boolean;
-  setVisible: (visible: boolean) => void;
-}) {
+  useSequentialThinking,
+  setUseSequentialThinking,
+}: QueryProps) {
   const [query, setQuery] = React.useState('');
-
   const handleSubmit = () => {
     const value = query.trim();
     if (value) {
       setQuery('');
-      onSubmit(value);
+      // The parent's onSubmit might also accept the “useSequentialThinking” boolean
+      // if you prefer passing it here. For now we just call onSubmit(query).
+      onSubmit(value, useSequentialThinking);
     }
   };
 
@@ -229,6 +238,7 @@ function Query({
         onFocus={onFocus}
         value={query}
         onKeyDown={(e) => {
+          // Mac: Cmd+Enter or Windows: Ctrl+Enter
           if (e.metaKey && !e.shiftKey && e.key === 'Enter') {
             e.preventDefault();
             e.stopPropagation();
@@ -236,33 +246,49 @@ function Query({
           }
         }}
       />
-      <span className="flex items-center justify-end gap-1.5 mt-2">
-        <Button variant="icon" className="h-7 w-7 p-1.5 border-none text-tertiary-foreground">
-          {isVisible ? (
-            <PanelTopOpen size={18} onClick={() => setVisible(false)} />
-          ) : (
-            <History size={18} onClick={() => setVisible(true)} />
-          )}
-        </Button>
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="icon" className="h-7 w-7 p-1.5 border-none text-tertiary-foreground">
-                <Paperclip size={18} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Coming soon!</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <Button
-          variant="ai"
-          className={'h-7 w-7 p-1.5 foxus:outline-none border-none'}
-          onClick={handleSubmit}
-          disabled={!query}
-        >
-          {isLoading ? <LoaderCircle size={18} className="animate-spin" /> : <ArrowUp size={18} />}
-        </Button>
-      </span>
+
+      {/* Row for the sequential toggle + action buttons */}
+      <div className="flex items-center justify-between">
+        {/* Left side: the toggle and a small label (optional) */}
+        <div className="flex items-center gap-2">
+          <SequentialThinkingToggle onChange={setUseSequentialThinking} />
+          <p className="text-xs text-tertiary-foreground">
+            {useSequentialThinking ? 'Sequential ON' : 'Sequential OFF'}
+          </p>
+        </div>
+
+        {/* Right side: existing icon buttons & submit arrow */}
+        <span className="flex items-center gap-1.5">
+          <Button variant="icon" className="h-7 w-7 p-1.5 border-none text-tertiary-foreground">
+            {isVisible ? (
+              <PanelTopOpen size={18} onClick={() => setVisible(false)} />
+            ) : (
+              <History size={18} onClick={() => setVisible(true)} />
+            )}
+          </Button>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="icon"
+                  className="h-7 w-7 p-1.5 border-none text-tertiary-foreground"
+                >
+                  <Paperclip size={18} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Coming soon!</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Button
+            variant="ai"
+            className="h-7 w-7 p-1.5 foxus:outline-none border-none"
+            onClick={handleSubmit}
+            disabled={!query}
+          >
+            {isLoading ? <LoaderCircle size={18} className="animate-spin" /> : <ArrowUp size={18} />}
+          </Button>
+        </span>
+      </div>
     </div>
   );
 }
@@ -499,6 +525,7 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
   const [visible, setVisible] = React.useState(false);
   const [loading, setLoading] = React.useState<'description' | 'actions' | null>(null);
   const [diffApplied, setDiffApplied] = React.useState(false);
+  const [useSequentialThinking, setUseSequentialThinking] = React.useState(false);
   const { createFile, deleteFile } = useFiles();
   const { createVersion } = useVersion();
 
@@ -511,16 +538,27 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
       });
   }, [app]);
 
-  const handleSubmit = async (query: string) => {
+  const handleSubmit = async (query: string, isSequential: boolean) => {
     const planId = randomid();
     setLoading('description');
     setFileDiffs([]);
-    const userMessage = { type: 'user', message: query, planId } as UserMessageType;
-    setHistory((prevHistory) => [...prevHistory, userMessage]);
+  
+    // We must explicitly set `type: 'user'` to match UserMessageType
+    const userMessage: UserMessageType = {
+      type: 'user',
+      message: query,
+      planId,
+    };
+  
+    // Since userMessage is typed as a valid `MessageType`, no TS errors:
+    setHistory((prev) => [...prev, userMessage]);
     appendToHistory(app.id, userMessage);
+  
     setVisible(true);
-
-    const iterable = await aiEditApp(app.id, query, planId);
+  
+    // Now pass the 4th argument to aiEditApp
+    const iterable = await aiEditApp(app.id, query, planId, isSequential);
+  
 
     const fileUpdates: FileType[] = [];
 
@@ -655,6 +693,8 @@ export function ChatPanel(props: PropsType): React.JSX.Element {
           onFocus={handleFocus}
           isVisible={visible}
           setVisible={setVisible}
+          useSequentialThinking={useSequentialThinking}
+          setUseSequentialThinking={setUseSequentialThinking}
         />
       </div>
     </DraggableChatPanel>

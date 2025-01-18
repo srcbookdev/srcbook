@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { getConfig, updateConfig } from '../config.mjs';
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import { SRCBOOK_DIR } from '../constants.mjs';
+import { SRCBOOK_DIR, DIST_DIR, HOME_DIR } from '../constants.mjs';
 import { McpServerConfigSchema } from './types/index.mjs';
 
 export type McpServerConfig = z.infer<typeof McpServerConfigSchema>;
@@ -19,13 +19,13 @@ let cachedConfig: McpConfig | null = null;
 const CONFIG_PATH =
   process.env.CONTAINER === 'true'
     ? '/app/srcbook_mcp_config.json'
-    : path.join(SRCBOOK_DIR, 'srcbook_mcp_config.json');
+    : path.join(DIST_DIR, 'srcbook_mcp_config.json');
 
     export async function loadMcpConfig(): Promise<McpConfig> {
       if (cachedConfig) return cachedConfig;
 
       console.log('Environment:', {
-        CONTAINER: process.env.CONTAINER,
+        CONTAINER: process.env.CONTAINER === 'true' ? 'true' : 'false',
         CONFIG_PATH,
         cwd: process.cwd()
       });

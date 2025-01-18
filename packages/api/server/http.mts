@@ -14,7 +14,7 @@ import {
   listSessions,
   exportSrcmdText,
 } from '../session.mjs';
-import { generateCells, generateSrcbook, healthcheck, streamEditApp } from '../ai/generate.mjs';
+import { generateCells, generateSrcbook, healthcheck, streamEditApp, streamEditAppSequential } from '../ai/generate.mjs';
 import { streamParsePlan } from '../ai/plan-parser.mjs';
 import {
   getConfig,
@@ -550,20 +550,32 @@ router.get('/apps/:id/directories', cors(), async (req, res) => {
 router.options('/apps/:id/edit', cors());
 router.post('/apps/:id/edit', cors(), async (req, res) => {
   const { id } = req.params;
-  const { query, planId } = req.body;
+  const { query, planId, isSequential } = req.body;
+
   posthog.capture({ event: 'user edited app with ai' });
+
   try {
     const app = await loadApp(id);
-
     if (!app) {
       return res.status(404).json({ error: 'App not found' });
     }
+
     const validName = toValidPackageName(app.name);
     const files = await getFlatFilesForApp(String(app.externalId));
-    const result = await streamEditApp(validName, files, query, app.externalId, planId);
-    const planStream = await streamParsePlan(result, app, query, planId);
 
+    let result;
+    if (isSequential) {
+      console.log(`[MCP] Using sequential approach for app ${id}, planId: ${planId}`);
+      // e.g. a dedicated function for "sequential-thinking"
+      result = await streamEditAppSequential(validName, files, query, app.externalId, planId);
+    } else {
+      // Your default path
+      result = await streamEditApp(validName, files, query, app.externalId, planId);
+    }
+
+    const planStream = await streamParsePlan(result, app, query, planId);
     return streamJsonResponse(planStream, res, { status: 200 });
+
   } catch (e) {
     return error500(res, e as Error);
   }

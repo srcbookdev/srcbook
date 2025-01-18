@@ -33,6 +33,7 @@ Srcbook is open-source (apache2) and runs locally on your machine. You'll need t
 - Create, edit and run web apps
 - Use AI to generate the boilerplate, modify the code, and fix things
 - Edit the app with a hot-reloading web preview
+- [Model Context Protocol (MCP)](MCP_README.md) integration for enhanced AI capabilities and secure file access
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/lLJPZOs.png">

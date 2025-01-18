@@ -66,13 +66,11 @@ import { createZipFromApp } from '../apps/disk.mjs';
 import { checkoutCommit, commitAllFiles, getCurrentCommitSha } from '../apps/git.mjs';
 import { streamJsonResponse } from './utils.mjs';
 import { exec } from 'node:child_process';
-import { MCPHub } from '../mcp/mcphub.mjs';
+import mcpHub from '../../api/mcp/mcphub.mjs';
 
 const app: Application = express();
 
 const router = express.Router();
-
-const mcpHub = new MCPHub();
 router.use(express.json());
 
 router.options('/file', cors());
@@ -566,8 +564,7 @@ router.post('/apps/:id/edit', cors(), async (req, res) => {
     let result;
     if (isSequential) {
       console.log(`[MCP] Using sequential approach for app ${id}, planId: ${planId}`);
-      // e.g. a dedicated function for "sequential-thinking"
-      result = await streamEditAppSequential(validName, files, query, app.externalId, planId);
+      result = await streamEditAppSequential(validName, files, query, app.externalId, planId, mcpHub);
     } else {
       // Your default path
       result = await streamEditApp(validName, files, query, app.externalId, planId);

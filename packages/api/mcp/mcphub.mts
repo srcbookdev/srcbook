@@ -5,11 +5,18 @@ import {
   ListToolsResultSchema,
   ListResourcesResultSchema,
   ListResourceTemplatesResultSchema,
+  InitializeResultSchema, // ✅ Ensure this is correctly imported
 } from '@modelcontextprotocol/sdk/types.js';
 import { loadMcpConfig } from './config.mjs';
 import { z } from 'zod';
 
 // Define TypeScript interfaces for strong typing
+interface ClientInfo {
+  name: string;
+  version: string;
+  description?: string;
+}
+
 interface McpServerConfig {
   command: string;
   args?: string[];
@@ -20,23 +27,43 @@ interface McpConfig {
   mcpServers: Record<string, McpServerConfig>;
 }
 
-/**
- * Tracks the status of each MCP server, including the underlying transport.
- */
 interface McpConnection {
   client: Client;
   transport: StdioClientTransport;
   status: 'connected' | 'connecting' | 'disconnected';
+  capabilities: ServerCapabilities;
   error?: string;
 }
 
-export class MCPHub {
+interface ServerCapabilities {
+  tools?: boolean;
+  resources?: boolean;
+  resourceTemplates?: boolean;
+  // Add other capabilities as needed
+}
+
+class MCPHub {
   private connections = new Map<string, McpConnection>();
   private statusListeners: Array<
     (name: string, status: Omit<McpConnection, 'client' | 'transport'>) => void
   > = [];
   private initialized = false;
-  private config!: McpConfig; // Use definite assignment assertion
+  private config!: McpConfig;
+
+  private static instance: MCPHub;
+
+  private constructor() {
+    console.log('Creating new MCPHub instance.');
+  }
+
+  public static getInstance(): MCPHub {
+    if (!MCPHub.instance) {
+      MCPHub.instance = new MCPHub();
+    } else {
+      console.log('Returning existing MCPHub instance.');
+    }
+    return MCPHub.instance;
+  }
 
   /**
    * Initialize the MCPHub and connect to all configured servers.
@@ -44,12 +71,14 @@ export class MCPHub {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      throw new Error('MCPHub already initialized');
+      console.warn('MCPHub already initialized.');
+      return;
     }
 
     this.config = await loadMcpConfig();
     if (!this.config.mcpServers) {
       this.initialized = true;
+      console.warn('No MCP servers configured.');
       return;
     }
 
@@ -66,6 +95,7 @@ export class MCPHub {
       );
     } finally {
       this.initialized = true;
+      console.log('MCPHub initialization complete.');
     }
   }
 
@@ -115,7 +145,8 @@ export class MCPHub {
     const conn: McpConnection = {
       client,
       transport,
-      status: "connecting"
+      status: "connecting",
+      capabilities: {}
     };
     this.connections.set(name, conn);
     this.notifyStatusChange(name, conn);
@@ -133,6 +164,7 @@ export class MCPHub {
     transport.onclose = async () => {
       if (conn.status !== "disconnected") {
         conn.status = "disconnected";
+        conn.error = 'Transport closed unexpectedly.';
         this.notifyStatusChange(name, conn);
         console.warn(`Transport closed for server ${name}`);
       }
@@ -140,7 +172,7 @@ export class MCPHub {
 
     try {
       console.log(`Attempting to connect to server: ${name}`);
-      console.log(`Command: ${serverConfig.command} ${serverConfig.args!.join(' ')}`);
+      console.log(`Command: ${serverConfig.command} ${serverConfig.args ? serverConfig.args.join(' ') : ''}`);
       console.log(`Environment Variables:`, serverConfig.env || {});
 
       if (transport.stderr) {
@@ -155,6 +187,65 @@ export class MCPHub {
       conn.status = "connected";
       conn.error = undefined;
       this.notifyStatusChange(name, conn);
+
+      // Define clientInfo
+      const clientInfo: ClientInfo = {
+        name: "Srcbook",
+        version: "1.0.0",
+        description: "Srcbook MCP Client",
+      };
+
+      // Parse server capabilities from the initialize response
+      const initializeResponse = await client.request(
+        {
+          method: 'initialize',
+          params: {
+            protocolVersion: '1.0',
+            capabilities: {},
+            clientInfo, // ✅ Included clientInfo
+          }
+        },
+        InitializeResultSchema // Ensure this schema matches the server response
+      );
+
+      if (initializeResponse && initializeResponse.capabilities) {
+        conn.capabilities = {
+          tools: !!initializeResponse.capabilities.tools,
+          resources: !!initializeResponse.capabilities.resources,
+          resourceTemplates: !!initializeResponse.capabilities.resourceTemplates
+        };
+        console.log(`Server ${name} capabilities:`, conn.capabilities);
+      } else {
+        console.warn(`No capabilities received from server ${name}.`);
+      }
+
+      // Conditionally list tools and resources based on dynamic capabilities
+      if (conn.capabilities.tools) {
+        try {
+          const tools = await this.listTools(name);
+          console.log(`Tools on server ${name}:`, tools);
+        } catch (error) {
+          console.error(`Error listing tools on server ${name}:`, error);
+        }
+      }
+
+      if (conn.capabilities.resources) {
+        try {
+          const resources = await this.listResources(name);
+          console.log(`Resources on server ${name}:`, resources);
+        } catch (error) {
+          console.error(`Error listing resources on server ${name}:`, error);
+        }
+      }
+
+      if (conn.capabilities.resourceTemplates) {
+        try {
+          const resourceTemplates = await this.listResourceTemplates(name);
+          console.log(`Resource Templates on server ${name}:`, resourceTemplates);
+        } catch (error) {
+          console.error(`Error listing resource templates on server ${name}:`, error);
+        }
+      }
 
     } catch (err: any) {
       console.error(`Error connecting to server ${name}:`, err);
@@ -209,13 +300,37 @@ export class MCPHub {
   async listTools(serverName: string): Promise<z.infer<typeof ListToolsResultSchema>['tools']> {
     const conn = this.connections.get(serverName);
     if (!conn || conn.status !== 'connected') {
+      console.warn(`Cannot list tools. Server ${serverName} is not connected.`);
       return [];
     }
+
+    if (!conn.capabilities.tools) {
+      console.log(`Server ${serverName} does not support tools. Skipping tools listing.`);
+      return [];
+    }
+
+    console.log(`Requesting tools list from server ${serverName}...`);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 5000); // 5-second timeout
+
     try {
-      const response = await conn.client.request({ method: 'tools/list' }, ListToolsResultSchema);
+      const response = await conn.client.request(
+        { method: "tools/list" },
+        ListToolsResultSchema
+      );
+      clearTimeout(timeout);
+      console.log(`Received tools list from server ${serverName}:`, response.tools);
       return response.tools || [];
-    } catch (error) {
-      console.error(`Error listing tools on server ${serverName}:`, error);
+    } catch (error: any) {
+      clearTimeout(timeout);
+      if (error.name === 'AbortError') {
+        console.error(`Timeout while listing tools on server ${serverName}.`);
+      } else {
+        console.error(`Error listing tools on server ${serverName}:`, error);
+      }
       return [];
     }
   }
@@ -230,14 +345,24 @@ export class MCPHub {
     if (!conn || conn.status !== 'connected') {
       return [];
     }
+
+    if (!conn.capabilities.resources) {
+      console.log(`Server ${serverName} does not support resources. Skipping resources listing.`);
+      return [];
+    }
+
     try {
       const response = await conn.client.request(
         { method: 'resources/list' },
         ListResourcesResultSchema,
       );
       return response.resources || [];
-    } catch (error) {
-      console.error(`Error listing resources on server ${serverName}:`, error);
+    } catch (error: any) {
+      if (error.code === -32601) { // Method not found
+        console.warn(`Method 'resources/list' not found on server ${serverName}.`);
+      } else {
+        console.error(`Error listing resources on server ${serverName}:`, error);
+      }
       return [];
     }
   }
@@ -250,14 +375,24 @@ export class MCPHub {
     if (!conn || conn.status !== 'connected') {
       return [];
     }
+
+    if (!conn.capabilities.resourceTemplates) {
+      console.log(`Server ${serverName} does not support resource templates. Skipping.`);
+      return [];
+    }
+
     try {
       const response = await conn.client.request(
         { method: 'resources/templates/list' },
         ListResourceTemplatesResultSchema,
       );
       return response?.resourceTemplates || [];
-    } catch (error) {
-      console.error(`Error listing resource templates on server ${serverName}:`, error);
+    } catch (error: any) {
+      if (error.code === -32601) { // Method not found
+        console.warn(`Method 'resources/templates/list' not found on server ${serverName}.`);
+      } else {
+        console.error(`Error listing resource templates on server ${serverName}:`, error);
+      }
       return [];
     }
   }
@@ -265,10 +400,16 @@ export class MCPHub {
   /**
    * Get status information about all connected servers.
    */
-  listConnections(): Array<{ name: string; status: string; error?: string }> {
+  listConnections(): Array<{ 
+    name: string; 
+    status: string; 
+    capabilities: ServerCapabilities; 
+    error?: string 
+  }> {
     return Array.from(this.connections.entries()).map(([name, conn]) => ({
       name,
       status: conn.status,
+      capabilities: conn.capabilities,
       error: conn.error,
     }));
   }
@@ -307,8 +448,10 @@ export class MCPHub {
    */
   private notifyStatusChange(name: string, conn: McpConnection) {
     const status = {
+      name,
       status: conn.status,
       error: conn.error,
+      capabilities: conn.capabilities
     };
 
     for (const listener of this.statusListeners) {
@@ -316,3 +459,6 @@ export class MCPHub {
     }
   }
 }
+
+const mcpHubInstance = MCPHub.getInstance(); // ✅ Use getInstance
+export default mcpHubInstance;

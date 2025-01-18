@@ -14,6 +14,7 @@ import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
 import { buildProjectXml, type FileContent } from '../ai/app-parser.mjs';
 import { logAppGeneration } from './logger.mjs';
+import mcpHubInstance from '../mcp/mcphub.mjs';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -33,14 +34,17 @@ const makeAppEditorSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'app-editor.txt'), 'utf-8');
 };
 
-const makeAppEditorUserPrompt = (projectId: string, files: FileContent[], query: string) => {
+const makeAppEditorUserPrompt = (projectId: string, files: FileContent[], query: string, sequentialthinking: {}) => {
   const projectXml = buildProjectXml(files, projectId);
   const userRequestXml = `<userRequest>${query}</userRequest>`;
+  const sequentialthinkingXml = `<sequentialthinking>${sequentialthinking}</sequentialthinking>`;
   return `Following below are the project XML and the user request.
 
 ${projectXml}
 
 ${userRequestXml}
+
+${sequentialthinkingXml}
   `.trim();
 };
 
@@ -267,7 +271,7 @@ export async function streamEditApp(
   const model = await getModel();
 
   const systemPrompt = makeAppEditorSystemPrompt();
-  const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
+  const userPrompt = makeAppEditorUserPrompt(projectId, files, query, '');
 
   let response = '';
 
@@ -301,43 +305,66 @@ export async function streamEditAppSequential(
   query: string,
   appId: string,
   planId: string,
+  mcpHub: typeof mcpHubInstance
 ) {
-  // Example: maybe we log that we’re using sequential logic
   console.log('[MCP] Using sequential logic for editing app', appId, 'plan:', planId);
 
-  // Potentially a different model or prompt
-  const model = await getModel();
+  // 1. Call the MCP server to gather chain-of-thought or other specialized data.
+  const serverName = 'sequential-thinking';
+  const toolName = 'sequentialthinking'; 
+  const toolParams = {
+    thought: 'Analyze request from the user to see if we need more steps',
+    nextThoughtNeeded: true,
+    thoughtNumber: 1,
+    totalThoughts: 2
+  };
 
-  // Optionally define a specialized “sequential” system prompt:
-  const systemPrompt = `You are a helpful AI that uses a sequential chain-of-thought approach. ${makeAppEditorSystemPrompt()}`;
+  let sequentialthinking = {};
+  console.log('[MCP] Invoking tool:', toolName, 'on server:', serverName, 'with params:', toolParams);
+  try {
+    const result = await mcpHub.callTool(serverName, toolName, toolParams);
+    console.log('[MCP] Tool invocation result:', JSON.stringify(result, null, 2));
+    const textBlock = result.content?.[0]?.text ?? 'No content returned from sequentialthinking tool.';
+    sequentialthinking = textBlock;
+  } catch (error) {
+    console.error(`[MCP] Error calling ${serverName} tool:`, error);
+  }
 
-  // Reuse or adapt the user prompt
-  const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
+  // 2. Build your systemPrompt, injecting chain-of-thought data from the MCP server:
+  const basePrompt = makeAppEditorSystemPrompt();
+  const systemPrompt = `You are a helpful AI that uses a sequential chain-of-thought approach. 
+    Here is additional context from the sequential-thinking server:
+    ${sequentialthinking}
+    ${basePrompt}`;
+
+  // 3. Construct your user prompt
+  const userPrompt = makeAppEditorUserPrompt(projectId, files, query, sequentialthinking);
 
   let response = '';
 
-  // If you want to call the same streaming approach but with custom prompts:
+  // 4. Continue with your usual streaming logic
   const result = await streamText({
-    model,
+    model: await getModel(),
     system: systemPrompt,
     prompt: userPrompt,
     onChunk: (chunk) => {
       if (chunk.chunk.type === 'text-delta') {
         response += chunk.chunk.textDelta;
+        console.log('[MCP] Streaming response:', response);
       }
     },
-    onFinish: () => {
+    onFinish: async () => {
       if (process.env.SRCBOOK_DISABLE_ANALYTICS !== 'true') {
         logAppGeneration({
           appId,
           planId,
-          llm_request: { model, system: systemPrompt, prompt: userPrompt },
+          llm_request: { model: await getModel(), system: systemPrompt, prompt: userPrompt },
           llm_response: response,
         });
       }
     },
   });
 
-  // Return the streaming body
+  // 5. Return the streaming body
   return result.textStream;
-}
+} 

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { getConfig, updateConfig } from '../config.mjs';
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import { SRCBOOK_DIR, DIST_DIR, HOME_DIR } from '../constants.mjs';
+import { DIST_DIR } from '../constants.mjs';
 import { McpServerConfigSchema } from './types/index.mjs';
 
 export type McpServerConfig = z.infer<typeof McpServerConfigSchema>;
@@ -11,7 +11,7 @@ const McpFileConfigSchema = z.object({
   mcpServers: z.record(McpServerConfigSchema),
 });
 
-type McpConfig = z.infer<typeof McpFileConfigSchema>;
+export type McpConfig = z.infer<typeof McpFileConfigSchema>;
 
 let cachedConfig: McpConfig | null = null;
 

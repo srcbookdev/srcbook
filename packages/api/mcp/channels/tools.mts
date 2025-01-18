@@ -1,5 +1,5 @@
 import WebSocketServer from '../../server/ws-client.mjs';
-import { MCPHub } from '../mcphub.mjs';
+import mcpHubInstance from '../../mcp/mcphub.mjs';
 import { MCPToolExecutionSchema } from '../types/tools.mjs';
 import { z } from 'zod';
 
@@ -8,7 +8,7 @@ import { z } from 'zod';
  * @param wss WebSocket server instance
  * @param mcpHub MCP hub instance for tool execution
  */
-export function register(wss: WebSocketServer, mcpHub: MCPHub) {
+export function register(wss: WebSocketServer, mcpHub: typeof mcpHubInstance) {
   wss
     // Create a dynamic channel based on toolId parameter
     .channel('tool:<toolId>')

@@ -69,11 +69,11 @@ MCP allows Srcbook to:
 Srcbook comes with several pre-configured MCP servers that don't require API keys:
 
 - **memory**: Basic memory operations ([source](https://github.com/modelcontextprotocol/servers/tree/main/src/memory))
-- **filesystem**: Secure file system access ([source](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem))
+- **filesystem**: Secure file system access ([source](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)) - **Note**: This server is not operational in Srcbook yet.
 - **puppeteer**: Browser automation capabilities ([source](https://github.com/modelcontextprotocol/servers/tree/main/src/puppeteer))
 - **sequential-thinking**: Enhanced, o1-style reasoning ([source](https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking))
 - **everything**: Test server for builders of MCP clients ([source](https://github.com/modelcontextprotocol/servers/tree/main/src/everything))
-- **mcp-installer**: Installation utility
+- **mcp-installer**: MCP server installation utility
 
 ## Using MCP in the App Builder
 

@@ -296,3 +296,50 @@ export async function streamEditApp(
 
   return result.textStream;
 }
+
+export async function streamEditAppSequential(
+  projectId: string,
+  files: FileContent[],
+  query: string,
+  appId: string,
+  planId: string,
+) {
+  // Example: maybe we log that we’re using sequential logic
+  console.log('[MCP] Using sequential logic for editing app', appId, 'plan:', planId);
+
+  // Potentially a different model or prompt
+  const model = await getModel();
+
+  // Optionally define a specialized “sequential” system prompt:
+  const systemPrompt = `You are a helpful AI that uses a sequential chain-of-thought approach. ${makeAppEditorSystemPrompt()}`;
+
+  // Reuse or adapt the user prompt
+  const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
+
+  let response = '';
+
+  // If you want to call the same streaming approach but with custom prompts:
+  const result = await streamText({
+    model,
+    system: systemPrompt,
+    prompt: userPrompt,
+    onChunk: (chunk) => {
+      if (chunk.chunk.type === 'text-delta') {
+        response += chunk.chunk.textDelta;
+      }
+    },
+    onFinish: () => {
+      if (process.env.SRCBOOK_DISABLE_ANALYTICS !== 'true') {
+        logAppGeneration({
+          appId,
+          planId,
+          llm_request: { model, system: systemPrompt, prompt: userPrompt },
+          llm_response: response,
+        });
+      }
+    },
+  });
+
+  // Return the streaming body
+  return result.textStream;
+}

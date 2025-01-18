@@ -46,3 +46,6 @@ vite.config.ts.timestamp-*.mjs
 
 # MCP Testing
 packages/api/test/mcp_tests
+
+# MCP Config
+packages/api/srcbook_mcp_config.json

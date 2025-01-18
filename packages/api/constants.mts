@@ -15,3 +15,4 @@ export const APPS_DIR = path.join(SRCBOOK_DIR, 'apps');
 export const DIST_DIR = _dirname;
 export const PROMPTS_DIR = path.join(DIST_DIR, 'prompts');
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+export const PROJECT_DIR = '@/srcbook_mcp_config.json';

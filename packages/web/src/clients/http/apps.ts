@@ -236,11 +236,13 @@ export async function aiEditApp(
   id: string,
   query: string,
   planId: string,
+  isSequential: boolean, // new param
 ): Promise<AsyncIterable<DescriptionChunkType | ActionChunkType>> {
   const response = await fetch(API_BASE_URL + `/apps/${id}/edit`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ query, planId }),
+    // pass isSequential in the JSON body, so your server can read it
+    body: JSON.stringify({ query, planId, isSequential }),
   });
 
   if (!response.ok) {

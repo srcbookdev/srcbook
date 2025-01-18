@@ -1,8 +1,8 @@
-FROM node:22.7.0-alpine3.20
+FROM node:20-bullseye-slim
 WORKDIR /app
 
 # Install git
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y git
 
 # Configure git
 RUN git config --global user.email "ai@srcbook.com" && \
@@ -20,8 +20,8 @@ COPY srcbook_mcp_config.json ./
 # Add a build arg for container detection
 ENV CONTAINER=true
 
-# Keep the --no-optional flag since we're explicitly handling platform selection
-RUN pnpm install --no-optional
+# Install dependencies
+RUN pnpm install
 
 # Build with our platform detection in place
 RUN pnpm build

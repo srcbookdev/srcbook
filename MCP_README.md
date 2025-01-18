@@ -16,7 +16,8 @@ MCP allows Srcbook to:
 ### Prerequisites
 
 - Srcbook running locally
-- Node.js 18+
+- Node.js 20.x **(This is important, as Node 22.x runs into issues with Rollup and MCP)**
+
 - Access to your local filesystem
 
 ### Configuration
@@ -63,6 +64,13 @@ MCP allows Srcbook to:
 ```
 
 > **Important**: Replace `/PATH/TO/YOUR/DESKTOP` and `/PATH/TO/YOUR/DOWNLOADS` with the actual paths to your Desktop and Downloads folders.
+
+5. To ensure you're running Node 20.x, use the following commands in your terminal:
+
+```bash
+nvm install 20
+nvm use 20
+```
 
 ## Available Servers
 

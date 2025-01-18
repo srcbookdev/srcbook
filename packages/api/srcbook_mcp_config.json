@@ -9,8 +9,8 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/app/data/Desktop",
-        "/app/data/Downloads"
+        "/Users/b.c.nims/Desktop",
+        "/Users/b.c.nims/Downloads"
       ]
     },
     "puppeteer": {

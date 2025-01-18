@@ -2,7 +2,7 @@ import Path from 'node:path';
 import { posthog } from '../posthog-client.mjs';
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { SRCBOOKS_DIR } from '../constants.mjs';
+import { SRCBOOKS_DIR, DIST_DIR } from '../constants.mjs';
 import express, { type Application, type Response } from 'express';
 import cors from 'cors';
 import {
@@ -813,7 +813,7 @@ router.post('/open-file', cors(), async (req, res) => {
 
     // Translate the path from container to host path
     const hostPath = isInContainer
-      ? requestPath.replace('/app', '/Users/b.c.nims/just-glassBead-things/srcbook-mcp/srcbook')
+      ? requestPath.replace('/app', DIST_DIR)
       : requestPath;
 
     console.log('Container path:', requestPath);

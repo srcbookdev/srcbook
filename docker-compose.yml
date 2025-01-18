@@ -1,3 +1,4 @@
+version: '3'
 services:
   srcbook:
     build:
@@ -9,16 +10,6 @@ services:
       - type: bind
         source: ~/.srcbook
         target: /root/.srcbook
-        bind:
-          create_host_path: true
-      - type: bind
-        source: ${HOME}/Desktop
-        target: /app/data/Desktop
-        bind:
-          create_host_path: true
-      - type: bind
-        source: ${HOME}/Downloads
-        target: /app/data/Downloads
         bind:
           create_host_path: true
     environment:

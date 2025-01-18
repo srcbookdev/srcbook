@@ -49,3 +49,6 @@ packages/api/test/mcp_tests
 
 # MCP Config
 packages/api/srcbook_mcp_config.json
+
+## PR scratch
+packages/api/PR_MARKUP.md

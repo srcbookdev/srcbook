@@ -225,5 +225,4 @@ export default {
     },
   },
   plugins: [animate],
-
 };

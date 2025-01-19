@@ -1,6 +1,6 @@
 {
   "name": "@srcbook/api",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "type": "module",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",

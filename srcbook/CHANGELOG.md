@@ -1,5 +1,22 @@
 # srcbook
 
+## 0.0.17
+
+### Patch Changes
+
+- fcabe77: Add support for API keys on openAI compatible models
+- 36913a4: Added configurable network exposure for Docker deployments with secure defaults. This includes:
+
+  - Added docker-compose.yml with configurable network binding
+  - Default configuration restricts access to localhost (127.0.0.1) for security
+  - Optional network exposure via HOST_BIND environment variable
+  - Configured port 2150 mapping for Docker container
+
+  Users can optionally expose their Srcbook instance to other network devices by setting HOST_BIND=0.0.0.0 when running Docker.
+
+- Updated dependencies [fcabe77]
+  - @srcbook/api@0.0.16
+
 ## 0.0.16
 
 ### Patch Changes

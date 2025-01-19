@@ -249,8 +249,6 @@ export async function generateApp(
   query: string,
 ): Promise<string> {
   const model = await getModel();
-  console.log('generating app, system prompt', makeAppBuilderSystemPrompt());
-  console.log('generating app, user prompt', makeAppCreateUserPrompt(projectId, files, query));
   const result = await generateText({
     model,
     system: makeAppBuilderSystemPrompt(),

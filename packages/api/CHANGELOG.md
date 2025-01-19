@@ -1,5 +1,11 @@
 # @srcbook/api
 
+## 0.0.17
+
+### Patch Changes
+
+- 5014815: Remove noisy logs
+
 ## 0.0.16
 
 ### Patch Changes

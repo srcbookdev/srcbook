@@ -15,6 +15,7 @@ export type SettingsType = {
   xaiKey?: string | null;
   geminiKey?: string | null;
   aiProvider: AiProviderType;
+  customApiKey: string | null;
   aiModel: string;
   aiBaseUrl?: string | null;
   subscriptionEmail?: string | null;

@@ -399,7 +399,8 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
         <div>
           <p className="opacity-70 text-sm mb-4">
             If you want to use an openai-compatible model (for example when running local models
-            with Ollama or using a third party like togetherAI), choose this option and set the baseUrl. Optionally add an API key if needed.
+            with Ollama or using a third party like togetherAI), choose this option and set the
+            baseUrl. Optionally add an API key if needed.
           </p>
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">

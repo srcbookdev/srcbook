@@ -1,6 +1,6 @@
 {
   "name": "srcbook",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "TypeScript notebooks",
   "type": "module",
   "bin": "./dist/bin/cli.mjs",

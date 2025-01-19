@@ -1,5 +1,11 @@
 # @srcbook/api
 
+## 0.0.16
+
+### Patch Changes
+
+- fcabe77: Add support for API keys on openAI compatible models
+
 ## 0.0.15
 
 ### Patch Changes

@@ -1,8 +1,13 @@
 /** @type {import('tailwindcss').Config} */
-const plugin = require('tailwindcss/plugin');
-const path = require('path');
+import plugin from 'tailwindcss/plugin';
+import path from 'path';
+import { createRequire } from 'module';
+import animate from 'tailwindcss-animate';
 
-module.exports = {
+// Create require function for resolving package paths
+const require = createRequire(import.meta.url);
+
+export default {
   darkMode: ['class'],
   content: [
     './index.html',
@@ -219,5 +224,6 @@ module.exports = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [animate],
+
 };

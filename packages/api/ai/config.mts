@@ -55,7 +55,7 @@ export async function getModel(): Promise<LanguageModel> {
       }
       const openaiCompatible = createOpenAI({
         compatibility: 'compatible',
-        apiKey: 'bogus', // required but unused
+        apiKey: config.customApiKey || 'bogus', // use custom API key if set, otherwise use a bogus key
         baseURL: aiBaseUrl,
       });
       return openaiCompatible(model);

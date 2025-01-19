@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "${HOST_BIND:-127.0.0.1}:2150:2150"
+      - '${HOST_BIND:-127.0.0.1}:2150:2150'
     volumes:
       - type: bind
         source: ~/.srcbook
@@ -16,4 +16,4 @@ services:
       - NODE_ENV=production
       - HOST=${HOST_BIND:-127.0.0.1}
       - SRCBOOK_INSTALL_DEPS=true
-    command: ["pnpm", "start"]
+    command: ['pnpm', 'start']

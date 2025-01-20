@@ -1,6 +1,7 @@
 import { ChildProcess } from 'node:child_process';
 import { posthog } from '../posthog-client.mjs';
 import { generateCellEdit, fixDiagnostics } from '../ai/generate.mjs';
+import '../../api/mcp/initMcpHub.mjs';
 import {
   findSession,
   findCell,
@@ -64,10 +65,16 @@ import { filenameFromPath, pathToCodeFile } from '../srcbook/path.mjs';
 import { normalizeDiagnostic } from '../tsserver/utils.mjs';
 import { removeCodeCellFromDisk } from '../srcbook/index.mjs';
 import { register as registerAppChannel } from './channels/app.mjs';
+import mcpHub from '../mcp/mcphub.mjs';
+import { register as registerServersChannel } from '../mcp/channels/servers.mjs';
+import { register as registerToolsChannel } from '../mcp/channels/tools.mjs';
 
 type SessionsContextType = MessageContextType<'sessionId'>;
 
 const wss = new WebSocketServer();
+
+registerServersChannel(wss, mcpHub);
+registerToolsChannel(wss, mcpHub);
 
 function addRunningProcess(
   session: SessionType,

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {},
+  "include": ["<rootDir>/scripts/*"],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts"
+  ],
+  "compileOnSave": false,
+  "buildTarget": "serverless",
+  "rootDir": "<rootDir>"
+}

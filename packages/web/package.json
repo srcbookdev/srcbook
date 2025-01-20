@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "rm -rf ./dist",
+    "prebuild": "rm -rf ./dist && node ./scripts/setup-platform.js",
     "build": "tsc && vite build && cp -R ./dist/. ../../srcbook/public",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",

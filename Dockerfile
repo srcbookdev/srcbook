@@ -8,6 +8,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages packages/
 COPY srcbook srcbook/
 COPY turbo.json ./
+COPY srcbook_mcp_config.json ./
 
 # Install dependencies
 RUN pnpm install
@@ -17,6 +18,9 @@ RUN pnpm build
 
 # Create necessary directories for volumes
 RUN mkdir -p /root/.srcbook /root/.npm
+
+# Set container environment variable
+ENV CONTAINER=true
 
 # Source code will be mounted at runtime
 CMD [ "pnpm", "start" ]

@@ -1,0 +1,1 @@
+ALTER TABLE `config` ADD `mcp_servers` text DEFAULT '{}' NOT NULL;

@@ -23,6 +23,7 @@ async function init() {
       aiConfig: { provider: 'openai', model: 'gpt-4o' } as const,
       aiProvider: 'openai',
       aiModel: 'gpt-4o',
+      mcpServers: {},
     };
     console.log();
     console.log('Initializing application with the following configuration:\n');

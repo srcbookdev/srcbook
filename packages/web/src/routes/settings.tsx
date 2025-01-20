@@ -23,6 +23,9 @@ function Settings() {
 
   const [email, setEmail] = useState<string>(isSubscribed ? subscriptionEmail : '');
 
+  // Point to the config file in the project root
+  const mcpConfigPath = '/app/srcbook_mcp_config.json';
+
   const updateDefaultLanguage = (value: CodeLanguageType) => {
     updateConfigContext({ defaultLanguage: value });
   };
@@ -41,6 +44,44 @@ function Settings() {
     } catch (error) {
       toast.error('There was an error subscribing to the mailing list. Please try again later.');
       console.error('Subscription error:', error);
+    }
+  };
+
+  /**
+   * Opens the MCP config file in the system's file manager
+   */
+  const openMcpConfig = async () => {
+    try {
+      const response = await fetch('/api/open-file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ path: mcpConfigPath }),
+      });
+      
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.result);
+      }
+
+      // If we're in a containerized environment, handle the path differently
+      if (data.containerized) {
+        // Copy the path to clipboard
+        await navigator.clipboard.writeText(data.result);
+        toast.success('Path copied to clipboard');
+        
+        // Show instructions
+        toast.message(
+          'To find your config file:\n' +
+          '1. Open Finder\n' +
+          '2. Press Cmd+Shift+G\n' +
+          '3. Paste the copied path'
+        );
+      }
+    } catch (error) {
+      console.error('Failed to open MCP config:', error);
+      toast.error('Failed to open MCP config file');
     }
   };
 
@@ -106,6 +147,24 @@ function Settings() {
               />
               <Button className="px-5" onClick={handleSubscribe}>
                 {isSubscribed ? 'Update' : 'Subscribe'}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-base font-medium">MCP Configuration</h2>
+          <div>
+            <label className="opacity-70 text-sm" htmlFor="mcp-config">
+              Configure Model Context Protocol settings by editing the config file.
+            </label>
+            <div className="flex gap-2 mt-3">
+              <Button
+                id="mcp-config"
+                className="px-5"
+                onClick={openMcpConfig}
+              >
+                Edit MCP Config
               </Button>
             </div>
           </div>

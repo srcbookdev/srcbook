@@ -1,6 +1,6 @@
 /* eslint-disable turbo/no-undeclared-env-vars */
 import Path from 'node:path';
-import { spawn, execSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 
 interface NodeError extends Error {
   code?: string;
@@ -40,49 +40,47 @@ type SpawnCallRequestType = {
   onError?: (err: NodeError) => void;
 };
 
-class ExecutableResolver {
-  private static instance: ExecutableResolver;
-  private cachedPaths: Map<string, string> = new Map();
-
-  static getInstance(): ExecutableResolver {
-    if (!this.instance) {
-      this.instance = new ExecutableResolver();
-    }
-    return this.instance;
-  }
-
-  private findExecutablePath(command: string): string {
-    try {
-      if (process.platform === 'win32') {
-        const paths = execSync(`where ${command}`)
-          .toString()
-          .trim()
-          .split('\n')
-          .map((p) => p.trim());
-        return paths.find((p) => p.includes('Program Files')) ?? paths[0] ?? command;
-      }
-      return execSync(`which ${command}`).toString().trim();
-    } catch {
-      return command;
-    }
-  }
-
-  getPath(command: string): string {
-    if (!this.cachedPaths.has(command)) {
-      this.cachedPaths.set(command, this.findExecutablePath(command));
-    }
-    return this.cachedPaths.get(command)!;
+/**
+ * Main spawnCall function that routes to platform-specific implementations.
+ */
+export function spawnCall(options: SpawnCallRequestType) {
+  if (process.platform === 'win32') {
+    return spawnCallWindows(options);
+  } else {
+    return spawnCallUnix(options);
   }
 }
 
-export function spawnCall(options: SpawnCallRequestType) {
+/**
+ * Unix-specific implementation of spawnCall.
+ */
+function spawnCallUnix(options: SpawnCallRequestType) {
   const { cwd, env, command, args, stdout, stderr, onExit, onError } = options;
 
   const child = spawn(command, args, {
     cwd,
     env,
-    windowsVerbatimArguments: process.platform === 'win32',
-    shell: process.platform === 'win32',
+  });
+
+  child.stdout.on('data', stdout);
+  child.stderr.on('data', stderr);
+  child.on('error', onError || console.error);
+  child.on('exit', onExit);
+
+  return child;
+}
+
+/**
+ * Windows-specific implementation of spawnCall.
+ */
+function spawnCallWindows(options: SpawnCallRequestType) {
+  const { cwd, env, command, args, stdout, stderr, onExit, onError } = options;
+
+  const child = spawn(command, args, {
+    cwd,
+    env,
+    windowsVerbatimArguments: true,
+    shell: true,
   });
 
   child.stdout.on('data', stdout);
@@ -109,7 +107,7 @@ export function spawnCall(options: SpawnCallRequestType) {
  */
 export const node = ({ cwd, env, entry, ...rest }: NodeRequestType) =>
   spawnCall({
-    command: ExecutableResolver.getInstance().getPath('node'),
+    command: 'node',
     cwd,
     args: [entry],
     env: { ...process.env, ...env },

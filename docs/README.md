@@ -6,7 +6,7 @@ Welcome to Srcbook's documentation. This documentation uses `.src.md` files, whi
 - [Table of Contents](table-of-contents.src.md)
 - [Getting Started Guide](getting-started.src.md)
 - [Features Overview](features.src.md)
-- [API Reference](api-reference.src.md)
+- [Technical Reference](technical-reference.src.md)
 
 ## About .src.md Files
 
@@ -21,7 +21,7 @@ Our documentation is organized into several key sections:
 - [Core Documentation](table-of-contents.src.md)
   - Getting started guides
   - Feature documentation
-  - API reference
+  - Technical reference
 - [Advanced Topics](advanced/index.src.md)
   - TypeScript features and configuration
   - Debugging and performance

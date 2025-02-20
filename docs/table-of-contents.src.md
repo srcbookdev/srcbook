@@ -28,11 +28,11 @@
    - Real-world scenarios
    - Best practices
 
-5. [API Reference](./api-reference.src.md)
-   - Core API
-   - TypeScript API
-   - Configuration API
-   - Plugin API
+5. [Technical Reference](./technical-reference.src.md)
+   - Core functionality
+   - TypeScript integration
+   - Configuration options
+   - Plugin system
 
 6. [Contributing](./contributing.src.md)
    - Development setup

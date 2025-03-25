@@ -36,6 +36,7 @@ export function SettingsProvider({ config, children }: ProviderPropsType) {
     (config.anthropicKey && config.aiProvider === 'anthropic') ||
     (config.xaiKey && config.aiProvider === 'Xai') ||
     (config.geminiKey && config.aiProvider === 'Gemini') ||
+    (config.openrouterKey && config.aiProvider === 'openrouter') ||
     (config.aiProvider === 'custom' && !!config.aiBaseUrl) ||
     false;
 

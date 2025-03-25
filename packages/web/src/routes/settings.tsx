@@ -158,6 +158,16 @@ function AiInfoBanner() {
           </div>
         );
 
+      case 'openrouter':
+        return (
+          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+            <p>API key required</p>
+            <a href="https://openrouter.ai/keys" target="_blank" className="underline">
+              Go to {aiProvider}
+            </a>
+          </div>
+        );
+
       case 'custom':
         return (
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
@@ -244,6 +254,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     customApiKey: configCustomApiKey,
     xaiKey: configXaiKey,
     geminiKey: configGeminiKey,
+    openrouterKey: configOpenrouterKey,
     updateConfig: updateConfigContext,
   } = useSettings();
 
@@ -251,6 +262,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [xaiKey, setXaiKey] = useState<string>(configXaiKey ?? '');
   const [geminiKey, setGeminiKey] = useState<string>(configGeminiKey ?? '');
+  const [openrouterKey, setOpenrouterKey] = useState<string>(configOpenrouterKey ?? '');
   const [customApiKey, setCustomApiKey] = useState<string>(configCustomApiKey ?? '');
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
@@ -280,8 +292,13 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     model !== aiModel;
 
   const geminiKeySaveEnabled =
-    (typeof configGeminiKey === 'string' && geminiKey !== configXaiKey) ||
+    (typeof configGeminiKey === 'string' && geminiKey !== configGeminiKey) ||
     ((configGeminiKey === null || configGeminiKey === undefined) && geminiKey.length > 0) ||
+    model !== aiModel;
+
+  const openrouterKeySaveEnabled =
+    (typeof configOpenrouterKey === 'string' && openrouterKey !== configOpenrouterKey) ||
+    ((configOpenrouterKey === null || configOpenrouterKey === undefined) && openrouterKey.length > 0) ||
     model !== aiModel;
 
   const customModelSaveEnabled =
@@ -305,6 +322,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
               <SelectItem value="anthropic">anthropic</SelectItem>
               <SelectItem value="Xai">Xai</SelectItem>
               <SelectItem value="Gemini">Gemini</SelectItem>
+              <SelectItem value="openrouter">openrouter</SelectItem>
               <SelectItem value="custom">custom</SelectItem>
             </SelectContent>
           </Select>
@@ -389,6 +407,25 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
             className="px-5"
             onClick={() => updateConfigContext({ geminiKey, aiModel: model })}
             disabled={!geminiKeySaveEnabled}
+          >
+            {saveButtonLabel ?? 'Save'}
+          </Button>
+        </div>
+      )}
+
+      {aiProvider === 'openrouter' && (
+        <div className="flex gap-2">
+          <Input
+            name="openrouterKey"
+            placeholder="OpenRouter API key"
+            type="password"
+            value={openrouterKey}
+            onChange={(e) => setOpenrouterKey(e.target.value)}
+          />
+          <Button
+            className="px-5"
+            onClick={() => updateConfigContext({ openrouterKey, aiModel: model })}
+            disabled={!openrouterKeySaveEnabled}
           >
             {saveButtonLabel ?? 'Save'}
           </Button>

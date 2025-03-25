@@ -48,6 +48,17 @@ export async function getModel(): Promise<LanguageModel> {
         apiKey: config.xaiKey,
       });
       return xai(model);
+      
+    case 'openrouter':
+      if (!config.openrouterKey) {
+        throw new Error('OpenRouter API key is not set');
+      }
+      const openrouter = createOpenAI({
+        compatibility: 'compatible',
+        baseURL: 'https://openrouter.ai/api/v1',
+        apiKey: config.openrouterKey,
+      });
+      return openrouter(model);
 
     case 'custom':
       if (typeof aiBaseUrl !== 'string') {

@@ -3,6 +3,7 @@ export const AiProvider = {
   Anthropic: 'anthropic',
   XAI: 'Xai',
   Gemini: 'Gemini',
+  OpenRouter: 'openrouter',
   Custom: 'custom',
 } as const;
 
@@ -14,6 +15,7 @@ export const defaultModels: Record<AiProviderType, string> = {
   [AiProvider.Custom]: 'mistral-nemo',
   [AiProvider.XAI]: 'grok-beta',
   [AiProvider.Gemini]: 'gemini-1.5-pro-latest',
+  [AiProvider.OpenRouter]: 'anthropic/claude-3-opus-20240229',
 } as const;
 
 export function isValidProvider(provider: string): provider is AiProviderType {

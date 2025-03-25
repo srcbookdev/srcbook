@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useReducer, useEffect, useState } from 'react';
 import { CircleCheck, Loader2, CircleX } from 'lucide-react';
 import { aiHealthcheck, subscribeToMailingList } from '@/lib/server';
 import { useSettings } from '@/components/use-settings';
+import AiModelHeaders, { AiModelHeader } from '@/components/settings/ai-model-headers';
 import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
 import {
   Select,
@@ -15,6 +16,67 @@ import useTheme from '@srcbook/components/src/components/use-theme';
 import { Switch } from '@srcbook/components/src/components/ui/switch';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { toast } from 'sonner';
+
+const ModelProviders = [
+  {
+    name: 'openai',
+    apiKeyLink: 'https://platform.openai.com/api-keys',
+    inputs: [
+      {
+        name: 'openaiKey',
+        placeholder: 'openAI API key',
+        type: 'password',
+      },
+    ],
+  },
+  {
+    name: 'anthropic',
+    apiKeyLink: 'https://console.anthropic.com/settings/keys',
+    inputs: [
+      {
+        name: 'anthropicKey',
+        placeholder: 'anthropic API key',
+        type: 'password',
+      },
+    ],
+  },
+  {
+    name: 'Xai',
+    inputs: [
+      {
+        name: 'xaiKey',
+        placeholder: 'xai API key',
+        type: 'password',
+      },
+    ],
+  },
+  {
+    name: 'Gemini',
+    inputs: [
+      {
+        name: 'geminiKey',
+        placeholder: 'Gemini API key',
+        type: 'password',
+      },
+    ],
+  },
+  {
+    name: 'custom',
+    info: 'If you want to use an openai-compatible model (for example when running local models with Ollama or using a third party like togetherAI), choose this option and set the baseUrl. Optionally add an API key if needed.',
+    inputs: [
+      {
+        name: 'baseUrl',
+        placeholder: 'http://localhost:11434/v1',
+        type: 'text',
+      },
+      {
+        name: 'customApiKey',
+        placeholder: 'API key (optional)',
+        type: 'password',
+      },
+    ],
+  },
+];
 
 function Settings() {
   const { updateConfig: updateConfigContext, defaultLanguage, subscriptionEmail } = useSettings();
@@ -117,59 +179,20 @@ function Settings() {
 
 function AiInfoBanner() {
   const { aiEnabled, aiProvider } = useSettings();
-
-  const fragments = (provider: AiProviderType) => {
-    switch (provider) {
-      case 'openai':
-        return (
-          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-            <p>API key required</p>
-            <a href="https://platform.openai.com/api-keys" target="_blank" className="underline">
-              Go to {aiProvider}
-            </a>
-          </div>
-        );
-
-      case 'anthropic':
-        return (
-          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-            <p>API key required</p>
-            <a
-              href="https://console.anthropic.com/settings/keys"
-              target="_blank"
-              className="underline"
-            >
-              Go to {aiProvider}
-            </a>
-          </div>
-        );
-
-      case 'Xai':
-        return (
-          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-            <p>API key required</p>
-          </div>
-        );
-
-      case 'Gemini':
-        return (
-          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-            <p>API key required</p>
-          </div>
-        );
-
-      case 'custom':
-        return (
-          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
-            <p>Base URL required</p>
-          </div>
-        );
-    }
-  };
+  const modelProvider = ModelProviders.find((p) => p.name === aiProvider);
 
   return (
     <div className="flex items-center gap-1">
-      {aiEnabled ? <TestAiButton /> : fragments(aiProvider)}
+      {aiEnabled ? <TestAiButton /> : (
+        <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+          <p>API key required</p>
+          {modelProvider?.apiKeyLink && (
+            <a href={modelProvider.apiKeyLink} target="_blank" className="underline">
+              Go to {aiProvider}
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -235,68 +258,60 @@ type AiSettingsProps = {
 };
 
 export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
+  const settings: any = useSettings();
   const {
     aiProvider,
-    aiModel,
-    aiBaseUrl,
-    openaiKey: configOpenaiKey,
-    anthropicKey: configAnthropicKey,
-    customApiKey: configCustomApiKey,
-    xaiKey: configXaiKey,
-    geminiKey: configGeminiKey,
     updateConfig: updateConfigContext,
-  } = useSettings();
+  } = settings;
 
-  const [openaiKey, setOpenaiKey] = useState<string>(configOpenaiKey ?? '');
-  const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
-  const [xaiKey, setXaiKey] = useState<string>(configXaiKey ?? '');
-  const [geminiKey, setGeminiKey] = useState<string>(configGeminiKey ?? '');
-  const [customApiKey, setCustomApiKey] = useState<string>(configCustomApiKey ?? '');
-  const [model, setModel] = useState<string>(aiModel);
-  const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
+  const [state, updateState] = useReducer(
+    (state: any, action: any) => ({ ...state, formChanged: true, ...action }),
+    settings,
+  );
 
   const setAiProvider = (provider: AiProviderType) => {
     const model = getDefaultModel(provider);
-    setModel(model);
+    updateState({ aiProvider: provider, aiModel: model, formChanged: false });
     updateConfigContext({ aiProvider: provider, aiModel: model });
   };
 
-  // Either the key from the server is null/undefined and the user entered input
-  // or the key from the server is a string and the user entered input is different.
-  const openaiKeySaveEnabled =
-    (typeof configOpenaiKey === 'string' && openaiKey !== configOpenaiKey) ||
-    ((configOpenaiKey === null || configOpenaiKey === undefined) && openaiKey.length > 0) ||
-    model !== aiModel;
+  const { modelProvider, isEnabled } = useMemo(() => {
+    const modelProvider = ModelProviders.find((p) => p.name === aiProvider);
+    const modelProviderInputs = modelProvider?.inputs || [];
 
-  const anthropicKeySaveEnabled =
-    (typeof configAnthropicKey === 'string' && anthropicKey !== configAnthropicKey) ||
-    ((configAnthropicKey === null || configAnthropicKey === undefined) &&
-      anthropicKey.length > 0) ||
-    model !== aiModel;
+    const isEnabled = modelProviderInputs.every(input => {
+      const value = state[input.name] ?? '';
+      const configValue = settings[input.name];
 
-  const xaiKeySaveEnabled =
-    (typeof configXaiKey === 'string' && xaiKey !== configXaiKey) ||
-    ((configXaiKey === null || configXaiKey === undefined) && xaiKey.length > 0) ||
-    model !== aiModel;
+      const hasValidKey = typeof configValue === 'string' && value !== configValue;
+      const hasNewKey = !configValue && value.length > 0; 
+      const hasModelChange = state.formChanged && state.aiModel !== settings.aiModel;
+      const hasHeadersChange = state.formChanged && state[`${aiProvider}Headers`] !== settings[`${aiProvider}Headers`]
+        && JSON.parse(state[`${aiProvider}Headers`] ?? '[]').every((header: AiModelHeader) => header.key !== '' && header.value !== '');
+    
+      return hasValidKey || hasNewKey || hasModelChange || hasHeadersChange;
+    });
 
-  const geminiKeySaveEnabled =
-    (typeof configGeminiKey === 'string' && geminiKey !== configXaiKey) ||
-    ((configGeminiKey === null || configGeminiKey === undefined) && geminiKey.length > 0) ||
-    model !== aiModel;
+    return { modelProvider, isEnabled };
+  }, [state, settings]);
 
-  const customModelSaveEnabled =
-    (typeof configCustomApiKey === 'string' && customApiKey !== configCustomApiKey) ||
-    ((configCustomApiKey === null || configCustomApiKey === undefined) &&
-      customApiKey.length > 0) ||
-    (typeof aiBaseUrl === 'string' && baseUrl !== aiBaseUrl) ||
-    ((aiBaseUrl === null || aiBaseUrl === undefined) && baseUrl.length > 0) ||
-    model !== aiModel;
+  const updateConfig = () => {
+    const data = (modelProvider?.inputs || []).reduce((acc, input) => ({
+      ...acc,
+      [input.name]: state[input.name],
+    }), {
+      aiModel: state.aiModel,
+      [`${aiProvider}Headers`]: state[`${aiProvider}Headers`],
+    });
+
+    updateConfigContext(data);
+  }
 
   return (
     <>
       <div className="flex items-center justify-between w-full mb-2 min-h-10">
         <div className="flex items-center gap-2">
-          <Select onValueChange={setAiProvider}>
+          <Select onValueChange={setAiProvider} value={state.aiProvider ?? ''}>
             <SelectTrigger id="ai-provider-selector" className="w-[180px]">
               <SelectValue placeholder={aiProvider} />
             </SelectTrigger>
@@ -312,123 +327,47 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
             name="aiModel"
             className="w-[200px]"
             placeholder="AI model"
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
+            value={state.aiModel ?? ''}
+            onChange={(e) => updateState({ aiModel: e.target.value })}
           />
         </div>
         <AiInfoBanner />
       </div>
 
-      {aiProvider === 'openai' && (
-        <div className="flex gap-2">
-          <Input
-            name="openaiKey"
-            placeholder="openAI API key"
-            type="password"
-            value={openaiKey}
-            onChange={(e) => setOpenaiKey(e.target.value)}
-          />
-          <Button
-            className="px-5"
-            onClick={() => updateConfigContext({ openaiKey, aiModel: model })}
-            disabled={!openaiKeySaveEnabled}
-          >
-            {saveButtonLabel ?? 'Save'}
-          </Button>
-        </div>
-      )}
-
-      {aiProvider === 'anthropic' && (
-        <div className="flex gap-2">
-          <Input
-            name="anthropicKey"
-            placeholder="anthropic API key"
-            type="password"
-            value={anthropicKey}
-            onChange={(e) => setAnthropicKey(e.target.value)}
-          />
-          <Button
-            className="px-5"
-            onClick={() => updateConfigContext({ anthropicKey, aiModel: model })}
-            disabled={!anthropicKeySaveEnabled}
-          >
-            {saveButtonLabel ?? 'Save'}
-          </Button>
-        </div>
-      )}
-
-      {aiProvider === 'Xai' && (
-        <div className="flex gap-2">
-          <Input
-            name="xaiKey"
-            placeholder="xai API key"
-            type="password"
-            value={xaiKey}
-            onChange={(e) => setXaiKey(e.target.value)}
-          />
-          <Button
-            className="px-5"
-            onClick={() => updateConfigContext({ xaiKey, aiModel: model })}
-            disabled={!xaiKeySaveEnabled}
-          >
-            {saveButtonLabel ?? 'Save'}
-          </Button>
-        </div>
-      )}
-
-      {aiProvider === 'Gemini' && (
-        <div className="flex gap-2">
-          <Input
-            name="geminiKey"
-            placeholder="Gemini API key"
-            type="password"
-            value={geminiKey}
-            onChange={(e) => setGeminiKey(e.target.value)}
-          />
-          <Button
-            className="px-5"
-            onClick={() => updateConfigContext({ geminiKey, aiModel: model })}
-            disabled={!geminiKeySaveEnabled}
-          >
-            {saveButtonLabel ?? 'Save'}
-          </Button>
-        </div>
-      )}
-
-      {aiProvider === 'custom' && (
-        <div>
-          <p className="opacity-70 text-sm mb-4">
-            If you want to use an openai-compatible model (for example when running local models
-            with Ollama or using a third party like togetherAI), choose this option and set the
-            baseUrl. Optionally add an API key if needed.
-          </p>
+      {modelProvider && (
+        <div className="flex flex-col gap-2">
+          {modelProvider.info && (
+            <p className="opacity-70 text-sm mb-4">
+              {modelProvider.info}
+            </p>
+          )}
+          <div className="flex gap-2">
+            {modelProvider.inputs.map((input, key) => (
+              <Input
+                {...input}
+                key={key}
+                value={state[input.name] ?? ''}
+                onChange={(e) => updateState({ [input.name]: e.target.value })}
+              />
+            ))}
+          </div>
+          <h3 className="text-sm font-medium mt-2">Model Headers</h3>
           <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <Input
-                name="baseUrl"
-                placeholder="http://localhost:11434/v1"
-                value={baseUrl}
-                onChange={(e) => setBaseUrl(e.target.value)}
+            {modelProvider && (
+              <AiModelHeaders
+                value={JSON.parse(state[`${aiProvider}Headers`] ?? '[]')}
+                onChange={(value) => updateState({ [`${aiProvider}Headers`]: JSON.stringify(value) })}
               />
-              <Input
-                name="customApiKey"
-                placeholder="API key (optional)"
-                type="password"
-                value={customApiKey}
-                onChange={(e) => setCustomApiKey(e.target.value)}
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button
-                className="px-5"
-                onClick={() =>
-                  updateConfigContext({ aiBaseUrl: baseUrl, customApiKey, aiModel: model })
-                }
-                disabled={!customModelSaveEnabled}
-              >
-                {saveButtonLabel ?? 'Save'}
-              </Button>
-            </div>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <Button
+              className="px-5"
+              onClick={updateConfig}
+              disabled={!isEnabled}
+            >
+              {saveButtonLabel ?? 'Save'}
+            </Button>
           </div>
         </div>
       )}

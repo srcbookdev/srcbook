@@ -5,6 +5,13 @@ import type { LanguageModel } from 'ai';
 import { getDefaultModel, type AiProviderType } from '@srcbook/shared';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
+function convertConfigHeaders(headers: Array<{key: string, value: string}>) {
+  return headers.reduce((acc: Record<string, string>, header: {key: string, value: string}) => ({
+    ...acc,
+    [header.key]: header.value,
+  }), {});
+}
+
 /**
  * Get the correct client and model configuration.
  * Throws an error if the given API key is not set in the settings.
@@ -21,6 +28,7 @@ export async function getModel(): Promise<LanguageModel> {
       const openai = createOpenAI({
         compatibility: 'strict', // strict mode, enabled when using the OpenAI API
         apiKey: config.openaiKey,
+        headers: convertConfigHeaders(JSON.parse(config.openaiHeaders || '[]')),
       });
       return openai(model);
 
@@ -28,14 +36,20 @@ export async function getModel(): Promise<LanguageModel> {
       if (!config.anthropicKey) {
         throw new Error('Anthropic API key is not set');
       }
-      const anthropic = createAnthropic({ apiKey: config.anthropicKey });
+      const anthropic = createAnthropic({
+        apiKey: config.anthropicKey,
+        headers: convertConfigHeaders(JSON.parse(config.anthropicHeaders || '[]')),
+      });
       return anthropic(model);
 
     case 'Gemini':
       if (!config.geminiKey) {
         throw new Error('Gemini API key is not set');
       }
-      const google = createGoogleGenerativeAI({ apiKey: config.geminiKey });
+      const google = createGoogleGenerativeAI({
+        apiKey: config.geminiKey,
+        headers: convertConfigHeaders(JSON.parse(config.geminiHeaders || '[]')),
+      });
       return google(model) as LanguageModel;
 
     case 'Xai':
@@ -46,6 +60,7 @@ export async function getModel(): Promise<LanguageModel> {
         compatibility: 'compatible',
         baseURL: 'https://api.x.ai/v1',
         apiKey: config.xaiKey,
+        headers: convertConfigHeaders(JSON.parse(config.xaiHeaders || '[]')),
       });
       return xai(model);
 
@@ -57,6 +72,7 @@ export async function getModel(): Promise<LanguageModel> {
         compatibility: 'compatible',
         apiKey: config.customApiKey || 'bogus', // use custom API key if set, otherwise use a bogus key
         baseURL: aiBaseUrl,
+        headers: convertConfigHeaders(JSON.parse(config.customHeaders || '[]')),
       });
       return openaiCompatible(model);
   }

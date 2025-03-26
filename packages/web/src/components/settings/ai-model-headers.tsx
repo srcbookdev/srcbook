@@ -55,38 +55,41 @@ export default function AiModelHeaders({ value, onChange }: AiModelHeadersProps)
 
   return (
     <div className="flex flex-col gap-2">
-      {headersWithNew?.map((header, index) => (
-        <div className="flex gap-2" key={index}>
-          {index < lastHeaderIndex
-            ? <AiModelHeaderRemoveButton onRemove={() => handleRemove(index)} />
-            : <AiModelHeaderRemoveEmptyButton />
-          }
-          <div className="w-full">
-            <Input
-              placeholder='key'
-              value={header.key}
-              onChange={(e) => handleChange(index, 'key', e.target.value)}
-              required={index < lastHeaderIndex}
-              className={cn(
-                '[&.invalid:not(:focus)]:border-red-500',
-                isValid(index, 'key') ? 'valid' : 'invalid',
-              )}
-            />
+      {headersWithNew?.map((header, index) => {
+        let deleteButton = null;
+        if (lastHeaderIndex > index) deleteButton = <AiModelHeaderRemoveButton onRemove={() => handleRemove(index)} />;
+        else if (lastHeaderIndex > 0 && index === lastHeaderIndex) deleteButton = <AiModelHeaderRemoveEmptyButton />;
+
+        return (
+          <div className="flex gap-2" key={index}>
+            {deleteButton}
+            <div className="w-full">
+              <Input
+                placeholder='key'
+                value={header.key}
+                onChange={(e) => handleChange(index, 'key', e.target.value)}
+                required={index < lastHeaderIndex}
+                className={cn(
+                  '[&.invalid:not(:focus)]:border-red-500',
+                  isValid(index, 'key') ? 'valid' : 'invalid',
+                )}
+              />
+            </div>
+            <div className="w-full">
+              <Input
+                placeholder='value'
+                value={header.value}
+                onChange={(e) => handleChange(index, 'value', e.target.value)}
+                required={index < lastHeaderIndex}
+                className={cn(
+                  '[&.invalid:not(:focus)]:border-red-500',
+                  isValid(index, 'value') ? 'valid' : 'invalid',
+                )}
+              />
+            </div>
           </div>
-          <div className="w-full">
-            <Input
-              placeholder='value'
-              value={header.value}
-              onChange={(e) => handleChange(index, 'value', e.target.value)}
-              required={index < lastHeaderIndex}
-              className={cn(
-                '[&.invalid:not(:focus)]:border-red-500',
-                isValid(index, 'value') ? 'valid' : 'invalid',
-              )}
-            />
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

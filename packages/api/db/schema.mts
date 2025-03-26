@@ -11,6 +11,12 @@ export const configs = sqliteTable('config', {
   xaiKey: text('xai_api_key'),
   geminiKey: text('gemini_api_key'),
   customApiKey: text('custom_api_key'),
+  // model api headers
+  openaiHeaders: text('openai_headers').default('[]'),
+  anthropicHeaders: text('anthropic_headers').default('[]'),
+  xaiHeaders: text('xai_headers').default('[]'),
+  geminiHeaders: text('gemini_headers').default('[]'),
+  customHeaders: text('custom_headers').default('[]'),
   // TODO: This is deprecated in favor of SRCBOOK_DISABLE_ANALYTICS env variable. Remove this.
   enabledAnalytics: integer('enabled_analytics', { mode: 'boolean' }).notNull().default(true),
   // Stable ID for posthog

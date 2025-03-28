@@ -1,5 +1,11 @@
 # @srcbook/api
 
+## 0.0.18
+
+### Patch Changes
+
+- 5bc6e9b: Add support for openrouter
+
 ## 0.0.17
 
 ### Patch Changes

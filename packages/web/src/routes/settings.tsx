@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { CircleCheck, Loader2, CircleX } from 'lucide-react';
+import { CircleCheck, Loader2, CircleX, RefreshCw } from 'lucide-react';
 import { aiHealthcheck, subscribeToMailingList } from '@/lib/server';
-import { useSettings } from '@/components/use-settings';
+import { useSettings, type OpenRouterModel } from '@/components/use-settings';
 import { AiProviderType, getDefaultModel, type CodeLanguageType } from '@srcbook/shared';
 import {
   Select,
@@ -9,11 +9,19 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from '@srcbook/components/src/components/ui/select';
 import { Input } from '@srcbook/components/src/components/ui/input';
 import useTheme from '@srcbook/components/src/components/use-theme';
 import { Switch } from '@srcbook/components/src/components/ui/switch';
 import { Button } from '@srcbook/components/src/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@srcbook/components/src/components/ui/tooltip';
 import { toast } from 'sonner';
 
 function Settings() {
@@ -158,6 +166,16 @@ function AiInfoBanner() {
           </div>
         );
 
+      case 'openrouter':
+        return (
+          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+            <p>API key required</p>
+            <a href="https://openrouter.ai/keys" target="_blank" className="underline">
+              Go to {aiProvider}
+            </a>
+          </div>
+        );
+
       case 'custom':
         return (
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
@@ -244,6 +262,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     customApiKey: configCustomApiKey,
     xaiKey: configXaiKey,
     geminiKey: configGeminiKey,
+    openrouterKey: configOpenrouterKey,
     updateConfig: updateConfigContext,
   } = useSettings();
 
@@ -251,6 +270,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
   const [anthropicKey, setAnthropicKey] = useState<string>(configAnthropicKey ?? '');
   const [xaiKey, setXaiKey] = useState<string>(configXaiKey ?? '');
   const [geminiKey, setGeminiKey] = useState<string>(configGeminiKey ?? '');
+  const [openrouterKey, setOpenrouterKey] = useState<string>(configOpenrouterKey ?? '');
   const [customApiKey, setCustomApiKey] = useState<string>(configCustomApiKey ?? '');
   const [model, setModel] = useState<string>(aiModel);
   const [baseUrl, setBaseUrl] = useState<string>(aiBaseUrl || '');
@@ -280,8 +300,14 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
     model !== aiModel;
 
   const geminiKeySaveEnabled =
-    (typeof configGeminiKey === 'string' && geminiKey !== configXaiKey) ||
+    (typeof configGeminiKey === 'string' && geminiKey !== configGeminiKey) ||
     ((configGeminiKey === null || configGeminiKey === undefined) && geminiKey.length > 0) ||
+    model !== aiModel;
+
+  const openrouterKeySaveEnabled =
+    (typeof configOpenrouterKey === 'string' && openrouterKey !== configOpenrouterKey) ||
+    ((configOpenrouterKey === null || configOpenrouterKey === undefined) &&
+      openrouterKey.length > 0) ||
     model !== aiModel;
 
   const customModelSaveEnabled =
@@ -305,6 +331,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
               <SelectItem value="anthropic">anthropic</SelectItem>
               <SelectItem value="Xai">Xai</SelectItem>
               <SelectItem value="Gemini">Gemini</SelectItem>
+              <SelectItem value="openrouter">openrouter</SelectItem>
               <SelectItem value="custom">custom</SelectItem>
             </SelectContent>
           </Select>
@@ -395,6 +422,32 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
         </div>
       )}
 
+      {aiProvider === 'openrouter' && (
+        <div className="flex flex-col gap-3">
+          <p className="opacity-70 text-sm mb-2">
+            OpenRouter provides access to models from multiple AI providers including OpenAI,
+            Anthropic, Mistral, and more through a single API. Enter your OpenRouter API key below.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              name="openrouterKey"
+              placeholder="OpenRouter API key"
+              type="password"
+              value={openrouterKey}
+              onChange={(e) => setOpenrouterKey(e.target.value)}
+            />
+            <Button
+              className="px-5"
+              onClick={() => updateConfigContext({ openrouterKey, aiModel: model })}
+              disabled={!openrouterKeySaveEnabled}
+            >
+              {saveButtonLabel ?? 'Save'}
+            </Button>
+          </div>
+          <OpenRouterModelSelector onSelectModel={setModel} currentModel={model} />
+        </div>
+      )}
+
       {aiProvider === 'custom' && (
         <div>
           <p className="opacity-70 text-sm mb-4">
@@ -433,6 +486,107 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
         </div>
       )}
     </>
+  );
+}
+
+type OpenRouterModelSelectorProps = {
+  onSelectModel: (model: string) => void;
+  currentModel: string;
+};
+
+function OpenRouterModelSelector({ onSelectModel, currentModel }: OpenRouterModelSelectorProps) {
+  const { openRouterModels, isLoadingOpenRouterModels, refreshOpenRouterModels } = useSettings();
+
+  // Format model ID for display - show just the model name, not the full provider/model path
+  function formatModelName(modelId: string): string {
+    // Validate input to ensure we never return undefined
+    if (typeof modelId !== 'string' || modelId.length === 0) {
+      return '';
+    }
+
+    // Split by / and take the last part if it exists
+    const parts = modelId.split('/');
+    if (parts.length > 1) {
+      // @ts-expect-error - We know this is valid based on the length check
+      return parts[parts.length - 1];
+    }
+
+    // Return the original value
+    return modelId;
+  }
+
+  // Get model display name with helpful context
+  const getModelDisplayName = (model: OpenRouterModel): string => {
+    // model.id is defined as string in OpenRouterModel type
+    const baseName = model.name || formatModelName(model.id);
+    const contextLength = model.context_length
+      ? ` (${Math.floor(model.context_length / 1000)}k ctx)`
+      : '';
+    return `${baseName}${contextLength}`;
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-sm opacity-70">Select an OpenRouter model:</span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6"
+                onClick={refreshOpenRouterModels}
+                disabled={isLoadingOpenRouterModels}
+                aria-label="Refresh model list"
+              >
+                <RefreshCw size={16} className={isLoadingOpenRouterModels ? 'animate-spin' : ''} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Refresh model list</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      {isLoadingOpenRouterModels ? (
+        <div className="flex items-center gap-2 text-sm opacity-70">
+          <Loader2 size={16} className="animate-spin" />
+          <span>Loading models...</span>
+        </div>
+      ) : Object.keys(openRouterModels).length === 0 ? (
+        <div className="text-sm opacity-70">
+          No models found. Check your OpenRouter API key and try refreshing.
+        </div>
+      ) : (
+        <Select value={currentModel} onValueChange={onSelectModel}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a model" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(openRouterModels)
+              .sort()
+              .map(([provider, models]) => (
+                <SelectGroup key={provider}>
+                  <SelectLabel>{provider}</SelectLabel>
+                  {models.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {getModelDisplayName(model)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {currentModel && !isLoadingOpenRouterModels && (
+        <div className="text-xs opacity-70">
+          Selected model ID: <code className="bg-muted px-1 py-0.5 rounded">{currentModel}</code>
+        </div>
+      )}
+    </div>
   );
 }
 

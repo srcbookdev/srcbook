@@ -10,6 +10,7 @@ export const configs = sqliteTable('config', {
   anthropicKey: text('anthropic_api_key'),
   xaiKey: text('xai_api_key'),
   geminiKey: text('gemini_api_key'),
+  openrouterKey: text('openrouter_api_key'),
   customApiKey: text('custom_api_key'),
   // TODO: This is deprecated in favor of SRCBOOK_DISABLE_ANALYTICS env variable. Remove this.
   enabledAnalytics: integer('enabled_analytics', { mode: 'boolean' }).notNull().default(true),

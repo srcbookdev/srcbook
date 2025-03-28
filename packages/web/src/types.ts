@@ -14,6 +14,7 @@ export type SettingsType = {
   anthropicKey?: string | null;
   xaiKey?: string | null;
   geminiKey?: string | null;
+  openrouterKey?: string | null;
   aiProvider: AiProviderType;
   customApiKey: string | null;
   aiModel: string;

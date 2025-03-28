@@ -42,4 +42,7 @@ srcbook/lib/**/*
 # Aide
 *.code-workspace
 
+# Docs folder
+docs/
+
 vite.config.ts.timestamp-*.mjs

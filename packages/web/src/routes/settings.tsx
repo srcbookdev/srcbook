@@ -492,13 +492,26 @@ function OpenRouterModelSelector({ onSelectModel, currentModel }: OpenRouterMode
   const { openRouterModels, isLoadingOpenRouterModels, refreshOpenRouterModels } = useSettings();
   
   // Format model ID for display - show just the model name, not the full provider/model path
-  const formatModelName = (modelId: string): string => {
+  function formatModelName(modelId: string): string {
+    // Validate input to ensure we never return undefined
+    if (typeof modelId !== 'string' || modelId.length === 0) {
+      return '';
+    }
+    
+    // Split by / and take the last part if it exists
     const parts = modelId.split('/');
-    return parts.length > 1 ? parts[parts.length - 1] : modelId;
-  };
+    if (parts.length > 1) {
+      // @ts-expect-error - We know this is valid based on the length check
+      return parts[parts.length - 1];
+    }
+    
+    // Return the original value
+    return modelId;
+  }
 
   // Get model display name with helpful context
   const getModelDisplayName = (model: OpenRouterModel): string => {
+    // model.id is defined as string in OpenRouterModel type
     const baseName = model.name || formatModelName(model.id);
     const contextLength = model.context_length ? ` (${Math.floor(model.context_length / 1000)}k ctx)` : '';
     return `${baseName}${contextLength}`;

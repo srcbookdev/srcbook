@@ -1,5 +1,12 @@
 # @srcbook/web
 
+## 0.0.16
+
+### Patch Changes
+
+- 17848a3: - Add essential support for OpenRouter models.
+- 17848a3: Auto-populate available models in Settings.
+
 ## 0.0.15
 
 ### Patch Changes

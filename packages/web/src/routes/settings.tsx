@@ -16,7 +16,12 @@ import { Input } from '@srcbook/components/src/components/ui/input';
 import useTheme from '@srcbook/components/src/components/use-theme';
 import { Switch } from '@srcbook/components/src/components/ui/switch';
 import { Button } from '@srcbook/components/src/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@srcbook/components/src/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@srcbook/components/src/components/ui/tooltip';
 import { toast } from 'sonner';
 
 function Settings() {
@@ -301,7 +306,8 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
 
   const openrouterKeySaveEnabled =
     (typeof configOpenrouterKey === 'string' && openrouterKey !== configOpenrouterKey) ||
-    ((configOpenrouterKey === null || configOpenrouterKey === undefined) && openrouterKey.length > 0) ||
+    ((configOpenrouterKey === null || configOpenrouterKey === undefined) &&
+      openrouterKey.length > 0) ||
     model !== aiModel;
 
   const customModelSaveEnabled =
@@ -419,8 +425,8 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
       {aiProvider === 'openrouter' && (
         <div className="flex flex-col gap-3">
           <p className="opacity-70 text-sm mb-2">
-            OpenRouter provides access to models from multiple AI providers including OpenAI, Anthropic, 
-            Mistral, and more through a single API. Enter your OpenRouter API key below.
+            OpenRouter provides access to models from multiple AI providers including OpenAI,
+            Anthropic, Mistral, and more through a single API. Enter your OpenRouter API key below.
           </p>
           <div className="flex gap-2">
             <Input
@@ -490,21 +496,21 @@ type OpenRouterModelSelectorProps = {
 
 function OpenRouterModelSelector({ onSelectModel, currentModel }: OpenRouterModelSelectorProps) {
   const { openRouterModels, isLoadingOpenRouterModels, refreshOpenRouterModels } = useSettings();
-  
+
   // Format model ID for display - show just the model name, not the full provider/model path
   function formatModelName(modelId: string): string {
     // Validate input to ensure we never return undefined
     if (typeof modelId !== 'string' || modelId.length === 0) {
       return '';
     }
-    
+
     // Split by / and take the last part if it exists
     const parts = modelId.split('/');
     if (parts.length > 1) {
       // @ts-expect-error - We know this is valid based on the length check
       return parts[parts.length - 1];
     }
-    
+
     // Return the original value
     return modelId;
   }
@@ -513,7 +519,9 @@ function OpenRouterModelSelector({ onSelectModel, currentModel }: OpenRouterMode
   const getModelDisplayName = (model: OpenRouterModel): string => {
     // model.id is defined as string in OpenRouterModel type
     const baseName = model.name || formatModelName(model.id);
-    const contextLength = model.context_length ? ` (${Math.floor(model.context_length / 1000)}k ctx)` : '';
+    const contextLength = model.context_length
+      ? ` (${Math.floor(model.context_length / 1000)}k ctx)`
+      : '';
     return `${baseName}${contextLength}`;
   };
 
@@ -524,15 +532,15 @@ function OpenRouterModelSelector({ onSelectModel, currentModel }: OpenRouterMode
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="h-6 w-6" 
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6"
                 onClick={refreshOpenRouterModels}
                 disabled={isLoadingOpenRouterModels}
                 aria-label="Refresh model list"
               >
-                <RefreshCw size={16} className={isLoadingOpenRouterModels ? "animate-spin" : ""} />
+                <RefreshCw size={16} className={isLoadingOpenRouterModels ? 'animate-spin' : ''} />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -541,7 +549,7 @@ function OpenRouterModelSelector({ onSelectModel, currentModel }: OpenRouterMode
           </Tooltip>
         </TooltipProvider>
       </div>
-      
+
       {isLoadingOpenRouterModels ? (
         <div className="flex items-center gap-2 text-sm opacity-70">
           <Loader2 size={16} className="animate-spin" />
@@ -557,20 +565,22 @@ function OpenRouterModelSelector({ onSelectModel, currentModel }: OpenRouterMode
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(openRouterModels).sort().map(([provider, models]) => (
-              <SelectGroup key={provider}>
-                <SelectLabel>{provider}</SelectLabel>
-                {models.map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    {getModelDisplayName(model)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            ))}
+            {Object.entries(openRouterModels)
+              .sort()
+              .map(([provider, models]) => (
+                <SelectGroup key={provider}>
+                  <SelectLabel>{provider}</SelectLabel>
+                  {models.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {getModelDisplayName(model)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              ))}
           </SelectContent>
         </Select>
       )}
-      
+
       {currentModel && !isLoadingOpenRouterModels && (
         <div className="text-xs opacity-70">
           Selected model ID: <code className="bg-muted px-1 py-0.5 rounded">{currentModel}</code>

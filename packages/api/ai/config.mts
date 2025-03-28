@@ -48,7 +48,7 @@ export async function getModel(): Promise<LanguageModel> {
         apiKey: config.xaiKey,
       });
       return xai(model);
-      
+
     case 'openrouter':
       if (!config.openrouterKey) {
         throw new Error('OpenRouter API key is not set');

@@ -1,4 +1,4 @@
-import { generateText, type GenerateTextResult } from 'ai';
+import { generateText } from 'ai';
 import { getModel } from './config.mjs';
 import {
   type CodeLanguageType,
@@ -108,7 +108,6 @@ ${query}
   return prompt;
 };
 
-type NoToolsGenerateTextResult = GenerateTextResult<{}>;
 /*
  * Given a user request, which is free form text describing their intent,
  * generate a srcbook using an LLM.
@@ -118,7 +117,7 @@ type NoToolsGenerateTextResult = GenerateTextResult<{}>;
  * In the future, we can parameterize this with different models, to allow
  * users to use different providers like Anthropic or local ones.
  */
-export async function generateSrcbook(query: string): Promise<NoToolsGenerateTextResult> {
+export async function generateSrcbook(query: string): Promise<string> {
   const model = await getModel();
   const result = await generateText({
     model,
@@ -130,7 +129,7 @@ export async function generateSrcbook(query: string): Promise<NoToolsGenerateTex
   if (result.finishReason !== 'stop') {
     console.warn('Generated a srcbook, but finish_reason was not "stop":', result.finishReason);
   }
-  return result;
+  return result.text;
 }
 
 export async function healthcheck(): Promise<string> {

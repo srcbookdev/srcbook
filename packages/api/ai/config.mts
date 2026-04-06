@@ -19,10 +19,9 @@ export async function getModel(): Promise<LanguageModel> {
         throw new Error('OpenAI API key is not set');
       }
       const openai = createOpenAI({
-        compatibility: 'strict', // strict mode, enabled when using the OpenAI API
         apiKey: config.openaiKey,
       });
-      return openai(model);
+      return openai.chat(model);
 
     case 'anthropic':
       if (!config.anthropicKey) {
@@ -43,32 +42,29 @@ export async function getModel(): Promise<LanguageModel> {
         throw new Error('Xai API key is not set');
       }
       const xai = createOpenAI({
-        compatibility: 'compatible',
         baseURL: 'https://api.x.ai/v1',
         apiKey: config.xaiKey,
       });
-      return xai(model);
+      return xai.chat(model);
 
     case 'openrouter':
       if (!config.openrouterKey) {
         throw new Error('OpenRouter API key is not set');
       }
       const openrouter = createOpenAI({
-        compatibility: 'compatible',
         baseURL: 'https://openrouter.ai/api/v1',
         apiKey: config.openrouterKey,
       });
-      return openrouter(model);
+      return openrouter.chat(model);
 
     case 'custom':
       if (typeof aiBaseUrl !== 'string') {
         throw new Error('Local AI base URL is not set');
       }
       const openaiCompatible = createOpenAI({
-        compatibility: 'compatible',
         apiKey: config.customApiKey || 'bogus', // use custom API key if set, otherwise use a bogus key
         baseURL: aiBaseUrl,
       });
-      return openaiCompatible(model);
+      return openaiCompatible.chat(model);
   }
 }

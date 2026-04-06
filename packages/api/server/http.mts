@@ -150,7 +150,7 @@ router.post('/generate', cors(), async (req, res) => {
   try {
     posthog.capture({ event: 'user generated srcbook with AI', properties: { query } });
     const result = await generateSrcbook(query);
-    const srcbookDir = await importSrcbookFromSrcmdText(result.text);
+    const srcbookDir = await importSrcbookFromSrcmdText(result);
     return res.json({ error: false, result: { dir: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;

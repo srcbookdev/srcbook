@@ -1,113 +1,27 @@
-# AGENTS.md
+# Repository Guidelines
 
-This file is the persistent working log for Codex sessions in this repo. Append dated notes as work happens, especially commands run, results, breakages, and decisions.
+## Project Structure & Module Organization
+This repo is a `pnpm` monorepo managed with Turborepo. Main packages live in `packages/`: `api` for the Express/Vite Node backend, `web` for the React/Vite frontend, `components` for shared UI, `shared` for cross-package schemas/types, and `configs` for shared ESLint/TypeScript config. The published CLI is in `srcbook/`. Source files live under `src/`, tests under `packages/api/test/`, static assets in `packages/web/public` and `srcbook/public`. Treat `dist/` directories as generated output.
 
-## Repo Notes
+## Build, Test, and Development Commands
+Use the repo Node version from `.nvmrc` (`22.7.0`). In this shell, prefer `corepack pnpm ...`.
 
-- Workspace manager: `pnpm` via Corepack. In this shell, `pnpm` is not on `PATH`; use `corepack pnpm ...`.
-- Repo `.nvmrc`: `22.7.0`
-- Current shell when this file was created on 2026-04-06: Node `v24.14.1`, npm `11.11.0`, Corepack pnpm `9.12.1`
-- Monorepo packages:
-  - root workspace
-  - `packages/api`
-  - `packages/web`
-  - `packages/components`
-  - `packages/shared`
-  - `packages/configs`
-  - `srcbook`
-- Dependency upgrade tracker: `dependency-upgrades.md`
+- `corepack pnpm install`: install workspace dependencies.
+- `corepack pnpm dev`: start Turbo dev tasks for the app stack.
+- `corepack pnpm build`: build every package.
+- `corepack pnpm lint`: run workspace ESLint checks.
+- `corepack pnpm check-format`: verify Prettier formatting.
+- `corepack pnpm test`: run workspace tests; today this is primarily the API Vitest suite.
+- `corepack pnpm --filter @srcbook/web check-types`: run package-level TypeScript checks. Use the same pattern for other packages.
 
-## Working Conventions
+## Coding Style & Naming Conventions
+TypeScript uses ESM throughout, with `.mts` common in Node packages and `.tsx` in React packages. Prettier enforces 2-space indentation, single quotes, semicolons, and a 100-character line width. ESLint config comes from `@srcbook/configs`. Use PascalCase for React component files such as `LayoutNavbar.tsx`; use lowercase or descriptive module names for route and utility files such as `routes/home.tsx` or `utils.mts`.
 
-- Prefer one dependency upgrade focus at a time.
-- After each dependency change:
-  - run install/update
-  - run targeted typechecks/tests for affected packages
-  - record results here
-  - update `dependency-upgrades.md`
-- Do not assume `pnpm outdated -r` returning exit code `1` means failure; it returns `1` when outdated packages are found.
+## Testing Guidelines
+Vitest is configured in `packages/api`; keep tests in `packages/api/test/` and name them `*.test.mts`. Store reusable fixtures near the suite, for example `packages/api/test/srcmd_files/`. No coverage threshold is configured, so add focused tests for behavior changes and run lint plus type checks for touched packages before opening a PR.
 
-## Work Log
+## Commit & Pull Request Guidelines
+Recent history favors short, imperative commit subjects like `Remove noisy logs` or `Update README.md`. Release commits are automated as `chore: release package(s)`. Before large changes, open or confirm an issue with maintainers. PRs should include a clear description, note affected packages, pass `build`, `lint`, `check-format`, and relevant tests, and include a changeset via `corepack pnpm changeset` for user-facing changes.
 
-### 2026-04-06
-
-- Initial dependency inventory:
-  - read workspace manifests: root `package.json`, `pnpm-workspace.yaml`, `packages/*/package.json`, `srcbook/package.json`
-  - confirmed there was no existing `AGENTS.md` or upgrade-tracker file
-- Commands run:
-  - `corepack pnpm -v`
-    - result: `9.12.1`
-  - `corepack pnpm outdated -r`
-    - result: succeeded, returned the workspace outdated report
-  - `corepack pnpm outdated -r --format json`
-    - result: succeeded, used for risk classification
-  - `corepack pnpm --filter @srcbook/shared check-types`
-    - result: passed
-  - `corepack pnpm --filter @srcbook/api check-types`
-    - result: passed
-  - `corepack pnpm --filter @srcbook/web check-types`
-    - result: passed
-- AI SDK scope findings:
-  - current AI SDK usage is concentrated in:
-    - `packages/api/ai/config.mts`
-    - `packages/api/ai/generate.mts`
-  - current code already uses `createOpenAI`, `createAnthropic`, `createGoogleGenerativeAI`, and `generateText`
-  - there are no local `streamText`, `streamObject`, or AI SDK UI hooks to migrate
-- Current AI SDK registry snapshot checked on 2026-04-06:
-  - `ai` latest dist-tag: `6.0.149`
-  - `@ai-sdk/openai` latest dist-tag: `3.0.51`
-  - `@ai-sdk/anthropic` latest dist-tag: `3.0.67`
-  - `@ai-sdk/google` latest dist-tag: `3.0.59`
-  - `@ai-sdk/provider` latest dist-tag: `3.0.8`
-- AI SDK migration notes from official docs checked on 2026-04-06:
-  - official migration guides exist for `3.4 -> 4.0`, `4.x -> 5.0`, and `5.x -> 6.0`
-  - current OpenAI provider docs still support `createOpenAI({ baseURL })`
-  - since AI SDK 5, the OpenAI provider uses the Responses API by default unless `openai.chat(...)` or `openai.completion(...)` is selected explicitly
-- Zod constraint:
-  - repo catalog is currently `zod@3.23.8`
-  - npm peer deps for `ai@5.0.168` and `ai@6.0.149` allow `zod ^3.25.76 || ^4.1.8`
-  - minimum low-disruption prerequisite for AI SDK is likely bumping the workspace to `zod@3.25.76` or later `3.x`
-- Initial judgment:
-  - there is a real batch of easy same-major bumps available
-  - AI SDK is behind by multiple majors, but the local code surface is small enough that it does not look like the gnarliest upgrade in the repo
-  - likely gnarlier later items: React 19, Tailwind 4, Express 5, Vite/Vitest major jumps, broader Zod 4 migration
-- Additional inspection before changing code:
-  - unpacked `@ai-sdk/openai@3.0.51` and `ai@6.0.149` into `/tmp` to inspect current types and provider behavior
-  - confirmed `createOpenAI` no longer accepts a `compatibility` option
-  - confirmed `createOpenAI(model)` now creates a Responses API model by default
-  - conclusion: OpenRouter, xAI, and custom `baseURL` paths should explicitly use `.chat(model)` after the upgrade to preserve OpenAI-compatible chat-completions behavior
-- AI SDK upgrade implemented on 2026-04-06:
-  - updated workspace catalog:
-    - `zod` -> `^3.25.76`
-    - `ai` -> `^6.0.149`
-    - `@ai-sdk/anthropic` -> `^3.0.67`
-    - `@ai-sdk/google` -> `^3.0.59`
-    - `@ai-sdk/openai` -> `^3.0.51`
-    - `@ai-sdk/provider` -> `^3.0.8`
-  - aligned `packages/api`, `packages/shared`, and `srcbook` to the catalog versions
-  - updated `packages/api/ai/config.mts`:
-    - removed the old `compatibility` option
-    - switched OpenAI-family providers to explicit `.chat(model)` calls
-  - updated `packages/api/ai/generate.mts`:
-    - `generateSrcbook` now returns plain text instead of leaking the raw `GenerateTextResult` type
-  - updated `packages/api/server/http.mts` to match the narrower `generateSrcbook` return type
-- Commands run after the AI SDK edit:
-  - `corepack pnpm install`
-    - result: passed, lockfile updated
-  - `corepack pnpm --filter @srcbook/shared check-types`
-    - result: passed
-  - `corepack pnpm --filter @srcbook/api check-types`
-    - first result: failed with `TS4058` because an exported function returned an AI SDK generic type that `tsc` could not name in declarations
-    - fix: narrowed `generateSrcbook` to `Promise<string>`
-    - second result: passed
-  - `corepack pnpm --filter @srcbook/web check-types`
-    - result: passed
-  - `corepack pnpm --filter @srcbook/api build`
-    - result: passed
-  - `corepack pnpm --filter srcbook build`
-    - result: passed
-  - `corepack pnpm --filter @srcbook/api test -- --run`
-    - result: passed, `3` test files and `11` tests
-- Remaining AI SDK follow-up:
-  - compile/build/test verification is green
-  - live provider smoke tests still need real API keys/config to verify OpenAI, Anthropic, Gemini, OpenRouter, xAI, and custom `baseURL` paths end-to-end
+## Session Notes
+- 2026-04-06: Created this guide after reviewing root/package `package.json` files, `CONTRIBUTING.md`, `README.md`, and CI workflows to align commands and conventions with the current monorepo.

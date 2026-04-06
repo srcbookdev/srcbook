@@ -27,20 +27,6 @@ import {
   TsServerDefinitionLocationResponsePayloadSchema,
   TsServerDefinitionLocationRequestPayloadSchema,
   TsServerCompletionEntriesPayloadSchema,
-  FileCreatedPayloadSchema,
-  FileUpdatedPayloadSchema,
-  FileRenamedPayloadSchema,
-  FileDeletedPayloadSchema,
-  FilePayloadSchema,
-  PreviewStatusPayloadSchema,
-  PreviewStartPayloadSchema,
-  PreviewStopPayloadSchema,
-  DepsInstallLogPayloadSchema,
-  DepsInstallStatusPayloadSchema,
-  DepsClearPayloadSchema,
-  DepsStatusResponsePayloadSchema,
-  DepsStatusPayloadSchema,
-  PreviewLogPayloadSchema,
 } from '@srcbook/shared';
 import Channel from '@/clients/websocket/channel';
 import WebSocketClient from '@/clients/websocket/client';
@@ -94,43 +80,5 @@ export class SessionChannel extends Channel<
       incoming: IncomingSessionEvents,
       outgoing: OutgoingSessionEvents,
     });
-  }
-}
-
-const IncomingAppEvents = {
-  file: FilePayloadSchema,
-  'file:updated': FileUpdatedPayloadSchema,
-  'preview:status': PreviewStatusPayloadSchema,
-  'preview:log': PreviewLogPayloadSchema,
-  'deps:install:log': DepsInstallLogPayloadSchema,
-  'deps:install:status': DepsInstallStatusPayloadSchema,
-  'deps:status:response': DepsStatusResponsePayloadSchema,
-};
-
-const OutgoingAppEvents = {
-  'file:created': FileCreatedPayloadSchema,
-  'file:updated': FileUpdatedPayloadSchema,
-  'file:renamed': FileRenamedPayloadSchema,
-  'file:deleted': FileDeletedPayloadSchema,
-  'preview:start': PreviewStartPayloadSchema,
-  'preview:stop': PreviewStopPayloadSchema,
-  'deps:install': DepsInstallPayloadSchema,
-  'deps:clear': DepsClearPayloadSchema,
-  'deps:status': DepsStatusPayloadSchema,
-};
-
-export class AppChannel extends Channel<typeof IncomingAppEvents, typeof OutgoingAppEvents> {
-  appId: string;
-
-  static create(appId: string) {
-    return new AppChannel(appId);
-  }
-
-  constructor(appId: string) {
-    super(client, `app:${appId}`, {
-      incoming: IncomingAppEvents,
-      outgoing: OutgoingAppEvents,
-    });
-    this.appId = appId;
   }
 }

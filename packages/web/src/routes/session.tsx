@@ -15,7 +15,8 @@ import {
 import { loadSession, loadSessions, getConfig } from '@/lib/server';
 import type { SessionType, SettingsType } from '@/types';
 import { GenerateAICellType, OutputType } from '@srcbook/components/src/types';
-import { TitleCell, MarkdownCell } from '@srcbook/components';
+import TitleCell from '@srcbook/components/src/components/cells/title';
+import MarkdownCell from '@srcbook/components/src/components/cells/markdown';
 import ControlledCodeCell from '@/components/cells/code';
 import GenerateAiCell from '@/components/cells/generate-ai';
 import SessionMenu, { SESSION_MENU_PANELS, Panel } from '@/components/session-menu';

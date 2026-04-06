@@ -38,8 +38,8 @@ export default function KeyboardShortcutsDialog({
               <ShortcutRow keys={['?']} description="show this dialog" />
               <ShortcutRow keys={['mod', ';']} description="open package.json" />
               <ShortcutRow keys={['mod', 'i']} description="open npm package install modal" />
-              <h5 className="font-semibold pt-6 pb-2">AI chat</h5>
-              <ShortcutRow keys={['mod', 'enter']} description="send current message to the AI" />
+              <h5 className="font-semibold pt-6 pb-2">AI Actions</h5>
+              <ShortcutRow keys={['mod', 'enter']} description="submit the current AI prompt" />
               {!readOnly ? (
                 <>
                   <h5 className="font-semibold pt-6 pb-2">Markdown edit</h5>
@@ -55,8 +55,6 @@ export default function KeyboardShortcutsDialog({
                     description="format code using Prettier"
                   />
                   <ShortcutRow keys={['alt', 'click']} description="go to definition" />
-                  <h5 className="font-semibold pt-6 pb-2">App Builder</h5>
-                  <ShortcutRow keys={['mod', 'shift', 'y']} description="toggle errors panel" />
                 </>
               ) : null}
             </div>

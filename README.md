@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://srcbook.com">Online app builder</a> ·
+  <a href="https://hub.srcbook.com">Examples</a> ·
   <a href="https://discord.gg/shDEGBSe2d">Discord</a> ·
   <a href="https://www.youtube.com/@srcbook">Youtube</a> ·
   <a href="https://hub.srcbook.com">Hub</a> 
@@ -18,35 +18,15 @@
 
 ## Maintainers Note
 
-Srcbook is currently not under active development. After overwhelming demand of making it a managed service, we have built and are operating https://getmocha.com for this purpose!
-
-In the future, we might revive Srcbook for its notebook product (over the app builder one, which is better served by Mocha).
+Srcbook is not under active development.
 
 ## Srcbook
 
-Srcbook is a TypeScript-centric app development platform, with 2 main products:
-
-- an AI app builder (also available [hosted online](https://srcbook.com/))
-- a TypeScript notebook
+Srcbook is a TypeScript notebook that runs locally on your machine.
 
 Srcbook is open-source (apache2) and runs locally on your machine. You'll need to bring your own API key for AI usage (we strongly recommend Anthropic with `claude-3-5-sonnet-latest`).
 
 ## Features
-
-### App Builder
-
-- AI app builder for TypeScript
-- Create, edit and run web apps
-- Use AI to generate the boilerplate, modify the code, and fix things
-- Edit the app with a hot-reloading web preview
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/lLJPZOs.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://i.imgur.com/k4xAyCQ.png">
-  <img alt="Example Srcbook" src="https://i.imgur.com/k4xAyCQ.png">
-</picture>
-
-### Notebooks
 
 - Create, run, and share TypeScript notebooks
 - Export to valid markdown format (.src.md)
@@ -120,7 +100,7 @@ Options:
 
 Commands:
   start [options]               Start the Srcbook server
-  import [options] <specifier>  Import a Notebook
+  import [options] <specifier>  Import a notebook
   help [command]                display help for command
 ```
 

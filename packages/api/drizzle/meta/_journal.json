@@ -120,6 +120,13 @@
       "when": 1743191674243,
       "tag": "0016_add_openrouter_api_key",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1775433600000,
+      "tag": "0017_drop_apps",
+      "breakpoints": true
     }
   ]
 }

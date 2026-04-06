@@ -1,4 +1,4 @@
-import { streamText, generateText, type GenerateTextResult } from 'ai';
+import { generateText, type GenerateTextResult } from 'ai';
 import { getModel } from './config.mjs';
 import {
   type CodeLanguageType,
@@ -12,8 +12,6 @@ import { readFileSync } from 'node:fs';
 import Path from 'node:path';
 import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
-import { buildProjectXml, type FileContent } from '../ai/app-parser.mjs';
-import { logAppGeneration } from './logger.mjs';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -25,34 +23,6 @@ const makeGenerateCellSystemPrompt = (language: CodeLanguageType) => {
 
 const makeFixDiagnosticsSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'fix-cell-diagnostics.txt'), 'utf-8');
-};
-const makeAppBuilderSystemPrompt = () => {
-  return readFileSync(Path.join(PROMPTS_DIR, 'app-builder.txt'), 'utf-8');
-};
-const makeAppEditorSystemPrompt = () => {
-  return readFileSync(Path.join(PROMPTS_DIR, 'app-editor.txt'), 'utf-8');
-};
-
-const makeAppEditorUserPrompt = (projectId: string, files: FileContent[], query: string) => {
-  const projectXml = buildProjectXml(files, projectId);
-  const userRequestXml = `<userRequest>${query}</userRequest>`;
-  return `Following below are the project XML and the user request.
-
-${projectXml}
-
-${userRequestXml}
-  `.trim();
-};
-
-const makeAppCreateUserPrompt = (projectId: string, files: FileContent[], query: string) => {
-  const projectXml = buildProjectXml(files, projectId);
-  const userRequestXml = `<userRequest>${query}</userRequest>`;
-  return `Following below are the project XML and the user request.
-
-${projectXml}
-
-${userRequestXml}
-  `.trim();
 };
 
 const makeGenerateCellUserPrompt = (session: SessionType, insertIdx: number, query: string) => {
@@ -241,56 +211,4 @@ export async function fixDiagnostics(
   });
 
   return result.text;
-}
-
-export async function generateApp(
-  projectId: string,
-  files: FileContent[],
-  query: string,
-): Promise<string> {
-  const model = await getModel();
-  const result = await generateText({
-    model,
-    system: makeAppBuilderSystemPrompt(),
-    prompt: makeAppCreateUserPrompt(projectId, files, query),
-  });
-  return result.text;
-}
-
-export async function streamEditApp(
-  projectId: string,
-  files: FileContent[],
-  query: string,
-  appId: string,
-  planId: string,
-) {
-  const model = await getModel();
-
-  const systemPrompt = makeAppEditorSystemPrompt();
-  const userPrompt = makeAppEditorUserPrompt(projectId, files, query);
-
-  let response = '';
-
-  const result = await streamText({
-    model,
-    system: systemPrompt,
-    prompt: userPrompt,
-    onChunk: (chunk) => {
-      if (chunk.chunk.type === 'text-delta') {
-        response += chunk.chunk.textDelta;
-      }
-    },
-    onFinish: () => {
-      if (process.env.SRCBOOK_DISABLE_ANALYTICS !== 'true') {
-        logAppGeneration({
-          appId,
-          planId,
-          llm_request: { model, system: systemPrompt, prompt: userPrompt },
-          llm_response: response,
-        });
-      }
-    },
-  });
-
-  return result.textStream;
 }

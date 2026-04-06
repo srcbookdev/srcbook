@@ -29,20 +29,6 @@ import {
   TsServerDefinitionLocationRequestPayloadSchema,
   TsServerDefinitionLocationResponsePayloadSchema,
   TsServerCompletionEntriesPayloadSchema,
-  FilePayloadSchema,
-  FileCreatedPayloadSchema,
-  FileUpdatedPayloadSchema,
-  FileRenamedPayloadSchema,
-  FileDeletedPayloadSchema,
-  PreviewStatusPayloadSchema,
-  PreviewStopPayloadSchema,
-  PreviewStartPayloadSchema,
-  DepsInstallLogPayloadSchema,
-  DepsInstallStatusPayloadSchema,
-  DepsClearPayloadSchema,
-  DepsStatusPayloadSchema,
-  DepsStatusResponsePayloadSchema,
-  PreviewLogPayloadSchema,
 } from '../schemas/websockets.mjs';
 
 export type CellExecPayloadType = z.infer<typeof CellExecPayloadSchema>;
@@ -59,9 +45,6 @@ export type AiGeneratedCellPayloadType = z.infer<typeof AiGeneratedCellPayloadSc
 export type AiFixDiagnosticsPayloadType = z.infer<typeof AiFixDiagnosticsPayloadSchema>;
 
 export type DepsInstallPayloadType = z.infer<typeof DepsInstallPayloadSchema>;
-export type DepsClearPayloadType = z.infer<typeof DepsClearPayloadSchema>;
-export type DepsStatusPayloadType = z.infer<typeof DepsStatusPayloadSchema>;
-export type DepsStatusResponsePayloadType = z.infer<typeof DepsStatusResponsePayloadSchema>;
 export type DepsValidateResponsePayloadType = z.infer<typeof DepsValidateResponsePayloadSchema>;
 export type DepsValidatePayloadType = z.infer<typeof DepsValidatePayloadSchema>;
 
@@ -97,19 +80,3 @@ export type TsServerDefinitionLocationResponsePayloadType = z.infer<
 export type TsServerCompletionEntriesPayloadType = z.infer<
   typeof TsServerCompletionEntriesPayloadSchema
 >;
-
-//////////
-// APPS //
-//////////
-
-export type FilePayloadType = z.infer<typeof FilePayloadSchema>;
-export type FileCreatedPayloadType = z.infer<typeof FileCreatedPayloadSchema>;
-export type FileUpdatedPayloadType = z.infer<typeof FileUpdatedPayloadSchema>;
-export type FileRenamedPayloadType = z.infer<typeof FileRenamedPayloadSchema>;
-export type FileDeletedPayloadType = z.infer<typeof FileDeletedPayloadSchema>;
-export type PreviewStatusPayloadType = z.infer<typeof PreviewStatusPayloadSchema>;
-export type PreviewStartPayloadType = z.infer<typeof PreviewStartPayloadSchema>;
-export type PreviewStopPayloadType = z.infer<typeof PreviewStopPayloadSchema>;
-export type PreviewLogPayloadType = z.infer<typeof PreviewLogPayloadSchema>;
-export type DepsInstallLogPayloadType = z.infer<typeof DepsInstallLogPayloadSchema>;
-export type DepsInstallStatusPayloadType = z.infer<typeof DepsInstallStatusPayloadSchema>;

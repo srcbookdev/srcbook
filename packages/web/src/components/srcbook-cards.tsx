@@ -1,4 +1,4 @@
-import { Sparkles, Circle, PlusIcon, Trash2, Import, LayoutGrid } from 'lucide-react';
+import { Sparkles, Circle, PlusIcon, Trash2, Import } from 'lucide-react';
 import { Button } from '@srcbook/components/src/components/ui/button';
 import { CodeLanguageType } from '@srcbook/shared';
 import { SrcbookLogo } from './logos';
@@ -175,41 +175,6 @@ export function SrcbookCard(props: SrcbookCardPropsType) {
   );
 }
 
-type AppCardPropsType = {
-  name: string;
-  onClick: () => void;
-  onDelete: () => void;
-};
-
-export function AppCard(props: AppCardPropsType) {
-  function onDelete(e: React.MouseEvent<HTMLButtonElement>) {
-    e.stopPropagation();
-    props.onDelete();
-  }
-
-  return (
-    <CardContainer
-      onClick={props.onClick}
-      className="active:translate-y-0.5 hover:border-foreground"
-    >
-      <span className="flex items-center">
-        <LayoutGrid size={20} className="mr-2 text-sb-purple-60" />
-        <h5 className="font-medium leading-[18px] line-clamp-2">{props.name}</h5>
-      </span>
-      <div className="flex justify-end">
-        <code className="font-mono group-hover:hidden text-tertiary-foreground">TS</code>
-        <button
-          type="button"
-          onClick={onDelete}
-          className="hidden group-hover:block hover:text-foreground"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    </CardContainer>
-  );
-}
-
 export function GenerateSrcbookButton(props: { onClick: () => void }) {
   return (
     <CardContainer
@@ -267,25 +232,6 @@ export function CreateSrcbookButton(props: {
         </Button>
       </div>
     </div>
-  );
-}
-
-export function CreateAppButton(props: { defaultLanguage: CodeLanguageType; onClick: () => void }) {
-  return (
-    <CardContainer
-      onClick={() => props.onClick()}
-      className="active:translate-y-0.5 bg-[#F6EEFB80] dark:bg-[#331F4780] border-sb-purple-20 dark:border-sb-purple-80 hover:border-sb-purple-60 text-sb-purple-70 dark:text-sb-purple-20"
-    >
-      <div className="flex flex-col h-full items-start justify-between">
-        <PlusIcon size={20} />
-        <div className="flex items-center">
-          <h5 className="font-medium leading-[18px] mr-2">Create App</h5>
-          <span className="flex items-center justify-center h-[16px] px-2 rounded-lg text-sb-purple-60 dark:text-sb-purple-20 bg-sb-core-0 dark:bg-sb-core-100">
-            New
-          </span>
-        </div>
-      </div>
-    </CardContainer>
   );
 }
 

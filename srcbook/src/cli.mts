@@ -1,3 +1,4 @@
+import os from 'node:os';
 import { spawn } from 'node:child_process';
 import { Command } from 'commander';
 import { pathTo, getPackageJson, isPortAvailable } from './utils.mjs';
@@ -10,7 +11,7 @@ function openInBrowser(url: string) {
   );
 }
 
-function startServer(port: string, callback: () => void) {
+function startServer(port: string, baseDir: string, callback: () => void) {
   const server = spawn('node', [pathTo('dist', 'src', 'server.mjs')], {
     // Inherit stdio configurations from CLI (parent) process and allow IPC
     stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
@@ -18,6 +19,7 @@ function startServer(port: string, callback: () => void) {
       ...process.env,
       NODE_ENV: 'production',
       PORT: port,
+      BASE_DIR: baseDir,
     },
   });
 
@@ -52,8 +54,9 @@ export default function program() {
     .command('start')
     .description('Start the Srcbook server')
     .option('-p, --port <port>', 'Port to run the server on', '2150')
-    .action(({ port }) => {
-      startServer(port, () => {
+    .option('-b, --base-dir <dir>', 'Base directory containing srcbook/ dir', os.homedir())
+    .action(({ port, baseDir }) => {
+      startServer(port, baseDir, () => {
         openInBrowser(`http://localhost:${port}`);
       });
     });
@@ -62,15 +65,16 @@ export default function program() {
     .command('import')
     .description('Import a Srcbook')
     .option('-p, --port <port>', 'Port of the server', '2150')
+    .option('-b, --base-dir <dir>', 'Base directory containing srcbook/ dir', os.homedir())
     .argument('<specifier>', 'An identifier of a Srcbook on hub.srcbook.com')
-    .action(async (specifier, { port }) => {
+    .action(async (specifier, { port, baseDir }) => {
       const portAvailable = await isPortAvailable('localhost', port);
 
       if (portAvailable) {
         return doImport(specifier, port);
       }
 
-      startServer(port, () => {
+      startServer(port, baseDir, () => {
         doImport(specifier, port);
       });
     });

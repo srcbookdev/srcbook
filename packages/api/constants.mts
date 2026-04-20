@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = path.dirname(_filename);
 
-export const HOME_DIR = os.homedir();
+export const HOME_DIR = process.env.BASE_DIR || os.homedir();
 export const SRCBOOK_DIR = path.join(HOME_DIR, '.srcbook');
 export const SRCBOOKS_DIR = path.join(SRCBOOK_DIR, 'srcbooks');
 export const APPS_DIR = path.join(SRCBOOK_DIR, 'apps');

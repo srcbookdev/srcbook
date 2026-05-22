@@ -176,6 +176,16 @@ function AiInfoBanner() {
           </div>
         );
 
+      case 'litellm':
+        return (
+          <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
+            <p>LiteLLM proxy URL required</p>
+            <a href="https://docs.litellm.ai/docs/simple_proxy" target="_blank" className="underline">
+              LiteLLM docs
+            </a>
+          </div>
+        );
+
       case 'custom':
         return (
           <div className="flex items-center gap-10 bg-sb-yellow-20 text-sb-yellow-80 rounded-sm text-sm font-medium px-3 py-2">
@@ -332,6 +342,7 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
               <SelectItem value="Xai">Xai</SelectItem>
               <SelectItem value="Gemini">Gemini</SelectItem>
               <SelectItem value="openrouter">openrouter</SelectItem>
+              <SelectItem value="litellm">litellm</SelectItem>
               <SelectItem value="custom">custom</SelectItem>
             </SelectContent>
           </Select>
@@ -445,6 +456,44 @@ export function AiSettings({ saveButtonLabel }: AiSettingsProps) {
             </Button>
           </div>
           <OpenRouterModelSelector onSelectModel={setModel} currentModel={model} />
+        </div>
+      )}
+
+      {aiProvider === 'litellm' && (
+        <div>
+          <p className="opacity-70 text-sm mb-4">
+            LiteLLM is an AI gateway that routes to 100+ LLM providers through a single proxy.
+            Enter your proxy URL and API key below. Use LiteLLM model IDs like
+            &quot;anthropic/claude-3-5-sonnet&quot; or &quot;openai/gpt-4o&quot;.
+          </p>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Input
+                name="baseUrl"
+                placeholder="http://localhost:4000/v1"
+                value={baseUrl}
+                onChange={(e) => setBaseUrl(e.target.value)}
+              />
+              <Input
+                name="customApiKey"
+                placeholder="LiteLLM API key"
+                type="password"
+                value={customApiKey}
+                onChange={(e) => setCustomApiKey(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button
+                className="px-5"
+                onClick={() =>
+                  updateConfigContext({ aiBaseUrl: baseUrl, customApiKey, aiModel: model })
+                }
+                disabled={!customModelSaveEnabled}
+              >
+                {saveButtonLabel ?? 'Save'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 

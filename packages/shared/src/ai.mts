@@ -4,6 +4,7 @@ export const AiProvider = {
   XAI: 'Xai',
   Gemini: 'Gemini',
   OpenRouter: 'openrouter',
+  LiteLLM: 'litellm',
   Custom: 'custom',
 } as const;
 
@@ -16,6 +17,7 @@ export const defaultModels: Record<AiProviderType, string> = {
   [AiProvider.XAI]: 'grok-beta',
   [AiProvider.Gemini]: 'gemini-1.5-pro-latest',
   [AiProvider.OpenRouter]: 'anthropic/claude-3-opus-20240229',
+  [AiProvider.LiteLLM]: 'gpt-4o-mini',
 } as const;
 
 export function isValidProvider(provider: string): provider is AiProviderType {

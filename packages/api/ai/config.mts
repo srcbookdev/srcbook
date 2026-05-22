@@ -57,6 +57,13 @@ export async function getModel(): Promise<LanguageModel> {
       });
       return openrouter.chat(model);
 
+    case 'litellm':
+      const litellm = createOpenAI({
+        apiKey: config.customApiKey || 'sk-1234',
+        baseURL: aiBaseUrl || 'http://localhost:4000/v1',
+      });
+      return litellm.chat(model);
+
     case 'custom':
       if (typeof aiBaseUrl !== 'string') {
         throw new Error('Local AI base URL is not set');

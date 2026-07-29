@@ -2,6 +2,7 @@ import { IncomingMessage } from 'node:http';
 import z from 'zod';
 import { type RawData, WebSocket } from 'ws';
 import { WebSocketMessageSchema } from '@srcbook/shared';
+import { verifyWebSocketOrigin } from './security.mjs';
 
 type TopicPart = { dynamic: false; segment: string } | { dynamic: true; parameter: string };
 
@@ -145,6 +146,9 @@ type ConnectionType = {
   subscriptions: string[];
 };
 
+// RFC 6455 close code for a message that violates policy.
+const WS_POLICY_VIOLATION_CODE = 1008;
+
 export default class WebSocketServer {
   private readonly channels: Channel[] = [];
   private connections: ConnectionType[] = [];
@@ -154,6 +158,13 @@ export default class WebSocketServer {
   }
 
   onConnection(socket: WebSocket, request: IncomingMessage) {
+    // Websockets are exempt from the same-origin policy, so without this check any
+    // page the user visits could open a socket and execute code through it.
+    if (!verifyWebSocketOrigin(request)) {
+      socket.close(WS_POLICY_VIOLATION_CODE, 'Origin not allowed');
+      return;
+    }
+
     const url = new URL(request.url!, `ws://${request.headers.host}`);
 
     const match = url.pathname.match(/^\/websocket\/?$/);

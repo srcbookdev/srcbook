@@ -14,6 +14,10 @@ services:
           create_host_path: true
     environment:
       - NODE_ENV=production
-      - HOST=${HOST_BIND:-127.0.0.1}
+      # Bind every interface *inside* the container — Docker forwards published ports
+      # to the container's IP, so binding loopback here would make the port mapping
+      # unreachable. Exposure is controlled by HOST_BIND on the ports line above,
+      # which defaults to loopback on the host.
+      - HOST=0.0.0.0
       - SRCBOOK_INSTALL_DEPS=true
     command: ['pnpm', 'start']

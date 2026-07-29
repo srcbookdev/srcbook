@@ -3,17 +3,19 @@ import { WebSocketServer as WsWebSocketServer } from 'ws';
 
 import app from './server/http.mjs';
 import webSocketServer from './server/ws.mjs';
+import { bindHost, webSocketServerOptions } from './server/security.mjs';
 
 export { SRCBOOK_DIR } from './constants.mjs';
 
 const server = http.createServer(app);
 
-const wss = new WsWebSocketServer({ server });
+const wss = new WsWebSocketServer({ server, ...webSocketServerOptions });
 wss.on('connection', webSocketServer.onConnection);
 
 const port = process.env.PORT || 2150;
-server.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+const host = bindHost();
+server.listen(Number(port), host, () => {
+  console.log(`Server is running at http://${host}:${port}`);
 });
 
 process.on('SIGINT', async function () {

@@ -35,16 +35,19 @@ import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
 import { pathToSrcbook } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
+import { corsOptions, verifyOrigin } from './security.mjs';
 
 const app: Application = express();
 
 const router = express.Router();
 
+// Order matters: cors answers preflight requests, verifyOrigin rejects everything
+// from an origin we don't trust, and only then do we parse a body.
+router.use(cors(corsOptions));
+router.use(verifyOrigin);
 router.use(express.json());
 
-router.options('/file', cors());
-
-router.post('/file', cors(), async (req, res) => {
+router.post('/file', async (req, res) => {
   const { file } = req.body as {
     file: string;
   };
@@ -69,14 +72,12 @@ router.post('/file', cors(), async (req, res) => {
   }
 });
 
-router.options('/examples', cors());
-router.get('/examples', cors(), (_, res) => {
+router.get('/examples', (_, res) => {
   return res.json({ result: EXAMPLE_SRCBOOKS });
 });
 
 // Create a new srcbook
-router.options('/srcbooks', cors());
-router.post('/srcbooks', cors(), async (req, res) => {
+router.post('/srcbooks', async (req, res) => {
   const { name, language } = req.body;
 
   // TODO: Zod
@@ -102,8 +103,7 @@ router.post('/srcbooks', cors(), async (req, res) => {
   }
 });
 
-router.options('/srcbooks/:id', cors());
-router.delete('/srcbooks/:id', cors(), async (req, res) => {
+router.delete('/srcbooks/:id', async (req, res) => {
   const { id } = req.params;
   const srcbookDir = pathToSrcbook(id);
   removeSrcbook(srcbookDir);
@@ -113,8 +113,7 @@ router.delete('/srcbooks/:id', cors(), async (req, res) => {
 });
 
 // Import a srcbook from a .src.md file or srcmd text.
-router.options('/import', cors());
-router.post('/import', cors(), async (req, res) => {
+router.post('/import', async (req, res) => {
   const { path, text, url } = req.body;
 
   if (typeof path === 'string' && !isSrcmdPath(path)) {
@@ -143,8 +142,7 @@ router.post('/import', cors(), async (req, res) => {
 });
 
 // Generate a srcbook using AI from a simple string query
-router.options('/generate', cors());
-router.post('/generate', cors(), async (req, res) => {
+router.post('/generate', async (req, res) => {
   const { query } = req.body;
 
   try {
@@ -160,8 +158,7 @@ router.post('/generate', cors(), async (req, res) => {
 });
 
 // Generate a cell using AI from a query string
-router.options('/sessions/:id/generate_cells', cors());
-router.post('/sessions/:id/generate_cells', cors(), async (req, res) => {
+router.post('/sessions/:id/generate_cells', async (req, res) => {
   // @TODO: zod
   const { insertIdx, query } = req.body;
 
@@ -179,8 +176,7 @@ router.post('/sessions/:id/generate_cells', cors(), async (req, res) => {
 });
 
 // Test that the AI generation is working with the current configuration
-router.options('/ai/healthcheck', cors());
-router.get('/ai/healthcheck', cors(), async (_req, res) => {
+router.get('/ai/healthcheck', async (_req, res) => {
   try {
     const result = await healthcheck();
     return res.json({ error: false, result });
@@ -192,8 +188,7 @@ router.get('/ai/healthcheck', cors(), async (_req, res) => {
 });
 
 // Open an existing srcbook by passing a path to the srcbook's directory
-router.options('/sessions', cors());
-router.post('/sessions', cors(), async (req, res) => {
+router.post('/sessions', async (req, res) => {
   const { path } = req.body;
 
   posthog.capture({ event: 'user opened srcbook' });
@@ -213,14 +208,12 @@ router.post('/sessions', cors(), async (req, res) => {
   }
 });
 
-router.get('/sessions', cors(), async (_req, res) => {
+router.get('/sessions', async (_req, res) => {
   const sessions = await listSessions();
   return res.json({ error: false, result: Object.values(sessions).map(sessionToResponse) });
 });
 
-router.options('/sessions/:id', cors());
-
-router.get('/sessions/:id', cors(), async (req, res) => {
+router.get('/sessions/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -243,8 +236,7 @@ router.get('/sessions/:id', cors(), async (req, res) => {
   }
 });
 
-router.options('/sessions/:id/export-text', cors());
-router.get('/sessions/:id/export-text', cors(), async (req, res) => {
+router.get('/sessions/:id/export-text', async (req, res) => {
   const session = await findSession(req.params.id);
 
   posthog.capture({ event: 'user exported srcbook' });
@@ -261,29 +253,26 @@ router.get('/sessions/:id/export-text', cors(), async (req, res) => {
   }
 });
 
-router.options('/sessions/:id/secrets/:name', cors());
-router.put('/sessions/:id/secrets/:name', cors(), async (req, res) => {
+router.put('/sessions/:id/secrets/:name', async (req, res) => {
   const { id, name } = req.params;
   await associateSecretWithSession(name, id);
   await updateSessionEnvTypeDeclarations(id);
   return res.status(204).end();
 });
 
-router.delete('/sessions/:id/secrets/:name', cors(), async (req, res) => {
+router.delete('/sessions/:id/secrets/:name', async (req, res) => {
   const { id, name } = req.params;
   await disassociateSecretWithSession(name, id);
   await updateSessionEnvTypeDeclarations(id);
   return res.status(204).end();
 });
 
-router.options('/settings', cors());
-
-router.get('/settings', cors(), async (_req, res) => {
+router.get('/settings', async (_req, res) => {
   const config = await getConfig();
   return res.json({ error: false, result: config });
 });
 
-router.post('/settings', cors(), async (req, res) => {
+router.post('/settings', async (req, res) => {
   try {
     const updated = await updateConfig(req.body);
 
@@ -300,24 +289,20 @@ router.post('/settings', cors(), async (req, res) => {
   }
 });
 
-router.options('/secrets', cors());
-
-router.get('/secrets', cors(), async (_req, res) => {
+router.get('/secrets', async (_req, res) => {
   const secrets = await getSecrets();
   return res.json({ result: secrets });
 });
 
 // Create a new secret
-router.post('/secrets', cors(), async (req, res) => {
+router.post('/secrets', async (req, res) => {
   const { name, value } = req.body;
   posthog.capture({ event: 'user created secret' });
   const updated = await addSecret(name, value);
   return res.json({ result: updated });
 });
 
-router.options('/secrets/:name', cors());
-
-router.post('/secrets/:name', cors(), async (req, res) => {
+router.post('/secrets/:name', async (req, res) => {
   const { name } = req.params;
   const { name: newName, value } = req.body;
   await removeSecret(name);
@@ -325,14 +310,13 @@ router.post('/secrets/:name', cors(), async (req, res) => {
   return res.json({ result: updated });
 });
 
-router.delete('/secrets/:name', cors(), async (req, res) => {
+router.delete('/secrets/:name', async (req, res) => {
   const { name } = req.params;
   const updated = await removeSecret(name);
   return res.json({ result: updated });
 });
 
-router.options('/feedback', cors());
-router.post('/feedback', cors(), async (req, res) => {
+router.post('/feedback', async (req, res) => {
   const { feedback, email } = req.body;
   // Every time you modify the appscript here, you'll need to update the URL below
   // @TODO: once we have an env variable setup, we can use that here.
@@ -361,8 +345,7 @@ type NpmSearchResult = {
  * Returns the name, version and description of the packages.
  * Consider debouncing calls to this API on the client side.
  */
-router.options('/npm/search', cors());
-router.get('/npm/search', cors(), async (req, res) => {
+router.get('/npm/search', async (req, res) => {
   const { q, size } = req.query;
   const response = await fetch(`https://registry.npmjs.org/-/v1/search?text=${q}&size=${size}`);
   if (!response.ok) {
@@ -375,8 +358,7 @@ router.get('/npm/search', cors(), async (req, res) => {
   return res.json({ result: results });
 });
 
-router.options('/subscribe', cors());
-router.post('/subscribe', cors(), async (req, res) => {
+router.post('/subscribe', async (req, res) => {
   const { email } = req.body;
   const hubResponse = await fetch('https://hub.srcbook.com/api/subscribe', {
     method: 'POST',

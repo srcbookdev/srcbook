@@ -17,8 +17,19 @@ export class Processes {
     this.processes[key] = process;
 
     process.on('exit', () => {
-      delete this.processes[key];
+      // Only forget this process if it is still the one registered under the key.
+      //
+      // Running the same cell twice before the first exits replaces the entry, and
+      // without this check the first process's exit would delete the second's key —
+      // leaving a running process that `kill` then claims doesn't exist.
+      if (this.processes[key] === process) {
+        delete this.processes[key];
+      }
     });
+  }
+
+  has(sessionId: string, cellId: string) {
+    return this.toKey(sessionId, cellId) in this.processes;
   }
 
   kill(sessionId: string, cellId: string) {

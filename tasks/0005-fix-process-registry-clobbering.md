@@ -1,7 +1,7 @@
 ---
 id: 0005
 title: Fix process registry clobbering on double-exec
-status: TODO
+status: DONE
 created: 2026-07-29
 area: api
 ---
@@ -40,3 +40,17 @@ Guarding the delete is a two-line fix. The "what should double-exec even do" que
 real decision — the UI currently disables run while running, so this is reachable mainly via
 a second client or a race, which makes it exactly the kind of bug that shows up once and is
 never reproduced.
+
+Partially done. The delete is now guarded — the exit handler only clears the key if it still
+holds the same process reference — and there's a test for the double-exec sequence, plus a
+`has()` method so callers can ask before adding.
+
+**Not decided:** what double-exec _should_ do. The registry no longer corrupts itself, but the
+first process is still orphaned rather than killed or refused. That's a product question
+(silently replace? refuse with an error? queue?) and it belongs with the execution-model
+decision in task 0006, since a stateful kernel would change the answer entirely.
+
+**Not verified:** whether `SIGTERM` to the `tsx` wrapper actually kills the TypeScript cell
+process. Needs a running notebook and a deliberately long-running cell to check. Left open —
+if `tsx` forks a child, stop is only cosmetic for TypeScript cells, which is the more
+interesting half of this task and shouldn't be quietly closed.

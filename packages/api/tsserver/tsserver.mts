@@ -31,26 +31,62 @@ import { parse } from './messages.mjs';
  * - https://github.com/microsoft/TypeScript/blob/v5.5.3/src/server/protocol.ts
  * - https://github.com/microsoft/TypeScript/wiki/Standalone-Server-(tsserver)
  */
+type PendingRequest = {
+  resolve: (value: any) => void;
+  reject: (error: Error) => void;
+  timeout: NodeJS.Timeout;
+};
+
+// Requests are interactive (hover, completions, go-to-definition), so a slow answer
+// is no more useful than no answer, and every request must eventually settle.
+const REQUEST_TIMEOUT_MS = 10_000;
+
 export class TsServer extends EventEmitter {
   private _seq: number = 0;
   private buffered: Buffer = Buffer.from('');
   private readonly process: ChildProcess;
-  private readonly resolvers: Record<number, (value: any) => void> = {};
+  private readonly pending: Record<number, PendingRequest> = {};
 
   constructor(process: ChildProcess) {
     super();
     this.process = process;
     this.process.stdout?.on('data', (chunk) => {
-      const { messages, buffered } = parse(chunk, this.buffered);
-      this.buffered = buffered;
-      for (const message of messages) {
-        if (message.type === 'response') {
-          this.handleResponse(message);
-        } else if (message.type === 'event') {
-          this.handleEvent(message);
+      // This runs in a 'data' listener, so a throw from parse() — which happens on
+      // any framing it doesn't recognise — would be an uncaught exception. Drop the
+      // buffer and carry on instead: tsserver output is a best-effort feature, not
+      // something worth ending the process over.
+      try {
+        const { messages, buffered } = parse(chunk, this.buffered);
+        this.buffered = buffered;
+        for (const message of messages) {
+          if (message.type === 'response') {
+            this.handleResponse(message);
+          } else if (message.type === 'event') {
+            this.handleEvent(message);
+          }
         }
+      } catch (e) {
+        console.error(`Error parsing tsserver output: ${(e as Error).message}`);
+        this.buffered = Buffer.from('');
       }
     });
+
+    // Anything still waiting on a response will never get one once the process is
+    // gone. Without this those promises hang forever and leak their resolvers.
+    this.process.on('exit', (code, signal) => {
+      this.rejectPending(new Error(`tsserver exited (code ${code}, signal ${signal})`));
+    });
+  }
+
+  private rejectPending(error: Error) {
+    for (const seq of Object.keys(this.pending)) {
+      const entry = this.pending[Number(seq)];
+      if (entry) {
+        clearTimeout(entry.timeout);
+        entry.reject(error);
+      }
+      delete this.pending[Number(seq)];
+    }
   }
 
   private get seq() {
@@ -58,19 +94,20 @@ export class TsServer extends EventEmitter {
   }
 
   private handleResponse(response: tsserver.protocol.Response) {
-    const resolve = this.resolvers[response.request_seq];
+    const entry = this.pending[response.request_seq];
 
-    if (!resolve) {
+    if (!entry) {
       console.warn(
-        `Received a response for command '${response.command}' and request_seq '${response.request_seq}' but no resolver was found. This may be a bug in the code.\n\nResponse:\n${JSON.stringify(response, null, 2)}\n`,
+        `Received a response for command '${response.command}' and request_seq '${response.request_seq}' but no pending request was found. It may have timed out.`,
       );
 
       return;
     }
 
-    delete this.resolvers[response.request_seq];
+    clearTimeout(entry.timeout);
+    delete this.pending[response.request_seq];
 
-    resolve(response);
+    entry.resolve(response);
   }
 
   private handleEvent(event: tsserver.protocol.Event) {
@@ -82,8 +119,13 @@ export class TsServer extends EventEmitter {
   }
 
   private sendWithResponsePromise<T>(request: tsserver.protocol.Request) {
-    return new Promise<T>((resolve) => {
-      this.resolvers[request.seq] = resolve;
+    return new Promise<T>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        delete this.pending[request.seq];
+        reject(new Error(`tsserver did not respond to '${request.command}' in time`));
+      }, REQUEST_TIMEOUT_MS);
+
+      this.pending[request.seq] = { resolve, reject, timeout };
       this.send(request);
     });
   }
@@ -114,6 +156,7 @@ export class TsServer extends EventEmitter {
    */
   shutdown() {
     this.removeAllListeners();
+    this.rejectPending(new Error('tsserver was shut down'));
     return this.process.kill('SIGTERM');
   }
 

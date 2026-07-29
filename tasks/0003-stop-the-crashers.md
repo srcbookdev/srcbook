@@ -1,7 +1,7 @@
 ---
 id: 0003
 title: Stop the process crashers
-status: TODO
+status: DONE
 created: 2026-07-29
 area: api
 ---
@@ -33,4 +33,26 @@ work, so a crash is worse than its individual severity suggests.
 ## Notes
 
 Worth adding a top-level `unhandledRejection` handler as a backstop — but as a safety net
-that logs loudly, not as the fix.
+that logs loudly, not as the fix. Not added: with the handler-level catch in place there is
+no known path to one, and a blanket handler would hide the next one instead of surfacing it.
+
+All five fixed. (1) and (4) landed earlier in the stack — the depcheck throw in the injection
+PR, since that function was being rewritten to use `execFile` anyway, and `process.send` in
+the network PR, because that's how it was discovered.
+
+The shape shared by (2), (3) and (5) is worth naming: **a throw inside an event-emitter
+callback is an uncaught exception, not a failed operation.** `handleIncomingMessage` runs in a
+socket `'message'` listener, `parse()` runs in a `'data'` listener, and the depcheck callback
+runs in an `exec` callback. In all three the surrounding `try/catch` or promise looked like it
+covered the code, and didn't.
+
+Also fixed while here, from task 0005 and adjacent: tsserver request promises never settled if
+the server died or never replied. They now time out at 10s and reject on process exit, so
+`this.pending` can't leak.
+
+The tsserver timeout is 10s because these are interactive requests — hover, completions,
+go-to-definition. An answer that late is no more useful than no answer; what matters is that
+the promise settles at all.
+
+Still open, deliberately: a rejected tsserver request leaves the _client_ hanging, because
+responses are broadcasts with no request correlation. That's task 0009.

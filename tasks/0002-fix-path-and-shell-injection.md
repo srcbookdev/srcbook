@@ -1,7 +1,7 @@
 ---
 id: 0002
 title: Fix path traversal and shell injection
-status: TODO
+status: DONE
 created: 2026-07-29
 area: api
 ---
@@ -32,3 +32,24 @@ extension. An imported notebook with `###### $(id).mjs` reaches a shell. Same sh
 ## Notes
 
 A `containedPath(root, ...segments)` helper used everywhere beats auditing each call site.
+
+Done. `path-utils.mts` holds `containedPath` / `requireContainedPath`.
+
+The containment check compares against `root + path.sep`, not `root` alone — otherwise
+`/tmp/srcbooks-evil` passes a `startsWith('/tmp/srcbooks')` test while being a completely
+different directory. There's a test for exactly that.
+
+`POST /api/file` is confined to `SRCBOOKS_DIR` rather than deleted, because go-to-definition
+genuinely needs it: tsserver reports paths into a srcbook's own `src/` _and_ into type
+declarations under its `node_modules`, and `SRCBOOKS_DIR` covers both.
+
+Filename validation had to cover the link target as well as the h6 heading. The external
+(on-disk) form is `###### foo.ts` followed by `[foo.ts](./src/foo.ts)`, and it's the link text
+that becomes the filename — validating only the heading would have left the path open.
+
+While in `formatCode`: prettier writes warnings to stderr while still exiting 0, and the old
+code treated any stderr output as failure. Now only a non-zero exit is an error.
+
+Two things noticed here and deliberately left for their own tasks: `decode()` still throws
+instead of returning `{error: true}` when metadata is missing, and `encode()` still assumes
+`cells[0]`/`cells[1]` are the title and package.json. Both are in `REVIEW.md` §2.2.

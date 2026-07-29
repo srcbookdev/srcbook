@@ -29,8 +29,9 @@ import {
 import { fileExists } from './fs-utils.mjs';
 import { validFilename } from '@srcbook/shared';
 import { pathToCodeFile } from './srcbook/path.mjs';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { npmInstall } from './exec.mjs';
+import { requireContainedPath } from './path-utils.mjs';
 
 const sessions: Record<string, SessionType> = {};
 
@@ -326,16 +327,28 @@ export async function formatCode(dir: string, fileName: string) {
   try {
     await ensurePrettierInstalled(dir);
 
-    const codeFilePath = pathToCodeFile(dir, fileName);
-    const command = `npx prettier ${codeFilePath}`;
+    // Contained because a filename can arrive from a decoded .src.md, which is
+    // attacker-controlled for an imported notebook.
+    const codeFilePath = requireContainedPath(dir, 'src', fileName);
 
-    return new Promise((resolve, reject) => {
-      exec(command, async (_, stdout, stderr) => {
-        if (stderr) {
-          console.error(`exec error: ${stderr}`);
-          reject(stderr);
+    return new Promise<string>((resolve, reject) => {
+      // execFile, not exec: exec runs through a shell, so a filename like
+      // `$(id).mjs` would be interpreted rather than passed as an argument.
+      // Also runs in the srcbook's directory so npx resolves that copy of
+      // prettier rather than whatever is near the server's cwd.
+      execFile('npx', ['prettier', codeFilePath], { cwd: dir }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error formatting ${fileName}: ${stderr || error.message}`);
+          reject(new Error(stderr || error.message));
           return;
         }
+
+        // Prettier warns on stderr while still succeeding, so only a non-zero
+        // exit is a failure. Previously any stderr output was treated as one.
+        if (stderr) {
+          console.warn(`prettier: ${stderr}`);
+        }
+
         resolve(stdout);
       });
     });

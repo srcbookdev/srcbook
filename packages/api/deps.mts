@@ -1,5 +1,5 @@
 import Path from 'node:path';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { readFile } from './fs-utils.mjs';
 import { DIST_DIR } from './constants.mjs';
 
@@ -50,25 +50,32 @@ export async function shouldNpmInstall(dirPath: string): Promise<boolean> {
 }
 
 export async function missingUndeclaredDeps(dirPath: string): Promise<string[]> {
-  return new Promise((resolve) => {
-    // Ignore the err argument because depcheck exists with a non zero code (255) when there are missing deps.
-    exec(
-      `npm run depcheck ${Path.resolve(dirPath)} -- --json`,
+  return new Promise((resolve, reject) => {
+    // execFile rather than exec: dirPath must not reach a shell.
+    // The err argument is ignored because depcheck exits non-zero (255) precisely
+    // when it finds missing deps, which is the case we care about.
+    execFile(
+      'npm',
+      ['run', 'depcheck', Path.resolve(dirPath), '--', '--json'],
       { cwd: DIST_DIR },
       (_err, stdout) => {
-        const output = stdout || '';
+        // Everything below runs in a callback, so a throw here would escape the
+        // promise entirely and take the process down rather than rejecting. This
+        // is on the cell-execution path, so that was a crash on every run whose
+        // depcheck output didn't parse.
+        try {
+          const jsonMatch = (stdout || '').match(/{.*}/s);
 
-        // Use regex to extract JSON object
-        const jsonMatch = output.match(/{.*}/s);
-        if (!jsonMatch) {
-          throw new Error('Failed to extract JSON from depcheck output.');
+          if (!jsonMatch) {
+            reject(new Error('Failed to extract JSON from depcheck output.'));
+            return;
+          }
+
+          const parsedResult = JSON.parse(jsonMatch[0]);
+          resolve(Object.keys(parsedResult.missing ?? {}));
+        } catch (e) {
+          reject(e instanceof Error ? e : new Error(String(e)));
         }
-
-        // Parse the JSON
-        const parsedResult = JSON.parse(jsonMatch[0]);
-
-        // Process and return the data as needed
-        resolve(Object.keys(parsedResult.missing));
       },
     );
   });

@@ -222,7 +222,9 @@ function buildPackageJson(language: CodeLanguageType) {
 }
 
 export function removeSrcbook(srcbookDir: string) {
-  fs.rm(srcbookDir, { recursive: true });
+  // Returned rather than fire-and-forget: a rejection here used to surface as an
+  // unhandled rejection instead of an error the caller could report.
+  return fs.rm(srcbookDir, { recursive: true, force: true });
 }
 
 export function removeCodeCellFromDisk(srcbookDir: string, filename: string) {

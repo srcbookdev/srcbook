@@ -212,8 +212,21 @@ export default class WebSocketServer {
   }
 
   private handleIncomingMessage(conn: ConnectionType, message: RawData) {
-    const parsed = JSON.parse(message.toString('utf8'));
-    const [topic, event, payload] = WebSocketMessageSchema.parse(parsed);
+    // This runs inside a socket 'message' listener, so anything thrown here is an
+    // uncaught exception rather than a failed request. Per-event payloads were
+    // already parsed safely below; the envelope itself was not, which made one
+    // malformed frame enough to take the server down.
+    let topic: string;
+    let event: string;
+    let payload: Record<string, any>;
+
+    try {
+      const parsed = JSON.parse(message.toString('utf8'));
+      [topic, event, payload] = WebSocketMessageSchema.parse(parsed);
+    } catch (e) {
+      console.warn(`Server received a malformed websocket message: ${(e as Error).message}`);
+      return;
+    }
 
     const channelMatch = this.findChannelMatch(topic);
 
@@ -258,7 +271,29 @@ export default class WebSocketServer {
       return;
     }
 
-    handler(result.data, { topic: match.topic, event: event, params: match.params }, conn);
+    // Handlers are async and throw freely — findSession throws for an unknown id,
+    // which a reconnecting client with a stale session can trigger on its own. An
+    // unawaited rejection here would be an unhandled rejection, and Node's default
+    // is to exit the process on those.
+    try {
+      const result_ = handler(
+        result.data,
+        { topic: match.topic, event: event, params: match.params },
+        conn,
+      ) as void | Promise<void>;
+
+      if (result_ instanceof Promise) {
+        result_.catch((e) => this.reportHandlerError(topic, event, e));
+      }
+    } catch (e) {
+      this.reportHandlerError(topic, event, e);
+    }
+  }
+
+  private reportHandlerError(topic: string, event: string, e: unknown) {
+    const error = e instanceof Error ? e : new Error(String(e));
+    console.error(`Error handling '${event}' on topic '${topic}': ${error.message}`);
+    console.error(error);
   }
 
   private findChannelMatch(topic: string): { channel: Channel; match: TopicMatch } | null {

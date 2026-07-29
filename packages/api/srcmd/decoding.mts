@@ -1,6 +1,11 @@
 import { marked } from 'marked';
 import type { Tokens, Token, TokensList } from 'marked';
-import { languageFromFilename, randomid, SrcbookMetadataSchema } from '@srcbook/shared';
+import {
+  languageFromFilename,
+  randomid,
+  SrcbookMetadataSchema,
+  validFilename,
+} from '@srcbook/shared';
 import type {
   CellType,
   CodeCellType,
@@ -215,6 +220,36 @@ function groupTokens(tokens: Token[]) {
   return grouped;
 }
 
+/**
+ * Filenames decoded from a .src.md end up as paths on disk and as arguments to
+ * child processes, and an imported notebook is untrusted input. `validFilename`
+ * allows only `[a-zA-Z0-9_-]+` plus a js/ts extension, which rules out traversal
+ * (`../`) and shell metacharacters (`$(id).mjs`) at the point they enter.
+ */
+function validateFilenames(grouped: GroupedTokensType[]) {
+  const errors: string[] = [];
+
+  for (let i = 0; i < grouped.length; i++) {
+    const group = grouped[i];
+
+    if (group?.type !== 'filename') {
+      continue;
+    }
+
+    const next = grouped[i + 1];
+    const filename = next?.type === 'code:linked' ? next.token.text : group.token.text;
+
+    if (filename !== 'package.json' && !validFilename(filename)) {
+      errors.push(
+        `'${filename}' is not a valid filename. Filenames may contain letters, numbers, ` +
+          `dashes and underscores, and must end in .js, .cjs, .mjs, .ts, .cts or .mts`,
+      );
+    }
+  }
+
+  return errors;
+}
+
 function validateTokenGroups(grouped: GroupedTokensType[]) {
   const errors: string[] = [];
 
@@ -251,7 +286,7 @@ function validateTokenGroups(grouped: GroupedTokensType[]) {
     i += 1;
   }
 
-  return errors;
+  return errors.concat(validateFilenames(grouped));
 }
 
 function validateTokenGroupsPartial(grouped: GroupedTokensType[]) {
@@ -275,7 +310,7 @@ function validateTokenGroupsPartial(grouped: GroupedTokensType[]) {
     i += 1;
   }
 
-  return errors;
+  return errors.concat(validateFilenames(grouped));
 }
 
 function convertToCells(groups: GroupedTokensType[]): CellType[] {

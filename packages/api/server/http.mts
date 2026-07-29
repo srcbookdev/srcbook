@@ -33,9 +33,11 @@ import {
 } from '../srcbook/index.mjs';
 import { readdir } from '../fs-utils.mjs';
 import { EXAMPLE_SRCBOOKS } from '../srcbook/examples.mjs';
-import { pathToSrcbook } from '../srcbook/path.mjs';
+import { isSrcbookCellPath } from '../srcbook/path.mjs';
 import { isSrcmdPath } from '../srcmd/paths.mjs';
 import { corsOptions, verifyOrigin } from './security.mjs';
+import { containedPath } from '../path-utils.mjs';
+import { ConfigUpdateSchema } from '../schemas/config.mjs';
 
 const app: Application = express();
 
@@ -47,21 +49,40 @@ router.use(cors(corsOptions));
 router.use(verifyOrigin);
 router.use(express.json());
 
+// Read a file so the client can show it — used by go-to-definition, which follows
+// tsserver into a srcbook's own sources and into its node_modules type declarations.
+//
+// Reads are confined to SRCBOOKS_DIR. This endpoint used to read any path on disk.
 router.post('/file', async (req, res) => {
   const { file } = req.body as {
     file: string;
   };
 
+  if (typeof file !== 'string' || file === '') {
+    return res.status(400).json({ error: true, result: 'file must be a non-empty string' });
+  }
+
+  const path = containedPath(SRCBOOKS_DIR, file);
+
+  if (path === null) {
+    console.warn(`Refused to read '${file}': outside of ${SRCBOOKS_DIR}`);
+    return res
+      .status(403)
+      .json({ error: true, result: 'Only files inside the srcbooks directory can be read' });
+  }
+
   try {
-    const content = await fs.readFile(file, 'utf8');
-    const cell = file.includes('.srcbook/srcbooks') && !file.includes('node_modules');
-    const filename = cell ? file.split('/').pop() || file : file;
+    const content = await fs.readFile(path, 'utf8');
+
+    // A path under a srcbook's src/ is one of its own cells, so the client scrolls to
+    // that cell rather than opening a read-only view of the file.
+    const cell = isSrcbookCellPath(path);
 
     return res.json({
       error: false,
       result: {
         content: cell ? '' : content,
-        filename,
+        filename: Path.basename(path),
         type: cell ? 'cell' : 'filepath',
       },
     });
@@ -105,8 +126,24 @@ router.post('/srcbooks', async (req, res) => {
 
 router.delete('/srcbooks/:id', async (req, res) => {
   const { id } = req.params;
-  const srcbookDir = pathToSrcbook(id);
-  removeSrcbook(srcbookDir);
+
+  // This ends in fs.rm(recursive: true), and express URL-decodes params, so an id of
+  // `..%2F..%2FDocuments` would otherwise delete a directory outside SRCBOOKS_DIR.
+  const srcbookDir = containedPath(SRCBOOKS_DIR, id);
+
+  if (srcbookDir === null || srcbookDir === Path.resolve(SRCBOOKS_DIR)) {
+    console.warn(`Refused to delete srcbook '${id}': not a path inside ${SRCBOOKS_DIR}`);
+    return res.status(400).json({ error: true, result: 'Invalid srcbook id' });
+  }
+
+  try {
+    await removeSrcbook(srcbookDir);
+  } catch (e) {
+    const error = e as unknown as Error;
+    console.error(error);
+    return res.json({ error: true, result: error.stack });
+  }
+
   posthog.capture({ event: 'user deleted srcbook' });
   await deleteSessionByDirname(srcbookDir);
   return res.json({ error: false, deleted: true });
@@ -273,12 +310,24 @@ router.get('/settings', async (_req, res) => {
 });
 
 router.post('/settings', async (req, res) => {
+  // The body used to be passed straight to `db.update(configs).set(...)`, so any
+  // column was writable by any caller — including aiBaseUrl, which redirects
+  // subsequent AI calls, and the user's key along with them.
+  const parsed = ConfigUpdateSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: true,
+      result: parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
+    });
+  }
+
   try {
-    const updated = await updateConfig(req.body);
+    const updated = await updateConfig(parsed.data);
 
     posthog.capture({
       event: 'user updated settings',
-      properties: { setting_changed: Object.keys(req.body) },
+      properties: { setting_changed: Object.keys(parsed.data) },
     });
 
     return res.json({ result: updated });

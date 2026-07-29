@@ -38,6 +38,55 @@ describe('encoding and decoding srcmd files', () => {
     ]);
   });
 
+  // Filenames from a .src.md become paths on disk and arguments to child processes,
+  // and an imported notebook is untrusted input. Reject the dangerous shapes here,
+  // at the point they enter the system.
+  describe('filename validation', () => {
+    function decodeWithFilename(filename: string) {
+      return decode(
+        languagePrefix + `# Heading 1\n\n###### ${filename}\n\n\`\`\`javascript\nfoo()\n\`\`\``,
+      ) as DecodeErrorResult;
+    }
+
+    it('rejects shell metacharacters', () => {
+      const result = decodeWithFilename('$(id).mjs');
+      expect(result.error).toBe(true);
+      expect(result.errors[0]).toMatch(/not a valid filename/);
+    });
+
+    it('rejects path traversal', () => {
+      expect(decodeWithFilename('../../evil.mjs').error).toBe(true);
+      expect(decodeWithFilename('/etc/passwd.mjs').error).toBe(true);
+    });
+
+    it('rejects filenames without a js/ts extension', () => {
+      expect(decodeWithFilename('foo.sh').error).toBe(true);
+      expect(decodeWithFilename('foo').error).toBe(true);
+    });
+
+    it('accepts ordinary filenames', () => {
+      expect(decodeWithFilename('foo.mjs').error).toBe(false);
+      expect(decodeWithFilename('my-file_2.ts').error).toBe(false);
+    });
+
+    it('still accepts package.json', () => {
+      const result = decode(
+        languagePrefix + '# Heading 1\n\n###### package.json\n\n```json\n{"dependencies":{}}\n```',
+      );
+      expect(result.error).toBe(false);
+    });
+
+    it('validates the filename in a linked code cell, not just the heading', () => {
+      // The external (on-disk) form puts the real filename in the link, so
+      // validating only the h6 text would leave this path open.
+      const result = decode(
+        languagePrefix + '# Heading 1\n\n###### ok.mjs\n\n[$(id).mjs](./src/$(id).mjs)',
+      ) as DecodeErrorResult;
+      expect(result.error).toBe(true);
+      expect(result.errors[0]).toMatch(/not a valid filename/);
+    });
+  });
+
   it('can decode a well-formed file', () => {
     const result = decode(srcmd) as DecodeSuccessResult;
     expect(result.error).toBe(false);
